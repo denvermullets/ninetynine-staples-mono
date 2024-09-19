@@ -1,0 +1,4 @@
+<h1>hi</h1>
+<% if current_user %>
+  <%= link_to "Sign out", logout_path, data: { turbo_method: :delete }, class: "text-black" %>
+<% end %>
