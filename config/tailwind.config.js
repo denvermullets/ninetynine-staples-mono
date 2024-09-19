@@ -13,7 +13,7 @@ module.exports = {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        green: {
+        nineGreen: {
           50: "#E9FBF4",
           100: "#C1F5E1",
           200: "#9AEFCE",
@@ -25,7 +25,7 @@ module.exports = {
           800: "#0E583B",
           900: "#072C1E",
         },
-        teal: {
+        nineTeal: {
           50: "#F0F4F4",
           100: "#D5E1E0",
           200: "#BACECB",
@@ -37,7 +37,7 @@ module.exports = {
           800: "#2A3C39",
           900: "#151E1D",
         },
-        cyan: {
+        nineCyan: {
           50: "#F2F2F3",
           100: "#D9DBDD",
           200: "#C1C3C8",
