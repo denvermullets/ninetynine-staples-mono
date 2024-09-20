@@ -38,4 +38,4 @@ production:
   #   url: <%= ENV['DATABASE_URL']&.+('_cache') %>
   queue:
     <<: *queue
-    url: <%= ENV['DATABASE_URL']&.+('_queue') %>
+    url: <%= ENV['DATABASE_QUEUE_URL'] %>
