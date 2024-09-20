@@ -133,6 +133,11 @@ GEM
     matrix (0.4.2)
     mini_mime (1.1.5)
     minitest (5.25.1)
+    mission_control-jobs (0.1.1)
+      importmap-rails
+      rails (~> 7.1)
+      stimulus-rails
+      turbo-rails
     msgpack (1.7.2)
     net-imap (0.4.16)
       date
@@ -319,6 +324,7 @@ DEPENDENCIES
   capybara
   debug
   importmap-rails
+  mission_control-jobs
   pg (~> 1.1)
   puma (>= 5.0)
   rails (~> 7.2.1)
