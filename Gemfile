@@ -2,10 +2,12 @@ source "https://rubygems.org"
 
 gem "bootsnap", require: false
 gem "importmap-rails"
+gem "mission_control-jobs"
 gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 gem "rails", "~> 7.2.1"
 gem "revise_auth", "~> 0.8.0"
+gem "solid_queue", "~> 0.9.0"
 gem "sprockets-rails"
 gem "stimulus-rails"
 gem "tailwindcss-rails"
