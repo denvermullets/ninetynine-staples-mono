@@ -1,24 +1,3 @@
-# README
+solidqueue loads schema first instead of migrations so you need to run:
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+`rails db:prepare` before running migrate or else it'll wipe the schema file for the queue
