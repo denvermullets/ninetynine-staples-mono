@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 gem "bootsnap", require: false
-gem 'httparty'
+gem "httparty"
 gem "importmap-rails"
 gem "mission_control-jobs"
 gem "pg", "~> 1.1"
