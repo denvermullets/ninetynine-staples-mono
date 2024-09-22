@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Ninetynine Staples Mono" %></title>
+    <title><%= content_for(:title) || "Ninetynine Staples" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -16,7 +16,7 @@
     <%= javascript_importmap_tags %>
   </head>
   <body class='h-screen'>
-    <main class="flex flex-col h-full mx-auto bg-nineTeal-50">
+    <main class="flex flex-col h-full mx-auto bg-dark-50">
       <%= yield %>
     </main>
   </body>
