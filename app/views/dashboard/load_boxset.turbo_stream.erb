@@ -1,21 +1,22 @@
 <%= turbo_stream.update "table-container" do %>
-  <table class="w-full divide-y divide-gray-200">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Name</th>
-        <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Code</th>
-        <!-- Add more table headers as needed -->
-      </tr>
-    </thead>
-    <tbody class="bg-white divide-y divide-gray-200">
-      <p><%= @related_data.to_json %> hi hi</p>
-      <% @related_data.each do |item| %>
+  <div class='p-8 rounded-lg bg-dark-200'>
+    <table class="w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
         <tr>
-          <td class="px-6 py-4 whitespace-nowrap"><%= item.name %></td>
-          <td class="px-6 py-4 whitespace-nowrap"><%= item.code %></td>
-          <!-- Add more table cells as needed -->
+          <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Name</th>
+          <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Code</th>
+          <!-- Add more table headers as needed -->
         </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <% @boxset.magic_cards.each do |card| %>
+          <tr>
+            <td class="px-6 py-4 text-sm whitespace-nowrap"><%= card.name %></td>
+            <td class="px-6 py-4 text-sm whitespace-nowrap"><%= card.card_type %></td>
+            <!-- Add more table cells as needed -->
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 <% end %>

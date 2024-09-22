@@ -1,6 +1,6 @@
 class DashboardController < ApplicationController
   def index
-    @options = Boxset.where(valid_cards: true).map { |boxset| { id: boxset.id, name: boxset.name, code: boxset.code } }
+    @options = Boxset.where(valid_cards: true).map { |boxset| { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase } }
     render :index
   end
 
@@ -11,8 +11,7 @@ class DashboardController < ApplicationController
   # end
 
   def load_boxset
-    boxsets = Boxset.where(code: params[:code])
-    @related_data = boxsets
+    @boxset = Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: params[:code])
 
     respond_to do |format|
       format.turbo_stream

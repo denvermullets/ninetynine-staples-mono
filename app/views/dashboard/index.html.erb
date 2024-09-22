@@ -1,27 +1,31 @@
 <div class='flex flex-col px-16 space-y-8 bg-dark-100'>
   <h1 class='text-dark-500'>hi</h1>
+  <i class="ss ss-mor"></i>
   <% if current_user %>
     <%= button_to 'Start Ingest Process', dashboard_ingest_path, method: :post, class: 'btn btn-primary' %>
     <%= link_to "Sign out", logout_path, data: { turbo_method: :delete }, class: "text-accent-500" %>
   <% end %>
   <div
-    class='p-4'
-    data-controller="filter-dropdown"
-    data-filter-dropdown-options-value="<%= @options.to_json %>"
-    data-filter-dropdown-url-value="<%= load_boxset_path %>">
+  class='w-full p-4'
+  data-controller="filter-dropdown"
+  data-filter-dropdown-options-value="<%= @options.to_json %>"
+  data-filter-dropdown-url-value="<%= load_boxset_path %>">
     <div class="relative">
       <input
-        type="text"
-        data-filter-dropdown-target="input"
-        data-action="input->filter-dropdown#search click->filter-dropdown#toggle"
+      type="text"
+      data-filter-dropdown-target="input"
+      data-action="input->filter-dropdown#search click->filter-dropdown#toggle"
         class="w-full p-2 border rounded-md"
         placeholder="Select or type...">
         <button data-action="click->filter-dropdown#toggle" class="absolute inset-y-0 right-0 flex items-center px-2">
-          V
+          v
         </button>
       </div>
       <div data-filter-dropdown-target="dropdown"
-       class="absolute z-10 hidden w-full mt-1 overflow-auto bg-white border rounded-md shadow-lg max-h-60">
+       class="absolute z-10 hidden w-full mt-1 overflow-auto text-sm bg-white border rounded-md shadow-lg max-h-60"
+        style="width: calc(100% - 10rem);"
+       >
+        <!-- Dropdown options will be injected here -->
       </div>
     </div>
   </div>

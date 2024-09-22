@@ -62,8 +62,6 @@ export default class extends Controller {
     this.dropdownTarget.classList.add("hidden");
 
     // Trigger Turbo request to load table data
-
-    console.log("selectedOption: ", selectedOption);
     this.loadTableData(selectedOption.code);
   }
 
@@ -72,11 +70,13 @@ export default class extends Controller {
       return '<div class="p-2 text-gray-500">No results found</div>';
     }
 
+    console.log("options", options);
+
     return options
       .map(
         (option) => `
-      <div class="p-2 hover:bg-gray-100 cursor-pointer" data-action="click->filter-dropdown#select">
-        ${option.name}
+      <div class="p-2 w-auto hover:bg-gray-100 cursor-pointer flex items-center" data-action="click->filter-dropdown#select">
+        <i class="ss ss-${option.keyrune_code} mr-2 text-2xl"></i>${option.name}
       </div>
     `
       )
@@ -84,13 +84,11 @@ export default class extends Controller {
   }
 
   loadTableData(code) {
-    console.log("urlVal", this.urlValue);
     const url = `${this.urlValue}?code=${code}`;
 
     fetch(url)
       .then((response) => response.text())
       .then((html) => {
-        console.log("?", html);
         Turbo.renderStreamMessage(html);
       });
   }
