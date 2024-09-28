@@ -4,14 +4,20 @@ class DashboardController < ApplicationController
     render :index
   end
 
-  # def index
-  #   @options = YourModel.select(:id, :name, :code).map do |item|
-  #     { id: item.id, name: item.name, code: item.code }
-  #   end
-  # end
-
   def load_boxset
     @boxset = Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: params[:code])
+    # some sets have non integer based card numbers, those i care less about sorting right now
+    @magic_cards = @boxset.magic_cards.sort_by do |card|
+      begin
+        # Try to convert the card_number to an integer
+        # trying to use a Tuple
+        [ Integer(card.card_number), 0 ]
+      rescue ArgumentError, TypeError
+        # If it fails, place it at the end
+        [ Float::INFINITY, 1 ]
+      end
+    end
+
 
     respond_to do |format|
       format.turbo_stream
