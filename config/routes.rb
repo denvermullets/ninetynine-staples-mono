@@ -12,6 +12,8 @@ Rails.application.routes.draw do
 
   root "dashboard#index"
   post "dashboard/ingest", to: "dashboard#ingest", as: "dashboard_ingest"
+  get "load_boxset", to: "dashboard#load_boxset", as: "load_boxset"
+  resources :boxsets
   # Defines the root path route ("/")
   # root "posts#index"
 end

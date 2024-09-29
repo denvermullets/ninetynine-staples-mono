@@ -25,8 +25,15 @@ class IngestSetCards < ApplicationJob
         puts "working on card #{card["name"]}"
         magic_card = create_magic_card(boxset, card)
         magic_card.boxset.update(valid_cards: true)
-        artist = Artist.where("LOWER(name) = LOWER(?)", card["artist"]).first || Artist.create(name: card["artist"])
-        MagicCardArtist.find_by(artist:, magic_card:) || MagicCardArtist.create(artist:, magic_card:)
+
+        # bleeding edge sets don't always have artist info loaded
+        if card["artist"].present?
+          artist = Artist.where("LOWER(name) = LOWER(?)", card["artist"]).first || Artist.create(name: card["artist"])
+          MagicCardArtist.find_by(artist:, magic_card:) || MagicCardArtist.create(artist:, magic_card:)
+        else
+          puts "**** PROBLEM w/ARTIST on card #{card["name"]}"
+        end
+
         card["subtypes"].each { |sub_type| create_sub_type(magic_card, sub_type) }
         card["supertypes"].each { |super_type| create_supertype(magic_card, super_type) }
         card["types"].each { |card_type| create_type(magic_card, card_type) }
@@ -76,8 +83,10 @@ class IngestSetCards < ApplicationJob
         other_face_uuid: card.key?("otherFaceIds") ? card["otherFaceIds"].join(",") : nil,
         normal_price: price_points["normal"], foil_price: price_points["foil"]
       )
+
+      # temp disabled for now until collections exist
       # kick off update of collections
-      QueUpdateCollectionValues.perform_async(existing_card.id)
+      # QueUpdateCollectionValues.perform_async(existing_card.id)
 
       existing_card
     else

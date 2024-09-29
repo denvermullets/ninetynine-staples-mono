@@ -1,0 +1,30 @@
+<%= turbo_stream.update "table-container" do %>
+  <div class='p-8 rounded-lg bg-dark-200'>
+    <table class="w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="py-2 pl-4 pr-0 text-xs tracking-wider text-left text-gray-500 uppercase ">#</th>
+          <th class="px-4 py-2 text-xs tracking-wider text-left text-gray-500 uppercase ">Name</th>
+          <th class="px-4 py-2 text-xs tracking-wider text-left text-gray-500 uppercase ">Type</th>
+          <th class="px-4 py-2 text-xs tracking-wider text-left text-gray-500 uppercase ">Mana</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <% @magic_cards.each do |card| %>
+          <tr>
+            <td class="py-2 pl-4 pr-0 text-sm whitespace-nowrap"><%= card.card_number %></td>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <i class="ss ss-grad ss-<%= @boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-2"></i><%= card.name %>
+            </td>
+            <td class="px-4 py-2 text-sm whitespace-nowrap"><%= card.card_type %></td>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <div class='flex items-center space-x-1'>
+                <%= mana_symbols(card.mana_cost) %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
