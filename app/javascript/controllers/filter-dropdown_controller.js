@@ -90,6 +90,7 @@ export default class extends Controller {
       .then((response) => response.text())
       .then((html) => {
         Turbo.renderStreamMessage(html);
+        history.pushState(null, "", `http://localhost:3000?code=${code}`);
       });
   }
 }
