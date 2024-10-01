@@ -9,9 +9,9 @@
           <th class="px-4 py-2 text-xs tracking-wider text-left text-gray-500 uppercase ">Mana</th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="bg-white divide-y divide-gray-200" data-controller="expandable-row">
         <% @magic_cards.each do |card| %>
-          <tr>
+          <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>">
             <td class="py-2 pl-4 pr-0 text-sm whitespace-nowrap"><%= card.card_number %></td>
             <td class="px-4 py-2 text-sm whitespace-nowrap">
               <i class="ss ss-grad ss-<%= @boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-2"></i><%= card.name %>
@@ -21,6 +21,11 @@
               <div class='flex items-center space-x-1'>
                 <%= mana_symbols(card.mana_cost) %>
               </div>
+            </td>
+          </tr>
+          <tr data-expandable-row-target="content" data-card-id="<%= card.id %>" class="hidden">
+            <td colspan="4">
+              <%= turbo_frame_tag "card_details_#{card.id}", src: boxset_magic_card_path(card.id), loading: :lazy %>
             </td>
           </tr>
         <% end %>
