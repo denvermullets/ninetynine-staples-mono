@@ -70,8 +70,6 @@ export default class extends Controller {
       return '<div class="p-2 text-gray-500">No results found</div>';
     }
 
-    console.log("options", options);
-
     return options
       .map(
         (option) => `
