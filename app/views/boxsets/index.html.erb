@@ -2,31 +2,7 @@
   <%= render partial: 'shared/page_header',
     locals: { header: 'Boxsets', subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
   %>
-  <div
-    class='w-full p-4'
-    data-controller="filter-dropdown"
-    data-filter-dropdown-options-value="<%= @options.to_json %>"
-    data-filter-dropdown-url-value="<%= load_boxset_path %>"
-  >
-    <div class="relative">
-      <input
-      type="text"
-      data-filter-dropdown-target="input"
-      data-action="input->filter-dropdown#search click->filter-dropdown#toggle"
-        class="w-full p-2 border rounded-md"
-        placeholder="Select or type...">
-        <button data-action="click->filter-dropdown#toggle" class="absolute inset-y-0 right-0 flex items-center px-2">
-          v
-        </button>
-      </div>
-      <div data-filter-dropdown-target="dropdown"
-       class="absolute z-10 hidden w-full mt-1 overflow-auto text-sm bg-white border rounded-md shadow-lg max-h-60"
-        style="width: calc(100% - 10rem);"
-       >
-        <!-- Dropdown options will be injected here -->
-      </div>
-    </div>
-  </div>
+  <%= render partial: 'shared/boxset_dropdown', locals: { options: @options.to_json } %>
   <div data-filter-dropdown-target="tableContainer" id="table-container" class='min-w-full px-16 mt-8 bg-dark-50'>
     <!-- Table will be loaded here -->
   </div>
