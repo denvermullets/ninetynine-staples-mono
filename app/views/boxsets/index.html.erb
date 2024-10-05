@@ -1,4 +1,7 @@
-<div class='flex flex-col flex-auto h-auto px-16 space-y-8 bg-dark-100'>
+<div class='flex flex-col flex-auto h-auto px-64 space-y-8 bg-dark-100'>
+  <%= render partial: 'shared/page_header',
+    locals: { header: 'Boxsets', subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
+  %>
   <div
     class='w-full p-4'
     data-controller="filter-dropdown"
