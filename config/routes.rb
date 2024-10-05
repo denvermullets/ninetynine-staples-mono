@@ -11,12 +11,10 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
   root "dashboard#index"
+
   post "dashboard/ingest", to: "dashboard#ingest", as: "dashboard_ingest"
-  get "load_boxset", to: "dashboard#load_boxset", as: "load_boxset"
+  get "load_boxset", to: "boxsets#load_boxset", as: "load_boxset"
   resources :boxsets
   resources :magic_cards
   get "boxset_card/:id", to: "magic_cards#show_boxset_card", as: "boxset_magic_card"
-
-  # Defines the root path route ("/")
-  # root "posts#index"
 end

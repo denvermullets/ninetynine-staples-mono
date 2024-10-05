@@ -18,7 +18,8 @@
     <%= javascript_importmap_tags %>
   </head>
   <body class='h-screen'>
-    <main class="flex flex-col h-full mx-auto bg-dark-50">
+    <%= render 'shared/navbar' %>
+    <main class="flex flex-col h-full mx-auto bg-background">
       <%= yield %>
     </main>
   </body>
