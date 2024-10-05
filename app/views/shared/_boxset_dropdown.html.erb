@@ -1,0 +1,22 @@
+<div class='w-full p-4'
+     data-controller="filter-dropdown"
+     data-filter-dropdown-options-value="<%= options %>"
+     data-filter-dropdown-url-value="<%= load_boxset_path %>"
+>
+  <div class="relative">
+    <input
+      type="text"
+      data-filter-dropdown-target="input"
+      data-action="input->filter-dropdown#search click->filter-dropdown#toggle"
+      class="w-full pr-10 border rounded-md"
+      placeholder="Select boxset">
+      <button data-action="click->filter-dropdown#toggle"
+        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-auto">
+        v
+      </button>
+      <div data-filter-dropdown-target="dropdown"
+         class="absolute z-10 hidden w-full mt-1 overflow-auto text-sm bg-white border rounded-md shadow-lg max-h-60">
+        <!-- Dropdown options will be injected here -->
+      </div>
+    </div>
+  </div>
