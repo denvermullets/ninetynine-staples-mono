@@ -25,4 +25,16 @@ module ApplicationHelper
       "<i class='ms ms-cost ml-0 #{css_class}'></i>"
     end.join.html_safe
   end
+
+  def nav_item_classes(route)
+    base_classes = "px-4 py-2 rounded-3xl text-greyText"
+    active_classes = "border-greyText border"
+
+    # add the active classes if the current request path matches the provided route
+    if request.path == route
+      "#{base_classes} #{active_classes}"
+    else
+      "#{base_classes} border-transparent"
+    end
+  end
 end

@@ -55,13 +55,11 @@ export default class extends Controller {
 
   select(event) {
     const selectedName = event.target.textContent.trim();
-    console.log("selectedName: ", selectedName);
-    console.log("this.optionsValue: ", this.optionsValue);
     const selectedOption = this.optionsValue.find((option) => option.name === selectedName);
     this.inputTarget.value = selectedName;
     this.dropdownTarget.classList.add("hidden");
 
-    // Trigger Turbo request to load table data
+    // trigger Turbo request to load table data
     this.loadTableData(selectedOption.code);
   }
 
@@ -88,7 +86,7 @@ export default class extends Controller {
       .then((response) => response.text())
       .then((html) => {
         Turbo.renderStreamMessage(html);
-        history.pushState(null, "", `http://localhost:3000?code=${code}`);
+        history.pushState(null, "", `http://localhost:3000/boxsets?code=${code}`);
       });
   }
 }
