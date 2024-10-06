@@ -71,8 +71,8 @@ export default class extends Controller {
     return options
       .map(
         (option) => `
-      <div class="p-2 w-auto hover:bg-gray-100 cursor-pointer flex items-center" data-action="click->filter-dropdown#select">
-        <i class="ss ss-${option.keyrune_code} ss-fw ss-2x mr-2 m-0" style="margin-inline-start: 0 !important;"></i>${option.name}
+      <div class="p-2 w-auto hover:bg-foreground cursor-pointer flex items-center text-greyText" data-action="click->filter-dropdown#select">
+        <i class="ss ss-${option.keyrune_code} ss-fw ss-2x mr-2 m-0 text-greyText" style="margin-inline-start: 0 !important;"></i>${option.name}
       </div>
     `
       )

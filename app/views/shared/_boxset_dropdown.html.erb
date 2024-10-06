@@ -1,7 +1,8 @@
-<div class='w-auto'
-     data-controller="filter-dropdown"
-     data-filter-dropdown-options-value="<%= options %>"
-     data-filter-dropdown-url-value="<%= load_boxset_path %>"
+<div
+  class='flex-1 min-w-72'
+  data-controller="filter-dropdown"
+  data-filter-dropdown-options-value="<%= options %>"
+  data-filter-dropdown-url-value="<%= load_boxset_path %>"
 >
   <h3 class='mb-2 font-semibold text-greyText'>Boxset</h3>
   <div class="relative">
@@ -9,17 +10,19 @@
       type="text"
       data-filter-dropdown-target="input"
       data-action="input->filter-dropdown#search click->filter-dropdown#toggle"
-      class="w-full pr-10 border rounded-md"
+      class="w-full pr-10 border rounded-md border-highlight bg-background text-greyText"
       placeholder="Select boxset">
       <button data-action="click->filter-dropdown#toggle"
-        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-auto">
+        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-auto text-greyText">
         v
       </button>
-      <div data-filter-dropdown-target="dropdown"
-         class="absolute z-10 hidden w-full mt-1 overflow-auto text-sm bg-white border rounded-md shadow-lg max-h-60">
-        <!-- Dropdown options will be injected here -->
-      </div>
+    </input>
+    <div
+      data-filter-dropdown-target="dropdown"
+      class="absolute z-10 hidden w-full mt-1 overflow-auto text-sm border rounded-md shadow-lg border-highlight bg-background max-h-72"
+    >
+      <!-- Dropdown options will be injected here -->
     </div>
-    <p class='mt-2 text-greyText'>Type boxset name or short code</p>
   </div>
+  <p class='mt-2 text-greyText'>Type boxset name or short code</p>
 </div>
