@@ -4,25 +4,33 @@ class BoxsetsController < ApplicationController
 
     main_set = Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: params[:code])
     if main_set.present?
-      boxset = sort_cards(main_set)
+      # boxset = sort_cards(main_set)
+      boxset = main_set
     end
 
     render :index, locals: { boxset: }
   end
 
   def load_boxset
-    @boxset = Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: params[:code])
-    # some sets have non integer based card numbers, those i care less about sorting right now
-    @magic_cards = sort_cards(@boxset)
+    return if params[:code].nil?
 
+    @boxset = Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: params[:code])
+    cards = @boxset.magic_cards
+
+    if params[:search].present?
+      cards = MagicCard.where("name ILIKE ? AND boxset_id = ?", "%#{params[:search]}%", @boxset.id)
+    end
+
+    # some sets have non integer based card numbers, those i care less about sorting right now
+    @magic_cards = sort_cards(cards)
     respond_to do |format|
       format.turbo_stream
     end
   end
 
-  def sort_cards(collection)
+  def sort_cards(cards)
     # takes in a boxset w/associated cards attached
-    collection.magic_cards.sort_by do |card|
+    cards.sort_by do |card|
       begin
         # Try to convert the card_number to an integer
         # trying to use a Tuple

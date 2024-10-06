@@ -2,8 +2,11 @@
   <%= render partial: 'shared/page_header',
     locals: { header: 'Boxsets', subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
   %>
-  <%= render partial: 'shared/boxset_dropdown', locals: { options: @options.to_json } %>
-  <div data-filter-dropdown-target="tableContainer" id="table-container" class='min-w-full px-16 mt-8 bg-dark-50'>
-    <!-- Table will be loaded here -->
+  <div class='flex flex-row px-8 py-4 space-x-4 border rounded-3xl bg-foreground border-greyText'>
+    <%= render partial: 'shared/boxset_dropdown', locals: { options: @options.to_json } %>
+    <%= render partial: 'shared/boxset_search' %>
+  </div>
+  <div data-filter-dropdown-target="tableContainer" id="table-container" class='min-w-full '>
+    <!-- cards table will be loaded here -->
   </div>
 </div>
