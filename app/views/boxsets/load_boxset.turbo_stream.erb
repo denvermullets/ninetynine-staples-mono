@@ -1,29 +1,33 @@
 <%= turbo_stream.update "table-container" do %>
-  <div class='p-8 rounded-lg bg-dark-200'>
-    <table class="w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+  <div class='overflow-hidden border rounded-3xl border-greyText'>
+    <table class="w-full divide-y divide-gray-200 table-auto">
+      <thead class="bg-background">
         <tr>
-          <th class="py-2 pl-4 pr-0 text-xs tracking-wider text-left text-gray-500 uppercase ">#</th>
-          <th class="px-4 py-2 text-xs tracking-wider text-left text-gray-500 uppercase ">Name</th>
-          <th class="px-4 py-2 text-xs tracking-wider text-left text-gray-500 uppercase ">Type</th>
-          <th class="px-4 py-2 text-xs tracking-wider text-left text-gray-500 uppercase ">Mana</th>
+          <th class="w-auto py-3 pl-4 pr-0 text-xs tracking-wider text-left normal-case text-greyText">#</th>
+          <th class="w-full px-4 py-2 text-xs tracking-wider text-left normal-case text-greyText">Name</th>
+          <th class="w-full px-4 py-2 text-xs tracking-wider text-left normal-case text-greyText">Type</th>
+          <th class="w-full px-4 py-2 text-xs tracking-wider text-left normal-case text-greyText">Mana</th>
+          <th class="w-full px-4 py-2 text-xs tracking-wider text-left normal-case text-greyText">Regular</th>
+          <th class="w-full px-4 py-2 text-xs tracking-wider text-left normal-case text-greyText">Foil</th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200" data-controller="expandable-row">
+      <tbody class="bg-white" data-controller="expandable-row">
         <% @magic_cards.each do |card| %>
-          <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>">
-            <td class="py-2 pl-4 pr-0 text-sm whitespace-nowrap"><%= card.card_number %></td>
-            <td class="px-4 py-2 text-sm whitespace-nowrap">
+          <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>" class="border border-background text-greyText bg-foreground">
+            <td class="w-auto pl-4 pr-0 text-sm py-7 whitespace-nowrap"><%= card.card_number %></td>
+            <td class="w-full px-4 py-2 text-sm whitespace-nowrap">
               <i class="ss ss-grad ss-<%= @boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-2"></i><%= card.name %>
             </td>
-            <td class="px-4 py-2 text-sm whitespace-nowrap"><%= card.card_type %></td>
-            <td class="px-4 py-2 text-sm whitespace-nowrap">
-              <div class='flex items-center space-x-1'>
+            <td class="w-full px-4 py-2 text-sm whitespace-nowrap"><%= card.card_type %></td>
+            <td class="w-full px-4 py-2 text-sm whitespace-nowrap">
+              <div class='flex items-center m-0 space-x-1'>
                 <%= mana_symbols(card.mana_cost) %>
               </div>
             </td>
+            <td class="w-full px-4 py-2 text-sm whitespace-nowrap"><%= number_to_currency(card.normal_price) %></td>
+            <td class="w-full px-4 py-2 text-sm whitespace-nowrap"><%= number_to_currency(card.foil_price) %></td>
           </tr>
-          <tr data-expandable-row-target="content" data-card-id="<%= card.id %>" class="hidden">
+          <tr data-expandable-row-target="content" data-card-id="<%= card.id %>" class="hidden border border-background">
             <td colspan="4">
               <%= turbo_frame_tag "card_details_#{card.id}", src: boxset_magic_card_path(card.id), loading: :lazy %>
             </td>
