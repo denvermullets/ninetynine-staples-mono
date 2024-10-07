@@ -18,6 +18,7 @@ module.exports = {
         highlight: "#2E3F49",
         greyText: "#859296",
         background: "#141E22",
+        nineWhite: "#FEFEFE",
         dark: {
           200: "#202E36",
         },
@@ -27,7 +28,6 @@ module.exports = {
           200: "#F3A952",
           300: "#FFD439",
           400: "#C6EE52",
-          500: "#FEFEFE",
         },
       },
     },
