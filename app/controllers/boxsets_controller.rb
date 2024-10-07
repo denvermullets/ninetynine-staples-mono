@@ -18,7 +18,7 @@ class BoxsetsController < ApplicationController
     cards = @boxset.magic_cards
 
     if params[:search].present?
-      cards = MagicCard.where("name ILIKE ? AND boxset_id = ?", "%#{params[:search]}%", @boxset.id)
+      cards = @boxset.magic_cards.where("name ILIKE ? AND boxset_id = ?", "%#{params[:search]}%", @boxset.id)
     end
 
     # some sets have non integer based card numbers, those i care less about sorting right now
