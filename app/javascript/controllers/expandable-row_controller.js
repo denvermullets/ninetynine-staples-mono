@@ -14,7 +14,12 @@ export default class extends Controller {
       contentRow.classList.toggle("hidden");
 
       if (!contentRow.classList.contains("hidden")) {
-        contentRow.scrollIntoView({ behavior: "smooth", block: "start" });
+        // leaving some room so the scroll isn't just to the TOP
+        const offset = 100;
+        const elementPosition = contentRow.getBoundingClientRect().top + window.scrollY;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
       }
     }
   }
