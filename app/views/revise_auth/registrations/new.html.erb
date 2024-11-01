@@ -14,41 +14,42 @@
             <% password_conf_error = "Password confirmation doesn't match Password" %>
           <% end %>
           <% if message == "Password is too short (minimum is 10 characters)" %>
-            <% password_error = "Password is too short (minimum is 12 characters)" %>
+            <% 'Password is too short (minimum is 12 characters)' %>
           <% end %>
         <% end %>
       <% end %>
       <div class='space-y-2'>
         <%= form.label :email %>
-        <%= form.email_field :email, placeholder: "your_email@email.com", autofocus: true, required: true, class: input_styles %>
+        <%= form.email_field :email, placeholder: 'your_email@email.com', autofocus: true, required: true, class: input_styles %>
         <% if email_error.present? %>
           <p class='text-sm text-red-500'><%= email_error %></p>
         <% end %>
       </div>
       <div class='space-y-2'>
         <%= form.label :username %>
-        <%= form.text_field :username, placeholder: "Username", required: true, class: input_styles %>
+        <%= form.text_field :username, placeholder: 'Username', required: true, class: input_styles %>
         <% if username_error.present? %>
           <p class='text-sm text-red-500'><%= username_error %></p>
         <% end %>
       </div>
       <div class='space-y-2'>
         <%= form.label :password %>
-        <%= form.password_field :password, placeholder: "Password", required: true, class: input_styles %>
+        <%= form.password_field :password, placeholder: 'Password', required: true, class: input_styles %>
         <% if password_error.present? %>
           <p class='text-sm text-red-500'><%= password_error %></p>
         <% end %>
       </div>
       <div class='mb-4 space-y-2'>
         <%= form.label :password_confirmation %>
-        <%= form.password_field :password_confirmation, placeholder: "Password Confirmation", required: true, class: input_styles %>
+        <%= form.password_field :password_confirmation, placeholder: 'Password Confirmation', required: true, class: input_styles %>
         <% if password_conf_error.present? %>
           <p class='text-sm text-red-500'><%= password_conf_error %></p>
         <% end %>
       </div>
       <div class='flex flex-col items-center w-full'>
-        <%= form.submit "Create Account", class: "w-full py-2 px-4 mt-2 bg-accent-50 text-white cursor-pointer rounded-md hover:bg-nineGreen-600 transition duration-300" %>
-        <%= link_to ("Log in"), login_path, class: 'mt-4' %>
+        <%= form.submit 'Create Account', 
+class: 'w-full py-2 px-4 mt-2 bg-accent-50 text-white cursor-pointer rounded-md hover:bg-nineGreen-600 transition duration-300' %>
+        <%= link_to 'Log in', login_path, class: 'mt-4' %>
       </div>
     <% end %>
   </div>

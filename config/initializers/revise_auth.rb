@@ -3,6 +3,6 @@ ReviseAuth.configure do |config|
   # config.sign_up_params += [:time_zone]
   # config.update_params += [:time_zone]
 
-  config.sign_up_params += [ :username ]
+  config.sign_up_params += [:username]
   config.minimum_password_length = 10
 end
