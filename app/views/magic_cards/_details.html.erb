@@ -1,12 +1,12 @@
 <%= turbo_frame_tag "card_details_#{card.id}" do %>
-  <div class="flex flex-row w-full p-8 space-x-4 bg-menu">
+  <div class="flex flex-row w-auto p-8 space-x-8 bg-menu">
     <img src="<%= card.image_medium %>" class="rounded-3xl max-w-96">
-    <div class='flex flex-col w-auto max-w-80'>
+    <div class="flex flex-col flex-shrink-0 w-80">
       <h3 class="mb-2 text-lg font-semibold text-nineWhite"><%= card.name %></h3>
       <p class="text-xs text-nineWhite"><%= card.text %></p>
     </div>
-    <div class='flex flex-col'>
-      <%= render partial: 'collections/form', locals: { collections:, magic_card: card.id } %>
+    <div class='flex flex-col w-full'>
+      <%= render partial: 'collections/form', locals: { collections:, magic_card: card } %>
     </div>
   </div>
 <% end %>
