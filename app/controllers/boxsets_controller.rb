@@ -15,8 +15,10 @@ class BoxsetsController < ApplicationController
     @boxset = fetch_boxset(params[:code])
     @magic_cards = filter_and_sort_cards(@boxset, params[:search])
 
-    respond_to do |format|
-      format.turbo_stream
+    if request.format.turbo_stream?
+      respond_to do |format|
+        format.turbo_stream
+      end
     end
   end
 
