@@ -6,8 +6,8 @@ class BoxsetsController < ApplicationController
     load_boxset if params[:code].present?
 
     respond_to do |format|
-      format.html # Renders the initial page with HTML format
-      format.turbo_stream # Handles Turbo Stream requests
+      format.html
+      format.turbo_stream
     end
   end
 
@@ -16,8 +16,8 @@ class BoxsetsController < ApplicationController
     @magic_cards = filter_and_sort_cards(@boxset, params[:search])
 
     respond_to do |format|
-      format.turbo_stream # Renders the Turbo Stream response
-    end if request.format.turbo_stream?
+      format.turbo_stream
+    end
   end
 
   private
