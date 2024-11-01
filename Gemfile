@@ -35,7 +35,6 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "rubocop"
-  gem "rubocop-erb"
   gem "web-console"
 end
 
