@@ -1,0 +1,13 @@
+<div class="flex flex-row" data-controller="collection-selector">
+  <%= form_with url: collection_magic_cards_update_path, local: true do |f| %>
+    <%= select_tag :collection_id,
+      options_from_collection_for_select(collections, :id, :name),
+      include_blank: "Select a collection",
+      data: { action: "change->collection-selector#fetchCollection" },
+      required: true %>
+    <%= f.hidden_field :magic_card_id, value: magic_card %>
+    <%= f.number_field :quantity, value: 0, data: { collection_selector_target: "quantity" } %>
+    <%= f.number_field :foil_quantity, value: 0, class: "w-auto", data: { collection_selector_target: "foilQuantity" } %>
+    <%= f.submit "Save", class: "py-2 px-4 bg-accent-50 text-white cursor-pointer rounded-md hover:bg-nineGreen-600 transition duration-300" %>
+  <% end %>
+</div>

@@ -16,5 +16,8 @@ Rails.application.routes.draw do
   get "load_boxset", to: "boxsets#load_boxset", as: "load_boxset"
   resources :boxsets
   resources :magic_cards
+  get "collection_magic_cards/quantity", to: "collection_magic_cards#quantity", as: "collection_quantity"
+  post "collection_magic_cards/update_collection", to: "collection_magic_cards#update_collection", as: "collection_magic_cards_update"
+  resources :collection_magic_cards
   get "boxset_card/:id", to: "magic_cards#show_boxset_card", as: "boxset_magic_card"
 end

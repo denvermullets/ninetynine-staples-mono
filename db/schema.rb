@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_21_121527) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_12_115023) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -46,6 +46,33 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_21_121527) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "collection_magic_cards", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.bigint "magic_card_id", null: false
+    t.string "card_uuid"
+    t.integer "foil_quantity", default: 0
+    t.integer "quantity", default: 0
+    t.decimal "buy_price", precision: 12, scale: 2, default: "0.0"
+    t.decimal "sell_price", precision: 12, scale: 2, default: "0.0"
+    t.string "condition"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collection_id"], name: "index_collection_magic_cards_on_collection_id"
+    t.index ["magic_card_id"], name: "index_collection_magic_cards_on_magic_card_id"
+  end
+
+  create_table "collections", force: :cascade do |t|
+    t.string "name"
+    t.text "description"
+    t.string "type"
+    t.decimal "total_value", precision: 15, scale: 2, default: "0.0"
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_collections_on_user_id"
   end
 
   create_table "colors", force: :cascade do |t|
@@ -206,4 +233,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_21_121527) do
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
+
+  add_foreign_key "collection_magic_cards", "collections"
+  add_foreign_key "collection_magic_cards", "magic_cards"
+  add_foreign_key "collections", "users"
 end
