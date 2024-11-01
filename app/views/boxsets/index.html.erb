@@ -1,0 +1,18 @@
+<div class='flex flex-col flex-auto h-auto px-12 space-y-8 2xl:px-64 bg-dark-100'>
+  <%= render partial: 'shared/page_header',
+    locals: { header: 'Boxsets',
+      subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
+  %>
+  <div class="flex flex-row px-8 py-4 space-x-4 border rounded-3xl bg-foreground border-greyText">
+    <%= render partial: 'shared/boxset_dropdown', locals: { options: @options.to_json } %>
+    <%= render partial: 'shared/boxset_search' %>
+  </div>
+  <%= turbo_frame_tag 'boxset_content' do %>
+    <div id="table-container" class="min-w-full">
+      <!-- Check if @magic_cards is present and render the table -->
+      <% if @magic_cards.present? %>
+        <%= render partial: 'table' %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

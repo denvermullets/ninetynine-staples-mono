@@ -55,13 +55,11 @@ export default class extends Controller {
 
   select(event) {
     const selectedName = event.target.textContent.trim();
-    console.log("selectedName: ", selectedName);
-    console.log("this.optionsValue: ", this.optionsValue);
     const selectedOption = this.optionsValue.find((option) => option.name === selectedName);
     this.inputTarget.value = selectedName;
     this.dropdownTarget.classList.add("hidden");
 
-    // Trigger Turbo request to load table data
+    // trigger Turbo request to load table data
     this.loadTableData(selectedOption.code);
   }
 
@@ -73,8 +71,8 @@ export default class extends Controller {
     return options
       .map(
         (option) => `
-      <div class="p-2 w-auto hover:bg-gray-100 cursor-pointer flex items-center" data-action="click->filter-dropdown#select">
-        <i class="ss ss-${option.keyrune_code} ss-fw ss-2x mr-2 m-0" style="margin-inline-start: 0 !important;"></i>${option.name}
+      <div class="p-2 w-auto hover:bg-foreground cursor-pointer flex items-center text-greyText" data-action="click->filter-dropdown#select">
+        <i class="ss ss-${option.keyrune_code} ss-fw ss-2x mr-2 m-0 text-greyText" style="margin-inline-start: 0 !important;"></i>${option.name}
       </div>
     `
       )
@@ -88,7 +86,7 @@ export default class extends Controller {
       .then((response) => response.text())
       .then((html) => {
         Turbo.renderStreamMessage(html);
-        history.pushState(null, "", `http://localhost:3000?code=${code}`);
+        history.pushState(null, "", `http://localhost:3000/boxsets?code=${code}`);
       });
   }
 }
