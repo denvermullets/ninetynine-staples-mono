@@ -86,7 +86,7 @@ export default class extends Controller {
       .then((response) => response.text())
       .then((html) => {
         Turbo.renderStreamMessage(html);
-        history.pushState(null, "", `http://localhost:3000/boxsets?code=${code}`);
+        history.pushState(null, "", `${window.location.origin}/boxsets?code=${code}`);
       });
   }
 }
