@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  post 'sign_up', to: 'users/registrations#create', as: :user_registration
+
   revise_auth
   mount MissionControl::Jobs::Engine, at: '/jobs'
 
