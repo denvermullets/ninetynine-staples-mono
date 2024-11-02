@@ -7,8 +7,8 @@ class MagicCardsController < ApplicationController
 
   def show_boxset_card
     card = MagicCard.find(params[:id])
-    collections = current_user.collections
+    collections = current_user.collections if current_user
 
-    render partial: 'magic_cards/details', locals: { card:, collections: }
+    render partial: 'magic_cards/details', locals: { card:, collections: collections || nil }
   end
 end
