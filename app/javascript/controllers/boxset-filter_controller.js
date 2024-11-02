@@ -27,7 +27,7 @@ export default class extends Controller {
       .then((response) => response.text())
       .then((html) => {
         document.querySelector("[id='table-container']").innerHTML = html;
-        history.pushState(null, "", `http://localhost:3000/boxsets?${queryString}`);
+        history.pushState(null, "", `${window.location.origin}/boxsets?${queryString}`);
       });
   }
 }
