@@ -73,7 +73,7 @@ class IngestSetCards < ApplicationJob
       if empty_image || error_image(existing_card)
         images = scryfall_images(card)
         card_obj[:image_large] = images[:large]
-        card_obj[:image_medium] = images[:medium]
+        card_obj[:image_medium] = images[:normal]
         card_obj[:image_small] = images[:small]
       end
 
@@ -83,7 +83,7 @@ class IngestSetCards < ApplicationJob
       puts "creating new card #{card['name']}"
       images = scryfall_images(card)
       card_obj[:image_large] = images[:large]
-      card_obj[:image_medium] = images[:medium]
+      card_obj[:image_medium] = images[:normal]
       card_obj[:image_small] = images[:small]
       card_obj[:normal_price] = 0
       card_obj[:foil_price] = 0
