@@ -53,8 +53,55 @@ class IngestSetCards < ApplicationJob
 
   def create_magic_card(boxset, card)
     existing_card = MagicCard.find_by(card_uuid: card['uuid'])
-    # return existing_card if existing_card
 
+    card_obj = {
+      boxset:, name: card['name'], text: card['text'], original_text: card['originalText'],
+      power: card['power'], toughness: card['toughness'], rarity: card['rarity'], card_type: card['type'],
+      original_type: card['originalType'], edhrec_rank: card['edhrecRank'], has_foil: card['hasFoil'],
+      has_non_foil: card['hasNonFoil'], border_color: card['borderColor'],
+      converted_mana_cost: card['convertedManaCost'], flavor_text: card['flavorText'],
+      frame_version: card['frameVersion'], is_reprint: card['isReprint'], card_number: card['number'],
+      identifiers: card['identifiers'], card_uuid: card['uuid'], mana_cost: card['manaCost'],
+      mana_value: card['manaValue'], face_name: card['faceName'], card_side: card['side'],
+      other_face_uuid: card.key?('otherFaceIds') ? card['otherFaceIds'].join(',') : nil
+    }
+
+    if existing_card
+      empty_image = existing_card.image_large.nil? || existing_card.image_medium.nil? || existing_card.image_small.nil?
+
+      # TODO: need to add image age for this to work right
+      if empty_image || error_image(existing_card)
+        images = scryfall_images(card)
+        card_obj[:image_large] = images[:large]
+        card_obj[:image_medium] = images[:medium]
+        card_obj[:image_small] = images[:small]
+      end
+
+      existing_card.update(card_obj)
+      existing_card
+    else
+      puts "creating new card #{card['name']}"
+      images = scryfall_images(card)
+      card_obj[:image_large] = images[:large]
+      card_obj[:image_medium] = images[:medium]
+      card_obj[:image_small] = images[:small]
+      card_obj[:normal_price] = 0
+      card_obj[:foil_price] = 0
+
+      MagicCard.create(card_obj)
+    end
+  end
+
+  def error_image(existing_card)
+    error = 'https://errors.scryfall.com/soon.jpg'
+
+    existing_card.image_large == error ||
+      existing_card.image_medium == error ||
+      existing_card.image_small == error
+  end
+
+  def scryfall_images(card)
+    puts "looking up images for #{card['name']}"
     scryfall = card['identifiers']['scryfallId'].to_s
     res = HTTParty.get("https://api.scryfall.com/cards/#{scryfall}")
 
@@ -69,59 +116,9 @@ class IngestSetCards < ApplicationJob
     end
 
     # respecting scryfall rate limit requests
-    sleep 0.250
+    sleep 0.350
 
-    price = HTTParty.get("https://mpapi.tcgplayer.com/v2/product/#{card['identifiers']['tcgplayerProductId']}/pricepoints")
-    price_points = format_price(price)
-
-    if existing_card
-      existing_card.update(
-        boxset:, name: card['name'], text: card['text'], original_text: card['originalText'],
-        power: card['power'], toughness: card['toughness'], rarity: card['rarity'], card_type: card['type'],
-        original_type: card['originalType'], edhrec_rank: card['edhrecRank'], has_foil: card['hasFoil'],
-        has_non_foil: card['hasNonFoil'], border_color: card['borderColor'],
-        converted_mana_cost: card['convertedManaCost'], flavor_text: card['flavorText'],
-        frame_version: card['frameVersion'], is_reprint: card['isReprint'], card_number: card['number'],
-        identifiers: card['identifiers'], card_uuid: card['uuid'], image_large: large,
-        image_medium: normal, image_small: small, mana_cost: card['manaCost'], mana_value: card['manaValue'],
-        face_name: card['faceName'], card_side: card['side'],
-        other_face_uuid: card.key?('otherFaceIds') ? card['otherFaceIds'].join(',') : nil,
-        normal_price: price_points['normal'], foil_price: price_points['foil']
-      )
-
-      # temp disabled for now until collections exist
-      # kick off update of collections
-      # QueUpdateCollectionValues.perform_async(existing_card.id)
-
-      existing_card
-    else
-      MagicCard.create(
-        boxset:, name: card['name'], text: card['text'], original_text: card['originalText'],
-        power: card['power'], toughness: card['toughness'], rarity: card['rarity'], card_type: card['type'],
-        original_type: card['originalType'], edhrec_rank: card['edhrecRank'], has_foil: card['hasFoil'],
-        has_non_foil: card['hasNonFoil'], border_color: card['borderColor'],
-        converted_mana_cost: card['convertedManaCost'], flavor_text: card['flavorText'],
-        frame_version: card['frameVersion'], is_reprint: card['isReprint'], card_number: card['number'],
-        identifiers: card['identifiers'], card_uuid: card['uuid'], image_large: large,
-        image_medium: normal, image_small: small, mana_cost: card['manaCost'], mana_value: card['manaValue'],
-        face_name: card['faceName'], card_side: card['side'],
-        other_face_uuid: card.key?('otherFaceIds') ? card['otherFaceIds'].join(',') : nil,
-        normal_price: price_points['normal'], foil_price: price_points['foil']
-      )
-    end
-  end
-
-  def format_price(price_points)
-    card_prices = {}
-    price_points.each do |price_point|
-      if price_point['printingType'] == 'Normal'
-        card_prices['normal'] = price_point['marketPrice'] || 0.0
-      else
-        card_prices['foil'] = price_point['marketPrice'] || 0.0
-      end
-    end
-
-    card_prices
+    { small:, normal:, large: }
   end
 
   def create_sub_type(magic_card, sub_type)
