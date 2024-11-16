@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_12_115023) do
+ActiveRecord::Schema[7.2].define(version: 2024_11_13_163313) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -192,6 +192,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_12_115023) do
     t.string "other_face_uuid"
     t.decimal "normal_price", precision: 12, scale: 2, default: "0.0"
     t.decimal "foil_price", precision: 12, scale: 2, default: "0.0"
+    t.jsonb "price_history"
     t.index ["boxset_id"], name: "index_magic_cards_on_boxset_id"
   end
 

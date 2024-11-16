@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   root 'dashboard#index'
 
   post 'dashboard/ingest', to: 'dashboard#ingest', as: 'dashboard_ingest'
+  post 'dashboard/ingest_prices', to: 'dashboard#ingest_prices', as: 'dashboard_ingest_prices'
   get 'load_boxset', to: 'boxsets#load_boxset', as: 'load_boxset'
   resources :boxsets
   resources :magic_cards
