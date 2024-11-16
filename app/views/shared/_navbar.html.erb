@@ -14,7 +14,8 @@
     <div class='flex flex-row space-x-6'>
       <% if current_user %>
         <% if current_user.role.to_i == 9001 %>
-          <%= button_to 'Start Ingest Process', dashboard_ingest_path, method: :post, class: '' %>
+          <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: '' %>
+          <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: '' %>
           <%= link_to 'Mission Control', '/jobs', class: '' %>
         <% end %>
         <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: '' %>
