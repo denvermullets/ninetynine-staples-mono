@@ -1,5 +1,6 @@
 require 'open-uri'
 
+# rubocop:disable Metrics/AbcSize
 class IngestPrices < ApplicationJob
   def perform
     puts 'loading AllPricesToday.json from mtgjson.com'
@@ -45,6 +46,8 @@ class IngestPrices < ApplicationJob
 
   private
 
+  # rubocop:disable Metrics/CyclomaticComplexity
+  # rubocop:disable Metrics/PerceivedComplexity
   def find_price(existing_price, new_price)
     return nil if new_price.nil?
 
@@ -55,12 +58,11 @@ class IngestPrices < ApplicationJob
       new_price&.values&.first
     end
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
+  # rubocop:enable Metrics/PerceivedComplexity
 
   def update_price_history(price_history, new_daily_price)
-    # puts "price_history.nil? : #{price_history.nil?}"
     price_history = { normal: [], foil: [] } if price_history.nil?
-    # puts "price_history: #{price_history}"
-
     normal = check_existing(price_history[:normal], new_daily_price['normal'])
     foil = check_existing(price_history[:normal], new_daily_price['foil'])
 
@@ -87,3 +89,4 @@ class IngestPrices < ApplicationJob
     end
   end
 end
+# rubocop:enable Metrics/AbcSize
