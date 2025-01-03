@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   get 'service-worker' => 'rails/pwa#service_worker', as: :pwa_service_worker
   get 'manifest' => 'rails/pwa#manifest', as: :pwa_manifest
 
-  root 'dashboard#index'
+  root 'boxsets#index'
 
   post 'dashboard/ingest', to: 'dashboard#ingest', as: 'dashboard_ingest'
   post 'dashboard/ingest_prices', to: 'dashboard#ingest_prices', as: 'dashboard_ingest_prices'
