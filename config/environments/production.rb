@@ -82,6 +82,10 @@ Rails.application.configure do
   # caching is enabled.
   config.action_mailer.perform_caching = false
 
+  # use controller check for auth instead of credentials
+  config.mission_control.jobs.base_controller_class = 'AdminController'
+  config.mission_control.jobs.http_basic_auth_enabled = false
+
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false

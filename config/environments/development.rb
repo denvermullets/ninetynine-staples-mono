@@ -64,6 +64,10 @@ Rails.application.configure do
   # Suppress logger output for asset requests.
   config.assets.quiet = true
 
+  # use controller check for auth instead of credentials
+  config.mission_control.jobs.base_controller_class = 'AdminController'
+  config.mission_control.jobs.http_basic_auth_enabled = false
+
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 
