@@ -1,6 +1,5 @@
 require 'open-uri'
 
-# rubocop:disable Metrics/AbcSize
 class IngestPrices < ApplicationJob
   def perform
     puts 'loading AllPricesToday.json from mtgjson.com'
@@ -11,27 +10,15 @@ class IngestPrices < ApplicationJob
     # all_info = JSON.parse(source)['data']
     all_info = JSON.parse(source.read)['data']
 
-    total_items = all_info.size
-    processed = 0
-    puts
     all_info.each do |key, value|
       next unless value['paper'].present?
       next unless value['paper']['tcgplayer'].present?
       next unless value['paper']['tcgplayer']['retail'].present?
 
       price_info = value['paper']['tcgplayer']['retail']
+      puts "#{key}, #{price_info}"
       update_card(key, price_info)
-
-      processed += 1
-      percentage = (processed * 100) / total_items
-      progress_bar_length = (percentage / 2)
-
-      print "\rProcessing: [#{'=' * progress_bar_length}#{' ' * (50 - progress_bar_length)}] #{percentage}%"
     end
-
-    # Ensure we go to a new line after the progress bar
-    puts
-    puts
   end
 
   def update_card(card_uuid, price_info)
@@ -46,25 +33,22 @@ class IngestPrices < ApplicationJob
 
   private
 
-  # rubocop:disable Metrics/CyclomaticComplexity
-  # rubocop:disable Metrics/PerceivedComplexity
   def find_price(existing_price, new_price)
     return nil if new_price.nil?
 
     # if the price drops to 0 or is nil leave an existing price if possible
     if new_price.values.first.zero? || new_price.values.first.nil?
-      existing_price&.values&.first
+      existing_price
     else
+      # { "2025-01-05" => 0.13 } - return the value only
       new_price&.values&.first
     end
   end
-  # rubocop:enable Metrics/CyclomaticComplexity
-  # rubocop:enable Metrics/PerceivedComplexity
 
   def update_price_history(price_history, new_daily_price)
     price_history = { normal: [], foil: [] } if price_history.nil?
-    normal = check_existing(price_history[:normal], new_daily_price['normal'])
-    foil = check_existing(price_history[:normal], new_daily_price['foil'])
+    normal = check_existing(price_history['normal'], new_daily_price['normal'])
+    foil = check_existing(price_history['normal'], new_daily_price['foil'])
 
     { normal:, foil: }
   end
@@ -89,4 +73,3 @@ class IngestPrices < ApplicationJob
     end
   end
 end
-# rubocop:enable Metrics/AbcSize
