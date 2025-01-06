@@ -25,8 +25,6 @@ class IngestPrices < ApplicationJob
     card = MagicCard.find_by(card_uuid:)
     return unless card.present?
 
-    puts card.id
-
     normal_price = find_price(card.normal_price, price_info['normal']) || 0
     foil_price = find_price(card.foil_price, price_info['foil']) || 0
     price_history = update_price_history(card.price_history, price_info)
