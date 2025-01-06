@@ -22,7 +22,7 @@ module ApplicationHelper
       symbol = symbol.first
       # in case i'm missing a code we will try to display it
       css_class = MANA_SYMBOLS[symbol] || "ms ms-#{symbol.downcase}"
-      "<i class='ms ms-cost ml-0 #{css_class}'></i>"
+      "<i class='no-tailwind ms ms-cost ml-0 #{css_class}'></i>"
     end.join.html_safe
   end
 
