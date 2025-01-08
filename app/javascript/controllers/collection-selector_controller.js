@@ -4,7 +4,27 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["quantity", "foilQuantity"];
 
-  connect() {}
+  connect() {
+    const cardRow = this.element.closest("tr[data-card-id]");
+
+    if (cardRow) {
+      const collectionDropdown = cardRow.querySelector("[name='collection_id']");
+      const collectionId = collectionDropdown.options[0].value;
+      const cardId = cardRow.getAttribute("data-card-id");
+
+      this.queryCollection(collectionId, cardId);
+    }
+  }
+
+  queryCollection(collection, magicCard) {
+    fetch(`collection_magic_cards/quantity?collection_id=${collection}&magic_card_id=${magicCard}`)
+      .then((response) => response.json())
+      .then((data) => {
+        this.quantityTarget.value = data.quantity;
+        this.foilQuantityTarget.value = data.foil_quantity;
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+  }
 
   fetchCollection(event) {
     const collection = event.target.value;
@@ -17,13 +37,7 @@ export default class extends Controller {
       return;
     }
 
-    fetch(`collection_magic_cards/quantity?collection_id=${collection}&magic_card_id=${magicCard}`)
-      .then((response) => response.json())
-      .then((data) => {
-        this.quantityTarget.value = data.quantity;
-        this.foilQuantityTarget.value = data.foil_quantity;
-      })
-      .catch((error) => console.error("Error fetching data:", error));
+    this.queryCollection(collection, magicCard);
   }
 
   findCardId(event) {

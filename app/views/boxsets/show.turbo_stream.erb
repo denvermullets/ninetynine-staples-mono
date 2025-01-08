@@ -20,9 +20,7 @@
             </td>
             <td class="w-full px-4 py-2 text-sm whitespace-nowrap"><%= card.card_type %></td>
             <td class="w-full px-4 py-2 text-sm whitespace-nowrap">
-              <div class='flex items-center m-0 space-x-1'>
-                <%= mana_symbols(card.mana_cost) %>
-              </div>
+              <div class='flex items-center m-0 space-x-1'><%= mana_symbols(card.mana_cost) %></div>
             </td>
             <td class="w-full px-4 py-2 text-sm whitespace-nowrap"><%= number_to_currency(card.normal_price) %></td>
             <td class="w-full px-4 py-2 text-sm whitespace-nowrap"><%= number_to_currency(card.foil_price) %></td>
