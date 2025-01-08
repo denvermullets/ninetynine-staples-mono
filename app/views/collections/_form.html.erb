@@ -4,7 +4,7 @@
       <h3 class='mb-2 text-greyText'>Collection</h3>
       <%= select_tag :collection_id,
           options_from_collection_for_select(collections, :id, :name),
-          include_blank: collections.size > 1 ? '' : nil,
+          include_blank: nil,
           class: 'w-full border rounded-md border-highlight bg-background text-greyText',
           data: { action: 'change->collection-selector#fetchCollection' },
           required: true %>
