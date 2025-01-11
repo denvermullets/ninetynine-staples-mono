@@ -4,6 +4,7 @@ gem "bootsnap", require: false
 gem "httparty"
 gem "importmap-rails"
 gem "mission_control-jobs"
+gem "pagy"
 gem "pg", "~> 1.5.9"
 gem "pry"
 gem "puma", ">= 6.5.0"
