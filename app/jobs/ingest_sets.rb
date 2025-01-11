@@ -8,7 +8,8 @@ class IngestSets < ApplicationJob
     all_info = JSON.parse(source.read)['data']
 
     all_info.each do |set|
-      # next unless set["code"] == "PSVC"
+      # next unless set['code'] == 'TSR'
+
       next if set['code'] == 'UST'
 
       puts "opening up #{set['name']}"

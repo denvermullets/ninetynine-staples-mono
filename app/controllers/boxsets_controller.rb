@@ -1,25 +1,29 @@
 class BoxsetsController < ApplicationController
+  require 'pagy/extras/array'
+
   def index
     @options = Boxset.all_sets.map do |boxset|
       { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
     end
 
-    # If params[:code] is present, load the boxset
-    load_boxset if params[:code].present?
+    # If a boset or search term is present, load the boxset
+    load_boxset if params[:code].present? || params[:search].present?
 
     respond_to do |format|
-      format.html
       format.turbo_stream
+      format.html
     end
   end
 
   def load_boxset
     @boxset = fetch_boxset(params[:code])
-    @magic_cards = filter_and_sort_cards(@boxset, params[:search])
+    magic_cards = filter_and_sort_cards(@boxset, params[:search])
+    @pagy, @magic_cards = pagy_array(magic_cards)
 
-    return unless request.format.turbo_stream?
-
-    respond_to(&:turbo_stream)
+    respond_to do |format|
+      format.turbo_stream
+      format.html { render 'index' }
+    end
   end
 
   private
@@ -31,10 +35,14 @@ class BoxsetsController < ApplicationController
   end
 
   def filter_and_sort_cards(boxset, search_term)
-    return [] unless boxset
+    return [] if boxset.nil? && search_term.empty?
 
-    cards = boxset.magic_cards
-    cards = cards.where('name ILIKE ? AND boxset_id = ?', "%#{search_term}%", boxset.id) if search_term.present?
+    if boxset.nil? && search_term.present?
+      cards = MagicCard.where('name ILIKE ?', "%#{search_term}%")
+    else
+      cards = boxset.magic_cards
+      cards = cards.where('name ILIKE ? AND boxset_id = ?', "%#{search_term}%", boxset.id) if search_term.present?
+    end
 
     sort_cards(cards)
   end

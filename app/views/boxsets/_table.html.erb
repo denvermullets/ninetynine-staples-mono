@@ -1,4 +1,4 @@
-<div class='overflow-hidden border rounded-3xl border-greyText'>
+<div class='mb-24 overflow-hidden border rounded-3xl border-greyText'>
   <table class="w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
@@ -15,7 +15,7 @@
         <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>" class="border border-background text-greyText bg-foreground hover:bg-menu hover:cursor-pointer">
           <td class="w-auto pl-4 pr-0 text-sm py-7 whitespace-nowrap"><%= card.card_number %></td>
           <td class="w-full px-4 py-2 text-sm whitespace-nowrap">
-            <i class="ss ss-grad ss-<%= @boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-2"></i><%= card.name %>
+            <i class="ss ss-grad ss-<%= card.boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-2"></i><%= card.name %>
           </td>
           <td class="w-full px-4 py-2 text-sm whitespace-nowrap"><%= card.card_type %></td>
           <td class="w-full px-4 py-2 text-sm whitespace-nowrap">
@@ -34,4 +34,8 @@
       <% end %>
     </tbody>
   </table>
+  <div class='flex flex-row items-center justify-between w-full p-6 space-x-4'>
+    <%== pagy_info(@pagy) %>
+    <%== pagy_nav(@pagy, link_extra: 'data-turbo-stream="true"') %>
+  </div>
 </div>
