@@ -1,4 +1,6 @@
 module ApplicationHelper
+  include Pagy::Frontend
+
   MANA_SYMBOLS = {
     'W' => 'ms-w', 'U' => 'ms-u', 'B' => 'ms-b', 'R' => 'ms-r', 'G' => 'ms-g', 'C' => 'ms-c', 'X' => 'ms-x',
     'W/P' => 'ms-wp', 'U/P' => 'ms-up', 'B/P' => 'ms-bp', 'R/P' => 'ms-rp', 'G/P' => 'ms-gp', 'S' => 'ms-s',
@@ -31,7 +33,7 @@ module ApplicationHelper
     active_classes = 'border-greyText border'
 
     # add the active classes if the current request path matches the provided route
-    if request.path == route
+    if (request.path == '/' && route == '/boxsets') || request.path == route
       "#{base_classes} #{active_classes}"
     else
       "#{base_classes} border-transparent"
