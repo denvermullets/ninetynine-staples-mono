@@ -7,4 +7,10 @@ class ApplicationController < ActionController::Base
   def after_login_path
     boxsets_path
   end
+
+  def load_boxset_names
+    Boxset.all_sets.map do |boxset|
+      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
+    end
+  end
 end
