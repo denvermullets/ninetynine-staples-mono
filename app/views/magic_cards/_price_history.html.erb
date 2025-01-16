@@ -1,0 +1,14 @@
+<div class='flex flex-col items-center w-auto h-auto px-8 py-4 rounded-xl bg-foreground'>
+  <div class='flex flex-row w-full h-auto '>
+    <div data-controller="card-price-chart" class='w-full p-0 bg-foreground '>
+      <canvas
+          id="small-users-chart"
+          data-card-price-chart-target="cardPriceChart"
+          data-card-price-chart-events="<%= history.to_json %>"
+          class='w-full '
+          <%# width="128" %>
+          height="220"
+        ></canvas>
+    </div>
+  </div>
+</div>
