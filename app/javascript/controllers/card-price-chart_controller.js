@@ -97,11 +97,12 @@ export default class extends Controller {
               display: true,
             },
             grid: {
+              color: "#2E3F49", // Change this to your desired color
               display: true, // Show grid lines on y-axis
             },
             ticks: {
-              precision: 2, // Only show whole numbers
-              display: true, // Show y-axis labels
+              precision: 2,
+              display: true,
             },
           },
           x: {
@@ -109,11 +110,12 @@ export default class extends Controller {
               display: true,
             },
             grid: {
-              display: false, // Hide grid lines on x-axis
+              color: "#2E3F49",
+              display: false,
             },
             ticks: {
-              display: true, // Show x-axis labels
-              minRotation: 45, // Minimum rotation angle for labels
+              display: true,
+              minRotation: 45,
               maxRotation: 90,
             },
           },
