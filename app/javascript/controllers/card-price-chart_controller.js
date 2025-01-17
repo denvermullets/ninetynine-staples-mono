@@ -17,6 +17,26 @@ export default class extends Controller {
     }
   }
 
+  getSuggestedMin(minPrice) {
+    if (minPrice < 1) {
+      return Math.max(0, minPrice - 0.05);
+    } else if (minPrice < 30) {
+      return Math.max(0, minPrice - 5);
+    } else {
+      return Math.max(0, minPrice - 20);
+    }
+  }
+
+  getSuggestedMax(maxPrice) {
+    if (maxPrice < 1) {
+      return maxPrice + 0.2;
+    } else if (maxPrice < 30) {
+      return maxPrice + 5;
+    } else {
+      return maxPrice + 20;
+    }
+  }
+
   processDate(date) {
     const parts = date.split("-");
     const month = parseInt(parts[1], 10);
@@ -64,6 +84,9 @@ export default class extends Controller {
     console.log("normalPrices: ", normalPrices);
     console.log("labels: ", labels);
 
+    const minPrice = Math.min(...foilPrices, ...normalPrices);
+    const maxPrice = Math.max(...foilPrices, ...normalPrices);
+
     this.chart = new Chart(this.canvasContext(), {
       type: "line",
       data: {
@@ -92,13 +115,14 @@ export default class extends Controller {
       options: {
         scales: {
           y: {
-            beginAtZero: true,
+            suggestedMin: this.getSuggestedMin(minPrice),
+            suggestedMax: this.getSuggestedMax(maxPrice),
             border: {
               display: true,
             },
             grid: {
-              color: "#2E3F49", // Change this to your desired color
-              display: true, // Show grid lines on y-axis
+              color: "#2E3F49",
+              display: true,
             },
             ticks: {
               precision: 2,
@@ -122,13 +146,13 @@ export default class extends Controller {
         },
         plugins: {
           legend: {
-            display: true, // Show legend
+            display: true,
             position: "top",
-            align: "end", // Align legend to the right
+            align: "end",
             labels: {
-              usePointStyle: true, // Use dots instead of boxes
-              pointStyle: "circle", // Style of the legend points
-              boxWidth: 6, // Smaller dot size in legend
+              usePointStyle: true,
+              pointStyle: "circle",
+              boxWidth: 6,
               boxHeight: 6,
             },
           },
@@ -138,10 +162,10 @@ export default class extends Controller {
         },
         elements: {
           line: {
-            borderWidth: 2, // Adjust the line width if necessary
+            borderWidth: 4,
           },
           point: {
-            radius: 1, // Show points on the line
+            radius: 1,
             hoverRadius: 8, // Increase point size on hover
           },
         },
