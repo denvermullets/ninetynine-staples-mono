@@ -1,15 +1,30 @@
 <%= turbo_frame_tag "card_details_#{card.id}" do %>
-  <div class="flex flex-row w-auto p-8 space-x-8 bg-menu">
-    <img src="<%= card.image_medium %>" class="object-cover w-full rounded-3xl max-w-96 max-h-120" alt="<%= card.name %>"/>
-    <div class="flex flex-col flex-shrink-0 w-80">
-      <h3 class="mb-2 text-lg font-semibold text-nineWhite"><%= card.name %></h3>
-      <p class="text-xs text-nineWhite"><%= card.text %></p>
+  <div class="grid grid-cols-1 gap-6 p-2 md:grid-cols-3 md:p-8 bg-menu">
+    <div class="flex flex-row items-center justify-between w-auto mt-4 text-end md:hidden">
+      <% if card.has_foil %>
+        <h3 class="font-normal text-md text-greyText"><%= card.name %></h3>
+        <p class="text-md text-greyText">(R) $<%= card.normal_price %> / (F) $<%= card.foil_price %></p>
+      <% else %>
+        <p class="text-md text-greyText">(R) $<%= card.normal_price %></p>
+      <% end %>
     </div>
-    <div class='flex flex-col w-full space-y-8'>
+    <div class="flex items-start justify-center w-full md:col-span-1">
+      <img src="<%= card.image_medium %>"
+           class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
+           alt="<%= card.name %>"
+      />
+    </div>
+    <div class="flex flex-col space-y-4 md:col-span-2">
+      <div>
+        <h3 class="hidden text-lg font-semibold text-nineWhite md:block"><%= card.name %></h3>
+        <p class="text-xs text-nineWhite"><%= card.text %></p>
+      </div>
       <% if current_user %>
         <%= render partial: 'collections/form', locals: { collections:, magic_card: card } %>
       <% end %>
-      <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
+      <div class="flex flex-row w-full">
+        <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
+      </div>
     </div>
   </div>
 <% end %>
