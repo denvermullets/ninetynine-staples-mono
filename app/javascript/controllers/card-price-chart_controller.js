@@ -7,33 +7,35 @@ export default class extends Controller {
   chart = null;
 
   connect() {
-    console.log("hi");
     this.renderChart();
+    window.addEventListener("resize", this.handleResize.bind(this));
   }
 
   disconnect() {
     if (this.chart) {
       this.chart.destroy();
     }
+    window.removeEventListener("resize", this.handleResize.bind(this));
   }
 
+  handleResize() {
+    this.renderChart();
+  }
+
+  // we want the curve to be sorta in the middle of the graph
   getSuggestedMin(minPrice) {
     if (minPrice < 1) {
       return Math.max(0, minPrice - 0.05);
-    } else if (minPrice < 30) {
-      return Math.max(0, minPrice - 5);
     } else {
-      return Math.max(0, minPrice - 20);
+      return Math.max(0, minPrice - 1);
     }
   }
 
   getSuggestedMax(maxPrice) {
     if (maxPrice < 1) {
-      return maxPrice + 0.2;
-    } else if (maxPrice < 30) {
-      return maxPrice + 5;
+      return maxPrice + 0.05;
     } else {
-      return maxPrice + 20;
+      return maxPrice + 1;
     }
   }
 
@@ -47,7 +49,6 @@ export default class extends Controller {
 
   renderChart() {
     const cardPriceHistory = this.cardPriceChartTarget.dataset.cardPriceChartEvents;
-    console.log("cardPriceHistory: ", cardPriceHistory);
 
     if (!cardPriceHistory) {
       console.error("No events data found.");
@@ -61,14 +62,18 @@ export default class extends Controller {
       return;
     } else {
       priceHistory = JSON.parse(cardPriceHistory);
-      console.log("priceHistory: ", priceHistory);
+    }
+
+    // Destroy the existing chart instance if it exists
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null; // Clear the reference
     }
 
     const labels = [];
     const foilPrices = [];
     const normalPrices = [];
 
-    // Parse the data for labels and prices
     priceHistory.foil.forEach((card) => {
       const date = this.processDate(Object.keys(card)[0]);
 
@@ -80,14 +85,16 @@ export default class extends Controller {
       normalPrices.push(Object.values(card)[0]);
     });
 
-    console.log("foilPrices: ", foilPrices);
-    console.log("normalPrices: ", normalPrices);
-    console.log("labels: ", labels);
-
     const minPrice = Math.min(...foilPrices, ...normalPrices);
     const maxPrice = Math.max(...foilPrices, ...normalPrices);
 
-    this.chart = new Chart(this.canvasContext(), {
+    // Fix canvas height before initializing a new chart
+    const canvas = this.cardPriceChartTarget;
+    const fixedHeight = 275;
+    canvas.style.height = `${fixedHeight}px`;
+
+    // Create a new chart instance
+    this.chart = new Chart(canvas.getContext("2d"), {
       type: "line",
       data: {
         labels: labels,
@@ -96,23 +103,25 @@ export default class extends Controller {
             label: "Foil Price",
             data: foilPrices,
             backgroundColor: "#39DB7D",
-            borderColor: "#39DB7D", // Foil line color
+            borderColor: "#39DB7D",
             borderWidth: 2,
-            tension: 0.6, // Smooth lines
-            fill: false, // No area fill
+            tension: 0.6,
+            fill: false,
           },
           {
             label: "Normal Price",
             data: normalPrices,
             backgroundColor: "#C6EE52",
-            borderColor: "#C6EE52", // Normal line color
+            borderColor: "#C6EE52",
             borderWidth: 2,
-            tension: 0.4, // Smooth lines
-            fill: false, // No area fill
+            tension: 0.4,
+            fill: false,
           },
         ],
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
           y: {
             suggestedMin: this.getSuggestedMin(minPrice),
@@ -157,7 +166,7 @@ export default class extends Controller {
             },
           },
           tooltip: {
-            enabled: true, // Enable tooltips
+            enabled: true,
           },
         },
         elements: {
@@ -166,7 +175,7 @@ export default class extends Controller {
           },
           point: {
             radius: 1,
-            hoverRadius: 8, // Increase point size on hover
+            hoverRadius: 8,
           },
         },
       },
