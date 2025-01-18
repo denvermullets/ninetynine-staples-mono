@@ -7,33 +7,35 @@ export default class extends Controller {
   chart = null;
 
   connect() {
-    console.log("hi");
     this.renderChart();
+    window.addEventListener("resize", this.handleResize.bind(this));
   }
 
   disconnect() {
     if (this.chart) {
       this.chart.destroy();
     }
+    window.removeEventListener("resize", this.handleResize.bind(this));
   }
 
+  handleResize() {
+    this.renderChart();
+  }
+
+  // we want the curve to be sorta in the middle of the graph
   getSuggestedMin(minPrice) {
     if (minPrice < 1) {
       return Math.max(0, minPrice - 0.05);
-    } else if (minPrice < 30) {
-      return Math.max(0, minPrice - 5);
     } else {
-      return Math.max(0, minPrice - 20);
+      return Math.max(0, minPrice - 1);
     }
   }
 
   getSuggestedMax(maxPrice) {
     if (maxPrice < 1) {
-      return maxPrice + 0.2;
-    } else if (maxPrice < 30) {
-      return maxPrice + 5;
+      return maxPrice + 0.05;
     } else {
-      return maxPrice + 20;
+      return maxPrice + 1;
     }
   }
 
@@ -47,7 +49,6 @@ export default class extends Controller {
 
   renderChart() {
     const cardPriceHistory = this.cardPriceChartTarget.dataset.cardPriceChartEvents;
-    console.log("cardPriceHistory: ", cardPriceHistory);
 
     if (!cardPriceHistory) {
       console.error("No events data found.");
@@ -61,14 +62,12 @@ export default class extends Controller {
       return;
     } else {
       priceHistory = JSON.parse(cardPriceHistory);
-      console.log("priceHistory: ", priceHistory);
     }
 
     const labels = [];
     const foilPrices = [];
     const normalPrices = [];
 
-    // Parse the data for labels and prices
     priceHistory.foil.forEach((card) => {
       const date = this.processDate(Object.keys(card)[0]);
 
@@ -79,10 +78,6 @@ export default class extends Controller {
     priceHistory.normal.forEach((card) => {
       normalPrices.push(Object.values(card)[0]);
     });
-
-    console.log("foilPrices: ", foilPrices);
-    console.log("normalPrices: ", normalPrices);
-    console.log("labels: ", labels);
 
     const minPrice = Math.min(...foilPrices, ...normalPrices);
     const maxPrice = Math.max(...foilPrices, ...normalPrices);
@@ -113,6 +108,8 @@ export default class extends Controller {
         ],
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
           y: {
             suggestedMin: this.getSuggestedMin(minPrice),
