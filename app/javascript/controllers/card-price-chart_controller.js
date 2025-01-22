@@ -56,7 +56,6 @@ export default class extends Controller {
     }
 
     let priceHistory;
-
     if (!cardPriceHistory || cardPriceHistory.length === 0) {
       console.error("Price history data is empty.");
       return;
@@ -67,26 +66,43 @@ export default class extends Controller {
     // Destroy the existing chart instance if it exists
     if (this.chart) {
       this.chart.destroy();
-      this.chart = null; // Clear the reference
+      this.chart = null;
     }
 
     const labels = [];
     const foilPrices = [];
     const normalPrices = [];
 
-    priceHistory.foil.forEach((card) => {
-      const date = this.processDate(Object.keys(card)[0]);
+    if (priceHistory.foil.length > 0) {
+      priceHistory.foil.forEach((card) => {
+        const date = this.processDate(Object.keys(card)[0]);
+        labels.push(date);
+        foilPrices.push(Object.values(card)[0]);
+      });
+    }
 
-      labels.push(date);
-      foilPrices.push(Object.values(card)[0]);
-    });
+    if (priceHistory.normal.length > 0) {
+      priceHistory.normal.forEach((card) => {
+        const date = this.processDate(Object.keys(card)[0]);
+        labels.push(date);
+        normalPrices.push(Object.values(card)[0]);
+      });
+    }
 
-    priceHistory.normal.forEach((card) => {
-      normalPrices.push(Object.values(card)[0]);
-    });
+    if (labels.length === 0) {
+      labels.push("No Data");
+    }
 
-    const minPrice = Math.min(...foilPrices, ...normalPrices);
-    const maxPrice = Math.max(...foilPrices, ...normalPrices);
+    const uniqueLabels = [...new Set(labels)];
+
+    const minPrice = Math.min(
+      ...(foilPrices.length > 0 ? foilPrices : [0]),
+      ...(normalPrices.length > 0 ? normalPrices : [0])
+    );
+    const maxPrice = Math.max(
+      ...(foilPrices.length > 0 ? foilPrices : [0]),
+      ...(normalPrices.length > 0 ? normalPrices : [0])
+    );
 
     // Fix canvas height before initializing a new chart
     const canvas = this.cardPriceChartTarget;
@@ -97,7 +113,7 @@ export default class extends Controller {
     this.chart = new Chart(canvas.getContext("2d"), {
       type: "line",
       data: {
-        labels: labels,
+        labels: uniqueLabels,
         datasets: [
           {
             label: "Foil Price",
@@ -109,7 +125,7 @@ export default class extends Controller {
             fill: false,
           },
           {
-            label: "Normal Price",
+            label: "Regular Price",
             data: normalPrices,
             backgroundColor: "#C6EE52",
             borderColor: "#C6EE52",
@@ -117,7 +133,7 @@ export default class extends Controller {
             tension: 0.4,
             fill: false,
           },
-        ],
+        ].filter((dataset) => dataset.data.length > 0),
       },
       options: {
         responsive: true,
