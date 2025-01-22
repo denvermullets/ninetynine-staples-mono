@@ -48,7 +48,7 @@ class IngestPrices < ApplicationJob
   def update_price_history(price_history, new_daily_price)
     price_history = { normal: [], foil: [] } if price_history.nil?
     normal = check_existing(price_history['normal'], new_daily_price['normal'])
-    foil = check_existing(price_history['normal'], new_daily_price['foil'])
+    foil = check_existing(price_history['foil'], new_daily_price['foil'])
 
     { normal:, foil: }
   end
