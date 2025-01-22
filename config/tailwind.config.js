@@ -9,6 +9,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      dropShadow: {
+        nine: "0 0px 1px rgba(254, 254, 254, .50)",
+      },
       fontFamily: {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],
       },
