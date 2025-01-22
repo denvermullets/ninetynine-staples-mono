@@ -95,14 +95,8 @@ export default class extends Controller {
 
     const uniqueLabels = [...new Set(labels)];
 
-    const minPrice = Math.min(
-      ...(foilPrices.length > 0 ? foilPrices : [0]),
-      ...(normalPrices.length > 0 ? normalPrices : [0])
-    );
-    const maxPrice = Math.max(
-      ...(foilPrices.length > 0 ? foilPrices : [0]),
-      ...(normalPrices.length > 0 ? normalPrices : [0])
-    );
+    const minPrice = Math.min(...foilPrices, ...normalPrices);
+    const maxPrice = Math.max(...foilPrices, ...normalPrices);
 
     // Fix canvas height before initializing a new chart
     const canvas = this.cardPriceChartTarget;
