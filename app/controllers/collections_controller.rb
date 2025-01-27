@@ -24,7 +24,6 @@ class CollectionsController < ApplicationController
   end
 
   def load
-    # collection = User.find_by(username: params[:username]).collections.first
     magic_cards = Search::Collection.call(
       collection: load_collection, search_term: params[:search], code: params[:code]
     )
@@ -44,7 +43,7 @@ class CollectionsController < ApplicationController
 
   def boxset_options(user)
     # just get the boxset_id's for cards in the collection and create the options list from that
-    boxset_ids = user.collections.first.magic_cards.pluck(:boxset_id).uniq.compact
+    boxset_ids = load_collection_ids(user.collections)
     boxsets = Boxset.where(id: boxset_ids)
     @options = boxsets.map do |boxset|
       { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
@@ -52,6 +51,14 @@ class CollectionsController < ApplicationController
   end
 
   private
+
+  def load_collection_ids(collections)
+    if params[:collection_id].present?
+      collections.find_by(id: params[:collection_id]).magic_cards.pluck(:boxset_id).uniq.compact
+    else
+      collections.first.magic_cards.pluck(:boxset_id).uniq.compact
+    end
+  end
 
   def load_collection
     if params[:collection_id].present?
