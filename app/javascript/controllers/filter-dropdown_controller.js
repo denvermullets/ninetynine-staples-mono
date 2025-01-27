@@ -7,6 +7,7 @@ export default class extends Controller {
     options: Array,
     url: String,
     username: String,
+    collection: String,
   };
 
   connect() {
@@ -94,6 +95,7 @@ export default class extends Controller {
   }
 
   loadTableData(code) {
+    console.log("collection set", this.collectionValue);
     // handling if there's params on the url and then push the history
     const currentParams = new URLSearchParams(window.location.search);
     const queryParams = new URLSearchParams({
@@ -109,13 +111,17 @@ export default class extends Controller {
       .then((html) => {
         Turbo.renderStreamMessage(html);
 
+        // lots of logic to set the url, lol
         const updatedParams = new URLSearchParams({
           code: code,
           ...(currentParams.get("search") && { search: currentParams.get("search") }),
         }).toString();
 
         const basePath = this.usernameValue ? `/collections/${this.usernameValue}` : `/boxsets`;
-        const pushUrl = `${window.location.origin}${basePath}${
+        const fullBasePath = this.collectionValue
+          ? `${basePath}/${this.collectionValue}`
+          : basePath;
+        const pushUrl = `${window.location.origin}${fullBasePath}${
           updatedParams ? `?${updatedParams}` : ""
         }`;
 

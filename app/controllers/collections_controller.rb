@@ -11,8 +11,7 @@ class CollectionsController < ApplicationController
     if user.present?
       boxset_options(user)
 
-      collection = user.collections.first
-      magic_cards = collection.magic_cards.includes(magic_card_color_idents: :color)
+      magic_cards = load_collection.magic_cards.includes(magic_card_color_idents: :color)
       @pagy, @magic_cards = pagy_array(magic_cards)
 
       respond_to do |format|
@@ -25,9 +24,9 @@ class CollectionsController < ApplicationController
   end
 
   def load
-    collection = User.find_by(username: params[:username]).collections.first
+    # collection = User.find_by(username: params[:username]).collections.first
     magic_cards = Search::Collection.call(
-      collection:, search_term: params[:search], code: params[:code]
+      collection: load_collection, search_term: params[:search], code: params[:code]
     )
     @pagy, @magic_cards = pagy_array(magic_cards)
 
@@ -49,6 +48,16 @@ class CollectionsController < ApplicationController
     boxsets = Boxset.where(id: boxset_ids)
     @options = boxsets.map do |boxset|
       { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
+    end
+  end
+
+  private
+
+  def load_collection
+    if params[:collection_id].present?
+      Collection.find(params[:collection_id])
+    else
+      User.find_by(username: params[:username]).collections.first
     end
   end
 end

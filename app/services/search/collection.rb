@@ -1,4 +1,5 @@
-# this service will take in a collection and sort it
+# this service will take in a collection of cards
+# searches and sorts the collection
 
 module Search
   class Collection < Service
@@ -11,14 +12,14 @@ module Search
     def call
       return [] if @collection&.empty? && @search_term&.empty?
 
-      query_cards
+      sort_cards(query_cards)
     end
 
     private
 
     def query_cards
       if @collection.blank? && @search_term.present?
-        # not sure we'll hit this ever with this service
+        # only on boxset view will this be hit, collections view currently always has a lookup first
         MagicCard.where('name ILIKE ?', "%#{@search_term}%")
       elsif search_empty && @boxset_id.present?
         @collection.where('boxset_id = ?', @boxset_id)
@@ -31,6 +32,17 @@ module Search
 
     def search_empty
       @search_term.nil? || @search_term.empty?
+    end
+
+    def sort_cards(cards)
+      # takes in a collection of cards and sorts
+      cards.sort_by do |card|
+        # try to convert the card_number to an integer, trying to use a Tuple
+        [Integer(card.card_number), 0]
+      rescue ArgumentError, TypeError
+        # if it fails, place it at the end
+        [Float::INFINITY, 1]
+      end
     end
   end
 end
