@@ -6,7 +6,7 @@
         <p class='block text-xs text-greyText md:hidden'>Choose your collection</p>
       </div>
       <%= select_tag :collection_id,
-        options_from_collection_for_select(collections, :id, :name),
+        options_from_collection_for_select(collections, :id, :name, collection_id),
         include_blank: nil,
         class: 'w-full border rounded-md border-highlight bg-background text-greyText',
         data: { action: 'change->collection-selector#fetchCollection' },

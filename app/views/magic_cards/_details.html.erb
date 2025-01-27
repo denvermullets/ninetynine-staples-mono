@@ -20,7 +20,7 @@
         <p class="text-xs text-nineWhite"><%= card.text %></p>
       </div>
       <% if current_user %>
-        <%= render partial: 'collections/form', locals: { collections:, magic_card: card } %>
+        <%= render partial: 'collections/form', locals: { collections:, magic_card: card, collection_id: params[:collection_id] } %>
       <% end %>
       <div class="flex flex-row w-full">
         <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
