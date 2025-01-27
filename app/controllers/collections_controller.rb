@@ -47,6 +47,8 @@ class CollectionsController < ApplicationController
     # just get the boxset_id's for cards in the collection and create the options list from that
     boxset_ids = user.collections.first.magic_cards.pluck(:boxset_id).uniq.compact
     boxsets = Boxset.where(id: boxset_ids)
-    @options = boxsets.map { |boxset| { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase } }
+    @options = boxsets.map do |boxset|
+      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
+    end
   end
 end
