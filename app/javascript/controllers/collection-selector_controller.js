@@ -17,7 +17,7 @@ export default class extends Controller {
   }
 
   queryCollection(collection, magicCard) {
-    fetch(`collection_magic_cards/quantity?collection_id=${collection}&magic_card_id=${magicCard}`)
+    fetch(`/collection_magic_cards/quantity?collection_id=${collection}&magic_card_id=${magicCard}`)
       .then((response) => response.json())
       .then((data) => {
         this.quantityTarget.value = data.quantity;

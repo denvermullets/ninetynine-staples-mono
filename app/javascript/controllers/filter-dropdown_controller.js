@@ -6,10 +6,14 @@ export default class extends Controller {
   static values = {
     options: Array,
     url: String,
+    username: String,
   };
 
   connect() {
-    this.filterOptions();
+    // if the user is coming from a preloaded url, select the option if found
+    const code = new URLSearchParams(window.location.search).get("code");
+
+    this.filterOptions(code);
     this.boundHandleClickOutside = this.handleClickOutside.bind(this);
   }
 
@@ -44,7 +48,17 @@ export default class extends Controller {
     this.dropdownTarget.classList.remove("hidden");
   }
 
-  filterOptions() {
+  filterOptions(code) {
+    // if the user is coming with a param already we just set the dropdown, no need to load
+    if (code) {
+      const selectedOption = this.optionsValue.find((option) => option.code === code);
+      if (selectedOption) {
+        this.inputTarget.value = selectedOption.name;
+        this.dropdownTarget.classList.add("hidden");
+        return;
+      }
+    }
+
     const query = this.inputTarget.value.toLowerCase();
     const filteredOptions = this.optionsValue.filter(
       (option) =>
@@ -80,13 +94,34 @@ export default class extends Controller {
   }
 
   loadTableData(code) {
-    const url = `${this.urlValue}?code=${code}`;
+    // handling if there's params on the url and then push the history
+    const currentParams = new URLSearchParams(window.location.search);
+    const queryParams = new URLSearchParams({
+      code,
+      ...(currentParams.get("code") && { code }),
+      ...(currentParams.get("search") && { search: currentParams.get("search") }),
+      ...(this.usernameValue && { username: this.usernameValue }),
+    }).toString();
+
+    const url = `${this.urlValue}?${queryParams}`;
 
     fetch(url)
       .then((response) => response.text())
       .then((html) => {
         Turbo.renderStreamMessage(html);
-        history.pushState(null, "", `${window.location.origin}/boxsets?code=${code}`);
+
+        const updatedParams = new URLSearchParams({
+          ...(currentParams.get("code") && { code }),
+          ...(currentParams.get("search") && { search: currentParams.get("search") }),
+        }).toString();
+
+        const basePath = this.usernameValue ? `/collections/${this.usernameValue}` : `/boxsets`;
+        console.log("basePath: ", basePath);
+        const pushUrl = `${window.location.origin}${basePath}${
+          updatedParams ? `?${updatedParams}` : ""
+        }`;
+
+        history.pushState(null, "", pushUrl);
       });
   }
 }
