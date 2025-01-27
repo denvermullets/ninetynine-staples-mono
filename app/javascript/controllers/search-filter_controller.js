@@ -8,17 +8,12 @@ export default class extends Controller {
     event.preventDefault();
 
     const currentParams = new URLSearchParams(window.location.search);
-    console.log("currentParams: ", currentParams);
-
     const formData = new FormData(this.formTarget);
     formData.forEach((value, key) => {
-      console.log("params ;", key, value);
       currentParams.set(key, value);
     });
-    console.log("formData: ", formData);
 
     const queryString = currentParams.toString();
-    console.log("queryString: ", queryString);
     const actionUrl = this.formTarget.action.split("?")[0];
     const newUrl = `${actionUrl}?${queryString}`;
 
