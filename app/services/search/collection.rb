@@ -9,7 +9,7 @@ module Search
     end
 
     def call
-      return [] if @collection.empty? && @search_term.empty?
+      return [] if @collection&.empty? && @search_term&.empty?
 
       query_cards
     end
@@ -19,7 +19,7 @@ module Search
     def query_cards
       if @collection.blank? && @search_term.present?
         # not sure we'll hit this ever with this service
-        # cards = MagicCard.where('name ILIKE ?', "%#{search_term}%")
+        MagicCard.where('name ILIKE ?', "%#{@search_term}%")
       elsif search_empty && @boxset_id.present?
         @collection.where('boxset_id = ?', @boxset_id)
       elsif @search_term.present? && @boxset_id.present?

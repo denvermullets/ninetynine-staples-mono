@@ -17,7 +17,11 @@ class BoxsetsController < ApplicationController
 
   def load_boxset
     @boxset = fetch_boxset(params[:code])
-    magic_cards = filter_and_sort_cards(@boxset, params[:search])
+    # binding.pry
+    magic_cards = Search::Collection.call(
+      collection: @boxset, search_term: params[:search], code: params[:code]
+    )
+    # magic_cards = filter_and_sort_cards(@boxset, params[:search])
     @pagy, @magic_cards = pagy_array(magic_cards)
 
     respond_to do |format|
@@ -35,7 +39,7 @@ class BoxsetsController < ApplicationController
   end
 
   def filter_and_sort_cards(boxset, search_term)
-    return [] if boxset.nil? && search_term.empty?
+    return [] if boxset.nil? && search_term&.empty?
 
     if boxset.nil? && search_term.present?
       cards = MagicCard.where('name ILIKE ?', "%#{search_term}%")
