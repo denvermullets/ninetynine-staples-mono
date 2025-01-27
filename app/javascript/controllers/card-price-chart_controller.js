@@ -115,7 +115,8 @@ export default class extends Controller {
             backgroundColor: "#39DB7D",
             borderColor: "#39DB7D",
             borderWidth: 2,
-            tension: 0.6,
+            // cubicInterpolationMode: "monotone",
+            tension: 0.3,
             fill: false,
           },
           {
@@ -124,7 +125,7 @@ export default class extends Controller {
             backgroundColor: "#C6EE52",
             borderColor: "#C6EE52",
             borderWidth: 2,
-            tension: 0.4,
+            tension: 0.3,
             fill: false,
           },
         ].filter((dataset) => dataset.data.length > 0),

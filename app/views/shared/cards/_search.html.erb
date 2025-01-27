@@ -1,5 +1,10 @@
-<div class='flex-1 w-auto '>
-  <%= form_with url: load_boxset_path, method: :get, local: false, data: { controller: 'boxset-filter', boxset_filter_target: 'form', action: 'submit->boxset-filter#submit', boxset_filter: 'form' } do |form| %>
+<div class='flex-1 w-auto ' id='search-form'>
+  <%= form_with url: search_path, method: :get, local: false,
+    data: {
+      controller: 'search-filter',
+      action: 'submit->search-filter#submit',
+      search_filter_target: 'form',
+      search_filter: 'form' } do |form| %>
     <h3 class='mb-2 text-greyText'>Search</h3>
     <div class='flex flex-row space-x-0'>
       <%= form.text_field :search,
@@ -7,6 +12,8 @@
           placeholder: 'Enter card name or type',
           class: 'w-full pr-10 border text-greyText rounded-l-md bg-background border-highlight'
       %>
+      <%= form.hidden_field :username, value: params[:username] %>
+      <%= form.hidden_field :code, value: params[:code] %>
       <%= form.submit 'Search',
           class: 'p-2 bg-background text-greyText rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700'
       %>

@@ -8,7 +8,13 @@
       <div class="<%= nav_item_classes('/boxsets') %>">
         <%= link_to 'Boxsets', boxsets_path %>
       </div>
-      <p class="<%= nav_item_classes('') %> hidden md:block">Collections</p>
+      <% if current_user %>
+        <div class="<%= nav_item_classes('/collections/' + current_user.username) %>">
+          <%= link_to 'Collections', collection_show_path(current_user.username) %>
+        </div>
+      <% else %>
+        <p class="<%= nav_item_classes('') %> hidden md:block">Collections</p>
+      <% end %>
       <p class="<%= nav_item_classes('') %> hidden md:block">Decks</p>
     </div>
     <div class='flex-row hidden space-x-6 md:flex'>

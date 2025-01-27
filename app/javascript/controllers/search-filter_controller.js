@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
-// Connects to data-controller="boxset-filter"
+// Connects to data-controller="search-filter"
 export default class extends Controller {
   static targets = ["form"];
 
@@ -8,7 +8,6 @@ export default class extends Controller {
     event.preventDefault();
 
     const currentParams = new URLSearchParams(window.location.search);
-
     const formData = new FormData(this.formTarget);
     formData.forEach((value, key) => {
       currentParams.set(key, value);
@@ -27,7 +26,19 @@ export default class extends Controller {
       .then((response) => response.text())
       .then((html) => {
         document.querySelector("[id='table-container']").innerHTML = html;
-        history.pushState(null, "", `${window.location.origin}/boxsets?${queryString}`);
+
+        const usernameValue = currentParams.get("username");
+        const queryString = new URLSearchParams({
+          ...(currentParams.get("code") && { code: currentParams.get("code") }),
+          ...(currentParams.get("search") && { search: currentParams.get("search") }),
+        }).toString();
+
+        const basePath = usernameValue ? `/collections/${usernameValue}` : `/boxsets`;
+        const pushUrl = `${window.location.origin}${basePath}${
+          queryString ? `?${queryString}` : ""
+        }`;
+
+        history.pushState(null, "", pushUrl);
       });
   }
 }
