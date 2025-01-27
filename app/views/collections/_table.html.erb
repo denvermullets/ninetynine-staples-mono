@@ -28,7 +28,9 @@
         </tr>
         <tr data-expandable-row-target="content" data-card-id="<%= card.id %>" class="hidden border border-background">
           <td colspan="6">
-            <%= turbo_frame_tag "card_details_#{card.id}", src: boxset_magic_card_path(card.id), loading: :lazy %>
+            <%= turbo_frame_tag "card_details_#{card.id}",
+                src: boxset_magic_card_path(card.id, collection_id: params[:collection_id] || nil),
+                loading: :lazy %>
           </td>
         </tr>
       <% end %>

@@ -28,7 +28,6 @@ export default class extends Controller {
 
   fetchCollection(event) {
     const collection = event.target.value;
-    console.log("collection: ", collection);
     const magicCard = this.findCardId(event);
 
     if (!collection) {

@@ -28,13 +28,16 @@ export default class extends Controller {
         document.querySelector("[id='table-container']").innerHTML = html;
 
         const usernameValue = currentParams.get("username");
+        const collectionId = currentParams.get("collection_id");
+        console.log("colledctionId: ", collectionId);
         const queryString = new URLSearchParams({
           ...(currentParams.get("code") && { code: currentParams.get("code") }),
           ...(currentParams.get("search") && { search: currentParams.get("search") }),
         }).toString();
 
         const basePath = usernameValue ? `/collections/${usernameValue}` : `/boxsets`;
-        const pushUrl = `${window.location.origin}${basePath}${
+        const fullBasePath = collectionId ? `${basePath}/${collectionId}` : basePath;
+        const pushUrl = `${window.location.origin}${fullBasePath}${
           queryString ? `?${queryString}` : ""
         }`;
 
