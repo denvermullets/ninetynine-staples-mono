@@ -1,20 +1,8 @@
 class CollectionMagicCardsController < ApplicationController
   def update_collection
-    collection = load_collection_record
+    collection_magic_card = load_collection_record&.first
 
-    if collection.count.positive?
-      collection.first.update(
-        quantity: collection_params[:quantity] || 0, foil_quantity: collection_params[:foil_quantity] || 0
-      )
-    else
-      CollectionMagicCard.create!(
-        collection_id: collection_params[:collection_id], magic_card_id: collection_params[:magic_card_id],
-        quantity: collection_params[:quantity] || 0, foil_quantity: collection_params[:foil_quantity] || 0,
-        card_uuid: collection_params[:card_uuid]
-      )
-    end
-
-    :success
+    CollectionRecord::CreateOrUpdate.call(collection_magic_card:, params: collection_params)
   end
 
   def quantity
