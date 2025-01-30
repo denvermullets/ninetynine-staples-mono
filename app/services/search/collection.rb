@@ -3,16 +3,22 @@
 
 module Search
   class Collection < Service
-    def initialize(collection:, search_term:, code:)
+    def initialize(collection:, search_term:, code:, sort_by:)
       @collection = collection&.magic_cards || []
       @search_term = search_term
       @boxset_id = code.nil? ? nil : Boxset.find_by(code: code)&.id
+      @sort_by = sort_by
     end
 
     def call
       return [] if @collection&.empty? && @search_term&.empty?
 
-      sort_cards(query_cards)
+      case @sort_by
+      when :id
+        sort_by_card_num(query_cards)
+      when :price
+        sort_by_price(query_cards)
+      end
     end
 
     private
@@ -34,7 +40,7 @@ module Search
       @search_term.nil? || @search_term.empty?
     end
 
-    def sort_cards(cards)
+    def sort_by_card_num(cards)
       # takes in a collection of cards and sorts
       cards.sort_by do |card|
         # try to convert the card_number to an integer, trying to use a Tuple
@@ -42,6 +48,18 @@ module Search
       rescue ArgumentError, TypeError
         # if it fails, place it at the end
         [Float::INFINITY, 1]
+      end
+    end
+
+    def sort_by_price(cards)
+      cards.sort_by do |card|
+        foil_price = card.foil_price || 0
+        normal_price = card.normal_price || 0
+
+        highest_price = [foil_price, normal_price].max
+
+        # default descending order
+        -highest_price
       end
     end
   end
