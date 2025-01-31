@@ -2,7 +2,21 @@ class CollectionMagicCardsController < ApplicationController
   def update_collection
     collection_magic_card = load_collection_record&.first
 
-    CollectionRecord::CreateOrUpdate.call(collection_magic_card:, params: collection_params)
+    result = CollectionRecord::CreateOrUpdate.call(collection_magic_card:, params: collection_params)
+
+    if result[:action] == :success
+      flash.now[:type] = 'success'
+      render turbo_stream: turbo_stream.append(
+        'toasts', partial: 'shared/toast',
+                  locals: { message: "Added #{result[:name]} to your collection." }
+      )
+    else
+      flash.now[:type] = 'error'
+      render turbo_stream: turbo_stream.append(
+        'toasts', partial: 'shared/toast',
+                  locals: { message: "Deleted #{result[:name]} from your collection." }
+      )
+    end
   end
 
   def quantity
