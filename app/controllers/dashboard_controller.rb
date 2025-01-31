@@ -10,4 +10,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def reset_collections
+    ResetCollectionValues.perform_later
+
+    redirect_to '/jobs'
+  end
 end

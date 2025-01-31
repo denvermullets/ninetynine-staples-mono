@@ -28,4 +28,24 @@ class MagicCard < ApplicationRecord
 
   has_many :magic_card_keywords
   has_many :keywords, through: :magic_card_keywords
+
+  def price_change
+    # determine how much value has changed
+    price_changes = {}
+
+    %w[foil normal].each do |type|
+      prices = price_history[type]&.last(2) || []
+      next unless prices.size == 2
+
+      old_price = prices.first.values.first
+      new_price = prices.last.values.first
+      price_changes[type] = {
+        old_price: old_price,
+        new_price: new_price,
+        change: (new_price - old_price).round(2)
+      }
+    end
+
+    price_changes
+  end
 end
