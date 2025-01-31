@@ -8,8 +8,20 @@ class IngestPrices < ApplicationJob
     source = URI.open('https://mtgjson.com/api/v5/AllPricesToday.json')
     puts 'completed loading AllPricesToday.json from mtgjson.com'
     # all_info = JSON.parse(source)['data']
-    all_info = JSON.parse(source.read)['data']
+    json_data = JSON.parse(source.read)
+    price_date = json_data['meta']['date']
+    # storing the checksum date on parent admin user
+    admin_user = User.where(role: 9001).first
+    puts "are prices the same since last price check? #{price_date == admin_user.prices_last_updated_at}"
+    return if price_date == admin_user.prices_last_updated_at
 
+    puts 'prices out of date, updating prices'
+    all_info = json_data['data']
+    ingest_prices(all_info)
+    admin_user.update(prices_last_updated_at: price_date)
+  end
+
+  def ingest_prices(all_info)
     all_info.each do |key, value|
       next unless value['paper'].present?
       next unless value['paper']['tcgplayer'].present?
@@ -29,6 +41,7 @@ class IngestPrices < ApplicationJob
     foil_price = find_price(card.foil_price, price_info['foil']) || 0
     price_history = update_price_history(card.price_history, price_info)
     card.update(normal_price:, foil_price:, price_history:)
+    UpdateCollections.perform_later(card)
   end
 
   private
