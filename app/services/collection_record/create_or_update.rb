@@ -17,12 +17,14 @@ module CollectionRecord
         update_existing_collection_magic_card
 
         if nil_quantity
+          deleted_card = @collection_magic_card.magic_card.name
           @collection_magic_card.delete
-          return :delete
+
+          return { action: :delete, name: deleted_card }
         end
       end
 
-      :success
+      { action: :success, name: @collection_magic_card.magic_card.name }
     end
 
     private
