@@ -10,8 +10,11 @@ class CollectionsController < ApplicationController
 
     if user.present?
       boxset_options(user)
+      magic_cards = Search::Collection.call(
+        collection: load_collection, search_term: params[:search], code: params[:code],
+        sort_by: :price
+      )
 
-      magic_cards = load_collection.magic_cards.includes(magic_card_color_idents: :color)
       @pagy, @magic_cards = pagy_array(magic_cards)
 
       respond_to do |format|
@@ -25,8 +28,10 @@ class CollectionsController < ApplicationController
 
   def load
     magic_cards = Search::Collection.call(
-      collection: load_collection, search_term: params[:search], code: params[:code]
+      collection: load_collection, search_term: params[:search], code: params[:code],
+      sort_by: :price
     )
+
     @pagy, @magic_cards = pagy_array(magic_cards)
 
     respond_to do |format|

@@ -17,7 +17,9 @@ class BoxsetsController < ApplicationController
 
   def load_boxset
     @boxset = fetch_boxset(params[:code])
-    magic_cards = Search::Collection.call(collection: @boxset, search_term: params[:search], code: params[:code])
+    magic_cards = Search::Collection.call(
+      collection: @boxset, search_term: params[:search], code: params[:code], sort_by: :id
+    )
     @pagy, @magic_cards = pagy_array(magic_cards)
 
     respond_to do |format|
