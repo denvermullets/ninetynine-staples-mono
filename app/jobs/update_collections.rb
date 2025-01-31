@@ -19,7 +19,7 @@ class UpdateCollections < ApplicationJob
 
       # update all collections
       collection_updates.each do |collection_id, total_price_change|
-        Collection.where(id: collection_id).update_all("total_value = total_value + #{total_price_change}")
+        Collection.where(id: collection_id).update_all(['total_value = total_value + ?', total_price_change])
       end
     end
   end
