@@ -1,6 +1,24 @@
 class CollectionsController < ApplicationController
   require 'pagy/extras/array'
 
+  def new
+    @collection = Collection.new
+
+    render :new
+  end
+
+  def create
+    collection = Collection.new(collection_params)
+
+    if collection.save
+      flash[:success] = "Created a new collection named #{collection.name} to your account."
+      redirect_to root_path
+    else
+      flash.now[:error] = 'Failed to create collection.'
+      render :new, status: :unprocessable_entity
+    end
+  end
+
   def show
     # case sensitive for now
     user = User.find_by(username: params[:username])
@@ -8,6 +26,7 @@ class CollectionsController < ApplicationController
     if user.present?
       @collection = load_collection
       @collections_value = user.collections.sum(:total_value)
+      @collections = user.collections
       boxset_options(user)
       magic_cards = Search::Collection.call(
         collection: @collection, search_term: params[:search], code: params[:code],
@@ -70,5 +89,9 @@ class CollectionsController < ApplicationController
     else
       User.find_by(username: params[:username]).collections.first
     end
+  end
+
+  def collection_params
+    params.require(:collection).permit(:description, :name, :collection_type, :user_id)
   end
 end

@@ -33,7 +33,7 @@ module ApplicationHelper
     active_classes = 'border-greyText border'
 
     # add the active classes if the current request path matches the provided route
-    if (request.path == '/' && route == '/boxsets') || request.path == route
+    if (request.path == '/' && route == '/boxsets') || request.path.include?(route)
       "#{base_classes} #{active_classes}"
     else
       "#{base_classes} border-transparent"

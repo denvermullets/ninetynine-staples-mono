@@ -13,9 +13,9 @@
           <%= link_to 'Collections', collection_show_path(current_user.username) %>
         </div>
       <% else %>
-        <p class="<%= nav_item_classes('') %> hidden md:block">Collections</p>
+        <p class="<%= nav_item_classes('/collections/') %> hidden md:block">Collections</p>
       <% end %>
-      <p class="<%= nav_item_classes('') %> hidden md:block">Decks</p>
+      <p class="<%= nav_item_classes('/decks') %> hidden md:block">Decks</p>
     </div>
     <div class='flex-row hidden space-x-6 md:flex'>
       <% if current_user %>

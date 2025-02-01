@@ -1,4 +1,6 @@
 class Collection < ApplicationRecord
+  validates :name, :description, :collection_type, presence: true
+
   belongs_to :user
 
   has_many :collection_magic_cards

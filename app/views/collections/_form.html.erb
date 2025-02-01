@@ -5,19 +5,15 @@
         <h3 class='mb-2 text-greyText'>Collection</h3>
         <p class='block text-xs text-greyText md:hidden'>Choose your collection</p>
       </div>
-      <%= select_tag :collection_id,
-        options_from_collection_for_select(collections, :id, :name, collection_id),
-        id: "collection_#{magic_card.card_uuid}",
-        include_blank: nil,
-        class: 'w-full border rounded-md border-highlight bg-background text-greyText',
-        data: { action: 'change->collection-selector#fetchCollection' },
-        required: true
+      <%= f.select :collection_id,
+          options_from_collection_for_select(collections, :id, :name, collection_id),
+          { include_blank: false },
+          class: 'w-full border rounded-md border-highlight bg-background text-greyText focus:border-accent-50 focus:ring-accent-50'
       %>
       <p class='hidden mt-2 text-xs text-greyText md:block'>Choose your collection</p>
     </div>
     <%= f.hidden_field :magic_card_id, value: magic_card.id %>
     <%= f.hidden_field :card_uuid, value: magic_card.card_uuid %>
-    <%= f.hidden_field :collection_id, value: params[:collection_id] %>
     <div class='flex flex-col w-auto'>
       <div class='flex flex-row items-center justify-between'>
         <h3 class='mb-2 text-greyText'>Regular</h3>
@@ -26,7 +22,7 @@
       <%= f.number_field :quantity, value: 0,
         data: { collection_selector_target: 'quantity' },
         disabled: !magic_card.has_non_foil,
-        class: "w-auto md:w-24 border text-greyText rounded-md #{magic_card.has_non_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
+        class: "w-auto md:w-24 border text-greyText rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.has_non_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
       %>
       <p class='hidden mt-2 text-xs text-greyText md:block'>Quantity</p>
     </div>
@@ -38,7 +34,7 @@
       <%= f.number_field :foil_quantity, value: 0,
         data: { collection_selector_target: 'foilQuantity' },
         disabled: !magic_card.has_foil,
-        class: "w-auto md:w-24 border text-greyText rounded-md #{magic_card.has_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
+        class: "w-auto md:w-24 border text-greyText rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.has_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
       %>
       <p class='hidden mt-2 text-xs md:block text-greyText'>Quantity</p>
     </div>
