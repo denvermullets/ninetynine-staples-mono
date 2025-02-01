@@ -46,7 +46,8 @@ module CollectionRecord
 
       if old_value < new_value
         # quantity change has gained value
-        @collection.update(total_value: collection_value + (new_value - old_value))
+        increase = new_value - old_value
+        @collection.update(total_value: collection_value + increase)
       else
         # quantity change has lowered value
         difference = calculate_value_change(old_value, new_value)
@@ -58,6 +59,7 @@ module CollectionRecord
       # just multiplies quantity x price and adds together
       normal_price = (@collection_magic_card.quantity || 0) * (@magic_card.normal_price || 0)
       foil_price = (@collection_magic_card.foil_quantity || 0) * (@magic_card.foil_price || 0)
+
       normal_price + foil_price
     end
 

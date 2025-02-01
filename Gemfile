@@ -33,8 +33,10 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
 end
 
+# rubocop:disable Bundler/DuplicatedGem
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
+  gem "rspec-rails", "~> 7.0.0"
   gem "rubocop"
   gem "web-console"
 end
@@ -42,5 +44,9 @@ end
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem "rspec-rails", "~> 7.0.0"
   gem "selenium-webdriver"
 end
+# rubocop:enable Bundler/DuplicatedGem
