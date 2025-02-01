@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_31_213326) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_01_211727) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -67,7 +67,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_31_213326) do
   create_table "collections", force: :cascade do |t|
     t.string "name"
     t.text "description"
-    t.string "type"
+    t.string "collection_type"
     t.decimal "total_value", precision: 15, scale: 2, default: "0.0"
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
@@ -195,6 +195,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_31_213326) do
     t.decimal "normal_price", precision: 12, scale: 2, default: "0.0"
     t.decimal "foil_price", precision: 12, scale: 2, default: "0.0"
     t.jsonb "price_history"
+    t.string "art_crop"
+    t.datetime "image_updated_at"
     t.index ["boxset_id"], name: "index_magic_cards_on_boxset_id"
   end
 

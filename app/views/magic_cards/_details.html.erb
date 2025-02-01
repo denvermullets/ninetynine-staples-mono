@@ -22,9 +22,11 @@
       <% if current_user %>
         <%= render partial: 'collections/form', locals: { collections:, magic_card: card, collection_id: params[:collection_id] } %>
       <% end %>
-      <div class="flex flex-row w-full">
-        <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
-      </div>
+      <% if card.price_history.present? %>
+        <div class="flex flex-row w-full">
+          <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>
