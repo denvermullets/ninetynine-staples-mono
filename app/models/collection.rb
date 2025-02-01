@@ -1,5 +1,5 @@
 class Collection < ApplicationRecord
-  validates :name, :description, :collection_type, presence: true
+  validates :name, :description, presence: true
 
   belongs_to :user
 

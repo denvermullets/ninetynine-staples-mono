@@ -36,19 +36,12 @@ module CollectionRecord
       @collection.update(total_value: current_total + determine_value)
     end
 
-    def determine_value
-      # just multiplies quantity x price and adds together
-      normal_price = (@collection_magic_card.quantity || 0) * (@magic_card.normal_price || 0)
-      foil_price = (@collection_magic_card.foil_quantity || 0) * (@magic_card.foil_price || 0)
-      normal_price + foil_price
-    end
-
     def update_existing_collection_magic_card
       old_value = determine_value
-      new_value = determine_value
       update_collection_quantity_totals
-
       @collection_magic_card.update(@card_params)
+      new_value = determine_value
+
       collection_value = @collection.total_value || 0
 
       if old_value < new_value
@@ -61,11 +54,18 @@ module CollectionRecord
       end
     end
 
+    def determine_value
+      # just multiplies quantity x price and adds together
+      normal_price = (@collection_magic_card.quantity || 0) * (@magic_card.normal_price || 0)
+      foil_price = (@collection_magic_card.foil_quantity || 0) * (@magic_card.foil_price || 0)
+      normal_price + foil_price
+    end
+
     def update_collection_quantity_totals
       foil_quantity = @card_params[:foil_quantity].to_i - @collection_magic_card.foil_quantity
       quantity = @card_params[:quantity].to_i - @collection_magic_card.quantity
-      new_foil_quantity = @collection.total_foil_quantity + foil_quantity
-      new_quantity = @collection.total_quantity + quantity
+      new_foil_quantity = @collection.total_foil_quantity + foil_quantity.to_i
+      new_quantity = @collection.total_quantity + quantity.to_i
 
       @collection.update(total_foil_quantity: new_foil_quantity, total_quantity: new_quantity)
     end
