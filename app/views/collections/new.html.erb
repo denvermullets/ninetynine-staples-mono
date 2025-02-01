@@ -1,0 +1,21 @@
+<div class="flex flex-col items-center gap-8 px-24 py-8 text-greyText ">
+  <%= form_with(model: @collection, local: true, data: { turbo: false }, class: "bg-foreground w-full border border-highlight p-6 rounded-2xl text-greyText") do |f| %>
+    <h2 class="mb-4 text-2xl font-semibold">Create a New Collection</h2>
+    <%= f.hidden_field :user_id, value: current_user.id %>
+    <div class="mb-4">
+      <%= f.label :name, class: " text-sm font-medium " %>
+      <%= f.text_field :name, class: "mt-1 bg-background w-full rounded-md border-highlight focus:border-accent-50 focus:ring-accent-50" %>
+    </div>
+    <div class="mb-4">
+      <%= f.label :description, class: "block text-sm font-medium " %>
+      <%= f.text_field :description, class: "mt-1 block bg-background w-full rounded-md border-highlight focus:border-accent-50 focus:ring-accent-50" %>
+    </div>
+    <div class="mb-4">
+      <%= f.label :collection_type, class: "block text-sm font-medium " %>
+      <%= f.text_field :collection_type, class: "mt-1 block w-full rounded-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50" %>
+    </div>
+    <div class="mt-6">
+      <%= f.submit "Create Collection", class: "w-full bg-accent-50 hover:bg-highlight text-background font-medium py-2 px-4 rounded-lg transition hover:cursor-pointer hover:text-greyText" %>
+    </div>
+  <% end %>
+</div>

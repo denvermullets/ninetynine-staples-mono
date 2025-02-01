@@ -1,8 +1,33 @@
-<div class="flex gap-8 px-24 py-8">
+<div class="flex items-start gap-8 px-24 py-8">
   <!-- Sidebar -->
-  <div class="flex-shrink-0 px-8 py-4 space-y-8 border w-72 h-96 rounded-3xl border-highlight bg-foreground text-greyText">
+  <div class="flex-shrink-0 h-auto px-8 py-4 space-y-8 border w-72 rounded-3xl border-highlight bg-foreground text-greyText">
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path } %>
+    <div class='flex flex-col gap-4'>
+      <div class='-mb-2'>
+        Binders
+      </div>
+      <% @collections.each do |collection| %>
+        <%= render partial: 'binder',
+                 locals: {
+                   name: collection.name,
+                   description: collection.description,
+                   card: collection.magic_cards.count.zero? ? MagicCard.all.sample : collection.magic_cards.sample,
+                   link: collection_show_path(username: params[:username], collection_id: collection.id)
+                 }
+        %>
+      <% end %>
+      <% if current_user %>
+        <%= render partial: 'binder',
+                 locals: {
+                   name: 'Create a Collection',
+                   description: 'All this could be yours',
+                   card: MagicCard.all.sample,
+                   link: new_collection_path
+                 }
+        %>
+      <% end %>
+    </div>
   </div>
   <!-- Main Content -->
   <div class="flex flex-col flex-grow gap-8">

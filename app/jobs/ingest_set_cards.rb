@@ -67,14 +67,17 @@ class IngestSetCards < ApplicationJob
     }
 
     if existing_card
-      empty_image = existing_card.image_large.nil? || existing_card.image_medium.nil? || existing_card.image_small.nil?
+      empty_image = existing_card.image_large.nil? || existing_card.image_medium.nil? ||
+                    existing_card.image_small.nil? || existing_card.art_crop.nil? ||
+                    existing_card.image_updated_at < 90.days.ago
 
-      # TODO: need to add image age for this to work right
       if empty_image || error_image(existing_card)
         images = scryfall_images(card)
         card_obj[:image_large] = images[:large]
         card_obj[:image_medium] = images[:normal]
         card_obj[:image_small] = images[:small]
+        card_obj[:art_crop] = images[:art_crop]
+        card_obj[:image_updated_at] = Time.now
       end
 
       existing_card.update(card_obj)
@@ -85,6 +88,8 @@ class IngestSetCards < ApplicationJob
       card_obj[:image_large] = images[:large]
       card_obj[:image_medium] = images[:normal]
       card_obj[:image_small] = images[:small]
+      card_obj[:art_crop] = images[:art_crop]
+      card_obj[:image_updated_at] = Time.now
       card_obj[:normal_price] = 0
       card_obj[:foil_price] = 0
 
@@ -109,16 +114,18 @@ class IngestSetCards < ApplicationJob
       large = res['image_uris']['large']
       normal = res['image_uris']['normal']
       small = res['image_uris']['small']
+      art_crop = res['image_uris']['art_crop']
     elsif res && card['otherFaceIds'] && res['card_faces'][0].key?('image_uris')
       large = res['card_faces'][card['side'] == 'a' ? 0 : 1]['image_uris']['large']
       normal = res['card_faces'][card['side'] == 'a' ? 0 : 1]['image_uris']['normal']
       small = res['card_faces'][card['side'] == 'a' ? 0 : 1]['image_uris']['small']
+      art_crop = res['card_faces'][card['side'] == 'a' ? 0 : 1]['image_uris']['art_crop']
     end
 
     # respecting scryfall rate limit requests
     sleep 0.350
 
-    { small:, normal:, large: }
+    { small:, normal:, large:, art_crop: }
   end
 
   def create_sub_type(magic_card, sub_type)
