@@ -1,0 +1,14 @@
+<div class='flex flex-col w-full gap-6 p-6 border rounded-xl border-highlight text-greyText'>
+  <div class='text-sm'>
+    <%= message %>
+  </div>
+  <% if count.present? %>
+    <div class='text-4xl'>
+      <%= number_with_delimiter(count) %>
+    </div>
+  <% else %>
+    <div class='text-4xl'>
+      <%= number_to_currency(value) %>
+    </div>
+  <% end %>
+</div>

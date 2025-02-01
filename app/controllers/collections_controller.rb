@@ -5,13 +5,12 @@ class CollectionsController < ApplicationController
     # case sensitive for now
     user = User.find_by(username: params[:username])
 
-    # user could have many decks/binders, so grab full collection at first
-    # later will filter by params
-
     if user.present?
+      @collection = load_collection
+      @collections_value = user.collections.sum(:total_value)
       boxset_options(user)
       magic_cards = Search::Collection.call(
-        collection: load_collection, search_term: params[:search], code: params[:code],
+        collection: @collection, search_term: params[:search], code: params[:code],
         sort_by: :price
       )
 

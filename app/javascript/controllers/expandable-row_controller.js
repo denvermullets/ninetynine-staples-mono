@@ -12,14 +12,12 @@ export default class extends Controller {
 
     if (contentRow) {
       contentRow.classList.toggle("hidden");
-
       if (!contentRow.classList.contains("hidden")) {
         // leaving some room so the scroll isn't just to the TOP
-        const offset = 100;
-        const elementPosition = contentRow.getBoundingClientRect().top + window.scrollY;
-        const offsetPosition = elementPosition - offset;
-
-        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+        // const offset = 100;
+        // const elementPosition = contentRow.getBoundingClientRect().top + window.scrollY;
+        // const offsetPosition = elementPosition - offset;
+        // window.scrollTo({ top: offsetPosition, behavior: "smooth" });
       }
     }
   }
