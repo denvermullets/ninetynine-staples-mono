@@ -95,7 +95,6 @@ export default class extends Controller {
   }
 
   loadTableData(code) {
-    console.log("collection set", this.collectionValue);
     // handling if there's params on the url and then push the history
     const currentParams = new URLSearchParams(window.location.search);
     const queryParams = new URLSearchParams({

@@ -45,8 +45,10 @@ module CollectionRecord
 
     def update_existing_collection_magic_card
       old_value = determine_value
-      @collection_magic_card.update(@card_params)
       new_value = determine_value
+      update_collection_quantity_totals
+
+      @collection_magic_card.update(@card_params)
       collection_value = @collection.total_value || 0
 
       if old_value < new_value
@@ -57,6 +59,15 @@ module CollectionRecord
         difference = calculate_value_change(old_value, new_value)
         @collection.update(total_value: force_min_value(collection_value, difference))
       end
+    end
+
+    def update_collection_quantity_totals
+      foil_quantity = @card_params[:foil_quantity].to_i - @collection_magic_card.foil_quantity
+      quantity = @card_params[:quantity].to_i - @collection_magic_card.quantity
+      new_foil_quantity = @collection.total_foil_quantity + foil_quantity
+      new_quantity = @collection.total_quantity + quantity
+
+      @collection.update(total_foil_quantity: new_foil_quantity, total_quantity: new_quantity)
     end
 
     def calculate_value_change(old_value, new_value)
@@ -79,9 +90,5 @@ module CollectionRecord
 
       (quantity.nil? || quantity.zero?) && (foil_quantity.nil? || foil_quantity.zero?)
     end
-  end
-
-  def collection_params
-    params.permit(:quantity, :foil_quantity, :collection_id, :magic_card_id, :card_uuid)
   end
 end

@@ -29,7 +29,7 @@ export default class extends Controller {
 
         const usernameValue = currentParams.get("username");
         const collectionId = currentParams.get("collection_id");
-        console.log("colledctionId: ", collectionId);
+
         const queryString = new URLSearchParams({
           ...(currentParams.get("code") && { code: currentParams.get("code") }),
           ...(currentParams.get("search") && { search: currentParams.get("search") }),
