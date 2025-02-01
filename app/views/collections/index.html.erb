@@ -13,7 +13,7 @@
           <%= render partial: 'stats',
                    locals: {
                      message: "Total cards in #{@collection.name} binder",
-                     count: @collection.collection_magic_cards.count,
+                     count: @collection.total_foil_quantity + @collection.total_quantity,
                      value: nil
                    }
           %>
