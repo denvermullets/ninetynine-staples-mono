@@ -9,7 +9,9 @@ export default class extends Controller {
 
     if (cardRow) {
       const collectionDropdown = cardRow.querySelector("[name='collection_id']");
-      const collectionId = collectionDropdown.options[0].value;
+
+      // FIX: Get the selected value, not just the first option
+      const collectionId = collectionDropdown.value;
       const cardId = cardRow.getAttribute("data-card-id");
 
       this.queryCollection(collectionId, cardId);
