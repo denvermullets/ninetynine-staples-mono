@@ -1,96 +1,84 @@
 # this service will create or update a collection record and update the collection totals
 module CollectionRecord
   class CreateOrUpdate < Service
-    def initialize(collection_magic_card:, params:)
-      @card_params = params
-      @quantity = params[:quantity]
-      @foil_quantity = params[:foil_quantity]
+    def initialize(params:)
       @collection = Collection.find(params[:collection_id])
       @magic_card = MagicCard.find(params[:magic_card_id])
-      @collection_magic_card = collection_magic_card
+      @quantity = [params[:quantity].to_i, 0].max
+      @foil_quantity = [params[:foil_quantity].to_i, 0].max
+      @card_uuid = params[:card_uuid]
     end
 
     def call
-      if @collection_magic_card.nil?
-        create_record
-      else
-        update_existing_collection_magic_card
+      ActiveRecord::Base.transaction do
+        collection_card = CollectionMagicCard.find_or_initialize_by(
+          collection: @collection,
+          magic_card: @magic_card,
+          card_uuid: @card_uuid
+        )
 
-        if nil_quantity
-          deleted_card = @collection_magic_card.magic_card.name
-          @collection_magic_card.delete
+        if @quantity.zero? && @foil_quantity.zero?
+          delete_collection_card(collection_card)
+          update_collection_totals
 
-          return { action: :delete, name: deleted_card }
+          return { action: :delete, name: collection_card.magic_card.name }
+        else
+          update_collection_card(collection_card)
         end
-      end
 
-      { action: :success, name: @collection_magic_card.magic_card.name }
+        update_collection_totals
+        { action: :success, name: collection_card.magic_card.name }
+      end
     end
 
     private
 
-    def create_record
-      @collection_magic_card = CollectionMagicCard.create(@card_params)
-      # add new cards to collection total value
-      current_total = @collection.total_value || 0
-      @collection.update(total_value: current_total + determine_value)
+    def delete_collection_card(collection_card)
+      return unless collection_card.persisted?
+
+      update_totals(-collection_card.quantity, -collection_card.foil_quantity, -calculate_price(collection_card))
+      collection_card.destroy!
     end
 
-    def update_existing_collection_magic_card
-      old_value = determine_value
-      update_collection_quantity_totals
-      @collection_magic_card.update(@card_params)
-      new_value = determine_value
+    def update_collection_card(collection_card)
+      quantity_change = @quantity - collection_card.quantity
+      foil_quantity_change = @foil_quantity - collection_card.foil_quantity
+      price_change = calculate_price_change(quantity_change, foil_quantity_change)
 
-      collection_value = @collection.total_value || 0
+      collection_card.update!(
+        quantity: @quantity,
+        foil_quantity: @foil_quantity
+      )
 
-      if old_value < new_value
-        # quantity change has gained value
-        increase = new_value - old_value
-        @collection.update(total_value: collection_value + increase)
-      else
-        # quantity change has lowered value
-        difference = calculate_value_change(old_value, new_value)
-        @collection.update(total_value: force_min_value(collection_value, difference))
+      update_totals(quantity_change, foil_quantity_change, price_change)
+    end
+
+    def calculate_price(collection_card)
+      (collection_card.quantity * @magic_card.normal_price) + (collection_card.foil_quantity * @magic_card.foil_price)
+    end
+
+    def calculate_price_change(quantity_change, foil_quantity_change)
+      (quantity_change * @magic_card.normal_price) + (foil_quantity_change * @magic_card.foil_price)
+    end
+
+    def update_totals(quantity_change, foil_quantity_change, price_change)
+      @collection.increment!(:total_quantity, quantity_change)
+      @collection.increment!(:total_foil_quantity, foil_quantity_change)
+      @collection.increment!(:total_value, price_change)
+    end
+
+    def update_collection_totals
+      total_value = @collection.collection_magic_cards.sum do |card|
+        (card.quantity * card.magic_card.normal_price) + (card.foil_quantity * card.magic_card.foil_price)
       end
-    end
+      total_quantity = @collection.collection_magic_cards.sum(:quantity)
+      total_foil_quantity = @collection.collection_magic_cards.sum(:foil_quantity)
 
-    def determine_value
-      # just multiplies quantity x price and adds together
-      normal_price = (@collection_magic_card.quantity || 0) * (@magic_card.normal_price || 0)
-      foil_price = (@collection_magic_card.foil_quantity || 0) * (@magic_card.foil_price || 0)
-
-      normal_price + foil_price
-    end
-
-    def update_collection_quantity_totals
-      foil_quantity = @card_params[:foil_quantity].to_i - @collection_magic_card.foil_quantity
-      quantity = @card_params[:quantity].to_i - @collection_magic_card.quantity
-      new_foil_quantity = @collection.total_foil_quantity + foil_quantity.to_i
-      new_quantity = @collection.total_quantity + quantity.to_i
-
-      @collection.update(total_foil_quantity: new_foil_quantity, total_quantity: new_quantity)
-    end
-
-    def calculate_value_change(old_value, new_value)
-      if new_value.positive?
-        old_value - new_value
-      else
-        old_value
-      end
-    end
-
-    def force_min_value(collection_value, difference)
-      # just in case it goes negative, we don't want collections to be negative value
-      new_total = collection_value - difference
-      [new_total, 0].max
-    end
-
-    def nil_quantity
-      quantity = @collection_magic_card.quantity
-      foil_quantity = @collection_magic_card.foil_quantity
-
-      (quantity.nil? || quantity.zero?) && (foil_quantity.nil? || foil_quantity.zero?)
+      @collection.update!(
+        total_value: total_value,
+        total_quantity: total_quantity,
+        total_foil_quantity: total_foil_quantity
+      )
     end
   end
 end
