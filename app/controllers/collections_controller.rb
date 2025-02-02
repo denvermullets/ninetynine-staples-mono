@@ -30,8 +30,6 @@ class CollectionsController < ApplicationController
     return render :not_found unless params[:username].present?
 
     @user = User.find_by(username: params[:username])
-
-    # binding.pry
     setup_collections
     search_magic_cards
 
