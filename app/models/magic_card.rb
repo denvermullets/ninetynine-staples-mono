@@ -17,6 +17,9 @@ class MagicCard < ApplicationRecord
   has_many :magic_card_types
   has_many :card_types, through: :magic_card_types
 
+  has_many :collection_magic_cards, dependent: :destroy
+  has_many :collections, through: :collection_magic_cards
+
   has_many :magic_card_colors
   has_many :colors, through: :magic_card_colors
 

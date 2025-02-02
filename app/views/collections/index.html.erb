@@ -13,7 +13,8 @@
                    name: collection.name,
                    description: collection.description,
                    card: collection.magic_cards.count.zero? ? MagicCard.last : collection.magic_cards.last,
-                   link: collection_show_path(username: params[:username], collection_id: collection.id)
+                   link: collection_show_path(username: params[:username], collection_id: collection.id),
+                   active: collection.id == params[:collection_id].to_i
                  }
         %>
       <% end %>
@@ -23,7 +24,8 @@
                    name: 'Create a Collection',
                    description: 'All this could be yours',
                    card: MagicCard.first,
-                   link: new_collection_path
+                   link: new_collection_path,
+                   active: false
                  }
         %>
       <% end %>
@@ -47,6 +49,23 @@
                      message: "Total value in #{@collection.name} binder",
                      count: nil,
                      value: @collection.total_value
+                   }
+          %>
+          <%= render partial: 'stats',
+                   locals: {
+                     message: "Total value in all collections",
+                     count: nil,
+                     value: @collections_value
+                   }
+          %>
+        </div>
+      <% else %>
+        <div class='flex flex-row gap-4'>
+          <%= render partial: 'stats',
+                   locals: {
+                     message: "Total value in #{@collections.first.name} binder",
+                     count: nil,
+                     value: @collections.first.total_value
                    }
           %>
           <%= render partial: 'stats',
