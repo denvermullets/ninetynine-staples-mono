@@ -40,7 +40,7 @@ class BoxsetsController < ApplicationController
     Search::Collection.call(
       cards:,
       search_term: params[:search],
-      code: nil,
+      code: params[:code],
       sort_by: :id,
       collection_id: nil
     )
