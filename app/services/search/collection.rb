@@ -14,12 +14,7 @@ module Search
     def call
       @cards = @cards.where(collections: { id: @collection_id }) if @collection_id.present?
       @cards = @cards.where('boxset_id = ?', @boxset_id) if @boxset_id.present?
-      if @search_term.present? && @boxset_id.nil? && @collection_id.nil?
-        @cards = MagicCard.where('name ILIKE ?', "%#{@search_term}%") if @search_term.present?
-      else
-        @cards = @cards.where('magic_cards.name ILIKE ?', "%#{@search_term}%")
-      end
-
+      @cards = handle_search
       @cards = sort_cards
 
       @cards
@@ -37,6 +32,16 @@ module Search
         # if it fails, place it at the end
         [Float::INFINITY, 1]
       end
+    end
+
+    def handle_search
+      @cards = if @search_term.present? && @boxset_id.nil? && @collection_id.nil?
+                 MagicCard.where('name ILIKE ?', "%#{@search_term}%")
+               elsif @search_term.present? && @boxset_id.present?
+                 @cards.where('magic_cards.name ILIKE ? AND magic_cards.boxset_id = ?', "%#{@search_term}%", @boxset_id)
+               else
+                 @cards.where('magic_cards.name ILIKE ?', "%#{@search_term}%")
+               end
     end
 
     def sort_cards
