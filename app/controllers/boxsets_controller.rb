@@ -16,16 +16,16 @@ class BoxsetsController < ApplicationController
   end
 
   def load_boxset
-    @boxset = fetch_boxset(params[:code])
-    magic_cards = Search::Collection.call(
-      cards: @boxset.magic_cards,
-      search_term: params[:search],
-      code: nil,
-      sort_by: :id,
-      collection_id: nil
-    )
+    if params[:code].blank? && params[:search].blank?
+      respond_to do |format|
+        format.turbo_stream { head :no_content }
+        format.html { redirect_to root_path }
+      end
+      return
+    end
 
-    @pagy, @magic_cards = pagy_array(magic_cards)
+    @boxset = fetch_boxset(params[:code])
+    @pagy, @magic_cards = pagy_array(search_magic_cards)
 
     respond_to do |format|
       format.turbo_stream
@@ -34,6 +34,17 @@ class BoxsetsController < ApplicationController
   end
 
   private
+
+  def search_magic_cards
+    cards = @boxset&.magic_cards if @boxset.present?
+    Search::Collection.call(
+      cards:,
+      search_term: params[:search],
+      code: nil,
+      sort_by: :id,
+      collection_id: nil
+    )
+  end
 
   def fetch_boxset(code)
     return if code.nil?
