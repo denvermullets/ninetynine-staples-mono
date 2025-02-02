@@ -14,7 +14,7 @@ RSpec.describe CollectionRecord::CreateOrUpdate, type: :service do
 
   subject { described_class.new(params:).call }
 
-  context 'when creating a new collection magic card' do
+  context 'when adding a magic card to your collection' do
     let(:quantity) { 2 }
     let(:foil_quantity) { 1 }
 
@@ -31,7 +31,7 @@ RSpec.describe CollectionRecord::CreateOrUpdate, type: :service do
     end
   end
 
-  context 'when updating an existing collection magic card' do
+  context 'when updating an existing collection quantity' do
     let!(:collection_card) {
       create(:collection_magic_card, collection: collection, magic_card: magic_card, quantity: 1, foil_quantity: 1)
     }
@@ -54,7 +54,7 @@ RSpec.describe CollectionRecord::CreateOrUpdate, type: :service do
     end
   end
 
-  context 'when both quantities are zero' do
+  context 'when both quantities are zero / deleting a card from your collection' do
     let!(:collection_card) {
       create(:collection_magic_card, collection: collection, magic_card: magic_card, quantity: 1, foil_quantity: 1)
     }
