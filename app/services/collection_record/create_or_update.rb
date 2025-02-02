@@ -77,7 +77,8 @@ module CollectionRecord
       @collection.update!(
         total_value: total_value,
         total_quantity: total_quantity,
-        total_foil_quantity: total_foil_quantity
+        total_foil_quantity: total_foil_quantity,
+        updated_at: Time.current
       )
     end
   end

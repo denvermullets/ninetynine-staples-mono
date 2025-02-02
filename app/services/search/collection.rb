@@ -14,7 +14,12 @@ module Search
     def call
       @cards = @cards.where(collections: { id: @collection_id }) if @collection_id.present?
       @cards = @cards.where('boxset_id = ?', @boxset_id) if @boxset_id.present?
-      @cards = @cards.where('magic_cards.name ILIKE ?', "%#{@search_term}%") if @search_term.present?
+      if @search_term.present? && @boxset_id.nil? && @collection_id.nil?
+        @cards = MagicCard.where('name ILIKE ?', "%#{@search_term}%") if @search_term.present?
+      else
+        @cards = @cards.where('magic_cards.name ILIKE ?', "%#{@search_term}%")
+      end
+
       @cards = sort_cards
 
       @cards
@@ -22,6 +27,7 @@ module Search
 
     private
 
+    # i know this is not the most efficient but it's mainly boxsets (max 800 records?) that'll hit it
     def sort_by_card_num(cards)
       # takes in a collection of cards and sorts, card_number is not guaranteed to be an integer
       cards.sort_by do |card|
