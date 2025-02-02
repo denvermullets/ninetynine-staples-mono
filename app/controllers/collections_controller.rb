@@ -14,10 +14,10 @@ class CollectionsController < ApplicationController
   end
 
   def show
-    user = User.find_by(username: params[:username])
-    return render :not_found unless user
+    @user = User.find_by(username: params[:username])
+    return render :not_found unless @user
 
-    setup_collections(user)
+    setup_collections
     search_magic_cards
 
     respond_to do |format|
@@ -27,12 +27,13 @@ class CollectionsController < ApplicationController
   end
 
   def load
-    magic_cards = Search::Collection.call(
-      collection: load_collection, search_term: params[:search], code: params[:code],
-      sort_by: :price
-    )
+    return render :not_found unless params[:username].present?
 
-    @pagy, @magic_cards = pagy_array(magic_cards)
+    @user = User.find_by(username: params[:username])
+
+    # binding.pry
+    setup_collections
+    search_magic_cards
 
     respond_to do |format|
       format.turbo_stream
@@ -40,52 +41,48 @@ class CollectionsController < ApplicationController
     end
   end
 
-  def fetch_boxset(code)
-    return if code.nil?
+  private
 
-    Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: code)
-  end
-
-  def boxset_options(user)
+  def boxset_options
     # just get the boxset_id's for cards in the collection and create the options list from that
-    boxset_ids = load_collection_ids(user.collections)
+    boxset_ids = load_collection_ids(@user.collections)
     Boxset.where(id: boxset_ids).map do |boxset|
       { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
     end
   end
 
-  private
-
-  def setup_collections(user)
-    @collection = load_collection
-    @collections_value = user.collections.sum(:total_value)
-    @collections = user.collections.order(:id)
-    @options = boxset_options(user)
+  def setup_collections
+    @collection = Collection.find(params[:collection_id]) if params[:collection_id].present?
+    @collections_value = @user.collections.sum(:total_value)
+    @collections = @user.collections.order(:id)
+    @options = boxset_options
   end
 
   def search_magic_cards
+    return if @user.nil?
+
     magic_cards = Search::Collection.call(
-      collection: @collection,
+      cards: load_collection,
       search_term: params[:search],
       code: params[:code],
-      sort_by: :price
+      sort_by: :price,
+      collection_id: params[:collection_id] || nil
     )
+
     @pagy, @magic_cards = pagy_array(magic_cards)
+  end
+
+  def load_collection
+    MagicCard
+      .joins(collection_magic_cards: :collection)
+      .where(collections: { user_id: @user.id })
   end
 
   def load_collection_ids(collections)
     if params[:collection_id].present?
       collections.find_by(id: params[:collection_id]).magic_cards.pluck(:boxset_id).uniq.compact
     else
-      collections.first.magic_cards.pluck(:boxset_id).uniq.compact
-    end
-  end
-
-  def load_collection
-    if params[:collection_id].present?
-      Collection.find(params[:collection_id])
-    else
-      User.find_by(username: params[:username]).collections.first
+      collections.map { |col| col.magic_cards.pluck(:boxset_id) }.uniq.compact.flatten
     end
   end
 

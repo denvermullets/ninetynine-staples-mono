@@ -59,6 +59,23 @@
                    }
           %>
         </div>
+      <% else %>
+        <div class='flex flex-row gap-4'>
+          <%= render partial: 'stats',
+                   locals: {
+                     message: "Total value in #{@collections.first.name} binder",
+                     count: nil,
+                     value: @collections.first.total_value
+                   }
+          %>
+          <%= render partial: 'stats',
+                   locals: {
+                     message: "Total value in all collections",
+                     count: nil,
+                     value: @collections_value
+                   }
+          %>
+        </div>
       <% end %>
     </div>
     <!-- Table Content -->
