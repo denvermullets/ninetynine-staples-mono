@@ -4,8 +4,8 @@ module CollectionRecord
     def initialize(params:)
       @collection = Collection.find(params[:collection_id])
       @magic_card = MagicCard.find(params[:magic_card_id])
-      @quantity = params[:quantity].to_i
-      @foil_quantity = params[:foil_quantity].to_i
+      @quantity = [params[:quantity].to_i, 0].max
+      @foil_quantity = [params[:foil_quantity].to_i, 0].max
       @card_uuid = params[:card_uuid]
     end
 
@@ -19,6 +19,7 @@ module CollectionRecord
 
         if @quantity.zero? && @foil_quantity.zero?
           delete_collection_card(collection_card)
+          update_collection_totals
 
           return { action: :delete, name: collection_card.magic_card.name }
         else
@@ -35,7 +36,6 @@ module CollectionRecord
     def delete_collection_card(collection_card)
       return unless collection_card.persisted?
 
-      # new thing for me, unary negation operator
       update_totals(-collection_card.quantity, -collection_card.foil_quantity, -calculate_price(collection_card))
       collection_card.destroy!
     end
