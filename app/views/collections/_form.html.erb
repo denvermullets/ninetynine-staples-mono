@@ -6,7 +6,7 @@
         <p class='block text-xs text-greyText md:hidden'>Choose your collection</p>
       </div>
       <%= f.select :collection_id,
-          options_from_collection_for_select(collections, :id, :name, collection_id),
+          options_from_collection_for_select(collections.order(updated_at: :desc), :id, :name, collection_id),
           { include_blank: false },
           data: { action: 'change->collection-selector#fetchCollection' },
           class: 'w-full border rounded-md border-highlight bg-background text-greyText focus:border-accent-50 focus:ring-accent-50'
