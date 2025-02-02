@@ -10,37 +10,19 @@ class CollectionsController < ApplicationController
   def create
     collection = Collection.new(collection_params)
 
-    if collection.save
-      flash[:success] = "Created a new collection named #{collection.name} to your account."
-      redirect_to root_path
-    else
-      flash.now[:error] = 'Failed to create collection.'
-      render :new, status: :unprocessable_entity
-    end
+    collection.save ? redirect_to(root_path) : render(:new, status: :unprocessable_entity)
   end
 
   def show
-    # case sensitive for now
     user = User.find_by(username: params[:username])
+    return render :not_found unless user
 
-    if user.present?
-      @collection = load_collection
-      @collections_value = user.collections.sum(:total_value)
-      @collections = user.collections
-      boxset_options(user)
-      magic_cards = Search::Collection.call(
-        collection: @collection, search_term: params[:search], code: params[:code],
-        sort_by: :price
-      )
+    setup_collections(user)
+    search_magic_cards
 
-      @pagy, @magic_cards = pagy_array(magic_cards)
-
-      respond_to do |format|
-        format.turbo_stream
-        format.html { render 'index' }
-      end
-    else
-      render :not_found
+    respond_to do |format|
+      format.turbo_stream
+      format.html { render 'index' }
     end
   end
 
@@ -67,13 +49,29 @@ class CollectionsController < ApplicationController
   def boxset_options(user)
     # just get the boxset_id's for cards in the collection and create the options list from that
     boxset_ids = load_collection_ids(user.collections)
-    boxsets = Boxset.where(id: boxset_ids)
-    @options = boxsets.map do |boxset|
+    Boxset.where(id: boxset_ids).map do |boxset|
       { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
     end
   end
 
   private
+
+  def setup_collections(user)
+    @collection = load_collection
+    @collections_value = user.collections.sum(:total_value)
+    @collections = user.collections.order(:id)
+    @options = boxset_options(user)
+  end
+
+  def search_magic_cards
+    magic_cards = Search::Collection.call(
+      collection: @collection,
+      search_term: params[:search],
+      code: params[:code],
+      sort_by: :price
+    )
+    @pagy, @magic_cards = pagy_array(magic_cards)
+  end
 
   def load_collection_ids(collections)
     if params[:collection_id].present?

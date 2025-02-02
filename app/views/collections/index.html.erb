@@ -13,7 +13,8 @@
                    name: collection.name,
                    description: collection.description,
                    card: collection.magic_cards.count.zero? ? MagicCard.last : collection.magic_cards.last,
-                   link: collection_show_path(username: params[:username], collection_id: collection.id)
+                   link: collection_show_path(username: params[:username], collection_id: collection.id),
+                   active: collection.id == params[:collection_id].to_i
                  }
         %>
       <% end %>
@@ -23,7 +24,8 @@
                    name: 'Create a Collection',
                    description: 'All this could be yours',
                    card: MagicCard.first,
-                   link: new_collection_path
+                   link: new_collection_path,
+                   active: false
                  }
         %>
       <% end %>
