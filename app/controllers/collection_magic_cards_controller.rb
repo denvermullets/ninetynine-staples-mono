@@ -1,8 +1,6 @@
 class CollectionMagicCardsController < ApplicationController
   def update_collection
-    collection_magic_card = load_collection_record&.first
-
-    result = CollectionRecord::CreateOrUpdate.call(collection_magic_card:, params: collection_params)
+    result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
 
     if result[:action] == :success
       flash.now[:type] = 'success'

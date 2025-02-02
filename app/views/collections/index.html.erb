@@ -3,8 +3,8 @@
   <div class="flex-shrink-0 h-auto px-8 py-4 space-y-8 border w-72 rounded-3xl border-highlight bg-foreground text-greyText">
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path } %>
-    <div class='flex flex-col gap-4'>
-      <div class='-mb-2'>
+    <div class='flex flex-col space-y-2'>
+      <div>
         Binders
       </div>
       <% @collections.each do |collection| %>
