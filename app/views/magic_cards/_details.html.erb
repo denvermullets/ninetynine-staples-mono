@@ -19,9 +19,7 @@
         <h3 class="hidden text-lg font-semibold text-nineWhite md:block"><%= card.name %></h3>
         <p class="text-xs text-nineWhite"><%= card.text %></p>
       </div>
-      <% if current_user %>
-        <%= render partial: 'collections/form', locals: { collections:, magic_card: card, collection_id: params[:collection_id] } %>
-      <% end %>
+      <%= render partial: 'collections/form', locals: { collections:, magic_card: card, collection_id: params[:collection_id], editable: } %>
       <% if card.price_history.present? %>
         <div class="flex flex-row w-full">
           <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
