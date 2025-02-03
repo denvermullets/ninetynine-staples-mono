@@ -19,15 +19,13 @@ module CollectionRecord
 
         if @quantity.zero? && @foil_quantity.zero?
           delete_collection_card(collection_card)
-          update_collection_totals
 
           return { action: :delete, name: collection_card.magic_card.name }
         else
           update_collection_card(collection_card)
-        end
 
-        update_collection_totals
-        { action: :success, name: collection_card.magic_card.name }
+          return { action: :success, name: collection_card.magic_card.name }
+        end
       end
     end
 
@@ -65,21 +63,7 @@ module CollectionRecord
       @collection.increment!(:total_quantity, quantity_change)
       @collection.increment!(:total_foil_quantity, foil_quantity_change)
       @collection.increment!(:total_value, price_change)
-    end
-
-    def update_collection_totals
-      total_value = @collection.collection_magic_cards.sum do |card|
-        (card.quantity * card.magic_card.normal_price) + (card.foil_quantity * card.magic_card.foil_price)
-      end
-      total_quantity = @collection.collection_magic_cards.sum(:quantity)
-      total_foil_quantity = @collection.collection_magic_cards.sum(:foil_quantity)
-
-      @collection.update!(
-        total_value: total_value,
-        total_quantity: total_quantity,
-        total_foil_quantity: total_foil_quantity,
-        updated_at: Time.current
-      )
+      @collection.touch
     end
   end
 end
