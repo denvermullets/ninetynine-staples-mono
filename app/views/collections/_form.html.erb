@@ -9,7 +9,7 @@
           options_from_collection_for_select(collections.order(updated_at: :desc), :id, :name, collection_id),
           { include_blank: false },
           data: { action: 'change->collection-selector#fetchCollection' },
-          class: 'w-full border rounded-md border-highlight bg-background text-greyText focus:border-accent-50 focus:ring-accent-50'
+          class: 'w-full border rounded-md border-highlight bg-background text-greyText focus:border-accent-50 focus:ring-accent-50 cursor-pointer'
       %>
       <p class='hidden mt-2 text-xs text-greyText md:block'>Choose your collection</p>
     </div>
@@ -22,7 +22,7 @@
       </div>
       <%= f.number_field :quantity, value: 0,
         data: { collection_selector_target: 'quantity' },
-        disabled: !magic_card.has_non_foil,
+        disabled: !magic_card.has_non_foil || editable == false,
         class: "w-auto md:w-24 border text-greyText rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.has_non_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
       %>
       <p class='hidden mt-2 text-xs text-greyText md:block'>Quantity</p>
@@ -34,12 +34,14 @@
       </div>
       <%= f.number_field :foil_quantity, value: 0,
         data: { collection_selector_target: 'foilQuantity' },
-        disabled: !magic_card.has_foil,
+        disabled: !magic_card.has_foil || editable == false,
         class: "w-auto md:w-24 border text-greyText rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.has_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
       %>
       <p class='hidden mt-2 text-xs md:block text-greyText'>Quantity</p>
     </div>
     <%= f.submit 'Save',
-      class: 'mt-2 min-w-28 py-2 px-4 bg-accent-50 text-background cursor-pointer rounded-md hover:bg-nineWhite transition duration-300' %>
+      class: "mt-2 min-w-28 py-2 px-4 #{editable ? 'bg-accent-50 hover:bg-nineWhite cursor-pointer' : 'bg-highlight' } text-background rounded-md transition duration-300",
+      disabled: editable == false
+    %>
   <% end %>
 </div>

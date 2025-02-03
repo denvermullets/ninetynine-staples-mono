@@ -12,6 +12,6 @@ class Users::RegistrationsController < ReviseAuth::RegistrationsController
 
     return unless @user.persisted?
 
-    Collection.create!(name: 'Default', user_id: @user.id)
+    Collection.create!(name: 'Default', description: 'Starter binder', user_id: @user.id)
   end
 end
