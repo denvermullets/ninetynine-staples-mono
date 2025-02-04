@@ -15,7 +15,14 @@
         <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>" class="border border-background text-greyText bg-foreground hover:bg-menu hover:cursor-pointer">
           <td class="pl-4 pr-0 text-sm py-7 whitespace-nowrap"><%= card.card_number %></td>
           <td class="px-4 py-2 text-sm whitespace-nowrap">
-            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-4"></i><%= card.name %>
+            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-4"></i>
+            <% if card&.card_side == 'a' %>
+              <%= card.name.split('//')[0]%>
+            <% elsif card&.card_side == 'b' %>
+              <%= card.name.split('//')[1]%>
+            <% else %>
+              <%= card.name %>
+            <% end %>
           </td>
           <td class="hidden px-4 py-2 text-sm whitespace-nowrap lg:table-cell"><%= card.card_type %></td>
           <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
@@ -23,8 +30,16 @@
               <%= mana_symbols(card.mana_cost) %>
             </div>
           </td>
-          <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"><%= number_to_currency(card.normal_price) %></td>
-          <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"><%= number_to_currency(card.foil_price) %></td>
+          <% if card.has_non_foil %>
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"><%= number_to_currency(card.normal_price) %></td>
+          <% else %>
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"></td>
+          <% end %>
+          <% if card.has_foil %>
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"><%= number_to_currency(card.foil_price) %></td>
+          <% else %>
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"></td>
+          <% end %>
         </tr>
         <tr data-expandable-row-target="content" data-card-id="<%= card.id %>" class="hidden border border-background">
           <td colspan="6">
