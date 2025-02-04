@@ -10,6 +10,7 @@
       <%= form.text_field :search,
           value: params[:search],
           placeholder: 'Enter card name or type',
+          onfocus: "this.select();",
           class: 'w-full border text-greyText rounded-l-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50'
       %>
       <%= form.hidden_field :username, value: params[:username] %>
