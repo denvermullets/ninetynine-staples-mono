@@ -5,12 +5,16 @@
         <h3 class='mb-2 text-greyText'>Collection</h3>
         <p class='block text-xs text-greyText md:hidden'>Choose your collection</p>
       </div>
-      <%= f.select :collection_id,
-          options_from_collection_for_select(collections.order(updated_at: :desc), :id, :name, collection_id),
+      <% if collections.present? %>
+        <%= f.select :collection_id,
+          options_from_collection_for_select(collections.present? ? collections.order(updated_at: :desc) : [{ id: nil, name: 'Register to add' }], :id, :name, collection_id),
           { include_blank: false },
           data: { action: 'change->collection-selector#fetchCollection' },
           class: 'w-full border rounded-md border-highlight bg-background text-greyText focus:border-accent-50 focus:ring-accent-50 cursor-pointer'
-      %>
+        %>
+      <% else %>
+        <%= text_field_tag :collection_placeholder, 'Login or Register to add to collection', disabled: true, class: 'w-full border rounded-md border-highlight bg-background text-greyText focus:border-accent-50 focus:ring-accent-50 cursor-pointer' %>
+      <% end %>
       <p class='hidden mt-2 text-xs text-greyText md:block'>Choose your collection</p>
     </div>
     <%= f.hidden_field :magic_card_id, value: magic_card.id %>
