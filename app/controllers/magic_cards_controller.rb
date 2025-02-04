@@ -9,8 +9,8 @@ class MagicCardsController < ApplicationController
     # TODO: fix if not found
     card = MagicCard.find(params[:id])
     if params[:controller].to_sym == :magic_cards
-      collections = current_user.collections
-      editable = true
+      collections = current_user&.collections
+      editable = current_user ? true : false
     else
       user = User.find_by(username: params[:username])
       collections = user.collections
