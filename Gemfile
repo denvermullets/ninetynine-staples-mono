@@ -10,7 +10,7 @@ gem "pry"
 gem "puma", ">= 6.5.0"
 gem "rails", "~> 8.0.1"
 gem "revise_auth", "~> 0.8.0"
-gem "solid_queue", "~> 1.1.3"
+gem "solid_queue", "~> 1.1.4"
 gem "sprockets-rails"
 gem "stimulus-rails"
 # sticking with this version tailwind for now since there's issues w/upgrade path
