@@ -14,7 +14,7 @@ gem "solid_queue", "~> 1.1.3"
 gem "sprockets-rails"
 gem "stimulus-rails"
 # sticking with this version tailwind for now since there's issues w/upgrade path
-gem "tailwindcss-rails", "~> 3.3.1"
+gem "tailwindcss-rails", "~> 4.2.1"
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
