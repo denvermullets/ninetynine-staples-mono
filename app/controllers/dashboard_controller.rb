@@ -16,4 +16,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def clear_jobs
+    SolidQueue::Job.clear_finished_in_batches
+
+    redirect_to '/jobs'
+  end
 end

@@ -6,7 +6,7 @@ class BoxsetsController < ApplicationController
       { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
     end
 
-    # If a boset or search term is present, load the boxset
+    # If a boxset or search term is present, load the boxset
     load_boxset if params[:code].present? || params[:search].present?
 
     respond_to do |format|
