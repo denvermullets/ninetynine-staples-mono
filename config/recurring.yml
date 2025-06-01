@@ -8,3 +8,31 @@
 #     command: "SoftDeletedRecord.due.delete_all"
 #     priority: 2
 #     schedule: at 5am every day
+
+# development:
+#   periodic_cleanup:
+#     command: "SolidQueue::Job.clear_finished_in_batches"
+#     queue: background
+#     schedule: at 10am every Sunday
+#   ingest_prices:
+#     queue: background
+#     class: IngestPrices
+#     schedule: at 5am every day
+#   ingest_cards:
+#     queue: background
+#     class: IngestSets
+#     schedule: at 12am every Saturday
+
+production:
+  periodic_cleanup:
+    command: "SolidQueue::Job.clear_finished_in_batches"
+    queue: background
+    schedule: at 10am every Sunday
+  ingest_prices:
+    queue: background
+    class: IngestPrices
+    schedule: at 5am every day
+  ingest_cards:
+    queue: background
+    class: IngestSets
+    schedule: at 12am every Saturday
