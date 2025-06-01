@@ -1,5 +1,5 @@
 <%= link_to link, class: "block" do %>
-  <div class="flex flex-row gap-2 p-2 transition border rounded-xl text-greyText hover:border-accent-50 <%= active ? 'border-accent-50' : 'border-highlight'%>">
+  <div class="flex flex-row gap-2 p-2 transition border rounded-xl text-grey-text hover:border-accent-50 <%= active ? 'border-accent-50' : 'border-highlight'%>">
     <div class="relative w-12 h-12 overflow-hidden rounded-lg">
       <%= image_tag card.art_crop.present? ? card.art_crop : card.image_small,
                   alt: card.name,

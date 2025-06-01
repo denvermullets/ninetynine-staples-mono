@@ -22,6 +22,7 @@
         <% if current_user.role.to_i == 9001 %>
           <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: '' %>
           <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: '' %>
+          <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: '' %>
           <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: '' %>
           <%= link_to 'Mission Control', '/jobs', class: '' %>
         <% end %>

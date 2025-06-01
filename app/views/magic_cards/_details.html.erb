@@ -2,10 +2,10 @@
   <div class="grid grid-cols-1 gap-6 p-2 md:grid-cols-3 md:p-8 bg-menu">
     <div class="flex flex-row items-center justify-between w-auto mt-4 text-end md:hidden">
       <% if card.has_foil %>
-        <h3 class="font-normal text-md text-greyText"><%= card.name %></h3>
-        <p class="text-md text-greyText">(R) $<%= card.normal_price %> / (F) $<%= card.foil_price %></p>
+        <h3 class="font-normal text-md text-grey-text"><%= card.name %></h3>
+        <p class="text-md text-grey-text">(R) $<%= card.normal_price %> / (F) $<%= card.foil_price %></p>
       <% else %>
-        <p class="text-md text-greyText">(R) $<%= card.normal_price %></p>
+        <p class="text-md text-grey-text">(R) $<%= card.normal_price %></p>
       <% end %>
     </div>
     <div class="flex items-start justify-center w-full md:col-span-1">
@@ -16,8 +16,8 @@
     </div>
     <div class="flex flex-col space-y-4 md:col-span-2">
       <div>
-        <h3 class="hidden text-lg font-semibold text-nineWhite md:block"><%= card.name %></h3>
-        <p class="text-xs text-nineWhite"><%= card.text %></p>
+        <h3 class="hidden text-lg font-semibold text-nine-white md:block"><%= card.name %></h3>
+        <p class="text-xs text-nine-white"><%= card.text %></p>
       </div>
       <% if card&.card_side == 'a' || card&.card_side.nil? %>
         <%= render partial: 'collections/form', locals: { collections:, magic_card: card, collection_id: params[:collection_id], editable: } %>

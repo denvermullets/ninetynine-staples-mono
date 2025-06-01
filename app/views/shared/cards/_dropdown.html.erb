@@ -7,17 +7,17 @@
   data-filter-dropdown-username-value="<%= params[:username] %>"
   data-filter-dropdown-collection-value="<%= params[:collection_id] %>"
 >
-  <h3 class='mb-2 text-greyText'>Boxset</h3>
+  <h3 class='mb-2 text-grey-text'>Boxset</h3>
   <div class="relative">
     <input
       type="text"
       data-filter-dropdown-target="input"
       data-action="input->filter-dropdown#search click->filter-dropdown#toggle"
       onfocus="this.select();"
-      class="w-full pr-10 border rounded-md border-highlight bg-background text-greyText focus:border-accent-50 focus:ring-accent-50"
+      class="w-full pr-10 border rounded-md border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50"
       placeholder="Select boxset">
       <button data-action="click->filter-dropdown#toggle"
-        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-auto text-greyText">
+        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-auto text-grey-text">
         v
       </button>
     </input>
@@ -28,5 +28,5 @@
       <!-- Dropdown options will be injected here -->
     </div>
   </div>
-  <p class='mt-2 text-xs text-greyText'>Type boxset name or short code</p>
+  <p class='mt-2 text-xs text-grey-text'>Type boxset name or short code</p>
 </div>

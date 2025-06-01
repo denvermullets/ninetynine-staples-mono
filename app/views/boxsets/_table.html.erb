@@ -2,17 +2,17 @@
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
-        <th class="py-3 pl-4 pr-0 text-xs font-normal tracking-wider text-left normal-case text-greyText">#</th>
-        <th class="px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-greyText">Name</th>
-        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-greyText lg:table-cell">Type</th>
-        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-greyText md:table-cell">Mana</th>
-        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-greyText">Regular</th>
-        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-greyText">Foil</th>
+        <th class="py-3 pl-4 pr-0 text-xs font-normal tracking-wider text-left normal-case text-grey-text">#</th>
+        <th class="px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Name</th>
+        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text lg:table-cell">Type</th>
+        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text md:table-cell">Mana</th>
+        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-grey-text">Regular</th>
+        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-grey-text">Foil</th>
       </tr>
     </thead>
     <tbody class="bg-background" data-controller="expandable-row">
       <% @magic_cards.each do |card| %>
-        <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>" class="border border-background text-greyText bg-foreground hover:bg-menu hover:cursor-pointer">
+        <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>" class="border border-background text-grey-text bg-foreground hover:bg-menu hover:cursor-pointer">
           <td class="pl-4 pr-0 text-sm py-7 whitespace-nowrap"><%= card.card_number %></td>
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-4"></i>
