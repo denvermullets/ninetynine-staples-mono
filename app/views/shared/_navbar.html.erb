@@ -2,9 +2,6 @@
   <div class='flex flex-row items-center justify-between w-full space-x-4 text-white'>
     <div class='flex flex-row flex-wrap items-center space-x-2 lg:flex-nowrap'>
       <p class='pr-6'>99 Staples</p>
-      <div class="<%= nav_item_classes('/magic_cards') %>">
-        <%= link_to 'Home', magic_cards_path %>
-      </div>
       <div class="<%= nav_item_classes('/boxsets') %>">
         <%= link_to 'Boxsets', boxsets_path %>
       </div>
@@ -17,16 +14,26 @@
       <% end %>
       <p class="<%= nav_item_classes('/decks') %> hidden md:block">Decks</p>
     </div>
-    <div class='flex-row hidden space-x-6 md:flex'>
+    <div class='flex-row hidden space-x-6 md:flex items-center'>
       <% if current_user %>
         <% if current_user.role.to_i == 9001 %>
-          <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: '' %>
-          <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: '' %>
-          <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: '' %>
-          <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: '' %>
-          <%= link_to 'Mission Control', '/jobs', class: '' %>
+          <div data-controller="admin-menu" class="relative">
+            <button data-action="click->admin-menu#toggle" class="cursor-pointer focus:outline-none">
+              Admin
+            </button>
+            <div
+              data-admin-menu-target="menu"
+              class="absolute right-0 mt-2 hidden flex-col bg-menu border border-gray-700 p-2 rounded shadow-lg z-50 min-w-max"
+            >
+              <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
+              <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
+              <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
+              <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
+              <%= link_to 'Mission Control', '/jobs', class: 'cursor-pointer text-left whitespace-nowrap' %>
+            </div>
+          </div>
         <% end %>
-        <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: '' %>
+        <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'hover' %>
       <% else %>
         <%= link_to 'Log In', login_path, class: '' %>
       <% end %>
