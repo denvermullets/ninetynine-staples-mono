@@ -29,8 +29,8 @@ module ApplicationHelper
   end
 
   def nav_item_classes(route)
-    base_classes = 'px-4 py-2 rounded-3xl text-greyText'
-    active_classes = 'border-greyText border'
+    base_classes = 'px-4 py-2 rounded-3xl text-grey-text'
+    active_classes = 'border-grey-text border'
 
     # add the active classes if the current request path matches the provided route
     if (request.path == '/' && route == '/boxsets') || request.path.include?(route)

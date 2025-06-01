@@ -13,11 +13,11 @@
     <link rel="apple-touch-icon" href="/icon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/keyrune@latest/css/keyrune.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.css" type="text/css" />
-    <%= stylesheet_link_tag 'tailwind', 'inter-font', 'data-turbo-track': 'reload' %>
+    <%= stylesheet_link_tag 'tailwind', 'data-turbo-track': 'reload' %>
     <%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %>
     <%= javascript_importmap_tags %>
   </head>
-  <body class='h-[calc(100vh-72px)]'>
+  <body class='h-[calc(100vh-72px)] font-display'>
     <%= render 'shared/navbar' %>
     <main class="flex flex-col h-auto min-h-full mx-auto bg-background">
       <div id="toasts" class="fixed z-50 space-y-2 bottom-4 right-4"></div>
