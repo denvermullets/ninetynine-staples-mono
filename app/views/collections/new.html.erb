@@ -1,4 +1,4 @@
-<div class="flex flex-col items-center gap-8 px-24 py-8 text-grey-text ">
+<div class="flex flex-col items-center gap-8 px-12 lg:px-72 py-8 text-grey-text ">
   <%= form_with(model: @collection, local: true, data: { turbo: false }, class: "bg-foreground w-full border border-highlight p-6 rounded-2xl text-grey-text") do |f| %>
     <h2 class="mb-4 text-2xl font-semibold">Create a New Collection</h2>
     <%= f.hidden_field :user_id, value: current_user.id %>
