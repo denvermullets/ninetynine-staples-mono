@@ -11,6 +11,7 @@ class IngestSets < ApplicationJob
       # next unless set['code'] == 'ARB'
 
       next if set['code'] == 'UST'
+      next if set['code'] == 'PSSC'
 
       puts "opening up #{set['name']}"
       boxset = create_boxset(set)
