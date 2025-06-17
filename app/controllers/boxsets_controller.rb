@@ -37,13 +37,11 @@ class BoxsetsController < ApplicationController
 
   def search_magic_cards
     cards = @boxset&.magic_cards if @boxset.present?
-    Search::Collection.call(
-      cards:,
-      search_term: params[:search],
-      code: params[:code],
-      sort_by: :id,
-      collection_id: nil
+    cards = CollectionQuery::Search.call(
+      cards:, search_term: params[:search], boxset_id: @boxset&.id, collection_id: nil
     )
+    cards = CollectionQuery::Filter.call(cards:, code: nil, collection_id: nil)
+    CollectionQuery::Sort.call(cards:, sort_by: :id)
   end
 
   def fetch_boxset(code)
