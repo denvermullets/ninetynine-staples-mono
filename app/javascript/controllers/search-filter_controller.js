@@ -9,8 +9,16 @@ export default class extends Controller {
 
     const currentParams = new URLSearchParams(window.location.search);
     const formData = new FormData(this.formTarget);
+
     formData.forEach((value, key) => {
-      currentParams.set(key, value);
+      if (key.endsWith("[]")) {
+        // prevent duplicates
+        if (!currentParams.getAll(key).includes(value)) {
+          currentParams.append(key, value);
+        }
+      } else {
+        currentParams.set(key, value);
+      }
     });
 
     const queryString = currentParams.toString();

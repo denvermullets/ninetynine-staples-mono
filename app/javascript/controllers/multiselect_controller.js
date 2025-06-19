@@ -1,6 +1,10 @@
 import { Controller } from "@hotwired/stimulus";
 
+//
+// this controller handles the selection of rarity and/or color filters
 // connects to data-controller="multiselect"
+//
+
 export default class extends Controller {
   static targets = ["item"]; // Elements that represent selectable options
 
@@ -39,7 +43,12 @@ export default class extends Controller {
       return;
     }
 
-    // lazily initialize group if somehow it wasn't prepared on connect (e.g., dynamically injected content)
+    // In case click came from inside (like <i>), find the actual button
+    if (!item.dataset.multiselectGroup || !item.dataset.value) {
+      item = item.closest("[data-multiselect-target='item']");
+    }
+
+    // lazily initialize group if somehow it wasn't prepared on connect
     if (!this.selected[group]) {
       this.selected[group] = new Set();
     }
@@ -50,11 +59,11 @@ export default class extends Controller {
     if (groupSet.has(value)) {
       groupSet.delete(value);
       // removing highlight
-      item.classList.remove("accent-50");
+      item.classList.remove("border", "border-accent-50");
     } else {
       groupSet.add(value);
       // marks selected item
-      item.classList.add("accent-50");
+      item.classList.add("border", "border-accent-50");
     }
 
     // resyncs form input representation with internal state
