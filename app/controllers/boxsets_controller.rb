@@ -36,13 +36,21 @@ class BoxsetsController < ApplicationController
   private
 
   def search_magic_cards
-    cards = @boxset&.magic_cards if @boxset.present?
-    Search::Collection.call(
-      cards:,
-      search_term: params[:search],
-      code: params[:code],
-      sort_by: :id,
-      collection_id: nil
+    @cards = @boxset&.magic_cards if @boxset.present?
+    @cards = search_cards
+    @cards = filter_cards
+    CollectionQuery::Sort.call(cards: @cards, sort_by: :id)
+  end
+
+  def search_cards
+    CollectionQuery::Search.call(
+      cards: @cards, search_term: params[:search], boxset_id: @boxset&.id, collection_id: nil
+    )
+  end
+
+  def filter_cards
+    CollectionQuery::Filter.call(
+      cards: @cards, code: nil, collection_id: nil, rarities: params[:rarity], colors: params[:mana]
     )
   end
 
