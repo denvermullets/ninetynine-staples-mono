@@ -33,6 +33,12 @@ export default class extends Controller {
         const queryString = new URLSearchParams({
           ...(currentParams.get("code") && { code: currentParams.get("code") }),
           ...(currentParams.get("search") && { search: currentParams.get("search") }),
+          ...(currentParams.getAll("rarity[]").length && {
+            "rarity[]": currentParams.getAll("rarity[]"),
+          }),
+          ...(currentParams.getAll("mana[]").length && {
+            "mana[]": currentParams.getAll("mana[]"),
+          }),
         }).toString();
 
         const basePath = usernameValue ? `/collections/${usernameValue}` : `/boxsets`;

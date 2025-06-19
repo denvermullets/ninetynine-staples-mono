@@ -25,7 +25,18 @@ module CollectionQuery
     private
 
     def filter_by_colors(cards)
+      # if "C" (colorless) is selected, ONLY include colorless cards (no WUBRG)
+      if @colors.include?('C')
+        return cards.select do |card|
+          next if card.mana_cost.nil?
+
+          card.mana_cost.scan(/[WUBRG]/).empty?
+        end
+      end
+
       cards.select do |card|
+        next if card.mana_cost.nil?
+
         mana_symbols = card.mana_cost.scan(/[WUBRG]/).uniq.sort
         selected_symbols = @colors.uniq.sort
 
