@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 gem "bootsnap", require: false
+gem 'dotenv-rails'
 gem "httparty"
 gem "importmap-rails"
 gem "mission_control-jobs"
