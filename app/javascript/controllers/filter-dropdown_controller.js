@@ -1,5 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 
+//
+// this is the controller handling the dropdown w/boxset information
+//
+
 // Connects to data-controller="filter-dropdown"
 export default class extends Controller {
   static targets = ["input", "dropdown", "tableContainer"];
