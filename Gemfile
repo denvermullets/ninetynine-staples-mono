@@ -33,7 +33,7 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem 'factory_bot_rails'
   gem 'faker'
-  gem "rspec-rails", "~> 8.0.0"
+  gem "rspec-rails", "~> 8.0.1"
   gem "rubocop"
   gem "selenium-webdriver"
   gem "web-console"
