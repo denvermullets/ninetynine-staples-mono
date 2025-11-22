@@ -1,5 +1,5 @@
 class BoxsetsController < ApplicationController
-  require 'pagy/extras/array'
+  # require 'pagy/extras/array'
 
   def index
     @options = Boxset.all_sets.map do |boxset|
@@ -25,7 +25,7 @@ class BoxsetsController < ApplicationController
     end
 
     @boxset = fetch_boxset(params[:code])
-    @pagy, @magic_cards = pagy_array(search_magic_cards)
+    @pagy, @magic_cards = pagy(:offset, search_magic_cards)
 
     respond_to do |format|
       format.turbo_stream
