@@ -398,7 +398,7 @@ DEPENDENCIES
   httparty
   importmap-rails
   mission_control-jobs
-  pagy
+  pagy (~> 43.1)
   pg (~> 1.6.2)
   pry
   puma (>= 7.1.0)

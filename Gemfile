@@ -5,7 +5,7 @@ gem 'dotenv-rails'
 gem "httparty"
 gem "importmap-rails"
 gem "mission_control-jobs"
-gem "pagy"
+gem "pagy", '~> 43.1'
 gem "pg", "~> 1.6.2"
 gem "pry"
 gem "puma", ">= 7.1.0"

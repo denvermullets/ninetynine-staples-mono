@@ -50,7 +50,7 @@
     </tbody>
   </table>
   <div class='flex flex-row items-center justify-between w-full p-6 space-x-4'>
-    <%== pagy_info(@pagy) %>
-    <%== pagy_nav(@pagy, link_extra: 'data-turbo-stream="true"') %>
+    <%== @pagy.info_tag() %>
+    <%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
   </div>
 </div>

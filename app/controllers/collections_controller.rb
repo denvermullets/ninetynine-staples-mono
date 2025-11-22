@@ -1,6 +1,4 @@
 class CollectionsController < ApplicationController
-  require 'pagy/extras/array'
-
   def new
     @collection = Collection.new
 
@@ -67,7 +65,7 @@ class CollectionsController < ApplicationController
       collection_id: params[:collection_id] || nil
     )
 
-    @pagy, @magic_cards = pagy_array(magic_cards)
+    @pagy, @magic_cards = pagy(:offset, magic_cards)
   end
 
   def load_collection
