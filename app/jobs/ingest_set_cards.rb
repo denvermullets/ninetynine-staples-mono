@@ -71,7 +71,7 @@ class IngestSetCards < ApplicationJob
                     existing_card.image_small.nil? || existing_card.art_crop.nil? ||
                     existing_card.image_updated_at < 90.days.ago
 
-      if empty_image || error_image(existing_card)
+      if empty_image || error_image?(existing_card)
         images = scryfall_images(card)
         card_obj[:image_large] = images[:large]
         card_obj[:image_medium] = images[:normal]
@@ -97,7 +97,7 @@ class IngestSetCards < ApplicationJob
     end
   end
 
-  def error_image(existing_card)
+  def error_image?(existing_card)
     error = 'https://errors.scryfall.com/soon.jpg'
 
     existing_card.image_large == error ||

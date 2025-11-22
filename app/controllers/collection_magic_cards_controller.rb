@@ -20,7 +20,7 @@ class CollectionMagicCardsController < ApplicationController
   def quantity
     collection = load_collection_record
 
-    if collection.count.positive?
+    if collection.any?
       render json: {
         quantity: collection.first.quantity,
         foil_quantity: collection.first.foil_quantity
