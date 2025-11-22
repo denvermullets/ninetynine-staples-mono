@@ -1,0 +1,39 @@
+<div class="flex-1 w-auto" data-controller="multiselect">
+  <div class='flex flex-row gap-8'>
+    <%= turbo_frame_tag "rarity_filters" do %>
+      <h3 class='mb-2 text-grey-text'>Search</h3>
+      <div class='flex flex-row  w-auto space-x-0'>
+        <% ['pink', 'amber', 'gray', 'black'].each do |rarity| %>
+          <button
+            type="button"
+            data-action="click->multiselect#toggle"
+            data-multiselect-target="item"
+            data-multiselect-group="rarity"
+            data-value="<%= rarity %>"
+            class="cursor-pointer rounded-full p-2 border-2 border-transparent hover:border-gray-500 transition"
+            >
+            <i class='no-tailwind ms ms-cost ml-0 ms-rarity'></i>
+          </button>
+        <% end %>
+      </div>
+      <p class='mt-2 text-xs text-grey-text'>Search for a card in this boxset</p>
+    <% end %>
+    <%= turbo_frame_tag "mana_filters" do %>
+      <h2 class="text-lg font-semibold mb-2">Mana</h2>
+      <div class="flex w-auto space-x-4">
+        <% ['b', 'u', 'w', 'r', 'g', 'gray'].each do |mana| %>
+          <button
+            type="button"
+            data-action="click->multiselect#toggle"
+            data-multiselect-target="item"
+            data-multiselect-group="mana"
+            data-value="<%= mana %>"
+            class="cursor-pointer rounded-full p-2 border-2 border-transparent hover:border-gray-500 transition"
+            >
+            <i class="no-tailwind ms ms-cost ml-0 <%= "ms-#{mana}" %>"></i>
+          </button>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

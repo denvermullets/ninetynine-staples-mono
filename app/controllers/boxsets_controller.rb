@@ -1,5 +1,5 @@
 class BoxsetsController < ApplicationController
-  require 'pagy/extras/array'
+  # require 'pagy/extras/array'
 
   def index
     @options = Boxset.all_sets.map do |boxset|
@@ -25,7 +25,7 @@ class BoxsetsController < ApplicationController
     end
 
     @boxset = fetch_boxset(params[:code])
-    @pagy, @magic_cards = pagy_array(search_magic_cards)
+    @pagy, @magic_cards = pagy(:offset, search_magic_cards)
 
     respond_to do |format|
       format.turbo_stream
@@ -36,13 +36,25 @@ class BoxsetsController < ApplicationController
   private
 
   def search_magic_cards
-    cards = @boxset&.magic_cards if @boxset.present?
-    Search::Collection.call(
-      cards:,
-      search_term: params[:search],
-      code: params[:code],
-      sort_by: :id,
-      collection_id: nil
+    @cards = @boxset&.magic_cards if @boxset.present?
+    @cards = search_cards
+    @cards = filter_cards
+    CollectionQuery::Sort.call(cards: @cards, sort_by: :id)
+  end
+
+  def search_cards
+    CollectionQuery::Search.call(
+      cards: @cards, search_term: params[:search], boxset_id: @boxset&.id, collection_id: nil
+    )
+  end
+
+  def filter_cards
+    # split comma-separated values into arrays for OR filtering
+    rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
+    colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
+
+    CollectionQuery::Filter.call(
+      cards: @cards, code: nil, collection_id: nil, rarities: rarities, colors: colors
     )
   end
 

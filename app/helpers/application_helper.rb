@@ -1,6 +1,4 @@
 module ApplicationHelper
-  include Pagy::Frontend
-
   MANA_SYMBOLS = {
     'W' => 'ms-w', 'U' => 'ms-u', 'B' => 'ms-b', 'R' => 'ms-r', 'G' => 'ms-g', 'C' => 'ms-c', 'X' => 'ms-x',
     'W/P' => 'ms-wp', 'U/P' => 'ms-up', 'B/P' => 'ms-bp', 'R/P' => 'ms-rp', 'G/P' => 'ms-gp', 'S' => 'ms-s',
