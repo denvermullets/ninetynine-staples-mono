@@ -6,16 +6,16 @@ gem "httparty"
 gem "importmap-rails"
 gem "mission_control-jobs"
 gem "pagy"
-gem "pg", "~> 1.5.9"
+gem "pg", "~> 1.6.2"
 gem "pry"
-gem "puma", ">= 6.6.0"
-gem "rails", "~> 8.0.2"
+gem "puma", ">= 7.1.0"
+gem "rails", "~> 8.1.1"
 gem "revise_auth", "~> 0.8.0"
-gem "solid_queue", "~> 1.1.5"
+gem "solid_queue", "~> 1.2.4"
 gem "sprockets-rails"
 gem "stimulus-rails"
 # sticking with this version tailwind for now since there's issues w/upgrade path
-gem "tailwindcss-rails", "~> 4.2.3"
+gem "tailwindcss-rails", "~> 4.4.0"
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
@@ -33,7 +33,7 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem 'factory_bot_rails'
   gem 'faker'
-  gem "rspec-rails", "~> 8.0.1"
+  gem "rspec-rails", "~> 8.0.2"
   gem "rubocop"
   gem "selenium-webdriver"
   gem "web-console"
