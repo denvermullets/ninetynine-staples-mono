@@ -3,7 +3,7 @@
 # Pagy initializer file (43.1.2)
 # See https://ddnexus.github.io/pagy/resources/initializer/
 
-require "pagy/toolbox/helpers/support/series"
+require 'pagy/toolbox/helpers/support/series'
 
 ############ Global Options ################################################################
 # See https://ddnexus.github.io/pagy/toolbox/options/ for details.
