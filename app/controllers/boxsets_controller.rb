@@ -49,8 +49,12 @@ class BoxsetsController < ApplicationController
   end
 
   def filter_cards
+    # split comma-separated values into arrays for OR filtering
+    rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
+    colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
+
     CollectionQuery::Filter.call(
-      cards: @cards, code: nil, collection_id: nil, rarities: params[:rarity], colors: params[:mana]
+      cards: @cards, code: nil, collection_id: nil, rarities: rarities, colors: colors
     )
   end
 
