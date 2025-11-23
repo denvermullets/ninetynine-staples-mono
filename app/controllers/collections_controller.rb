@@ -65,7 +65,18 @@ class CollectionsController < ApplicationController
       collection_id: params[:collection_id] || nil
     )
 
+    magic_cards = filter_cards(magic_cards)
+
     @pagy, @magic_cards = pagy(:offset, magic_cards)
+  end
+
+  def filter_cards(cards)
+    rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
+    colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
+
+    CollectionQuery::Filter.call(
+      cards: cards, code: nil, collection_id: nil, rarities: rarities, colors: colors
+    )
   end
 
   def load_collection
