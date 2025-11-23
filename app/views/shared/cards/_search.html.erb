@@ -5,7 +5,7 @@
       action: 'submit->search-filter#submit',
       search_filter_target: 'form',
       search_filter: 'form' } do |form| %>
-    <div class="flex flex-row flex-wrap items-end gap-4" data-controller="multiselect">
+    <div class="flex flex-row flex-wrap  gap-4" data-controller="multiselect">
       <!-- Search Field -->
       <div class="flex-1 min-w-[200px] max-w-[400px]">
         <div class='flex flex-col'>
@@ -31,7 +31,7 @@
       <div class="flex-1 min-w-[200px]">
         <div class='flex flex-col'>
           <h3 class="mb-2 text-grey-text">Mana</h3>
-          <div class="flex flex-row space-x">
+          <div class="flex flex-row">
             <% ['b', 'u', 'w', 'r', 'g', 'c'].each do |mana| %>
               <button
               type="button"
@@ -41,7 +41,7 @@
                 data-value="<%= mana.upcase %>"
                 class="cursor-pointer rounded-full p-2 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
                 >
-                <i class="no-tailwind ms ms-cost ml-0 <%= "ms-#{mana}" %>"></i>
+                <i class="no-tailwind ms ms-cost ml-0 ms-2x <%= "ms-#{mana}" %>"></i>
               </button>
             <% end %>
           </div>
@@ -62,7 +62,7 @@
                 data-value="<%= rarity %>"
                 class="cursor-pointer rounded-full p-2 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
                 >
-                <i class='no-tailwind ms ms-cost ml-0 ms-rarity'></i>
+                <i class='no-tailwind ms ms-cost ml-0 ms-rarity ms-2x'></i>
               </button>
             <% end %>
           </div>
