@@ -5,9 +5,9 @@
       action: 'submit->search-filter#submit',
       search_filter_target: 'form',
       search_filter: 'form' } do |form| %>
-    <div class="flex flex-col md:flex-row md:items-end gap-4 md:gap-6" data-controller="multiselect">
+    <div class="flex flex-row flex-wrap items-end gap-4" data-controller="multiselect">
       <!-- Search Field -->
-      <div class="flex-1 min-w-0">
+      <div class="flex-1 min-w-[200px] max-w-[400px]">
         <h3 class='mb-2 text-grey-text'>Search</h3>
         <div class='flex flex-row space-x-0'>
           <%= form.text_field :search,
@@ -25,7 +25,7 @@
         </div>
       </div>
       <!-- Rarity Filter -->
-      <div>
+      <div class="flex-1 min-w-[200px]">
         <h3 class='mb-2 text-grey-text'>Rarity</h3>
         <div class='flex flex-row space-x-1'>
           <% ['mythic', 'rare', 'uncommon', 'common'].each do |rarity| %>
@@ -36,16 +36,16 @@
               data-multiselect-group="rarity"
               data-value="<%= rarity %>"
               class="cursor-pointer rounded-full p-2 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
-            >
+              >
               <i class='no-tailwind ms ms-cost ml-0 ms-rarity'></i>
             </button>
           <% end %>
         </div>
       </div>
       <!-- Mana Filter -->
-      <div>
+      <div class="flex-1 min-w-[200px]">
         <h3 class="mb-2 text-grey-text">Mana</h3>
-        <div class="flex flex-row space-x-1">
+        <div class="flex flex-row space-x">
           <% ['b', 'u', 'w', 'r', 'g', 'c'].each do |mana| %>
             <button
               type="button"
@@ -54,7 +54,7 @@
               data-multiselect-group="mana"
               data-value="<%= mana.upcase %>"
               class="cursor-pointer rounded-full p-2 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
-            >
+              >
               <i class="no-tailwind ms ms-cost ml-0 <%= "ms-#{mana}" %>"></i>
             </button>
           <% end %>
