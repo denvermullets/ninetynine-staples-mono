@@ -3,7 +3,10 @@ class MarketMoversController < ApplicationController
     @user = current_user
     return redirect_to root_path, alert: 'Please sign in to view market movers.' unless @user
 
-    magic_cards = MarketMovers::FetchValuableCommons.call(user: @user)
+    magic_cards = MarketMovers::FetchValuableCommons.call(
+      user: @user,
+      rarity: params[:rarity]
+    )
     @pagy, @magic_cards = pagy(:offset, magic_cards, items: 50)
     @collections = @user.collections
 
