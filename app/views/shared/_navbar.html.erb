@@ -9,6 +9,9 @@
         <div class="<%= nav_item_classes('/collections/' + current_user.username) %>">
           <%= link_to 'Collections', collection_show_path(current_user.username) %>
         </div>
+        <div class="<%= nav_item_classes('/market-movers') %>">
+          <%= link_to 'Market Movers', market_movers_path %>
+        </div>
       <% else %>
         <p class="<%= nav_item_classes('/collections/') %> hidden md:block">Collections</p>
       <% end %>
