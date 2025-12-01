@@ -9,6 +9,29 @@
       </div>
     </div>
 
+    <div class="flex flex-col px-6 py-4 mb-6 space-y-4 border md:flex-row md:space-y-0 md:space-x-4 rounded-3xl bg-foreground border-highlight">
+      <div class="flex flex-col">
+        <h3 class="mb-2 text-sm font-medium text-grey-text">Filter by Rarity</h3>
+        <div class="flex space-x-2">
+          <%= link_to market_movers_path(rarity: nil),
+              class: "px-4 py-2 text-sm rounded-lg transition #{params[:rarity].nil? ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu'}",
+              data: { turbo_frame: "_top" } do %>
+            All
+          <% end %>
+          <%= link_to market_movers_path(rarity: 'common'),
+              class: "px-4 py-2 text-sm rounded-lg transition #{params[:rarity] == 'common' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu'}",
+              data: { turbo_frame: "_top" } do %>
+            Commons
+          <% end %>
+          <%= link_to market_movers_path(rarity: 'uncommon'),
+              class: "px-4 py-2 text-sm rounded-lg transition #{params[:rarity] == 'uncommon' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu'}",
+              data: { turbo_frame: "_top" } do %>
+            Uncommons
+          <% end %>
+        </div>
+      </div>
+    </div>
+
     <% if @magic_cards.any? %>
       <div class='mb-24 overflow-hidden border rounded-3xl border-highlight'>
         <table class="min-w-full divide-y table-auto divide-background">
