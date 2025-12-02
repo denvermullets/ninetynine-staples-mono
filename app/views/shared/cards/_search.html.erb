@@ -20,6 +20,7 @@
             <%= form.hidden_field :username, value: params[:username] %>
             <%= form.hidden_field :code, value: params[:code] %>
             <%= form.hidden_field :collection_id, value: params[:collection_id] %>
+            <%= form.hidden_field :valuable_only, value: params[:valuable_only] %>
             <%= form.submit 'Search',
               class: 'p-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700'
           %>

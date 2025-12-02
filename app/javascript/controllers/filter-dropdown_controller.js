@@ -104,6 +104,7 @@ export default class extends Controller {
     const queryParams = new URLSearchParams({
       code,
       ...(currentParams.get("search") && { search: currentParams.get("search") }),
+      ...(currentParams.get("valuable_only") && { valuable_only: currentParams.get("valuable_only") }),
       ...(this.usernameValue && { username: this.usernameValue }),
     }).toString();
 
@@ -118,6 +119,7 @@ export default class extends Controller {
         const updatedParams = new URLSearchParams({
           code: code,
           ...(currentParams.get("search") && { search: currentParams.get("search") }),
+          ...(currentParams.get("valuable_only") && { valuable_only: currentParams.get("valuable_only") }),
         }).toString();
 
         const basePath = this.usernameValue ? `/collections/${this.usernameValue}` : `/boxsets`;

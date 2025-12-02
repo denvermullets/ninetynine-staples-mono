@@ -3,9 +3,24 @@
     locals: { header: 'Boxsets',
               subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
   %>
-  <div class="flex flex-col px-8 py-4 space-x-4 border md:flex-row rounded-3xl bg-foreground border-highlight">
+  <div class="flex flex-col px-8 py-4 space-y-4 border md:flex-row md:space-y-0 md:space-x-4 rounded-3xl bg-foreground border-highlight">
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_boxset_path } %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path } %>
+    <div class="flex flex-col">
+      <h3 class="mb-2 text-sm font-medium text-grey-text">Price Filter</h3>
+      <div class="flex space-x-2">
+        <%= link_to load_boxset_path(code: params[:code], search: params[:search], rarity: params[:rarity], mana: params[:mana], valuable_only: 'false'),
+            class: "px-4 py-2 text-sm rounded-lg transition #{params[:valuable_only] != 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu'}",
+            data: { turbo_frame: "boxset_content" } do %>
+          All Cards
+        <% end %>
+        <%= link_to load_boxset_path(code: params[:code], search: params[:search], rarity: params[:rarity], mana: params[:mana], valuable_only: 'true'),
+            class: "px-4 py-2 text-sm rounded-lg transition #{params[:valuable_only] == 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu'}",
+            data: { turbo_frame: "boxset_content" } do %>
+          Over $0.80
+        <% end %>
+      </div>
+    </div>
   </div>
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">
