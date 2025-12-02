@@ -39,6 +39,7 @@ class BoxsetsController < ApplicationController
     @cards = @boxset&.magic_cards if @boxset.present?
     @cards = search_cards
     @cards = filter_cards
+    @cards = filter_by_price if params[:valuable_only] == 'true'
     CollectionQuery::Sort.call(cards: @cards, sort_by: :id)
   end
 
@@ -62,5 +63,10 @@ class BoxsetsController < ApplicationController
     return if code.nil?
 
     Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: code)
+  end
+
+  def filter_by_price
+    minimum_price = 0.80
+    @cards.where('normal_price > ? OR foil_price > ?', minimum_price, minimum_price)
   end
 end
