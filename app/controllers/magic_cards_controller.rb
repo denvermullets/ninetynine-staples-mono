@@ -1,4 +1,6 @@
 class MagicCardsController < ApplicationController
+  before_action :authenticate_admin!, only: [:destroy]
+
   def show
     card = MagicCard.find(params[:id])
 
@@ -13,7 +15,28 @@ class MagicCardsController < ApplicationController
     render partial: 'magic_cards/details', locals: card_details_locals(card, user_data, card_locations)
   end
 
+  def destroy
+    card = MagicCard.find(params[:id])
+
+    if card.collection_magic_cards.exists?
+      flash.now[:type] = 'error'
+      render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+        locals: { message: "Cannot delete #{card.name} - it exists in one or more collections" })
+    else
+      card_name = card.name
+      card.destroy!
+      render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+        locals: { message: "Successfully deleted #{card_name}" })
+    end
+  end
+
   private
+
+  def authenticate_admin!
+    return if current_user&.role.to_i == 9001
+
+    render plain: 'Unauthorized', status: :unauthorized
+  end
 
   def determine_user_and_permissions
     if params[:username].present?
