@@ -1,0 +1,111 @@
+<div class="flex flex-col w-full gap-4" data-controller="card-locations">
+  <%
+    # Calculate totals across all collections
+    total_regular = card_locations.sum(&:quantity)
+    total_foil = card_locations.sum(&:foil_quantity)
+  %>
+
+  <!-- Total Summary -->
+  <div class="flex flex-row items-center gap-4 pb-4 text-sm border-b border-highlight">
+    <span class="font-semibold text-grey-text">Total owned:</span>
+    <span class="text-nine-white">Regular <%= total_regular %></span>
+    <span class="text-grey-text">|</span>
+    <span class="text-nine-white">Foil <%= total_foil %></span>
+  </div>
+
+  <!-- Locations Table -->
+  <div class="overflow-hidden border rounded-lg border-highlight">
+    <table class="min-w-full divide-y divide-highlight">
+      <thead class="bg-background">
+        <tr>
+          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Location</th>
+          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Regular</th>
+          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Foil</th>
+          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Quick actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y bg-foreground divide-highlight">
+        <% if card_locations.any? %>
+          <% card_locations.each do |location| %>
+            <tr class="text-grey-text hover:bg-menu">
+              <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.collection.name %></td>
+              <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.quantity %></td>
+              <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.foil_quantity %></td>
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <% if editable %>
+                  <div class="flex gap-2">
+                    <button
+                      data-action="click->card-locations#openTransferModal"
+                      data-collection-id="<%= location.collection_id %>"
+                      data-collection-name="<%= location.collection.name %>"
+                      data-regular-qty="<%= location.quantity %>"
+                      data-foil-qty="<%= location.foil_quantity %>"
+                      class="px-3 py-1 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white">
+                      Transfer
+                    </button>
+                    <button
+                      data-action="click->card-locations#openAdjustModal"
+                      data-collection-id="<%= location.collection_id %>"
+                      data-collection-name="<%= location.collection.name %>"
+                      data-regular-qty="<%= location.quantity %>"
+                      data-foil-qty="<%= location.foil_quantity %>"
+                      class="px-3 py-1 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white">
+                      Adjust
+                    </button>
+                  </div>
+                <% else %>
+                  <span class="text-xs text-grey-text">—</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="4" class="px-4 py-6 text-sm text-center text-grey-text">
+              <% if editable %>
+                No cards in any collection yet. Select a collection below to add this card.
+              <% else %>
+                This card is not in any collections.
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+
+        <!-- Add to New Collection Row -->
+        <% if collections.present? && editable %>
+          <tr class="border-t-2 bg-background border-highlight">
+            <td colspan="4" class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-grey-text">Add to collection:</span>
+                <select
+                  data-card-locations-target="newCollectionSelect"
+                  class="flex-1 max-w-xs px-3 py-1 text-sm border rounded-md border-highlight bg-foreground text-grey-text focus:border-accent-50 focus:ring-accent-50">
+                  <option value="">Select collection...</option>
+                  <% collections.each do |collection| %>
+                    <option value="<%= collection.id %>"><%= collection.name %></option>
+                  <% end %>
+                </select>
+                <button
+                  data-action="click->card-locations#openAdjustModal"
+                  data-collection-id=""
+                  data-collection-name=""
+                  data-regular-qty="0"
+                  data-foil-qty="0"
+                  data-is-new="true"
+                  class="px-4 py-1 text-sm transition rounded-md bg-accent-50 text-background hover:bg-nine-white disabled:opacity-50 disabled:cursor-not-allowed">
+                  Add
+                </button>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Containers -->
+  <% if editable %>
+    <%= render partial: 'shared/cards/transfer_modal', locals: { magic_card:, collections: } %>
+    <%= render partial: 'shared/cards/adjust_modal', locals: { magic_card: } %>
+  <% end %>
+</div>

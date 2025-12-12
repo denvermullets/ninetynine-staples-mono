@@ -1,19 +1,20 @@
 <div class="flex items-start gap-8 px-24 py-8">
   <!-- Sidebar -->
   <div class="shrink-0 h-auto px-8 py-4 space-y-8 border w-72 rounded-3xl border-highlight bg-foreground text-grey-text">
-    <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path } %>
-    <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path } %>
+    <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
+    <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
     <div class='flex flex-col space-y-2'>
       <div>
-        Binders
+        <%= @collection_type&.capitalize&.pluralize || 'Collections' %>
       </div>
       <% @collections.each do |collection| %>
+        <% show_path = @collection_type == 'deck' ? deck_show_path(username: params[:username], collection_id: collection.id) : collection_show_path(username: params[:username], collection_id: collection.id) %>
         <%= render partial: 'binder',
                  locals: {
                    name: collection.name,
                    description: collection.description,
                    card: collection.magic_cards.count.zero? ? MagicCard.last : collection.magic_cards.last,
-                   link: collection_show_path(username: params[:username], collection_id: collection.id),
+                   link: show_path,
                    active: collection.id == params[:collection_id].to_i
                  }
         %>
@@ -39,14 +40,14 @@
         <div class='flex flex-row gap-4'>
           <%= render partial: 'stats',
                    locals: {
-                     message: "Total cards in #{@collection.name} binder",
+                     message: "Total cards in #{@collection.name} #{@collection_type}",
                      count: @collection.total_foil_quantity + @collection.total_quantity,
                      value: nil
                    }
           %>
           <%= render partial: 'stats',
                    locals: {
-                     message: "Total value in #{@collection.name} binder",
+                     message: "Total value in #{@collection.name} #{@collection_type}",
                      count: nil,
                      value: @collection.total_value
                    }
@@ -63,7 +64,7 @@
         <div class='flex flex-row gap-4'>
           <%= render partial: 'stats',
                    locals: {
-                     message: "Total value in #{@collections.first.name} binder",
+                     message: "Total value in #{@collections.first.name} #{@collection_type}",
                      count: nil,
                      value: @collections.first.total_value
                    }
