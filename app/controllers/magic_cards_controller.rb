@@ -20,13 +20,17 @@ class MagicCardsController < ApplicationController
 
     if card.collection_magic_cards.exists?
       flash.now[:type] = 'error'
-      render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-        locals: { message: "Cannot delete #{card.name} - it exists in one or more collections" })
+      render turbo_stream: turbo_stream.append(
+        'toasts', partial: 'shared/toast',
+                  locals: {
+                    message: "Cannot delete #{card.name} - it exists in one or more collections"
+                  }
+      )
     else
       card_name = card.name
       card.destroy!
       render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-        locals: { message: "Successfully deleted #{card_name}" })
+                                                         locals: { message: "Successfully deleted #{card_name}" })
     end
   end
 
