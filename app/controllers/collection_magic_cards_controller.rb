@@ -3,17 +3,9 @@ class CollectionMagicCardsController < ApplicationController
     result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
 
     if result[:action] == :success
-      flash.now[:type] = 'success'
-      render turbo_stream: turbo_stream.append(
-        'toasts', partial: 'shared/toast',
-                  locals: { message: "Added #{result[:name]} to your collection." }
-      )
+      render_success_toast("Added #{result[:name]} to your collection.")
     else
-      flash.now[:type] = 'error'
-      render turbo_stream: turbo_stream.append(
-        'toasts', partial: 'shared/toast',
-                  locals: { message: "Deleted #{result[:name]} from your collection." }
-      )
+      render_error_toast("Deleted #{result[:name]} from your collection.")
     end
   end
 
@@ -37,59 +29,68 @@ class CollectionMagicCardsController < ApplicationController
     result = CollectionRecord::Transfer.call(params: transfer_params)
 
     if result[:success]
-      flash.now[:type] = 'success'
-      render turbo_stream: [
-        turbo_stream.replace(
-          "card_details_#{result[:card_id]}",
-          partial: 'magic_cards/details',
-          locals: result[:locals]
-        ),
-        turbo_stream.append(
-          'toasts',
-          partial: 'shared/toast',
-          locals: { message: "Transferred #{result[:name]} from #{result[:from_collection]} to #{result[:to_collection]}." }
-        )
-      ]
+      render_transfer_success(result)
     else
-      flash.now[:type] = 'error'
-      render turbo_stream: turbo_stream.append(
-        'toasts',
-        partial: 'shared/toast',
-        locals: { message: result[:error] }
-      )
+      render_error_toast(result[:error])
     end
   end
 
   def adjust
     result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
 
-    if result[:action] == :success || result[:action] == :delete
-      flash.now[:type] = 'success'
-      message = result[:action] == :delete ? "Removed #{result[:name]} from collection." : "Updated #{result[:name]} quantity."
-
-      render turbo_stream: [
-        turbo_stream.replace(
-          "card_details_#{params[:magic_card_id]}",
-          partial: 'magic_cards/details',
-          locals: reload_card_details(params[:magic_card_id])
-        ),
-        turbo_stream.append(
-          'toasts',
-          partial: 'shared/toast',
-          locals: { message: }
-        )
-      ]
+    if %i[success delete].include?(result[:action])
+      render_adjust_success(result)
     else
-      flash.now[:type] = 'error'
-      render turbo_stream: turbo_stream.append(
-        'toasts',
-        partial: 'shared/toast',
-        locals: { message: 'Failed to update quantity.' }
-      )
+      render_error_toast('Failed to update quantity.')
     end
   end
 
   private
+
+  def render_transfer_success(result)
+    flash.now[:type] = 'success'
+    render turbo_stream: [
+      turbo_stream.replace(
+        "card_details_#{result[:card_id]}",
+        partial: 'magic_cards/details',
+        locals: result[:locals]
+      ),
+      render_success_toast(transfer_message(result))
+    ]
+  end
+
+  def render_adjust_success(result)
+    flash.now[:type] = 'success'
+    render turbo_stream: [
+      turbo_stream.replace(
+        "card_details_#{params[:magic_card_id]}",
+        partial: 'magic_cards/details',
+        locals: reload_card_details(params[:magic_card_id])
+      ),
+      render_success_toast(adjust_message(result))
+    ]
+  end
+
+  def render_success_toast(message)
+    turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: })
+  end
+
+  def render_error_toast(message)
+    flash.now[:type] = 'error'
+    render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: })
+  end
+
+  def transfer_message(result)
+    "Transferred #{result[:name]} from #{result[:from_collection]} to #{result[:to_collection]}."
+  end
+
+  def adjust_message(result)
+    if result[:action] == :delete
+      "Removed #{result[:name]} from collection."
+    else
+      "Updated #{result[:name]} quantity."
+    end
+  end
 
   def collection_params
     params.permit(:quantity, :foil_quantity, :collection_id, :magic_card_id, :card_uuid)

@@ -6,24 +6,40 @@ class MagicCardsController < ApplicationController
   end
 
   def show_boxset_card
-    # TODO: fix if not found
     card = MagicCard.find(params[:id])
+    user_data = determine_user_and_permissions
+    card_locations = fetch_card_locations(card, user_data[:user])
 
-    # If username param is present, we're viewing someone's collection
-    # Otherwise, we're viewing our own cards (or not logged in)
+    render partial: 'magic_cards/details', locals: card_details_locals(card, user_data, card_locations)
+  end
+
+  private
+
+  def determine_user_and_permissions
     if params[:username].present?
       user = User.find_by(username: params[:username])
-      collections = user&.collections
-      editable = current_user && user && user.id == current_user.id
+      { user:, collections: user&.collections, editable: user_owns_collection?(user) }
     else
-      user = current_user
-      collections = current_user&.collections
-      editable = current_user ? true : false
+      { user: current_user, collections: current_user&.collections, editable: current_user.present? }
     end
+  end
 
-    # Fetch all locations where this card exists for the user being viewed
-    card_locations = user ? card.collection_magic_cards.joins(:collection).where(collections: { user_id: user.id }) : []
+  def user_owns_collection?(user)
+    current_user && user && user.id == current_user.id
+  end
 
-    render partial: 'magic_cards/details', locals: { card:, collections: collections || [], card_locations:, editable: }
+  def fetch_card_locations(card, user)
+    return [] unless user
+
+    card.collection_magic_cards.joins(:collection).where(collections: { user_id: user.id })
+  end
+
+  def card_details_locals(card, user_data, card_locations)
+    {
+      card:,
+      collections: user_data[:collections] || [],
+      card_locations:,
+      editable: user_data[:editable]
+    }
   end
 end
