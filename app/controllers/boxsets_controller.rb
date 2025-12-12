@@ -40,6 +40,7 @@ class BoxsetsController < ApplicationController
     @cards = search_cards
     @cards = filter_cards
     @cards = filter_by_price if params[:valuable_only] == 'true'
+    @cards = @cards.where.not(card_side: 'b')
     CollectionQuery::Sort.call(cards: @cards, sort_by: :id)
   end
 
