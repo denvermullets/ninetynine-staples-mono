@@ -32,6 +32,16 @@ class MagicCard < ApplicationRecord
   has_many :magic_card_keywords
   has_many :keywords, through: :magic_card_keywords
 
+  def other_face
+    return nil unless other_face_uuid.present?
+
+    MagicCard.find_by(card_uuid: other_face_uuid)
+  end
+
+  def double_faced?
+    other_face_uuid.present?
+  end
+
   def price_change
     # determine how much value has changed
     price_changes = {}
