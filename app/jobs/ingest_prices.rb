@@ -71,8 +71,8 @@ class IngestPrices < ApplicationJob
 
   def sync_price_dates(normal, foil)
     # Get all dates from both arrays
-    normal_dates = normal.map { |entry| entry.keys.first }.to_set
-    foil_dates = foil.map { |entry| entry.keys.first }.to_set
+    normal_dates = normal.to_set { |entry| entry.keys.first }
+    foil_dates = foil.to_set { |entry| entry.keys.first }
 
     # Find common dates (dates that exist in both)
     common_dates = normal_dates & foil_dates
