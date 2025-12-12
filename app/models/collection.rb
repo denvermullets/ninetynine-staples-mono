@@ -7,4 +7,5 @@ class Collection < ApplicationRecord
   has_many :magic_cards, through: :collection_magic_cards
 
   scope :by_user, ->(id) { where(user_id: id) }
+  scope :by_type, ->(type) { where(collection_type: type) }
 end

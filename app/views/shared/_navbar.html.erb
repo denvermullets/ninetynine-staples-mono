@@ -9,13 +9,16 @@
         <div class="<%= nav_item_classes('/collections/' + current_user.username) %>">
           <%= link_to 'Collections', collection_show_path(current_user.username) %>
         </div>
+        <div class="<%= nav_item_classes('/decks/' + current_user.username) %>">
+          <%= link_to 'Decks', deck_show_path(current_user.username) %>
+        </div>
         <div class="<%= nav_item_classes('/market-movers') %>">
           <%= link_to 'Market Movers', market_movers_path %>
         </div>
       <% else %>
         <p class="<%= nav_item_classes('/collections/') %> hidden md:block">Collections</p>
+        <p class="<%= nav_item_classes('/decks') %> hidden md:block">Decks</p>
       <% end %>
-      <p class="<%= nav_item_classes('/decks') %> hidden md:block">Decks</p>
     </div>
     <div class='flex-row hidden space-x-6 md:flex items-center'>
       <% if current_user %>
