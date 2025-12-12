@@ -33,4 +33,5 @@ Rails.application.routes.draw do
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
   resources :collections, only: %w[new create]
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
+  get 'decks/:username(/:collection_id)', to: 'collections#show_decks', as: :deck_show
 end

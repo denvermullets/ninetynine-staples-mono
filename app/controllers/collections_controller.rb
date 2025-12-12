@@ -15,7 +15,22 @@ class CollectionsController < ApplicationController
     @user = User.find_by(username: params[:username])
     return render :not_found unless @user
 
-    setup_collections
+    @collection_type = 'binder'
+    setup_collections(@collection_type)
+    search_magic_cards
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { render 'index' }
+    end
+  end
+
+  def show_decks
+    @user = User.find_by(username: params[:username])
+    return render :not_found unless @user
+
+    @collection_type = 'deck'
+    setup_collections(@collection_type)
     search_magic_cards
 
     respond_to do |format|
@@ -28,7 +43,8 @@ class CollectionsController < ApplicationController
     return render :not_found unless params[:username].present?
 
     @user = User.find_by(username: params[:username])
-    setup_collections
+    @collection_type = params[:collection_type]
+    setup_collections(@collection_type)
     search_magic_cards
 
     respond_to do |format|
@@ -47,10 +63,12 @@ class CollectionsController < ApplicationController
     end
   end
 
-  def setup_collections
+  def setup_collections(collection_type = nil)
+    user_collections = collection_type ? @user.collections.by_type(collection_type) : @user.collections
+
     @collection = Collection.find(params[:collection_id]) if params[:collection_id].present?
-    @collections_value = @user.collections.sum(:total_value)
-    @collections = @user.collections.order(:id)
+    @collections_value = user_collections.sum(:total_value)
+    @collections = user_collections.order(:id)
     @options = boxset_options
   end
 
