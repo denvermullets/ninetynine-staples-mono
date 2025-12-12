@@ -52,14 +52,14 @@ module Search
         # TODO: when we add table sorting this will not work for boxsets
         # Using DISTINCT ON to get one row per card, picking the one with highest total_value
         subquery = @cards
-                     .joins(:collection_magic_cards)
-                     .select("DISTINCT ON (magic_cards.id) magic_cards.id,
+                   .joins(:collection_magic_cards)
+                   .select("DISTINCT ON (magic_cards.id) magic_cards.id,
                              collection_magic_cards.foil_quantity,
                              collection_magic_cards.quantity,
                              COALESCE(collection_magic_cards.quantity, 0) * COALESCE(magic_cards.normal_price, 0) +
                              COALESCE(collection_magic_cards.foil_quantity, 0) * COALESCE(magic_cards.foil_price, 0)
                              AS total_value")
-                     .order('magic_cards.id, total_value DESC')
+                   .order('magic_cards.id, total_value DESC')
 
         MagicCard
           .joins("INNER JOIN (#{subquery.to_sql}) sub ON sub.id = magic_cards.id")
