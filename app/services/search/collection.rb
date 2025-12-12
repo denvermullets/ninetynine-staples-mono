@@ -53,6 +53,8 @@ module Search
         @cards
           .joins(:collection_magic_cards)
           .select("magic_cards.*,
+                  collection_magic_cards.foil_quantity,
+                  collection_magic_cards.quantity,
                   COALESCE(collection_magic_cards.quantity, 0) * COALESCE(magic_cards.normal_price, 0) +
                   COALESCE(collection_magic_cards.foil_quantity, 0) * COALESCE(magic_cards.foil_price, 0)
                   AS total_value")
