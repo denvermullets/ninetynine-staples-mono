@@ -37,4 +37,15 @@ module ApplicationHelper
       "#{base_classes} border-transparent"
     end
   end
+
+  def price_trend_class(trend)
+    case trend
+    when 'up'
+      'text-green-500'
+    when 'down'
+      'text-red-500'
+    else
+      '' # default color from parent
+    end
+  end
 end
