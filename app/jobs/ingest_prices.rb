@@ -63,7 +63,29 @@ class IngestPrices < ApplicationJob
     normal = check_existing(price_history['normal'], new_daily_price['normal'])
     foil = check_existing(price_history['foil'], new_daily_price['foil'])
 
-    { normal:, foil: }
+    # Sync dates between foil and normal to prevent chart misalignment
+    synced_data = sync_price_dates(normal, foil)
+
+    { normal: synced_data[:normal], foil: synced_data[:foil] }
+  end
+
+  def sync_price_dates(normal, foil)
+    # Get all dates from both arrays
+    normal_dates = normal.map { |entry| entry.keys.first }.to_set
+    foil_dates = foil.map { |entry| entry.keys.first }.to_set
+
+    # Find common dates (dates that exist in both)
+    common_dates = normal_dates & foil_dates
+
+    # If both have data, only keep entries with common dates
+    # If only one has data, keep all of it
+    if normal.any? && foil.any?
+      synced_normal = normal.select { |entry| common_dates.include?(entry.keys.first) }
+      synced_foil = foil.select { |entry| common_dates.include?(entry.keys.first) }
+      { normal: synced_normal, foil: synced_foil }
+    else
+      { normal:, foil: }
+    end
   end
 
   def check_existing(existing_data, new_info)
