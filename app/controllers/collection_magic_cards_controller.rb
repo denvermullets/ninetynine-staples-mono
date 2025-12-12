@@ -33,10 +33,70 @@ class CollectionMagicCardsController < ApplicationController
     end
   end
 
+  def transfer
+    result = CollectionRecord::Transfer.call(params: transfer_params)
+
+    if result[:success]
+      flash.now[:type] = 'success'
+      render turbo_stream: [
+        turbo_stream.replace(
+          "card_details_#{result[:card_id]}",
+          partial: 'magic_cards/details',
+          locals: result[:locals]
+        ),
+        turbo_stream.append(
+          'toasts',
+          partial: 'shared/toast',
+          locals: { message: "Transferred #{result[:name]} from #{result[:from_collection]} to #{result[:to_collection]}." }
+        )
+      ]
+    else
+      flash.now[:type] = 'error'
+      render turbo_stream: turbo_stream.append(
+        'toasts',
+        partial: 'shared/toast',
+        locals: { message: result[:error] }
+      )
+    end
+  end
+
+  def adjust
+    result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
+
+    if result[:action] == :success || result[:action] == :delete
+      flash.now[:type] = 'success'
+      message = result[:action] == :delete ? "Removed #{result[:name]} from collection." : "Updated #{result[:name]} quantity."
+
+      render turbo_stream: [
+        turbo_stream.replace(
+          "card_details_#{params[:magic_card_id]}",
+          partial: 'magic_cards/details',
+          locals: reload_card_details(params[:magic_card_id])
+        ),
+        turbo_stream.append(
+          'toasts',
+          partial: 'shared/toast',
+          locals: { message: }
+        )
+      ]
+    else
+      flash.now[:type] = 'error'
+      render turbo_stream: turbo_stream.append(
+        'toasts',
+        partial: 'shared/toast',
+        locals: { message: 'Failed to update quantity.' }
+      )
+    end
+  end
+
   private
 
   def collection_params
     params.permit(:quantity, :foil_quantity, :collection_id, :magic_card_id, :card_uuid)
+  end
+
+  def transfer_params
+    params.permit(:magic_card_id, :from_collection_id, :to_collection_id, :quantity, :foil_quantity)
   end
 
   def load_collection_record
@@ -44,5 +104,15 @@ class CollectionMagicCardsController < ApplicationController
       collection_id: collection_params[:collection_id],
       magic_card_id: collection_params[:magic_card_id]
     )
+  end
+
+  def reload_card_details(card_id)
+    card = MagicCard.find(card_id)
+    user = current_user
+    collections = user&.collections
+    card_locations = user ? card.collection_magic_cards.joins(:collection).where(collections: { user_id: user.id }) : []
+    editable = user ? true : false
+
+    { card:, collections: collections || [], card_locations:, editable: }
   end
 end

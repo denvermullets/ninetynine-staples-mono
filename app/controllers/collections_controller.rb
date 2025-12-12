@@ -15,7 +15,7 @@ class CollectionsController < ApplicationController
     @user = User.find_by(username: params[:username])
     return render :not_found unless @user
 
-    @collection_type = 'binder'
+    @collection_type = nil
     setup_collections(@collection_type)
     search_magic_cards
 

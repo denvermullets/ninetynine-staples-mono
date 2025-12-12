@@ -20,9 +20,9 @@
         <p class="text-xs text-nine-white"><%= card.text %></p>
       </div>
       <% if card&.card_side == 'a' || card&.card_side.nil? %>
-        <%= render partial: 'collections/form', locals: { collections:, magic_card: card, collection_id: params[:collection_id], editable: } %>
+        <%= render partial: 'shared/cards/card_locations', locals: { card_locations:, magic_card: card, collections:, editable: } %>
         <% if card.price_history.present? %>
-          <div class="flex flex-row w-full">
+          <div class="flex flex-row w-full mt-4">
             <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
           </div>
         <% end %>

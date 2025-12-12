@@ -28,6 +28,8 @@ Rails.application.routes.draw do
   # route for loading collection quantity w/card_details
   get 'collection_magic_cards/quantity', to: 'collection_magic_cards#quantity', as: :collection_quantity
   post 'collection_magic_cards/update_collection', to: 'collection_magic_cards#update_collection', as: :collection_magic_cards_update
+  post 'collection_magic_cards/transfer', to: 'collection_magic_cards#transfer', as: :transfer_collection_magic_cards
+  post 'collection_magic_cards/adjust', to: 'collection_magic_cards#adjust', as: :adjust_collection_magic_cards
   resources :collection_magic_cards
 
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
