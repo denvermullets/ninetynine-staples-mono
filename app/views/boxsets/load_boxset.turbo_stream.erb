@@ -1,6 +1,13 @@
 <%= turbo_stream.replace "search-form" do %>
   <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path, show_price_filter: true } %>
 <% end %>
+<%= turbo_stream.replace "boxset-chart-container" do %>
+  <div id="boxset-chart-container">
+    <% if @boxset.present? && @boxset.value_history.present? && (@boxset.value_history['normal'].any? || @boxset.value_history['foil'].any?) %>
+      <%= render partial: 'boxsets/boxset_value_chart', locals: { history: @boxset.value_history } %>
+    <% end %>
+  </div>
+<% end %>
 <%= turbo_stream.update 'table-container' do %>
   <%= render 'table' %>
 <% end %>
