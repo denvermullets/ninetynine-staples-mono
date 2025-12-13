@@ -18,6 +18,10 @@
 #     queue: background
 #     class: IngestPrices
 #     schedule: at 5am every day
+#   record_collection_history:
+#     queue: background
+#     class: RecordCollectionHistory
+#     schedule: at 11pm every day
 #   ingest_cards:
 #     queue: background
 #     class: IngestSets
@@ -32,6 +36,10 @@ production:
     queue: background
     class: IngestPrices
     schedule: at 5am every day
+  record_collection_history:
+    queue: background
+    class: RecordCollectionHistory
+    schedule: at 9pm every day
   ingest_cards:
     queue: background
     class: IngestSets
