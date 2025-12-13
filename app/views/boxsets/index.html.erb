@@ -5,7 +5,7 @@
   %>
   <div class="flex flex-wrap px-8 py-4 gap-4 border rounded-3xl bg-foreground border-highlight">
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_boxset_path } %>
-    <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path } %>
+    <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path, show_price_filter: true } %>
   </div>
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">

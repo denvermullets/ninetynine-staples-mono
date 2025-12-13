@@ -7,7 +7,7 @@
       search_filter_target: 'form',
       search_filter: 'form' } do |form| %>
   <!-- Search Field -->
-  <div class="flex-1 min-w-[200px] max-w-[400px]">
+  <div class="flex-1 w-full md:min-w-[200px] md:max-w-[400px]">
     <div class='flex flex-col'>
       <h3 class='mb-2 text-grey-text'>Search</h3>
       <div class='flex flex-row space-x-0'>
@@ -70,31 +70,33 @@
       <p class='mt-2 text-xs text-grey-text'>Select rarity to filter by</p>
     </div>
   </div>
-  <!-- Price Filter -->
-  <div class="w-auto">
-    <div class='flex flex-col'>
-      <h3 class='mb-2 text-grey-text'>Price Filter</h3>
-      <div class="flex flex-row flex-wrap">
-        <button
-              type="button"
-              data-action="click->search-filter#setPriceFilter"
-          data-value="false"
-          class="cursor-pointer px-4 py-2 text-sm rounded-lg transition border-2 border-transparent <%= params[:valuable_only] != 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
-          >
-          All Cards
-        </button>
-        <button
-              type="button"
-              data-action="click->search-filter#setPriceFilter"
-          data-value="true"
-          class="cursor-pointer px-4 py-2 text-sm rounded-lg transition border-2 border-transparent <%= params[:valuable_only] == 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
-          >
-          Over $0.80
-        </button>
+  <% if local_assigns[:show_price_filter] %>
+    <!-- Price Filter -->
+    <div class="w-auto">
+      <div class='flex flex-col'>
+        <h3 class='mb-2 text-grey-text'>Price Filter</h3>
+        <div class="flex flex-row flex-wrap">
+          <button
+                type="button"
+                data-action="click->search-filter#setPriceFilter"
+            data-value="false"
+            class="cursor-pointer px-4 py-2 text-sm rounded-lg transition border-2 border-transparent <%= params[:valuable_only] != 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+            >
+            All Cards
+          </button>
+          <button
+                type="button"
+                data-action="click->search-filter#setPriceFilter"
+            data-value="true"
+            class="cursor-pointer px-4 py-2 text-sm rounded-lg transition border-2 border-transparent <%= params[:valuable_only] == 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+            >
+            Over $0.80
+          </button>
+        </div>
+        <p class='mt-2 text-xs text-grey-text'>Filter by card value</p>
       </div>
-      <p class='mt-2 text-xs text-grey-text'>Filter by card value</p>
     </div>
-  </div>
+  <% end %>
   <!-- Hidden fields for selected filters -->
   <div id="filter-hidden-fields" class="hidden"></div>
 <% end %>
