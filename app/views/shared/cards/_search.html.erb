@@ -1,11 +1,11 @@
-<div class='flex-1 w-auto' id='search-form'>
-  <%= form_with url: search_path, method: :get, local: false,
+<%= form_with url: search_path, method: :get, local: false,
+    class: 'contents',
+    id: 'search-form',
     data: {
-      controller: 'search-filter',
+      controller: 'search-filter multiselect',
       action: 'submit->search-filter#submit',
       search_filter_target: 'form',
       search_filter: 'form' } do |form| %>
-    <div class="flex flex-row flex-wrap  gap-4" data-controller="multiselect">
       <!-- Search Field -->
       <div class="flex-1 min-w-[200px] max-w-[400px]">
         <div class='flex flex-col'>
@@ -29,7 +29,7 @@
         </div>
       </div>
       <!-- Mana Filter -->
-      <div class="flex-1 min-w-[200px]">
+      <div class="w-auto">
         <div class='flex flex-col'>
           <h3 class="mb-2 text-grey-text">Mana</h3>
           <div class="flex flex-row flex-wrap">
@@ -50,7 +50,7 @@
         </div>
       </div>
       <!-- Rarity Filter -->
-      <div class="flex-1 min-w-[200px]">
+      <div class="w-auto">
         <div class='flex flex-col'>
           <h3 class='mb-2 text-grey-text'>Rarity</h3>
           <div class='flex flex-row flex-wrap'>
@@ -70,8 +70,6 @@
           <p class='mt-2 text-xs text-grey-text'>Select rarity to filter by</p>
         </div>
       </div>
-    </div>
     <!-- Hidden fields for selected filters -->
-    <div id="filter-hidden-fields"></div>
+    <div id="filter-hidden-fields" class="hidden"></div>
   <% end %>
-</div>
