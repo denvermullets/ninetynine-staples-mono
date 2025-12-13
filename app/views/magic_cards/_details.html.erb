@@ -9,12 +9,32 @@
       <% end %>
     </div>
     <div class="flex items-start justify-center w-full md:col-span-1">
-      <img src="<%= card.image_medium %>"
-           class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
-           alt="<%= card.name %>"
-      />
+      <% if card.double_faced? %>
+        <% other_card = card.other_face %>
+        <div data-controller="card-flip" data-action="click->card-flip#flip" class="flip-container cursor-pointer">
+          <div data-card-flip-target="card" class="flip-card">
+            <div class="flip-card-front">
+              <img src="<%= card.image_medium %>"
+                   class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
+                   alt="<%= card.name %>"
+              />
+            </div>
+            <div class="flip-card-back">
+              <img src="<%= other_card&.image_medium %>"
+                   class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
+                   alt="<%= other_card&.name %>"
+              />
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <img src="<%= card.image_medium %>"
+             class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
+             alt="<%= card.name %>"
+        />
+      <% end %>
     </div>
-    <div class="flex flex-col space-y-4 md:col-span-2">
+    <div class="flex flex-col md:col-span-2">
       <div>
         <h3 class="hidden text-lg font-semibold text-nine-white md:block"><%= card.name %></h3>
         <p class="text-xs text-nine-white"><%= card.text %></p>
@@ -24,6 +44,13 @@
         <% if card.price_history.present? %>
           <div class="flex flex-row w-full mt-4">
             <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
+          </div>
+        <% end %>
+        <% if current_user_admin? %>
+          <div class="flex flex-row w-full mt-4">
+            <%= button_to 'Delete Card', magic_card_path(card.id), method: :delete,
+                data: { turbo_confirm: "Are you sure you want to delete #{card.name}? This action cannot be undone." },
+                class: "px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600" %>
           </div>
         <% end %>
       <% end %>

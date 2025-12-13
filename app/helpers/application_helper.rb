@@ -48,4 +48,8 @@ module ApplicationHelper
       '' # default color from parent
     end
   end
+
+  def current_user_admin?
+    current_user&.role.to_i == 9001
+  end
 end
