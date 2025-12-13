@@ -1,6 +1,6 @@
 <div class="flex items-start gap-8 px-24 py-8">
   <!-- Sidebar -->
-  <div class="shrink-0 h-auto px-8 py-4 space-y-8 border w-72 rounded-3xl border-highlight bg-foreground text-grey-text">
+  <div class="flex flex-col shrink-0 h-auto px-8 py-4 gap-8 border w-72 rounded-3xl border-highlight bg-foreground text-grey-text">
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
     <div class='flex flex-col space-y-2'>
