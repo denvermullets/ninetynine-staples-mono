@@ -80,6 +80,14 @@
                      value: @collections_value
                    }
           %>
+          <% if @collection_history.present? && @collection_history.any? %>
+            <%= render partial: 'collection_history_chart',
+                     locals: {
+                       title: "#{@collection.name} value history",
+                       history: @collection_history
+                     }
+            %>
+          <% end %>
         </div>
       <% else %>
         <div class='flex flex-row gap-4'>
@@ -97,6 +105,14 @@
                      value: @collections_value
                    }
           %>
+          <% if @collection_history.present? && @collection_history.any? %>
+            <%= render partial: 'collection_history_chart',
+                     locals: {
+                       title: "All collections value history",
+                       history: @collection_history
+                     }
+            %>
+          <% end %>
         </div>
       <% end %>
     </div>
