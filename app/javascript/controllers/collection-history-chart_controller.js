@@ -114,7 +114,7 @@ export default class extends Controller {
             },
             grid: {
               color: "#2E3F49",
-              display: true,
+              display: false,
             },
             ticks: {
               precision: 2,
