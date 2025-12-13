@@ -1,6 +1,27 @@
-<div class="flex items-start gap-8 px-24 py-8">
+<div class="flex items-start gap-4 md:gap-8 px-4 md:px-24 py-4 md:py-8" data-controller="collection-sidebar">
+  <!-- Mobile Filter Button -->
+  <button
+    data-action="click->collection-sidebar#toggle"
+    class="md:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-highlight text-white rounded-full shadow-lg cursor-pointer focus:outline-none"
+    aria-label="Toggle filters"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+    </svg>
+  </button>
+
+  <!-- Sidebar Overlay for Mobile -->
+  <div
+    data-collection-sidebar-target="overlay"
+    data-action="click->collection-sidebar#close"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+  ></div>
+
   <!-- Sidebar -->
-  <div class="shrink-0 h-auto px-8 py-4 space-y-8 border w-72 rounded-3xl border-highlight bg-foreground text-grey-text">
+  <div
+    data-collection-sidebar-target="sidebar"
+    class="hidden md:flex flex-col shrink-0 h-auto px-4 md:px-8 py-3 md:py-4 gap-3 md:gap-8 border w-[85vw] md:w-72 max-w-sm md:max-w-none rounded-3xl md:rounded-3xl border-highlight bg-foreground text-grey-text fixed md:relative inset-y-0 left-0 z-40 md:z-auto overflow-y-auto max-h-screen"
+  >
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
     <div class='flex flex-col space-y-2'>
