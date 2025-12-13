@@ -1,0 +1,10 @@
+<div class='flex flex-col w-full gap-6 px-6 py-2 justify-center border rounded-xl border-highlight text-grey-text'>
+  <div data-controller="boxset-value-chart" class='w-full'>
+    <canvas
+        data-boxset-value-chart-target="boxsetValueChart"
+        data-boxset-value-chart-events="<%= history.to_json %>"
+        class='w-full'
+        style="max-height: 125px;"
+    ></canvas>
+  </div>
+</div>

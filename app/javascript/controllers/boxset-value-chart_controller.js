@@ -3,7 +3,7 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 export default class extends Controller {
-  static targets = ["collectionHistoryChart"];
+  static targets = ["boxsetValueChart"];
   chart = null;
 
   connect() {
@@ -46,23 +46,23 @@ export default class extends Controller {
   }
 
   renderChart() {
-    const historyData = this.collectionHistoryChartTarget.dataset.collectionHistoryChartEvents;
+    const valueHistory = this.boxsetValueChartTarget.dataset.boxsetValueChartEvents;
 
-    if (!historyData) {
-      console.error("No history data found.");
+    if (!valueHistory) {
+      console.error("No value history data found.");
       return;
     }
 
     let history;
     try {
-      history = JSON.parse(historyData);
+      history = JSON.parse(valueHistory);
     } catch (e) {
-      console.error("Failed to parse history data:", e);
+      console.error("Failed to parse value history:", e);
       return;
     }
 
-    if (Object.keys(history).length === 0) {
-      console.error("History data is empty.");
+    if (!history.normal && !history.foil) {
+      console.error("Value history data is empty.");
       return;
     }
 
@@ -72,35 +72,68 @@ export default class extends Controller {
       this.chart = null;
     }
 
-    // Sort dates and extract labels and values
-    const sortedEntries = Object.entries(history).sort((a, b) => a[0].localeCompare(b[0]));
-    const labels = sortedEntries.map(([date]) => this.processDate(date));
-    const values = sortedEntries.map(([_, value]) => parseFloat(value));
+    const labels = [];
+    const foilValues = [];
+    const normalValues = [];
 
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
+    if (history.foil && history.foil.length > 0) {
+      history.foil.forEach((entry) => {
+        const date = this.processDate(Object.keys(entry)[0]);
+        labels.push(date);
+        foilValues.push(Object.values(entry)[0]);
+      });
+    }
+
+    if (history.normal && history.normal.length > 0) {
+      history.normal.forEach((entry) => {
+        const date = this.processDate(Object.keys(entry)[0]);
+        if (!labels.includes(date)) {
+          labels.push(date);
+        }
+        normalValues.push(Object.values(entry)[0]);
+      });
+    }
+
+    if (labels.length === 0) {
+      console.error("No data to display");
+      return;
+    }
+
+    const uniqueLabels = [...new Set(labels)];
+    const allValues = [...foilValues, ...normalValues];
+    const minValue = Math.min(...allValues);
+    const maxValue = Math.max(...allValues);
 
     // Set canvas height
-    const canvas = this.collectionHistoryChartTarget;
-    const fixedHeight = 150;
+    const canvas = this.boxsetValueChartTarget;
+    const fixedHeight = 125;
     canvas.style.height = `${fixedHeight}px`;
 
     // Create chart
     this.chart = new Chart(canvas.getContext("2d"), {
       type: "line",
       data: {
-        labels: labels,
+        labels: uniqueLabels,
         datasets: [
           {
-            label: "Collection Value",
-            data: values,
+            label: "Foil Total",
+            data: foilValues,
             backgroundColor: "#39DB7D",
             borderColor: "#39DB7D",
             borderWidth: 2,
             tension: 0.3,
             fill: false,
           },
-        ],
+          {
+            label: "Normal Total",
+            data: normalValues,
+            backgroundColor: "#C6EE52",
+            borderColor: "#C6EE52",
+            borderWidth: 2,
+            tension: 0.3,
+            fill: false,
+          },
+        ].filter((dataset) => dataset.data.length > 0),
       },
       options: {
         responsive: true,
@@ -145,7 +178,7 @@ export default class extends Controller {
             enabled: true,
             callbacks: {
               label: function (context) {
-                return "Value: $" + context.parsed.y.toFixed(2);
+                return context.dataset.label + ": $" + context.parsed.y.toFixed(2);
               },
             },
           },
