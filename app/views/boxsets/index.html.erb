@@ -3,9 +3,14 @@
     locals: { header: 'Boxsets',
               subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
   %>
-  <div class="flex flex-wrap px-8 py-4 gap-4 border rounded-3xl bg-foreground border-highlight">
+  <div class="flex flex-col md:flex-row md:flex-wrap px-8 py-4 gap-4 border rounded-3xl bg-foreground border-highlight">
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_boxset_path } %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path, show_price_filter: true } %>
+    <div id="boxset-chart-container">
+      <% if @boxset.present? && @boxset.value_history.present? && (@boxset.value_history['normal'].any? || @boxset.value_history['foil'].any?) %>
+        <%= render partial: 'boxsets/boxset_value_chart', locals: { history: @boxset.value_history } %>
+      <% end %>
+    </div>
   </div>
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">
