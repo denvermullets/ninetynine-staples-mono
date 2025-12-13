@@ -73,10 +73,10 @@ class CollectionsController < ApplicationController
 
     # Prepare collection history for charts
     @collection_history = if @collection.present?
-      @collection.collection_history || {}
-    else
-      Collection.aggregate_history(user_collections)
-    end
+                            @collection.collection_history || {}
+                          else
+                            Collection.aggregate_history(user_collections)
+                          end
   end
 
   def search_magic_cards
