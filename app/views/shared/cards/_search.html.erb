@@ -70,6 +70,31 @@
           <p class='mt-2 text-xs text-grey-text'>Select rarity to filter by</p>
         </div>
       </div>
+      <!-- Price Filter -->
+      <div class="w-auto">
+        <div class='flex flex-col'>
+          <h3 class='mb-2 text-grey-text'>Price Filter</h3>
+          <div class="flex space-x-2">
+            <button
+              type="button"
+              data-action="click->search-filter#setPriceFilter"
+              data-value="false"
+              class="px-4 py-2 text-sm rounded-lg transition <%= params[:valuable_only] != 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+              >
+              All Cards
+            </button>
+            <button
+              type="button"
+              data-action="click->search-filter#setPriceFilter"
+              data-value="true"
+              class="px-4 py-2 text-sm rounded-lg transition <%= params[:valuable_only] == 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+              >
+              Over $0.80
+            </button>
+          </div>
+          <p class='mt-2 text-xs text-grey-text'>Filter by card value</p>
+        </div>
+      </div>
     <!-- Hidden fields for selected filters -->
     <div id="filter-hidden-fields" class="hidden"></div>
   <% end %>

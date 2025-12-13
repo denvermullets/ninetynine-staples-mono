@@ -4,6 +4,37 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["form"];
 
+  setPriceFilter(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const value = button.dataset.value;
+
+    // Update or create hidden field for valuable_only
+    let hiddenField = this.formTarget.querySelector('input[name="valuable_only"]');
+    if (!hiddenField) {
+      hiddenField = document.createElement('input');
+      hiddenField.type = 'hidden';
+      hiddenField.name = 'valuable_only';
+      this.formTarget.appendChild(hiddenField);
+    }
+    hiddenField.value = value;
+
+    // Update button styles
+    const buttons = button.parentElement.querySelectorAll('button');
+    buttons.forEach(btn => {
+      if (btn === button) {
+        btn.classList.remove('bg-background', 'text-grey-text', 'hover:bg-menu');
+        btn.classList.add('bg-highlight', 'text-nine-white');
+      } else {
+        btn.classList.remove('bg-highlight', 'text-nine-white');
+        btn.classList.add('bg-background', 'text-grey-text', 'hover:bg-menu');
+      }
+    });
+
+    // Submit the form
+    this.formTarget.requestSubmit();
+  }
+
   submit(event) {
     event.preventDefault();
 
@@ -47,6 +78,7 @@ export default class extends Controller {
           ...(currentParams.getAll("mana[]").length && {
             "mana[]": currentParams.getAll("mana[]"),
           }),
+          ...(currentParams.get("valuable_only") && { valuable_only: currentParams.get("valuable_only") }),
         }).toString();
 
         const basePath = usernameValue ? `/collections/${usernameValue}` : `/boxsets`;
