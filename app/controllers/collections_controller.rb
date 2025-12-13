@@ -70,6 +70,13 @@ class CollectionsController < ApplicationController
     @collections_value = user_collections.sum(:total_value)
     @collections = user_collections.order(:id)
     @options = boxset_options
+
+    # Prepare collection history for charts
+    @collection_history = if @collection.present?
+                            @collection.collection_history || {}
+                          else
+                            Collection.aggregate_history(user_collections)
+                          end
   end
 
   def search_magic_cards
