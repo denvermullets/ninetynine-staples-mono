@@ -38,9 +38,10 @@ class BoxsetsController < ApplicationController
   def search_magic_cards
     @cards = @boxset&.magic_cards if @boxset.present?
     @cards = search_cards
+    # Exclude only 'b' side cards, but keep cards where card_side is NULL or 'a'
+    @cards = @cards.where("card_side IS NULL OR card_side != 'b'")
+    @cards = filter_by_price if params[:valuable_only] == 'true' # Apply price filter before color filtering
     @cards = filter_cards
-    @cards = filter_by_price if params[:valuable_only] == 'true'
-    @cards = @cards.where.not(card_side: 'b')
     CollectionQuery::Sort.call(cards: @cards, sort_by: :id)
   end
 
