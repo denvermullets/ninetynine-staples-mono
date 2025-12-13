@@ -42,7 +42,7 @@
                 data-value="<%= mana.upcase %>"
                 class="cursor-pointer rounded-full p-2 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
                 >
-                <i class="no-tailwind ms ms-cost ml-0 ms-2x <%= "ms-#{mana}" %>"></i>
+                <i class="no-tailwind ms ms-cost ml-0 <%= "ms-#{mana}" %>"></i>
               </button>
             <% end %>
           </div>
@@ -63,7 +63,7 @@
                 data-value="<%= rarity %>"
                 class="cursor-pointer rounded-full p-2 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
                 >
-                <i class='no-tailwind ms ms-cost ml-0 ms-rarity ms-2x'></i>
+                <i class='no-tailwind  ml-0 ss ss-<%= rarity %> ms-2x'></i>
               </button>
             <% end %>
           </div>
