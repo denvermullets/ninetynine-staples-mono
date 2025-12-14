@@ -188,8 +188,8 @@ export default class extends Controller {
             borderWidth: 4,
           },
           point: {
-            radius: 1,
-            hoverRadius: 8,
+            radius: 0,
+            hoverRadius: 0,
           },
         },
       },
