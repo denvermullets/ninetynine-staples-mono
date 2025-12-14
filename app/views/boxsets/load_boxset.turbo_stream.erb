@@ -1,8 +1,22 @@
 <%= turbo_stream.replace "search-form" do %>
   <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path, show_price_filter: true } %>
 <% end %>
+<%= turbo_stream.replace "chart-toggle-button" do %>
+  <div id="chart-toggle-button">
+    <% if @boxset.present? && @boxset.value_history.present? && (@boxset.value_history['normal'].any? || @boxset.value_history['foil'].any?) %>
+      <button
+        data-chart-toggle-target="button"
+        data-action="click->chart-toggle#toggle"
+        class="flex items-center justify-center w-10 h-10 rounded-full bg-foreground border border-highlight hover:bg-highlight transition-colors cursor-pointer"
+        title="Toggle value history chart"
+      >
+        <span class="text-grey-text text-lg">?</span>
+      </button>
+    <% end %>
+  </div>
+<% end %>
 <%= turbo_stream.replace "boxset-chart-container" do %>
-  <div id="boxset-chart-container">
+  <div id="boxset-chart-container" data-chart-toggle-target="chart" class="hidden">
     <% if @boxset.present? && @boxset.value_history.present? && (@boxset.value_history['normal'].any? || @boxset.value_history['foil'].any?) %>
       <%= render partial: 'boxsets/boxset_value_chart', locals: { history: @boxset.value_history } %>
     <% end %>
