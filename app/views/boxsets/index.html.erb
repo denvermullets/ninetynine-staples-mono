@@ -1,4 +1,4 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100' data-controller="chart-toggle">
   <%= render partial: 'shared/page_header',
     locals: { header: 'Boxsets',
               subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
@@ -6,11 +6,23 @@
   <div class="flex flex-col md:flex-row md:flex-wrap px-8 py-4 gap-4 border rounded-3xl bg-foreground border-highlight">
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_boxset_path } %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path, show_price_filter: true } %>
-    <div id="boxset-chart-container">
+    <div id="chart-toggle-button">
       <% if @boxset.present? && @boxset.value_history.present? && (@boxset.value_history['normal'].any? || @boxset.value_history['foil'].any?) %>
-        <%= render partial: 'boxsets/boxset_value_chart', locals: { history: @boxset.value_history } %>
+        <button
+          data-chart-toggle-target="button"
+          data-action="click->chart-toggle#toggle"
+          class="flex items-center justify-center w-4 h-4 rounded-full bg-foreground border border-highlight hover:bg-highlight transition-colors cursor-pointer"
+          title="Toggle value history chart"
+          >
+          <span class="text-grey-text text-lg">?</span>
+        </button>
       <% end %>
     </div>
+  </div>
+  <div id="boxset-chart-container" data-chart-toggle-target="chart" class="hidden">
+    <% if @boxset.present? && @boxset.value_history.present? && (@boxset.value_history['normal'].any? || @boxset.value_history['foil'].any?) %>
+      <%= render partial: 'boxsets/boxset_value_chart', locals: { history: @boxset.value_history } %>
+    <% end %>
   </div>
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">
