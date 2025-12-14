@@ -42,22 +42,19 @@ class BackfillBoxsetValueHistory < ApplicationJob
     boxset.magic_cards.find_each do |card|
       next unless card.price_history.present?
 
-      # Extract dates from normal price history
-      if card.price_history['normal'].present?
-        card.price_history['normal'].each do |entry|
-          dates.add(entry.keys.first)
-        end
-      end
-
-      # Extract dates from foil price history
-      if card.price_history['foil'].present?
-        card.price_history['foil'].each do |entry|
-          dates.add(entry.keys.first)
-        end
-      end
+      extract_dates_from_price_type(card.price_history['normal'], dates)
+      extract_dates_from_price_type(card.price_history['foil'], dates)
     end
 
     dates
+  end
+
+  def extract_dates_from_price_type(price_history, dates)
+    return unless price_history.present?
+
+    price_history.each do |entry|
+      dates.add(entry.keys.first)
+    end
   end
 
   def calculate_total_for_date(boxset, date, price_type)
