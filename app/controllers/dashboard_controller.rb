@@ -22,4 +22,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def backfill_boxset_history
+    BackfillBoxsetValueHistory.perform_later
+
+    redirect_to '/jobs'
+  end
 end
