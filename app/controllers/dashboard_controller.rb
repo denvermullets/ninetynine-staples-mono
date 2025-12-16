@@ -34,4 +34,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def backfill_price_change_weekly
+    BackfillPriceChangeWeekly.perform_later
+
+    redirect_to '/jobs'
+  end
 end

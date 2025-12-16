@@ -1,12 +1,7 @@
 class BoxsetsController < ApplicationController
-  # require 'pagy/extras/array'
-
   def index
-    @options = Boxset.all_sets.map do |boxset|
-      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
-    end
-
-    # If a boxset or search term is present, load the boxset
+    @options = build_boxset_options
+    set_default_boxset
     load_boxset if params[:code].present? || params[:search].present?
 
     respond_to do |format|
@@ -16,16 +11,10 @@ class BoxsetsController < ApplicationController
   end
 
   def load_boxset
-    if params[:code].blank? && params[:search].blank?
-      respond_to do |format|
-        format.turbo_stream { head :no_content }
-        format.html { redirect_to root_path }
-      end
-      return
-    end
+    return handle_empty_params if params[:code].blank? && params[:search].blank?
 
-    @boxset = fetch_boxset(params[:code])
-    @pagy, @magic_cards = pagy(:offset, search_magic_cards)
+    @boxset = determine_boxset
+    @pagy, @magic_cards = pagy(:offset, search_magic_cards, items: 50)
 
     respond_to do |format|
       format.turbo_stream
@@ -36,7 +25,8 @@ class BoxsetsController < ApplicationController
   private
 
   def search_magic_cards
-    @cards = @boxset&.magic_cards if @boxset.present?
+    # Start with all cards if "All" is selected, otherwise use boxset cards
+    @cards = @boxset.present? ? @boxset.magic_cards : MagicCard.all
     @cards = search_cards
     # Exclude only 'b' side cards, but keep cards where card_side is NULL or 'a'
     @cards = @cards.where("card_side IS NULL OR card_side != 'b'")
@@ -56,9 +46,25 @@ class BoxsetsController < ApplicationController
     rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
     colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
 
+    # Parse price change range
+    price_change_min, price_change_max = parse_price_change_range
+
     CollectionQuery::Filter.call(
-      cards: @cards, code: nil, collection_id: nil, rarities: rarities, colors: colors
+      cards: @cards,
+      code: nil,
+      collection_id: nil,
+      rarities: rarities,
+      colors: colors,
+      price_change_min: price_change_min,
+      price_change_max: price_change_max
     )
+  end
+
+  def parse_price_change_range
+    return [nil, nil] if params[:price_change_range].blank?
+
+    min, max = params[:price_change_range].split(',').map(&:to_f)
+    [min, max]
   end
 
   def fetch_boxset(code)
@@ -70,5 +76,33 @@ class BoxsetsController < ApplicationController
   def filter_by_price
     minimum_price = 0.80
     @cards.where('normal_price > ? OR foil_price > ?', minimum_price, minimum_price)
+  end
+
+  def build_boxset_options
+    [
+      { id: 'all', name: 'All Cards', code: 'all', keyrune_code: 'pmtg1' }
+    ] + Boxset.all_sets.map do |boxset|
+      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
+    end
+  end
+
+  def set_default_boxset
+    return unless params[:code].blank? && params[:search].blank?
+
+    latest_boxset = Boxset.all_sets.first
+    params[:code] = latest_boxset&.code
+  end
+
+  def handle_empty_params
+    respond_to do |format|
+      format.turbo_stream { head :no_content }
+      format.html { redirect_to root_path }
+    end
+  end
+
+  def determine_boxset
+    return nil if params[:code] == 'all'
+
+    fetch_boxset(params[:code])
   end
 end

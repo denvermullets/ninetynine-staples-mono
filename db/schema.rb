@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_13_231929) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_16_184333) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -194,12 +194,14 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_13_231929) do
     t.string "original_type"
     t.string "other_face_uuid"
     t.string "power"
+    t.decimal "price_change_weekly", precision: 10, scale: 2
     t.jsonb "price_history"
     t.string "rarity"
     t.string "text"
     t.string "toughness"
     t.datetime "updated_at", null: false
     t.index ["boxset_id"], name: "index_magic_cards_on_boxset_id"
+    t.index ["price_change_weekly"], name: "index_magic_cards_on_price_change_weekly"
   end
 
   create_table "printings", force: :cascade do |t|

@@ -39,13 +39,21 @@ export default class extends Controller {
     this.maxRegular = regularQty;
     this.maxFoil = foilQty;
 
-    // Update available text
-    this.transferRegularAvailableTarget.textContent = `(available: ${regularQty})`;
-    this.transferFoilAvailableTarget.textContent = `(available: ${foilQty})`;
+    // Update available text (only if targets exist)
+    if (this.hasTransferRegularAvailableTarget) {
+      this.transferRegularAvailableTarget.textContent = `(available: ${regularQty})`;
+    }
+    if (this.hasTransferFoilAvailableTarget) {
+      this.transferFoilAvailableTarget.textContent = `(available: ${foilQty})`;
+    }
 
-    // Reset transfer quantities
-    this.transferRegularQtyTarget.value = 0;
-    this.transferFoilQtyTarget.value = 0;
+    // Reset transfer quantities (only if targets exist)
+    if (this.hasTransferRegularQtyTarget) {
+      this.transferRegularQtyTarget.value = 0;
+    }
+    if (this.hasTransferFoilQtyTarget) {
+      this.transferFoilQtyTarget.value = 0;
+    }
 
     // Reset to collection selection
     this.toCollectionSelectTarget.value = "";
