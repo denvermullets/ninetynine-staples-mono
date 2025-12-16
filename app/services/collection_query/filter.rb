@@ -28,10 +28,21 @@ module CollectionQuery
     private
 
     def filter_by_price_change(cards)
-      query = cards
-      query = query.where('price_change_weekly >= ?', @price_change_min) if @price_change_min.present?
-      query = query.where('price_change_weekly <= ?', @price_change_max) if @price_change_max.present?
-      query
+      return cards unless @price_change_min.present? || @price_change_max.present?
+
+      # Show cards where EITHER normal or foil price change falls within the range
+      if @price_change_min.present? && @price_change_max.present?
+        cards.where(
+          '(price_change_weekly_normal BETWEEN ? AND ?) OR (price_change_weekly_foil BETWEEN ? AND ?)',
+          @price_change_min, @price_change_max, @price_change_min, @price_change_max
+        )
+      elsif @price_change_min.present?
+        cards.where('price_change_weekly_normal >= ? OR price_change_weekly_foil >= ?',
+                    @price_change_min, @price_change_min)
+      else
+        cards.where('price_change_weekly_normal <= ? OR price_change_weekly_foil <= ?',
+                    @price_change_max, @price_change_max)
+      end
     end
 
     def filter_by_colors(cards)
