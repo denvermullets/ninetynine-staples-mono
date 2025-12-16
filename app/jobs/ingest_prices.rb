@@ -36,8 +36,16 @@ class IngestPrices < ApplicationJob
     normal_price = find_price(card.normal_price, price_info['normal']) || 0
     foil_price = find_price(card.foil_price, price_info['foil']) || 0
     price_history = update_price_history(card.price_history, price_info)
-    price_change_weekly = calculate_price_change_weekly(price_history, normal_price, foil_price)
-    card.update(normal_price:, foil_price:, price_history:, price_change_weekly:)
+    price_change_weekly_normal, price_change_weekly_foil = calculate_price_changes_weekly(
+      price_history, normal_price, foil_price
+    )
+    card.update(
+      normal_price:,
+      foil_price:,
+      price_history:,
+      price_change_weekly_normal:,
+      price_change_weekly_foil:
+    )
     UpdateCollections.perform_later(card)
   end
 
@@ -78,19 +86,17 @@ class IngestPrices < ApplicationJob
     existing_data.count < 90 ? data : data.drop(1)
   end
 
-  def calculate_price_change_weekly(price_history, current_normal_price, current_foil_price)
-    return nil if price_history.nil? || price_history.empty?
+  def calculate_price_changes_weekly(price_history, current_normal_price, current_foil_price)
+    return [nil, nil] if price_history.nil? || price_history.empty?
 
     seven_days_ago = (Date.today - 7).to_s
     normal_old = find_price_on_or_before_date(price_history['normal'] || [], seven_days_ago)
     foil_old = find_price_on_or_before_date(price_history['foil'] || [], seven_days_ago)
 
-    changes = [
+    [
       calculate_percentage_change(normal_old, current_normal_price),
       calculate_percentage_change(foil_old, current_foil_price)
-    ].compact
-
-    changes.empty? ? nil : changes.max_by(&:abs)
+    ]
   end
 
   def find_price_on_or_before_date(price_array, target_date)
