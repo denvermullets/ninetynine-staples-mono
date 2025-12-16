@@ -28,4 +28,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def trim_boxset_history
+    TrimBoxsetValueHistory.perform_later
+
+    redirect_to '/jobs'
+  end
 end
