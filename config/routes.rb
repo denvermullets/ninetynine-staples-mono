@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   post 'dashboard/reset-collection', to: 'dashboard#reset_collections', as: :dashboard_reset_collections
   post 'dashboard/clear-jobs', to: 'dashboard#clear_jobs', as: :dashboard_clear_jobs
   post 'dashboard/backfill-boxset-history', to: 'dashboard#backfill_boxset_history', as: :dashboard_backfill_boxset_history
+  post 'dashboard/trim-boxset-history', to: 'dashboard#trim_boxset_history', as: :dashboard_trim_boxset_history
 
   get 'load_boxset', to: 'boxsets#load_boxset', as: :load_boxset
   get 'load_collection', to: 'collections#load', as: :load_collection
