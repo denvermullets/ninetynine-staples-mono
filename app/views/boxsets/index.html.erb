@@ -28,6 +28,15 @@
     <div id="table-container" class="min-w-full">
       <% if @magic_cards.present? %>
         <%= render partial: 'table' %>
+      <% else %>
+        <div class="p-8 mt-6 text-center border rounded-3xl border-highlight bg-background">
+          <p class="text-lg text-grey-text">
+            Select a boxset to view cards
+          </p>
+          <p class="mt-2 text-sm text-grey-text">
+            Use the dropdown above to choose a set, then apply filters to narrow down your search
+          </p>
+        </div>
       <% end %>
     </div>
   <% end %>

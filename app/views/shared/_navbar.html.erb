@@ -16,9 +16,6 @@
           <div class="<%= nav_item_classes('/decks/' + current_user.username) %>">
             <%= link_to 'Decks', deck_show_path(current_user.username) %>
           </div>
-          <div class="<%= nav_item_classes('/market-movers') %>">
-            <%= link_to 'Market Movers', market_movers_path %>
-          </div>
         <% else %>
           <p class="<%= nav_item_classes('/collections/') %>">Collections</p>
           <p class="<%= nav_item_classes('/decks') %>">Decks</p>
@@ -41,6 +38,7 @@
               <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
+              <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= link_to 'Mission Control', '/jobs', class: 'cursor-pointer text-left whitespace-nowrap' %>
@@ -78,9 +76,6 @@
       <div class="<%= nav_item_classes('/decks/' + current_user.username) %>">
         <%= link_to 'Decks', deck_show_path(current_user.username) %>
       </div>
-      <div class="<%= nav_item_classes('/market-movers') %>">
-        <%= link_to 'Market Movers', market_movers_path %>
-      </div>
       <% if current_user.role.to_i == 9001 %>
         <div class="pt-2 border-t border-gray-700">
           <p class="font-semibold mb-2">Admin</p>
@@ -88,6 +83,7 @@
           <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
+          <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= link_to 'Mission Control', '/jobs', class: 'cursor-pointer text-left block py-1' %>

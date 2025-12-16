@@ -35,6 +35,10 @@ export default class extends Controller {
     this.formTarget.requestSubmit();
   }
 
+  submitForm() {
+    this.formTarget.requestSubmit();
+  }
+
   submit(event) {
     event.preventDefault();
 
@@ -79,6 +83,7 @@ export default class extends Controller {
             "mana[]": currentParams.getAll("mana[]"),
           }),
           ...(currentParams.get("valuable_only") && { valuable_only: currentParams.get("valuable_only") }),
+          ...(currentParams.get("price_change_range") && { price_change_range: currentParams.get("price_change_range") }),
         }).toString();
 
         const basePath = usernameValue ? `/collections/${usernameValue}` : `/boxsets`;
