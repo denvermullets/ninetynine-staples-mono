@@ -1,20 +1,7 @@
 class BoxsetsController < ApplicationController
-  # require 'pagy/extras/array'
-
   def index
-    @options = [
-      { id: 'all', name: 'All Cards', code: 'all', keyrune_code: 'pmtg1' }
-    ] + Boxset.all_sets.map do |boxset|
-      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
-    end
-
-    # If no boxset selected, default to the latest released set
-    if params[:code].blank? && params[:search].blank?
-      latest_boxset = Boxset.all_sets.first
-      params[:code] = latest_boxset&.code
-    end
-
-    # If a boxset or search term is present, load the boxset
+    @options = build_boxset_options
+    set_default_boxset
     load_boxset if params[:code].present? || params[:search].present?
 
     respond_to do |format|
@@ -24,21 +11,9 @@ class BoxsetsController < ApplicationController
   end
 
   def load_boxset
-    if params[:code].blank? && params[:search].blank?
-      respond_to do |format|
-        format.turbo_stream { head :no_content }
-        format.html { redirect_to root_path }
-      end
-      return
-    end
+    return handle_empty_params if params[:code].blank? && params[:search].blank?
 
-    # Handle "All Cards" selection
-    if params[:code] == 'all'
-      @boxset = nil  # No specific boxset
-    else
-      @boxset = fetch_boxset(params[:code])
-    end
-
+    @boxset = determine_boxset
     @pagy, @magic_cards = pagy(:offset, search_magic_cards, items: 50)
 
     respond_to do |format|
@@ -101,5 +76,33 @@ class BoxsetsController < ApplicationController
   def filter_by_price
     minimum_price = 0.80
     @cards.where('normal_price > ? OR foil_price > ?', minimum_price, minimum_price)
+  end
+
+  def build_boxset_options
+    [
+      { id: 'all', name: 'All Cards', code: 'all', keyrune_code: 'pmtg1' }
+    ] + Boxset.all_sets.map do |boxset|
+      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
+    end
+  end
+
+  def set_default_boxset
+    return unless params[:code].blank? && params[:search].blank?
+
+    latest_boxset = Boxset.all_sets.first
+    params[:code] = latest_boxset&.code
+  end
+
+  def handle_empty_params
+    respond_to do |format|
+      format.turbo_stream { head :no_content }
+      format.html { redirect_to root_path }
+    end
+  end
+
+  def determine_boxset
+    return nil if params[:code] == 'all'
+
+    fetch_boxset(params[:code])
   end
 end
