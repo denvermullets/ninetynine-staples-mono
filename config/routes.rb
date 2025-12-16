@@ -23,7 +23,6 @@ Rails.application.routes.draw do
 
   get 'load_boxset', to: 'boxsets#load_boxset', as: :load_boxset
   get 'load_collection', to: 'collections#load', as: :load_collection
-  get 'market-movers', to: 'market_movers#index', as: :market_movers
   resources :boxsets
   resources :magic_cards
 

@@ -2,8 +2,16 @@ class BoxsetsController < ApplicationController
   # require 'pagy/extras/array'
 
   def index
-    @options = Boxset.all_sets.map do |boxset|
+    @options = [
+      { id: 'all', name: 'All Cards', code: 'all', keyrune_code: 'pmtg1' }
+    ] + Boxset.all_sets.map do |boxset|
       { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
+    end
+
+    # If no boxset selected, default to the latest released set
+    if params[:code].blank? && params[:search].blank?
+      latest_boxset = Boxset.all_sets.first
+      params[:code] = latest_boxset&.code
     end
 
     # If a boxset or search term is present, load the boxset
@@ -24,8 +32,14 @@ class BoxsetsController < ApplicationController
       return
     end
 
-    @boxset = fetch_boxset(params[:code])
-    @pagy, @magic_cards = pagy(:offset, search_magic_cards)
+    # Handle "All Cards" selection
+    if params[:code] == 'all'
+      @boxset = nil  # No specific boxset
+    else
+      @boxset = fetch_boxset(params[:code])
+    end
+
+    @pagy, @magic_cards = pagy(:offset, search_magic_cards, items: 50)
 
     respond_to do |format|
       format.turbo_stream
@@ -36,7 +50,8 @@ class BoxsetsController < ApplicationController
   private
 
   def search_magic_cards
-    @cards = @boxset&.magic_cards if @boxset.present?
+    # Start with all cards if "All" is selected, otherwise use boxset cards
+    @cards = @boxset.present? ? @boxset.magic_cards : MagicCard.all
     @cards = search_cards
     # Exclude only 'b' side cards, but keep cards where card_side is NULL or 'a'
     @cards = @cards.where("card_side IS NULL OR card_side != 'b'")
@@ -56,9 +71,25 @@ class BoxsetsController < ApplicationController
     rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
     colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
 
+    # Parse price change range
+    price_change_min, price_change_max = parse_price_change_range
+
     CollectionQuery::Filter.call(
-      cards: @cards, code: nil, collection_id: nil, rarities: rarities, colors: colors
+      cards: @cards,
+      code: nil,
+      collection_id: nil,
+      rarities: rarities,
+      colors: colors,
+      price_change_min: price_change_min,
+      price_change_max: price_change_max
     )
+  end
+
+  def parse_price_change_range
+    return [nil, nil] if params[:price_change_range].blank?
+
+    min, max = params[:price_change_range].split(',').map(&:to_f)
+    [min, max]
   end
 
   def fetch_boxset(code)
