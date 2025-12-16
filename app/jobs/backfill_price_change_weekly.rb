@@ -7,23 +7,10 @@ class BackfillPriceChangeWeekly < ApplicationJob
     skipped_count = 0
 
     MagicCard.find_each.with_index do |card, index|
-      if card.price_history.present?
-        price_change_weekly_normal, price_change_weekly_foil = calculate_price_changes_weekly(
-          card.price_history,
-          card.normal_price || 0,
-          card.foil_price || 0
-        )
+      result = process_card(card)
+      updated_count += 1 if result == :updated
+      skipped_count += 1 if result == :skipped
 
-        card.update_columns(
-          price_change_weekly_normal: price_change_weekly_normal,
-          price_change_weekly_foil: price_change_weekly_foil
-        )
-        updated_count += 1
-      else
-        skipped_count += 1
-      end
-
-      # Log progress every 1000 cards
       puts "Processed #{index + 1}/#{total_cards} cards" if ((index + 1) % 1000).zero?
     end
 
@@ -31,6 +18,23 @@ class BackfillPriceChangeWeekly < ApplicationJob
   end
 
   private
+
+  def process_card(card)
+    return :skipped unless card.price_history.present?
+
+    price_change_weekly_normal, price_change_weekly_foil = calculate_price_changes_weekly(
+      card.price_history,
+      card.normal_price || 0,
+      card.foil_price || 0
+    )
+
+    card.update_columns(
+      price_change_weekly_normal: price_change_weekly_normal,
+      price_change_weekly_foil: price_change_weekly_foil
+    )
+
+    :updated
+  end
 
   def calculate_price_changes_weekly(price_history, current_normal_price, current_foil_price)
     return [nil, nil] if price_history.nil? || price_history.empty?
