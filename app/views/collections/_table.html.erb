@@ -28,7 +28,7 @@
             </div>
           </td>
           <% if card.has_non_foil %>
-            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= has_normal_in_collection ? price_trend_class(trends[:normal]) : 'text-gray-600' %>">
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= 'text-gray-600' unless has_normal_in_collection %>">
               <div class="flex items-center gap-2">
                 <%= number_to_currency(card.normal_price) %>
                 <% if card.price_change_weekly_normal.present? %>
@@ -42,7 +42,7 @@
             <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"></td>
           <% end %>
           <% if card.has_foil %>
-            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= has_foil_in_collection ? price_trend_class(trends[:foil]) : 'text-gray-600' %>">
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= 'text-gray-600' unless has_foil_in_collection %>">
               <div class="flex items-center gap-2">
                 <%= number_to_currency(card.foil_price) %>
                 <% if card.price_change_weekly_foil.present? %>
