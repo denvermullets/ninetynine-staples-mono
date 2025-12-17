@@ -193,10 +193,10 @@ export default class extends Controller {
             borderWidth: 4,
           },
           point: {
-            radius: 4,
+            radius: 0,
             hoverRadius: 8,
             pointHitRadius: 8,
-            pointStyle: "crossRot",
+            // pointStyle: "crossRot",
           },
         },
       },
