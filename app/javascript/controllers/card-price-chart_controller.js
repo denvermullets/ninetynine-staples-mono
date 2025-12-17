@@ -147,6 +147,9 @@ export default class extends Controller {
             ticks: {
               precision: 2,
               display: true,
+              callback: function (value) {
+                return "$" + value.toFixed(2);
+              },
             },
           },
           x: {
@@ -178,6 +181,11 @@ export default class extends Controller {
           },
           tooltip: {
             enabled: true,
+            callbacks: {
+              label: function (context) {
+                return context.dataset.label + ": $" + context.parsed.y.toFixed(2);
+              },
+            },
           },
         },
         elements: {
@@ -185,8 +193,10 @@ export default class extends Controller {
             borderWidth: 4,
           },
           point: {
-            radius: 1,
+            radius: 4,
             hoverRadius: 8,
+            pointHitRadius: 8,
+            pointStyle: "crossRot",
           },
         },
       },

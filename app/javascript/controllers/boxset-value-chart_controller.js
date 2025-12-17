@@ -189,7 +189,8 @@ export default class extends Controller {
           },
           point: {
             radius: 0,
-            hoverRadius: 0,
+            hoverRadius: 5,
+            pointHitRadius: 15,
           },
         },
       },
