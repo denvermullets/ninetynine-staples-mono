@@ -31,7 +31,7 @@
             <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= 'text-gray-600' unless has_normal_in_collection %>">
               <div class="flex items-center gap-2">
                 <%= number_to_currency(card.normal_price) %>
-                <% if card.price_change_weekly_normal.present? %>
+                <% if card.price_change_weekly_normal.present? && card.price_change_weekly_normal != 0 %>
                   <span class="px-2 py-1 text-xs rounded-full <%= card.price_change_weekly_normal >= 0 ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400' %>">
                     <%= card.price_change_weekly_normal >= 0 ? '↑' : '↓' %> <%= number_to_percentage(card.price_change_weekly_normal.abs, precision: 0) %>
                   </span>
@@ -45,7 +45,7 @@
             <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= 'text-gray-600' unless has_foil_in_collection %>">
               <div class="flex items-center gap-2">
                 <%= number_to_currency(card.foil_price) %>
-                <% if card.price_change_weekly_foil.present? %>
+                <% if card.price_change_weekly_foil.present? && card.price_change_weekly_foil != 0 %>
                   <span class="px-2 py-1 text-xs rounded-full <%= card.price_change_weekly_foil >= 0 ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400' %>">
                     <%= card.price_change_weekly_foil >= 0 ? '↑' : '↓' %> <%= number_to_percentage(card.price_change_weekly_foil.abs, precision: 0) %>
                   </span>
