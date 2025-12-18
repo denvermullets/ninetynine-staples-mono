@@ -4,4 +4,5 @@ class Boxset < ApplicationRecord
   has_many :magic_cards
 
   scope :all_sets, -> { order(release_date: :desc).where.not(total_set_size: 0).where(valid_cards: true) }
+  scope :released_sets, -> { all_sets.where('release_date <= ?', Date.today) }
 end
