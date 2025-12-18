@@ -90,8 +90,8 @@ class IngestPrices < ApplicationJob
     return [nil, nil] if price_history.nil? || price_history.empty?
 
     seven_days_ago = (Date.today - 7).to_s
-    normal_old = find_price_on_or_before_date(price_history['normal'] || [], seven_days_ago)
-    foil_old = find_price_on_or_before_date(price_history['foil'] || [], seven_days_ago)
+    normal_old = find_price_on_or_before_date(price_history[:normal] || [], seven_days_ago)
+    foil_old = find_price_on_or_before_date(price_history[:foil] || [], seven_days_ago)
 
     [
       calculate_percentage_change(normal_old, current_normal_price),
