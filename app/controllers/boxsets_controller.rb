@@ -1,7 +1,8 @@
 class BoxsetsController < ApplicationController
   def index
     @options = build_boxset_options
-    set_default_boxset
+    @default_code = set_default_boxset
+    load_default_boxset if params[:code].blank? && params[:search].blank? && @default_code.present?
     load_boxset if params[:code].present? || params[:search].present?
 
     respond_to do |format|
@@ -87,10 +88,14 @@ class BoxsetsController < ApplicationController
   end
 
   def set_default_boxset
-    return unless params[:code].blank? && params[:search].blank?
+    return nil unless params[:code].blank? && params[:search].blank?
 
-    latest_boxset = Boxset.all_sets.first
-    params[:code] = latest_boxset&.code
+    Boxset.released_sets.first&.code
+  end
+
+  def load_default_boxset
+    @boxset = fetch_boxset(@default_code)
+    @pagy, @magic_cards = pagy(:offset, search_magic_cards, items: 50) if @boxset.present?
   end
 
   def handle_empty_params

@@ -12,11 +12,12 @@ export default class extends Controller {
     url: String,
     username: String,
     collection: String,
+    defaultCode: String,
   };
 
   connect() {
     // if the user is coming from a preloaded url, select the option if found
-    const code = new URLSearchParams(window.location.search).get("code");
+    const code = new URLSearchParams(window.location.search).get("code") || this.defaultCodeValue;
 
     this.filterOptions(code);
     this.boundHandleClickOutside = this.handleClickOutside.bind(this);
