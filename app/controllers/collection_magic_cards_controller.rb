@@ -15,12 +15,16 @@ class CollectionMagicCardsController < ApplicationController
     if collection.any?
       render json: {
         quantity: collection.first.quantity,
-        foil_quantity: collection.first.foil_quantity
+        foil_quantity: collection.first.foil_quantity,
+        proxy_quantity: collection.first.proxy_quantity,
+        proxy_foil_quantity: collection.first.proxy_foil_quantity
       }
     else
       render json: {
         quantity: 0,
-        foil_quantity: 0
+        foil_quantity: 0,
+        proxy_quantity: 0,
+        proxy_foil_quantity: 0
       }
     end
   end
@@ -93,11 +97,11 @@ class CollectionMagicCardsController < ApplicationController
   end
 
   def collection_params
-    params.permit(:quantity, :foil_quantity, :collection_id, :magic_card_id, :card_uuid)
+    params.permit(:quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity, :collection_id, :magic_card_id, :card_uuid)
   end
 
   def transfer_params
-    params.permit(:magic_card_id, :from_collection_id, :to_collection_id, :quantity, :foil_quantity)
+    params.permit(:magic_card_id, :from_collection_id, :to_collection_id, :quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity)
   end
 
   def load_collection_record

@@ -13,6 +13,10 @@ export default class extends Controller {
     "transferFoilQty",
     "transferRegularAvailable",
     "transferFoilAvailable",
+    "transferProxyQty",
+    "transferProxyFoilQty",
+    "transferProxyAvailable",
+    "transferProxyFoilAvailable",
     "adjustModal",
     "adjustCollectionId",
     "adjustCollectionName",
@@ -20,6 +24,10 @@ export default class extends Controller {
     "adjustFoilCurrent",
     "adjustRegularNew",
     "adjustFoilNew",
+    "adjustProxyCurrent",
+    "adjustProxyFoilCurrent",
+    "adjustProxyNew",
+    "adjustProxyFoilNew",
     "newCollectionSelect",
   ];
 
@@ -30,6 +38,8 @@ export default class extends Controller {
     const fromCollectionName = button.dataset.collectionName;
     const regularQty = parseInt(button.dataset.regularQty) || 0;
     const foilQty = parseInt(button.dataset.foilQty) || 0;
+    const proxyQty = parseInt(button.dataset.proxyQty) || 0;
+    const proxyFoilQty = parseInt(button.dataset.proxyFoilQty) || 0;
 
     // Set the from collection
     this.fromCollectionIdTarget.value = fromCollectionId;
@@ -38,6 +48,8 @@ export default class extends Controller {
     // Store available quantities for validation
     this.maxRegular = regularQty;
     this.maxFoil = foilQty;
+    this.maxProxy = proxyQty;
+    this.maxProxyFoil = proxyFoilQty;
 
     // Update available text (only if targets exist)
     if (this.hasTransferRegularAvailableTarget) {
@@ -46,6 +58,12 @@ export default class extends Controller {
     if (this.hasTransferFoilAvailableTarget) {
       this.transferFoilAvailableTarget.textContent = `(available: ${foilQty})`;
     }
+    if (this.hasTransferProxyAvailableTarget) {
+      this.transferProxyAvailableTarget.textContent = `(available: ${proxyQty})`;
+    }
+    if (this.hasTransferProxyFoilAvailableTarget) {
+      this.transferProxyFoilAvailableTarget.textContent = `(available: ${proxyFoilQty})`;
+    }
 
     // Reset transfer quantities (only if targets exist)
     if (this.hasTransferRegularQtyTarget) {
@@ -53,6 +71,12 @@ export default class extends Controller {
     }
     if (this.hasTransferFoilQtyTarget) {
       this.transferFoilQtyTarget.value = 0;
+    }
+    if (this.hasTransferProxyQtyTarget) {
+      this.transferProxyQtyTarget.value = 0;
+    }
+    if (this.hasTransferProxyFoilQtyTarget) {
+      this.transferProxyFoilQtyTarget.value = 0;
     }
 
     // Reset to collection selection
@@ -110,12 +134,40 @@ export default class extends Controller {
     }
   }
 
+  incrementTransferProxy() {
+    const current = parseInt(this.transferProxyQtyTarget.value) || 0;
+    if (current < this.maxProxy) {
+      this.transferProxyQtyTarget.value = current + 1;
+    }
+  }
+
+  decrementTransferProxy() {
+    const current = parseInt(this.transferProxyQtyTarget.value) || 0;
+    if (current > 0) {
+      this.transferProxyQtyTarget.value = current - 1;
+    }
+  }
+
+  incrementTransferProxyFoil() {
+    const current = parseInt(this.transferProxyFoilQtyTarget.value) || 0;
+    if (current < this.maxProxyFoil) {
+      this.transferProxyFoilQtyTarget.value = current + 1;
+    }
+  }
+
+  decrementTransferProxyFoil() {
+    const current = parseInt(this.transferProxyFoilQtyTarget.value) || 0;
+    if (current > 0) {
+      this.transferProxyFoilQtyTarget.value = current - 1;
+    }
+  }
+
   // Adjust Modal Methods
   openAdjustModal(event) {
     const button = event.currentTarget;
     const isNewCollection = button.dataset.isNew === "true";
 
-    let collectionId, collectionName, regularQty, foilQty;
+    let collectionId, collectionName, regularQty, foilQty, proxyQty, proxyFoilQty;
 
     if (isNewCollection) {
       // Get the selected collection from the dropdown
@@ -128,11 +180,15 @@ export default class extends Controller {
       collectionName = selectedOption.text;
       regularQty = 0;
       foilQty = 0;
+      proxyQty = 0;
+      proxyFoilQty = 0;
     } else {
       collectionId = button.dataset.collectionId;
       collectionName = button.dataset.collectionName;
       regularQty = parseInt(button.dataset.regularQty) || 0;
       foilQty = parseInt(button.dataset.foilQty) || 0;
+      proxyQty = parseInt(button.dataset.proxyQty) || 0;
+      proxyFoilQty = parseInt(button.dataset.proxyFoilQty) || 0;
     }
 
     // Set the collection info
@@ -142,10 +198,22 @@ export default class extends Controller {
     // Set current quantities
     this.adjustRegularCurrentTarget.textContent = regularQty;
     this.adjustFoilCurrentTarget.textContent = foilQty;
+    if (this.hasAdjustProxyCurrentTarget) {
+      this.adjustProxyCurrentTarget.textContent = proxyQty;
+    }
+    if (this.hasAdjustProxyFoilCurrentTarget) {
+      this.adjustProxyFoilCurrentTarget.textContent = proxyFoilQty;
+    }
 
     // Set new quantities (defaults to current)
     this.adjustRegularNewTarget.value = regularQty;
     this.adjustFoilNewTarget.value = foilQty;
+    if (this.hasAdjustProxyNewTarget) {
+      this.adjustProxyNewTarget.value = proxyQty;
+    }
+    if (this.hasAdjustProxyFoilNewTarget) {
+      this.adjustProxyFoilNewTarget.value = proxyFoilQty;
+    }
 
     this.adjustModalTarget.classList.remove("hidden");
   }

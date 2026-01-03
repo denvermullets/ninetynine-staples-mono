@@ -9,6 +9,23 @@ class Collection < ApplicationRecord
   scope :by_user, ->(id) { where(user_id: id) }
   scope :by_type, ->(type) { where(collection_type: type) }
 
+  # Helper methods for proxy tracking
+  def total_estimated_value
+    total_value + proxy_total_value
+  end
+
+  def total_cards
+    total_quantity + total_foil_quantity + total_proxy_quantity + total_proxy_foil_quantity
+  end
+
+  def total_real_cards
+    total_quantity + total_foil_quantity
+  end
+
+  def total_proxy_cards
+    total_proxy_quantity + total_proxy_foil_quantity
+  end
+
   # Aggregate collection history across multiple collections
   # Returns a hash of date => total_value
   def self.aggregate_history(collections)

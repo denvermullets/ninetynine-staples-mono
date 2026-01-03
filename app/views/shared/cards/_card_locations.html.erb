@@ -3,6 +3,8 @@
     # Calculate totals across all collections
     total_regular = card_locations.sum(&:quantity)
     total_foil = card_locations.sum(&:foil_quantity)
+    total_proxy = card_locations.sum(&:proxy_quantity)
+    total_proxy_foil = card_locations.sum(&:proxy_foil_quantity)
   %>
 
   <!-- Total Summary -->
@@ -11,6 +13,13 @@
     <span class="text-nine-white">Regular <%= total_regular %></span>
     <span class="text-grey-text">|</span>
     <span class="text-nine-white">Foil <%= total_foil %></span>
+    <% if total_proxy > 0 || total_proxy_foil > 0 %>
+      <span class="text-grey-text">|</span>
+      <span class="text-accent-50">
+        <span class="px-2 py-1 text-xs rounded bg-highlight">PROXY</span>
+        Regular <%= total_proxy %> | Foil <%= total_proxy_foil %>
+      </span>
+    <% end %>
   </div>
 
   <!-- Locations Table -->
@@ -21,6 +30,7 @@
           <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Location</th>
           <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Regular</th>
           <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Foil</th>
+          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Proxy</th>
           <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Quick actions</th>
         </tr>
       </thead>
@@ -32,6 +42,15 @@
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.quantity %></td>
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.foil_quantity %></td>
               <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <% if location.has_proxies? %>
+                  <span class="text-accent-50">
+                    <%= location.proxy_quantity %>/<%= location.proxy_foil_quantity %>
+                  </span>
+                <% else %>
+                  <span class="text-grey-text">—</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
                 <% if editable %>
                   <div class="flex gap-2">
                     <button
@@ -40,6 +59,8 @@
                       data-collection-name="<%= location.collection.name %>"
                       data-regular-qty="<%= location.quantity %>"
                       data-foil-qty="<%= location.foil_quantity %>"
+                      data-proxy-qty="<%= location.proxy_quantity %>"
+                      data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
                       class="px-3 py-1 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white">
                       Transfer
                     </button>
@@ -49,6 +70,8 @@
                       data-collection-name="<%= location.collection.name %>"
                       data-regular-qty="<%= location.quantity %>"
                       data-foil-qty="<%= location.foil_quantity %>"
+                      data-proxy-qty="<%= location.proxy_quantity %>"
+                      data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
                       class="px-3 py-1 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white">
                       Adjust
                     </button>
@@ -61,7 +84,7 @@
           <% end %>
         <% else %>
           <tr>
-            <td colspan="4" class="px-4 py-6 text-sm text-center text-grey-text">
+            <td colspan="5" class="px-4 py-6 text-sm text-center text-grey-text">
               <% if editable %>
                 No cards in any collection yet. Select a collection below to add this card.
               <% else %>
@@ -74,7 +97,7 @@
         <!-- Add to New Collection Row -->
         <% if collections.present? && editable %>
           <tr class="border-t-2 bg-background border-highlight">
-            <td colspan="4" class="px-4 py-3">
+            <td colspan="5" class="px-4 py-3">
               <div class="flex items-center gap-3">
                 <span class="text-sm text-grey-text">Add to collection:</span>
                 <select
@@ -91,6 +114,8 @@
                   data-collection-name=""
                   data-regular-qty="0"
                   data-foil-qty="0"
+                  data-proxy-qty="0"
+                  data-proxy-foil-qty="0"
                   data-is-new="true"
                   class="px-4 py-1 text-sm transition rounded-md bg-accent-50 text-background hover:bg-nine-white disabled:opacity-50 disabled:cursor-not-allowed">
                   Add
