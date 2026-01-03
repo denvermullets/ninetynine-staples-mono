@@ -103,61 +103,53 @@
             </div>
 
           <!-- Proxy Regular Quantity -->
-          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.has_non_foil ? 'bg-background' : 'bg-highlight opacity-50' %>">
+          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight bg-background">
             <span class="flex-1 text-sm text-grey-text">Proxy Regular:</span>
-            <% if magic_card.has_non_foil %>
-              <button
-                type="button"
-                data-action="click->card-locations#decrementTransferProxy"
-                class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-                -
-              </button>
-              <input
-                type="number"
-                name="proxy_quantity"
-                data-card-locations-target="transferProxyQty"
-                min="0"
-                value="0"
-                class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-              <button
-                type="button"
-                data-action="click->card-locations#incrementTransferProxy"
-                class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-                +
-              </button>
-              <span class="text-xs text-grey-text" data-card-locations-target="transferProxyAvailable">(available: 0)</span>
-            <% else %>
-              <span class="text-xs text-grey-text">Not available for this card</span>
-            <% end %>
+            <button
+              type="button"
+              data-action="click->card-locations#decrementTransferProxy"
+              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
+              -
+            </button>
+            <input
+              type="number"
+              name="proxy_quantity"
+              data-card-locations-target="transferProxyQty"
+              min="0"
+              value="0"
+              class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
+            <button
+              type="button"
+              data-action="click->card-locations#incrementTransferProxy"
+              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
+              +
+            </button>
+            <span class="text-xs text-grey-text" data-card-locations-target="transferProxyAvailable">(available: 0)</span>
           </div>
 
           <!-- Proxy Foil Quantity -->
-          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.has_foil ? 'bg-background' : 'bg-highlight opacity-50' %>">
+          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight bg-background">
             <span class="flex-1 text-sm text-grey-text">Proxy Foil:</span>
-            <% if magic_card.has_foil %>
-              <button
-                type="button"
-                data-action="click->card-locations#decrementTransferProxyFoil"
-                class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-                -
-              </button>
-              <input
-                type="number"
-                name="proxy_foil_quantity"
-                data-card-locations-target="transferProxyFoilQty"
-                min="0"
-                value="0"
-                class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-              <button
-                type="button"
-                data-action="click->card-locations#incrementTransferProxyFoil"
-                class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-                +
-              </button>
-              <span class="text-xs text-grey-text" data-card-locations-target="transferProxyFoilAvailable">(available: 0)</span>
-            <% else %>
-              <span class="text-xs text-grey-text">Not available for this card</span>
-            <% end %>
+            <button
+              type="button"
+              data-action="click->card-locations#decrementTransferProxyFoil"
+              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
+              -
+            </button>
+            <input
+              type="number"
+              name="proxy_foil_quantity"
+              data-card-locations-target="transferProxyFoilQty"
+              min="0"
+              value="0"
+              class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
+            <button
+              type="button"
+              data-action="click->card-locations#incrementTransferProxyFoil"
+              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
+              +
+            </button>
+            <span class="text-xs text-grey-text" data-card-locations-target="transferProxyFoilAvailable">(available: 0)</span>
           </div>
 
             <!-- Action Buttons -->
