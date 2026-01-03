@@ -8,17 +8,16 @@
   %>
 
   <!-- Total Summary -->
-  <div class="flex flex-row items-center gap-4 pb-4 text-sm border-b border-highlight">
-    <span class="font-semibold text-grey-text">Total owned:</span>
-    <span class="text-nine-white">Regular <%= total_regular %></span>
-    <span class="text-grey-text">|</span>
-    <span class="text-nine-white">Foil <%= total_foil %></span>
+  <div class="flex flex-col gap-1 pb-4 text-sm">
+    <div class="flex items-center gap-2">
+      <span class="font-semibold text-grey-text">Owned:</span>
+      <span class="text-nine-white"><%= total_regular %> / <%= total_foil %></span>
+    </div>
     <% if total_proxy > 0 || total_proxy_foil > 0 %>
-      <span class="text-grey-text">|</span>
-      <span class="text-accent-50">
-        <span class="px-2 py-1 text-xs rounded bg-highlight">PROXY</span>
-        Regular <%= total_proxy %> | Foil <%= total_proxy_foil %>
-      </span>
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-grey-text">Proxy:</span>
+        <span class="text-nine-white"><%= total_proxy %> / <%= total_proxy_foil %></span>
+      </div>
     <% end %>
   </div>
 
@@ -43,9 +42,7 @@
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.foil_quantity %></td>
               <td class="px-4 py-3 text-sm whitespace-nowrap">
                 <% if location.has_proxies? %>
-                  <span class="text-accent-50">
-                    <%= location.proxy_quantity %>/<%= location.proxy_foil_quantity %>
-                  </span>
+                  <%= location.proxy_quantity %>/<%= location.proxy_foil_quantity %>
                 <% else %>
                   <span class="text-grey-text">—</span>
                 <% end %>

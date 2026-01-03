@@ -97,11 +97,13 @@ class CollectionMagicCardsController < ApplicationController
   end
 
   def collection_params
-    params.permit(:quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity, :collection_id, :magic_card_id, :card_uuid)
+    params.permit(:quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity, :collection_id, :magic_card_id,
+                  :card_uuid)
   end
 
   def transfer_params
-    params.permit(:magic_card_id, :from_collection_id, :to_collection_id, :quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity)
+    params.permit(:magic_card_id, :from_collection_id, :to_collection_id, :quantity, :foil_quantity, :proxy_quantity,
+                  :proxy_foil_quantity)
   end
 
   def load_collection_record

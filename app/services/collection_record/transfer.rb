@@ -56,7 +56,8 @@ module CollectionRecord
       if new_quantity.zero? && new_foil_quantity.zero? && new_proxy_quantity.zero? && new_proxy_foil_quantity.zero?
         remove_from_source(from_card)
       else
-        decrease_source_quantity(from_card, new_quantity, new_foil_quantity, new_proxy_quantity, new_proxy_foil_quantity)
+        decrease_source_quantity(from_card, new_quantity, new_foil_quantity, new_proxy_quantity,
+                                 new_proxy_foil_quantity)
       end
     end
 
@@ -76,7 +77,8 @@ module CollectionRecord
       from_card.destroy!
     end
 
-    def decrease_source_quantity(from_card, new_quantity, new_foil_quantity, new_proxy_quantity, new_proxy_foil_quantity)
+    def decrease_source_quantity(from_card, new_quantity, new_foil_quantity, new_proxy_quantity,
+                                 new_proxy_foil_quantity)
       quantity_change = -@quantity
       foil_quantity_change = -@foil_quantity
       proxy_quantity_change = -@proxy_quantity
@@ -149,7 +151,8 @@ module CollectionRecord
       (quantity_change * @magic_card.normal_price) + (foil_quantity_change * @magic_card.foil_price)
     end
 
-    def update_collection_totals(collection, quantity_change, foil_quantity_change, proxy_quantity_change, proxy_foil_quantity_change, real_price_change, proxy_price_change)
+    def update_collection_totals(collection, quantity_change, foil_quantity_change, proxy_quantity_change,
+                                 proxy_foil_quantity_change, real_price_change, proxy_price_change)
       collection.increment!(:total_quantity, quantity_change)
       collection.increment!(:total_foil_quantity, foil_quantity_change)
       collection.increment!(:total_proxy_quantity, proxy_quantity_change)

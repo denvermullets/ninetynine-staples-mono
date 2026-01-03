@@ -7,7 +7,7 @@ class CollectionMagicCard < ApplicationRecord
             numericality: { greater_than_or_equal_to: 0 }
 
   # Scopes
-  scope :with_proxies, -> { where("proxy_quantity > 0 OR proxy_foil_quantity > 0") }
+  scope :with_proxies, -> { where('proxy_quantity > 0 OR proxy_foil_quantity > 0') }
   scope :real_only, -> { where(proxy_quantity: 0, proxy_foil_quantity: 0) }
 
   # Helper methods
@@ -20,7 +20,7 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def has_proxies?
-    proxy_quantity > 0 || proxy_foil_quantity > 0
+    proxy_quantity.positive? || proxy_foil_quantity.positive?
   end
 
   def real_value

@@ -88,7 +88,8 @@ module CollectionRecord
       (quantity_change * @magic_card.normal_price) + (foil_quantity_change * @magic_card.foil_price)
     end
 
-    def update_totals(quantity_change, foil_quantity_change, proxy_quantity_change, proxy_foil_quantity_change, real_price_change, proxy_price_change)
+    def update_totals(quantity_change, foil_quantity_change, proxy_quantity_change, proxy_foil_quantity_change,
+                      real_price_change, proxy_price_change)
       @collection.increment!(:total_quantity, quantity_change)
       @collection.increment!(:total_foil_quantity, foil_quantity_change)
       @collection.increment!(:total_proxy_quantity, proxy_quantity_change)
