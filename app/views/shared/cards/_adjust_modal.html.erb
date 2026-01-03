@@ -65,6 +65,51 @@
               <%= magic_card.has_foil ? 'Set exact quantity' : 'Not available for this card' %>
             </div>
           </div>
+
+        <!-- Proxy Regular Quantity -->
+        <div class="p-3 border rounded-md border-highlight <%= magic_card.has_non_foil ? 'bg-background' : 'bg-highlight opacity-50' %>">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm text-grey-text">Proxy Regular:</span>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-grey-text" data-card-locations-target="adjustProxyCurrent">0</span>
+              <span class="text-grey-text">&#8594;</span>
+              <input
+                type="number"
+                name="proxy_quantity"
+                data-card-locations-target="adjustProxyNew"
+                min="0"
+                value="0"
+                <%= 'disabled' unless magic_card.has_non_foil %>
+                class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.has_non_foil ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50">
+            </div>
+          </div>
+          <div class="text-xs text-grey-text">
+            <%= magic_card.has_non_foil ? 'Set exact proxy quantity' : 'Not available for this card' %>
+          </div>
+        </div>
+
+        <!-- Proxy Foil Quantity -->
+        <div class="p-3 border rounded-md border-highlight <%= magic_card.has_foil ? 'bg-background' : 'bg-highlight opacity-50' %>">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm text-grey-text">Proxy Foil:</span>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-grey-text" data-card-locations-target="adjustProxyFoilCurrent">0</span>
+              <span class="text-grey-text">&#8594;</span>
+              <input
+                type="number"
+                name="proxy_foil_quantity"
+                data-card-locations-target="adjustProxyFoilNew"
+                min="0"
+                value="0"
+                <%= 'disabled' unless magic_card.has_foil %>
+                class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.has_foil ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50">
+            </div>
+          </div>
+          <div class="text-xs text-grey-text">
+            <%= magic_card.has_foil ? 'Set exact proxy foil quantity' : 'Not available for this card' %>
+          </div>
+        </div>
+
           <!-- Action Buttons -->
           <div class="flex justify-end gap-3 mt-2">
             <button
