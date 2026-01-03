@@ -41,7 +41,7 @@
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.quantity %></td>
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.foil_quantity %></td>
               <td class="px-4 py-3 text-sm whitespace-nowrap">
-                <% if location.has_proxies? %>
+                <% if location.proxies? %>
                   <%= location.proxy_quantity %>/<%= location.proxy_foil_quantity %>
                 <% else %>
                   <span class="text-grey-text">—</span>

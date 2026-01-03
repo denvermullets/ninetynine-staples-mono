@@ -19,7 +19,7 @@ class CollectionMagicCard < ApplicationRecord
     foil_quantity + proxy_foil_quantity
   end
 
-  def has_proxies?
+  def proxies?
     proxy_quantity.positive? || proxy_foil_quantity.positive?
   end
 

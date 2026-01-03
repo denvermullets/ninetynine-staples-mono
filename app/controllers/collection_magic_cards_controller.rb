@@ -32,11 +32,7 @@ class CollectionMagicCardsController < ApplicationController
   def transfer
     result = CollectionRecord::Transfer.call(params: transfer_params)
 
-    if result[:success]
-      render_transfer_success(result)
-    else
-      render_error_toast(result[:error])
-    end
+    result[:success] ? render_transfer_success(result) : render_error_toast(result[:error])
   end
 
   def adjust
