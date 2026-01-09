@@ -2,7 +2,7 @@
   <div class='w-full max-w-md p-6 shadow-lg bg-foreground rounded-xl text-grey-text'>
     <h1 class='mb-2 text-xl font-bold text-center '>Create your account</h1>
     <h1 class='mb-6 text-sm text-center '>Start making your dreams come true</h1>
-    <%= form_with model: @user, url: sign_up_path, class: "space-y-4" do |form| %>
+    <%= form_with model: @user, url: sign_up_path, class: "space-y-4", data: { turbo: false } do |form| %>
       <% password_error = nil %>
       <% password_conf_error = nil %>
       <% username_error = nil %>
