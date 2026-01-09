@@ -1,7 +1,16 @@
 Rails.application.routes.draw do
+  # Authentication routes
+  get 'sign_up', to: 'users/registrations#new', as: :sign_up
   post 'sign_up', to: 'users/registrations#create', as: :user_registration
 
-  revise_auth
+  get 'login', to: 'users/sessions#new', as: :login
+  post 'login', to: 'users/sessions#create'
+  delete 'logout', to: 'users/sessions#destroy', as: :logout
+
+  get 'password_resets/new', to: 'users/password_resets#new', as: :new_password_reset
+  post 'password_resets', to: 'users/password_resets#create', as: :password_resets
+  get 'password_resets/:token/edit', to: 'users/password_resets#edit', as: :edit_password_reset
+  patch 'password_resets/:token', to: 'users/password_resets#update', as: :password_reset
   mount MissionControl::Jobs::Engine, at: '/jobs'
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
