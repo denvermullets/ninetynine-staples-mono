@@ -96,16 +96,13 @@ Rails.application.configure do
   config.action_mailer.perform_deliveries = true
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: 'smtp.gmail.com',
+    address: 'smtp-relay.brevo.com',
     port: 587,
-    domain: ENV.fetch('APP_DOMAIN', nil),
-    user_name: ENV.fetch('GMAIL_USERNAME', nil),
-    password: ENV.fetch('GMAIL_APP_PASSWORD', nil),
-    authentication: 'plain',
+    user_name: ENV.fetch('BREVO_SMTP_USERNAME', nil),
+    password: ENV.fetch('BREVO_SMTP_PASSWORD', nil),
+    authentication: :plain,
     enable_starttls_auto: true
   }
-
-  # Do care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = true
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to

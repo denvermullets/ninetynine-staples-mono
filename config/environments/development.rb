@@ -34,20 +34,24 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  config.action_mailer.perform_deliveries = true
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address: 'smtp.gmail.com',
-    port: 587,
-    domain: ENV.fetch('APP_DOMAIN', nil),
-    user_name: ENV.fetch('GMAIL_USERNAME', nil),
-    password: ENV.fetch('GMAIL_APP_PASSWORD', nil),
-    authentication: 'plain',
-    enable_starttls_auto: true
-  }
-
-  # Do care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = true
+  # Use Brevo SMTP in development if credentials are set, otherwise use :test
+  if ENV['BREVO_SMTP_USERNAME'].present? && ENV['BREVO_SMTP_PASSWORD'].present?
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: 'smtp-relay.brevo.com',
+      port: 587,
+      user_name: ENV.fetch('BREVO_SMTP_USERNAME', nil),
+      password: ENV.fetch('BREVO_SMTP_PASSWORD', nil),
+      authentication: :plain,
+      enable_starttls_auto: true,
+      openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE
+    }
+    config.action_mailer.perform_deliveries = true
+    config.action_mailer.raise_delivery_errors = true
+  else
+    config.action_mailer.delivery_method = :test
+    config.action_mailer.perform_deliveries = false
+  end
 
   # Disable caching for Action Mailer templates even if Action Controller
   # caching is enabled.
