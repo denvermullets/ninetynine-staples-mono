@@ -4,11 +4,6 @@ class BoxsetsController < ApplicationController
     @default_code = set_default_boxset
     load_default_boxset if params[:code].blank? && params[:search].blank? && @default_code.present?
     load_boxset if params[:code].present? || params[:search].present?
-
-    respond_to do |format|
-      format.turbo_stream
-      format.html
-    end
   end
 
   def load_boxset

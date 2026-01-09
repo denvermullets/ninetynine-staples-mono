@@ -277,9 +277,6 @@ GEM
     regexp_parser (2.11.3)
     reline (0.6.3)
       io-console (~> 0.5)
-    revise_auth (0.8.0)
-      bcrypt (~> 3.1)
-      rails (>= 7.1.0.beta1)
     rexml (3.4.4)
     rspec-core (3.13.6)
       rspec-support (~> 3.13.0)
@@ -390,6 +387,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  bcrypt (~> 3.1)
   bootsnap
   brakeman
   capybara
@@ -405,7 +403,6 @@ DEPENDENCIES
   pry
   puma (>= 7.1.0)
   rails (~> 8.1.2)
-  revise_auth (~> 0.8.0)
   rspec-rails (~> 8.0.2)
   rubocop
   selenium-webdriver

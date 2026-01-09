@@ -1,5 +1,6 @@
 source "https://rubygems.org"
 
+gem "bcrypt", "~> 3.1"
 gem "bootsnap", require: false
 gem 'dotenv-rails'
 gem "httparty"
@@ -10,11 +11,9 @@ gem "pg", "~> 1.6.2"
 gem "pry"
 gem "puma", ">= 7.1.0"
 gem "rails", "~> 8.1.2"
-gem "revise_auth", "~> 0.8.0"
 gem "solid_queue", "~> 1.2.4"
 gem "sprockets-rails"
 gem "stimulus-rails"
-# sticking with this version tailwind for now since there's issues w/upgrade path
 gem "tailwindcss-rails", "~> 4.4.0"
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[windows jruby]
