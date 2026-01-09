@@ -1,7 +1,29 @@
-<p><%=t '.welcome', email: @user.unconfirmed_email %></p>
+<h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #fefefe;">
+  Confirm Your Email
+</h1>
 
-<p><%=t '.confirm_below' %></p>
+<p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #859296;">
+  Thanks for signing up! Please confirm your email address (<span style="color: #fefefe;"><%= @user.unconfirmed_email %></span>) by clicking the button below.
+</p>
 
-<p><%= link_to t('.confirm'), profile_email_url(confirmation_token: @token) %></p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 24px 0;">
+  <tr>
+    <td style="border-radius: 8px; background-color: #39db7d;">
+      <%= link_to profile_email_url(confirmation_token: @token), style: "display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 600; color: #141e22; text-decoration: none;" do %>
+        Confirm Email
+      <% end %>
+    </td>
+  </tr>
+</table>
 
-<p><%=t '.expiration_notice' %></p>
+<p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #859296;">
+  If the button doesn't work, copy and paste this link into your browser:
+</p>
+
+<p style="margin: 0 0 24px 0; font-size: 14px; word-break: break-all; color: #39db7d;">
+  <%= profile_email_url(confirmation_token: @token) %>
+</p>
+
+<p style="margin: 0; font-size: 14px; line-height: 1.6; color: #859296;">
+  This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+</p>
