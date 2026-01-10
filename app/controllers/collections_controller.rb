@@ -68,23 +68,22 @@ class CollectionsController < ApplicationController
 
     @collection = Collection.find(params[:collection_id]) if params[:collection_id].present?
     @collections_value = user_collections.sum(:total_value)
-
-    # Use ordered_collections if viewing own collections
-    @collections = if current_user && current_user.id == @user.id
-                     ordered = current_user.ordered_collections
-                     collection_type ? ordered.select { |c| c.collection_type == collection_type } : ordered
-                   else
-                     user_collections.order(:id).to_a
-                   end
-
+    @collections = ordered_user_collections(user_collections, collection_type)
     @options = boxset_options
+    @collection_history = build_collection_history(user_collections)
+  end
 
-    # Prepare collection history for charts
-    @collection_history = if @collection.present?
-                            @collection.collection_history || {}
-                          else
-                            Collection.aggregate_history(user_collections)
-                          end
+  def ordered_user_collections(user_collections, collection_type)
+    return user_collections.order(:id).to_a unless current_user&.id == @user.id
+
+    ordered = current_user.ordered_collections
+    collection_type ? ordered.select { |c| c.collection_type == collection_type } : ordered
+  end
+
+  def build_collection_history(user_collections)
+    return @collection.collection_history || {} if @collection.present?
+
+    Collection.aggregate_history(user_collections)
   end
 
   def search_magic_cards

@@ -15,14 +15,14 @@ class User < ApplicationRecord
 
   # Preferences
   DEFAULT_PREFERENCES = {
-    "collection_order" => [],
-    "visible_columns" => {
-      "card_number" => true,
-      "name" => true,
-      "type" => true,
-      "mana" => true,
-      "regular_price" => true,
-      "foil_price" => true
+    'collection_order' => [],
+    'visible_columns' => {
+      'card_number' => true,
+      'name' => true,
+      'type' => true,
+      'mana' => true,
+      'regular_price' => true,
+      'foil_price' => true
     }
   }.freeze
 
@@ -33,19 +33,19 @@ class User < ApplicationRecord
   end
 
   def collection_order
-    effective_preferences["collection_order"] || []
+    effective_preferences['collection_order'] || []
   end
 
   def collection_order=(order)
-    self.preferences = (preferences || {}).merge("collection_order" => order)
+    self.preferences = (preferences || {}).merge('collection_order' => order)
   end
 
   def visible_columns
-    effective_preferences["visible_columns"]
+    effective_preferences['visible_columns']
   end
 
   def visible_columns=(columns)
-    self.preferences = (preferences || {}).merge("visible_columns" => columns)
+    self.preferences = (preferences || {}).merge('visible_columns' => columns)
   end
 
   def column_visible?(column_key)
@@ -55,7 +55,7 @@ class User < ApplicationRecord
   def ordered_collections
     order = collection_order
     if order.present?
-      collections.sort_by { |c| [ order.index(c.id) || Float::INFINITY, c.id ] }
+      collections.sort_by { |c| [order.index(c.id) || Float::INFINITY, c.id] }
     else
       collections.order(:id).to_a
     end
@@ -63,21 +63,28 @@ class User < ApplicationRecord
 
   def move_collection(collection_id, direction)
     collection_id = collection_id.to_i
-    current_order = collection_order.presence || collections.order(:id).pluck(:id)
+    current_order = ensure_collection_in_order(collection_id)
+    return false unless current_order
 
-    # Ensure the collection is in the order array
-    unless current_order.include?(collection_id)
-      return false unless collections.exists?(collection_id)
-      current_order << collection_id
-    end
+    swap_collection_position(current_order, collection_id, direction)
+  end
 
+  private
+
+  def ensure_collection_in_order(collection_id)
+    order = collection_order.presence || collections.order(:id).pluck(:id)
+    return order if order.include?(collection_id)
+    return nil unless collections.exists?(collection_id)
+
+    order << collection_id
+    order
+  end
+
+  def swap_collection_position(current_order, collection_id, direction)
     index = current_order.index(collection_id)
-    return false if index.nil?
+    new_index = direction == 'up' ? index - 1 : index + 1
+    return false if new_index.negative? || new_index >= current_order.length
 
-    new_index = direction == "up" ? index - 1 : index + 1
-    return false if new_index < 0 || new_index >= current_order.length
-
-    # Swap positions
     current_order[index], current_order[new_index] = current_order[new_index], current_order[index]
     self.collection_order = current_order
     save

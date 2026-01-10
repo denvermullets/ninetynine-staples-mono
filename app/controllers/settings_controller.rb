@@ -24,15 +24,15 @@ class SettingsController < ApplicationController
     columns = params[:visible_columns] || {}
 
     # Ensure at least one column remains visible
-    visible_count = User::COLUMN_KEYS.count { |key| columns[key] == "true" || columns[key] == true }
+    visible_count = User::COLUMN_KEYS.count { |key| ['true', true].include?(columns[key]) }
 
     if visible_count < 1
-      render json: { error: "At least one column must remain visible" }, status: :unprocessable_entity
+      render json: { error: 'At least one column must remain visible' }, status: :unprocessable_entity
       return
     end
 
     column_prefs = User::COLUMN_KEYS.each_with_object({}) do |key, hash|
-      hash[key] = columns[key] == "true" || columns[key] == true
+      hash[key] = ['true', true].include?(columns[key])
     end
 
     current_user.visible_columns = column_prefs
