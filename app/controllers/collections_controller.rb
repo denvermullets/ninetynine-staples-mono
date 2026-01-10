@@ -68,7 +68,15 @@ class CollectionsController < ApplicationController
 
     @collection = Collection.find(params[:collection_id]) if params[:collection_id].present?
     @collections_value = user_collections.sum(:total_value)
-    @collections = user_collections.order(:id)
+
+    # Use ordered_collections if viewing own collections
+    @collections = if current_user && current_user.id == @user.id
+                     ordered = current_user.ordered_collections
+                     collection_type ? ordered.select { |c| c.collection_type == collection_type } : ordered
+                   else
+                     user_collections.order(:id).to_a
+                   end
+
     @options = boxset_options
 
     # Prepare collection history for charts

@@ -52,4 +52,9 @@ module ApplicationHelper
   def current_user_admin?
     current_user&.role.to_i == 9001
   end
+
+  def column_visible?(column_key)
+    return true unless current_user
+    current_user.column_visible?(column_key)
+  end
 end

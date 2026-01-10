@@ -1,0 +1,53 @@
+<div class='flex items-start justify-center w-full min-h-screen py-8 px-4'>
+  <div class='w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl text-grey-text'>
+    <h1 class='mb-6 text-xl font-bold text-center'>Settings</h1>
+
+    <div class='space-y-8'>
+      <!-- Collection Order Section -->
+      <section>
+        <h2 class='mb-4 text-lg font-semibold'>Collection Order</h2>
+        <p class='mb-4 text-sm'>Use the arrows to reorder your collections. This order will be used in the sidebar and dropdowns.</p>
+
+        <%= turbo_frame_tag "collection_list" do %>
+          <%= render partial: 'collection_list', locals: { collections: @collections } %>
+        <% end %>
+      </section>
+
+      <hr class='border-highlight'>
+
+      <!-- Column Visibility Section -->
+      <section>
+        <h2 class='mb-4 text-lg font-semibold'>Card Table Columns</h2>
+        <p class='mb-4 text-sm'>Choose which columns to display in card tables. At least one column must remain visible.</p>
+
+        <div data-controller="column-visibility"
+             data-column-visibility-url-value="<%= update_column_visibility_path %>"
+             data-column-visibility-min-visible-value="1">
+          <div class='grid grid-cols-2 gap-3'>
+            <% [
+              ['card_number', '#'],
+              ['name', 'Name'],
+              ['type', 'Type'],
+              ['mana', 'Mana'],
+              ['regular_price', 'Regular Price'],
+              ['foil_price', 'Foil Price']
+            ].each do |key, label| %>
+              <label class='flex items-center gap-3 p-3 border rounded-lg cursor-pointer border-highlight bg-background hover:border-accent-50 transition'
+                     data-column-visibility-target="toggle"
+                     data-column-key="<%= key %>">
+                <input type="checkbox"
+                       data-action="change->column-visibility#toggle"
+                       <%= 'checked' if current_user.column_visible?(key) %>
+                       class='w-4 h-4 rounded border-highlight bg-background text-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+                <span><%= label %></span>
+              </label>
+            <% end %>
+          </div>
+          <p data-column-visibility-target="error" class='hidden mt-2 text-sm text-red-500'>
+            At least one column must remain visible.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
