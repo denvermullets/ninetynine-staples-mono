@@ -18,9 +18,10 @@
   ></div>
 
   <!-- Sidebar -->
+  <% is_own_collection = current_user && @user && current_user.id == @user.id %>
   <div
     data-collection-sidebar-target="sidebar"
-    class="hidden md:flex flex-col shrink-0 h-auto px-4 md:px-8 py-3 md:py-4 gap-3 md:gap-8 border w-[85vw] md:w-72 max-w-sm md:max-w-none rounded-3xl md:rounded-3xl border-highlight bg-foreground text-grey-text fixed md:relative inset-y-0 left-0 z-40 md:z-auto overflow-y-auto max-h-screen"
+    class="hidden md:flex flex-col shrink-0 h-auto px-4 md:px-8 py-3 md:py-4 gap-3 md:gap-8 border w-[85vw] md:w-72 max-w-sm md:max-w-none rounded-3xl md:rounded-3xl border-highlight bg-foreground text-grey-text fixed md:relative inset-y-0 left-0 z-40 md:z-auto <%= 'overflow-y-auto max-h-screen' if is_own_collection %>"
   >
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
@@ -58,7 +59,7 @@
     <!-- Top Bar -->
     <div class="shrink-0 px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text">
       <% if @collection.present? %>
-        <div class='flex flex-row gap-4'>
+        <div class='flex flex-col md:flex-row gap-4'>
           <%= render partial: 'stats',
                    locals: {
                      message: "Total cards in #{@collection.name} #{@collection_type}",
@@ -90,7 +91,7 @@
           <% end %>
         </div>
       <% else %>
-        <div class='flex flex-row gap-4'>
+        <div class='flex flex-col md:flex-row gap-4'>
           <%= render partial: 'stats',
                    locals: {
                      message: "Total value in #{@collections.first.name} #{@collection_type}",
