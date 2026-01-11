@@ -16,7 +16,7 @@
         <tr data-action="click->expandable-row#toggle" data-card-id="<%= card.id %>" class="border border-background text-grey-text bg-foreground hover:bg-menu hover:cursor-pointer">
           <td class="pl-4 pr-0 text-sm py-7 whitespace-nowrap"><%= card.card_number %></td>
           <td class="px-4 py-2 text-sm whitespace-nowrap">
-            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-4"></i>
+            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
             <% if card&.card_side == 'a' %>
               <%= card.name.split('//')[0]%>
             <% elsif card&.card_side == 'b' %>
