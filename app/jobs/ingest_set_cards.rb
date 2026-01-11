@@ -49,6 +49,71 @@ class IngestSetCards < ApplicationJob
 
       card['keywords'].each { |keyword| create_keywords(magic_card, keyword) } if card.key?('keywords')
     end
+
+    process_tokens(boxset, all_info['tokens']) if all_info['tokens'].present?
+  end
+
+  def process_tokens(boxset, tokens)
+    tokens.each do |token|
+      next unless token['availability'].include?('paper')
+
+      puts "working on token #{token['name']}"
+      magic_card = create_token_card(boxset, token)
+
+      if token['artist'].present?
+        artist = Artist.where('LOWER(name) = LOWER(?)', token['artist']).first || Artist.create(name: token['artist'])
+        MagicCardArtist.find_by(artist:, magic_card:) || MagicCardArtist.create(artist:, magic_card:)
+      end
+
+      token['subtypes']&.each { |sub_type| create_sub_type(magic_card, sub_type) }
+      token['supertypes']&.each { |super_type| create_supertype(magic_card, super_type) }
+      token['types']&.each { |card_type| create_type(magic_card, card_type) }
+      token['colors']&.each { |color| create_color(magic_card, color) }
+      token['colorIdentity']&.each { |color| create_color_ident(magic_card, color) }
+    end
+  end
+
+  def create_token_card(boxset, token)
+    existing_card = MagicCard.find_by(card_uuid: token['uuid'])
+
+    card_obj = {
+      boxset:, name: token['name'], text: token['text'], power: token['power'],
+      toughness: token['toughness'], card_type: token['type'], has_foil: token['hasFoil'],
+      has_non_foil: token['hasNonFoil'], border_color: token['borderColor'],
+      frame_version: token['frameVersion'], is_reprint: token['isReprint'],
+      card_number: token['number'], identifiers: token['identifiers'],
+      card_uuid: token['uuid'], is_token: true
+    }
+
+    if existing_card
+      empty_image = existing_card.image_large.nil? || existing_card.image_medium.nil? ||
+                    existing_card.image_small.nil? || existing_card.art_crop.nil? ||
+                    existing_card.image_updated_at < 90.days.ago
+
+      if empty_image || error_image?(existing_card)
+        images = scryfall_images(token)
+        card_obj[:image_large] = images[:large]
+        card_obj[:image_medium] = images[:normal]
+        card_obj[:image_small] = images[:small]
+        card_obj[:art_crop] = images[:art_crop]
+        card_obj[:image_updated_at] = Time.now
+      end
+
+      existing_card.update(card_obj)
+      existing_card
+    else
+      puts "creating new token #{token['name']}"
+      images = scryfall_images(token)
+      card_obj[:image_large] = images[:large]
+      card_obj[:image_medium] = images[:normal]
+      card_obj[:image_small] = images[:small]
+      card_obj[:art_crop] = images[:art_crop]
+      card_obj[:image_updated_at] = Time.now
+      card_obj[:normal_price] = 0
+      card_obj[:foil_price] = 0
+
+      MagicCard.create(card_obj)
+    end
   end
 
   def create_magic_card(boxset, card)

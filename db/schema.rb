@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_11_220129) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -191,6 +191,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
     t.string "image_small"
     t.datetime "image_updated_at"
     t.boolean "is_reprint"
+    t.boolean "is_token", default: false, null: false
     t.string "mana_cost"
     t.decimal "mana_value", precision: 10, scale: 2
     t.string "name"
