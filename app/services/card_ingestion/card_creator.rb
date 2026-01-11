@@ -59,7 +59,10 @@ module CardIngestion
         card_number: @card_data['number'],
         identifiers: @card_data['identifiers'],
         card_uuid: @card_data['uuid'],
-        is_token: @is_token
+        is_token: @is_token,
+        face_name: @card_data['faceName'],
+        card_side: @card_data['side'],
+        other_face_uuid: @card_data.key?('otherFaceIds') ? @card_data['otherFaceIds'].join(',') : nil
       }
     end
 
@@ -72,10 +75,7 @@ module CardIngestion
         converted_mana_cost: @card_data['convertedManaCost'],
         flavor_text: @card_data['flavorText'],
         mana_cost: @card_data['manaCost'],
-        mana_value: @card_data['manaValue'],
-        face_name: @card_data['faceName'],
-        card_side: @card_data['side'],
-        other_face_uuid: @card_data.key?('otherFaceIds') ? @card_data['otherFaceIds'].join(',') : nil
+        mana_value: @card_data['manaValue']
       }
     end
 
