@@ -12,4 +12,81 @@ class User < ApplicationRecord
   generates_token_for :password_reset, expires_in: 1.hour do
     password_digest&.last(10)
   end
+
+  # Preferences
+  DEFAULT_PREFERENCES = {
+    'collection_order' => [],
+    'visible_columns' => {
+      'card_number' => true,
+      'name' => true,
+      'type' => true,
+      'mana' => true,
+      'regular_price' => true,
+      'foil_price' => true
+    }
+  }.freeze
+
+  COLUMN_KEYS = %w[card_number name type mana regular_price foil_price].freeze
+
+  def effective_preferences
+    DEFAULT_PREFERENCES.deep_merge(preferences || {})
+  end
+
+  def collection_order
+    effective_preferences['collection_order'] || []
+  end
+
+  def collection_order=(order)
+    self.preferences = (preferences || {}).merge('collection_order' => order)
+  end
+
+  def visible_columns
+    effective_preferences['visible_columns']
+  end
+
+  def visible_columns=(columns)
+    self.preferences = (preferences || {}).merge('visible_columns' => columns)
+  end
+
+  def column_visible?(column_key)
+    visible_columns[column_key] != false
+  end
+
+  def ordered_collections
+    order = collection_order
+    if order.present?
+      collections.sort_by { |c| [order.index(c.id) || Float::INFINITY, c.id] }
+    else
+      collections.order(:id).to_a
+    end
+  end
+
+  def move_collection(collection_id, direction)
+    collection_id = collection_id.to_i
+    current_order = ensure_collection_in_order(collection_id)
+    return false unless current_order
+
+    swap_collection_position(current_order, collection_id, direction)
+  end
+
+  private
+
+  def ensure_collection_in_order(collection_id)
+    order = collection_order.presence || collections.order(:id).pluck(:id)
+    return order if order.include?(collection_id)
+    return nil unless collections.exists?(collection_id)
+
+    order << collection_id
+    order
+  end
+
+  def swap_collection_position(current_order, collection_id, direction)
+    index = current_order.index(collection_id)
+    new_index = direction == 'up' ? index - 1 : index + 1
+    return false if new_index.negative? || new_index >= current_order.length
+
+    current_order[index], current_order[new_index] = current_order[new_index], current_order[index]
+    self.collection_order = current_order
+    save
+  end
 end

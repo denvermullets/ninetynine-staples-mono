@@ -45,6 +45,7 @@
             </div>
           </div>
         <% end %>
+        <%= link_to 'Settings', settings_path, class: 'hover' %>
         <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'hover' %>
       <% else %>
         <%= link_to 'Log In', login_path, class: '' %>
@@ -90,7 +91,8 @@
         </div>
       <% end %>
       <div class="pt-2 border-t border-gray-700">
-        <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'hover' %>
+        <%= link_to 'Settings', settings_path, class: 'block py-1' %>
+        <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'block py-1' %>
       </div>
     <% else %>
       <div class="<%= nav_item_classes('/collections/') %>">

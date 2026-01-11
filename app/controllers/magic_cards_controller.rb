@@ -45,9 +45,9 @@ class MagicCardsController < ApplicationController
   def determine_user_and_permissions
     if params[:username].present?
       user = User.find_by(username: params[:username])
-      { user:, collections: user&.collections, editable: user_owns_collection?(user) }
+      { user:, collections: user&.ordered_collections, editable: user_owns_collection?(user) }
     else
-      { user: current_user, collections: current_user&.collections, editable: current_user.present? }
+      { user: current_user, collections: current_user&.ordered_collections, editable: current_user.present? }
     end
   end
 

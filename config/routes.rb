@@ -11,6 +11,12 @@ Rails.application.routes.draw do
   post 'password_resets', to: 'users/password_resets#create', as: :password_resets
   get 'password_resets/:token/edit', to: 'users/password_resets#edit', as: :edit_password_reset
   patch 'password_resets/:token', to: 'users/password_resets#update', as: :password_reset
+
+  # Settings routes
+  get 'settings', to: 'settings#show', as: :settings
+  post 'settings/move_collection', to: 'settings#move_collection', as: :move_collection
+  post 'settings/update_column_visibility', to: 'settings#update_column_visibility', as: :update_column_visibility
+
   mount MissionControl::Jobs::Engine, at: '/jobs'
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
