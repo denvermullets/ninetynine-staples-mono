@@ -1,3 +1,3 @@
-<%= turbo_stream.replace "collection_list" do %>
+<%= turbo_stream.update "collection_list" do %>
   <%= render partial: 'collection_list', locals: { collections: @collections } %>
 <% end %>

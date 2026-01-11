@@ -38,7 +38,7 @@
                 <input type="checkbox"
                        data-action="change->column-visibility#toggle"
                        <%= 'checked' if current_user.column_visible?(key) %>
-                       class='w-4 h-4 rounded border-highlight bg-background text-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+                       class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
                 <span><%= label %></span>
               </label>
             <% end %>
