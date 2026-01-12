@@ -72,6 +72,7 @@ module CardIngestion
         rarity: @card_data['rarity'],
         original_type: @card_data['originalType'],
         edhrec_rank: @card_data['edhrecRank'],
+        edhrec_saltiness: @card_data['edhrecSaltiness'],
         converted_mana_cost: @card_data['convertedManaCost'],
         flavor_text: @card_data['flavorText'],
         mana_cost: @card_data['manaCost'],

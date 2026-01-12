@@ -1,4 +1,4 @@
-<% visible_column_count = %w[card_number name type mana regular_price foil_price].count { |k| column_visible?(k) } %>
+<% visible_column_count = %w[card_number name type mana regular_price foil_price salt].count { |k| column_visible?(k) } %>
 <div class='mb-24 overflow-hidden border rounded-3xl border-highlight'>
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
@@ -20,6 +20,9 @@
         <% end %>
         <% if column_visible?('foil_price') %>
           <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-grey-text">Foil</th>
+        <% end %>
+        <% if column_visible?('salt') %>
+          <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case lg:table-cell text-grey-text">Salt</th>
         <% end %>
       </tr>
     </thead>
@@ -49,8 +52,8 @@
             </td>
           <% end %>
           <% if column_visible?('regular_price') %>
-            <% if card.has_non_foil %>
-              <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= 'text-gray-600' unless has_normal_in_collection %>">
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
+              <% if has_normal_in_collection %>
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.normal_price) %>
                   <% if card.price_change_weekly_normal.present? && card.price_change_weekly_normal.abs >= 0.5 %>
@@ -59,14 +62,12 @@
                     </span>
                   <% end %>
                 </div>
-              </td>
-            <% else %>
-              <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"></td>
-            <% end %>
+              <% end %>
+            </td>
           <% end %>
           <% if column_visible?('foil_price') %>
-            <% if card.has_foil %>
-              <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell <%= 'text-gray-600' unless has_foil_in_collection %>">
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
+              <% if has_foil_in_collection %>
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.foil_price) %>
                   <% if card.price_change_weekly_foil.present? && card.price_change_weekly_foil.abs >= 0.5 %>
@@ -75,10 +76,15 @@
                     </span>
                   <% end %>
                 </div>
-              </td>
-            <% else %>
-              <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"></td>
-            <% end %>
+              <% end %>
+            </td>
+          <% end %>
+          <% if column_visible?('salt') %>
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap lg:table-cell">
+              <% if card.edhrec_saltiness.present? %>
+                <%= number_with_precision(card.edhrec_saltiness, precision: 2) %>
+              <% end %>
+            </td>
           <% end %>
         </tr>
         <tr data-expandable-row-target="content" data-card-id="<%= card.id %>" class="hidden border border-background">

@@ -13,6 +13,7 @@ module CardIngestion
       create_colors
       create_color_identities
       create_keywords
+      create_legalities
 
       @magic_card
     end
@@ -68,6 +69,16 @@ module CardIngestion
       @card_data['keywords']&.each do |keyword_name|
         keyword = Keyword.find_or_create_by(keyword: keyword_name)
         MagicCardKeyword.find_or_create_by(magic_card: @magic_card, keyword: keyword)
+      end
+    end
+
+    def create_legalities
+      @card_data['legalities']&.each do |format_name, status|
+        legality = Legality.find_or_create_by(name: format_name)
+        MagicCardLegality.upsert(
+          { magic_card_id: @magic_card.id, legality_id: legality.id, status: status },
+          unique_by: %i[magic_card_id legality_id]
+        )
       end
     end
   end
