@@ -59,4 +59,15 @@ Rails.application.routes.draw do
   resources :collections, only: %w[new create]
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   get 'decks/:username(/:collection_id)', to: 'collections#show_decks', as: :deck_show
+
+  # Deck builder routes
+  resources :deck_builder, path: 'deck-builder', only: [:show] do
+    member do
+      get :search
+      post :add_card
+      delete :remove_card
+      post :swap_card
+      post :finalize
+    end
+  end
 end

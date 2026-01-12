@@ -1,0 +1,76 @@
+<tr class="hover:bg-background/50 transition
+    <%= 'bg-blue-900/10' if card.staged? && card.from_owned_collection? %>
+    <%= 'bg-yellow-900/10' if card.staged? && card.planned? %>
+    <%= 'bg-orange-900/10' if card.needed? %>">
+
+  <!-- Quantity -->
+  <td class="w-16 px-4 py-2 text-grey-text">
+    <%= card.display_quantity %>x
+  </td>
+
+  <!-- Card Info -->
+  <td class="px-4 py-2">
+    <div class="flex items-center gap-3">
+      <% if card.magic_card.image_small.present? %>
+        <img src="<%= card.magic_card.image_small %>"
+             alt="<%= card.magic_card.name %>"
+             class="w-8 h-auto rounded"
+             loading="lazy" />
+      <% end %>
+      <div class="flex flex-col min-w-0">
+        <span class="font-medium text-white truncate"><%= card.magic_card.name %></span>
+        <span class="text-xs text-grey-text">
+          <% if card.staged? %>
+            <% if card.from_owned_collection? %>
+              <span class="text-blue-400">from <%= card.source_collection.name %></span>
+            <% else %>
+              <span class="text-yellow-400">Planned</span>
+            <% end %>
+          <% elsif card.needed? %>
+            <span class="text-orange-400">Need</span>
+            <% if card.available_swap?(current_user) %>
+              <span class="text-accent-50 ml-1">(available!)</span>
+            <% end %>
+          <% end %>
+        </span>
+      </div>
+    </div>
+  </td>
+
+  <!-- Card Type -->
+  <td class="hidden px-4 py-2 text-sm text-grey-text md:table-cell">
+    <%= card.magic_card.card_type&.truncate(30) %>
+  </td>
+
+  <!-- Mana Cost -->
+  <td class="hidden px-4 py-2 lg:table-cell text-grey-text">
+    <%= card.magic_card.mana_cost %>
+  </td>
+
+  <!-- Actions -->
+  <td class="px-4 py-2 text-right">
+    <% if card.staged? %>
+      <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+          method: :delete,
+          class: 'text-red-400 hover:text-red-300 text-sm transition',
+          data: { turbo_confirm: 'Remove this card?' } do %>
+        Remove
+      <% end %>
+    <% elsif card.needed? && card.available_swap?(current_user) %>
+      <%= button_to swap_card_deck_builder_path(@deck, card_id: card.id),
+          method: :post,
+          class: 'px-2 py-1 text-xs rounded bg-accent-50 text-background font-medium hover:bg-accent-50/90 transition' do %>
+        Swap
+      <% end %>
+    <% elsif card.needed? %>
+      <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+          method: :delete,
+          class: 'text-red-400 hover:text-red-300 text-sm transition',
+          data: { turbo_confirm: 'Remove this needed card?' } do %>
+        Remove
+      <% end %>
+    <% else %>
+      <span class="text-xs text-grey-text">Owned</span>
+    <% end %>
+  </td>
+</tr>

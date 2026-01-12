@@ -59,7 +59,7 @@
     <!-- Top Bar -->
     <div class="shrink-0 px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text overflow-hidden">
       <% if @collection.present? %>
-        <div class='flex flex-col md:flex-row gap-4 min-w-0'>
+        <div class='flex flex-col md:flex-row gap-4 min-w-0 items-start'>
           <%= render partial: 'stats',
                    locals: {
                      message: "Total cards in #{@collection.name} #{@collection_type}",
@@ -67,6 +67,10 @@
                      value: nil
                    }
           %>
+          <% if @collection_type == 'deck' && current_user&.id == @user.id %>
+            <%= link_to 'Build Mode', deck_builder_path(@collection),
+                class: 'px-4 py-2 bg-accent-50 text-background font-medium rounded-lg hover:bg-accent-50/90 transition whitespace-nowrap' %>
+          <% end %>
           <%= render partial: 'stats',
                    locals: {
                      message: "Total value in #{@collection.name} #{@collection_type}",

@@ -1,0 +1,110 @@
+class DeckBuilderController < ApplicationController
+  before_action :authenticate_user!
+  before_action :set_deck
+  before_action :ensure_owner
+
+  def show
+    @view_mode = params[:view_mode] || 'list'
+    @grouping = params[:grouping] || 'type'
+    @search_scope = params[:search_scope] || 'all'
+    load_deck_cards
+  end
+
+  def search
+    @results = DeckBuilder::Search.call(
+      query: params[:q], user: current_user, deck: @deck, scope: params[:scope] || 'all', limit: 20
+    )
+    render partial: 'search_results', locals: { results: @results }
+  end
+
+  def add_card
+    result = DeckBuilder::AddCard.call(
+      deck: @deck,
+      magic_card_id: params[:magic_card_id],
+      source_collection_id: params[:source_collection_id],
+      quantity: params[:quantity],
+      foil_quantity: params[:foil_quantity]
+    )
+    render_card_action_response(result, success_message: "Added #{result[:card_name]}")
+  end
+
+  def remove_card
+    result = DeckBuilder::RemoveCard.call(deck: @deck, collection_magic_card_id: params[:card_id])
+    render_card_action_response(result, success_message: result[:message])
+  end
+
+  def swap_card
+    result = DeckBuilder::SwapCard.call(
+      deck: @deck, collection_magic_card_id: params[:card_id], source_collection_id: params[:source_collection_id]
+    )
+    render_card_action_response(result, success_message: "Swapped #{result[:card_name]}")
+  end
+
+  def finalize
+    result = DeckBuilder::Finalize.call(deck: @deck)
+    if result[:success]
+      redirect_to deck_show_path(username: current_user.username, collection_id: @deck.id),
+                  notice: finalize_message(result)
+    else
+      flash.now[:error] = result[:error]
+      load_deck_cards
+      render :show, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def set_deck
+    @deck = current_user.collections.find(params[:id])
+  end
+
+  def ensure_owner
+    redirect_to root_path, alert: 'Access denied' unless @deck.user_id == current_user.id
+  end
+
+  def finalize_message(result)
+    msg = "Deck finalized! #{result[:cards_moved]} cards moved"
+    msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
+    msg
+  end
+
+  def load_deck_cards
+    all_cards = @deck.collection_magic_cards
+                     .includes(magic_card: %i[boxset sub_types colors magic_card_color_idents])
+    @staged_cards = all_cards.staged
+    @needed_cards = all_cards.needed
+    @owned_cards = all_cards.finalized.owned
+    cards_to_group = @staged_cards + @needed_cards + @owned_cards
+    @grouped_cards = DeckBuilder::GroupCards.call(cards: cards_to_group, grouping: @grouping)
+    @stats = build_stats(cards_to_group)
+  end
+
+  def build_stats(cards)
+    { total: cards.sum(&:display_quantity), staged: @staged_cards.sum(&:total_staged),
+      needed: @needed_cards.sum { |c| c.quantity + c.foil_quantity },
+      owned: @owned_cards.sum { |c| c.quantity + c.foil_quantity } }
+  end
+
+  def render_card_action_response(result, success_message:)
+    if result[:success]
+      render_success_streams(success_message)
+    else
+      render_error_toast(result[:error])
+    end
+  end
+
+  def render_success_streams(message)
+    flash.now[:type] = 'success'
+    load_deck_cards
+    render turbo_stream: [
+      turbo_stream.replace('deck_cards', partial: 'deck_cards'),
+      turbo_stream.replace('deck_stats', partial: 'deck_stats'),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+    ]
+  end
+
+  def render_error_toast(message)
+    flash.now[:type] = 'error'
+    render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+  end
+end

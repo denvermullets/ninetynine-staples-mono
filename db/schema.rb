@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_12_022656) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_12_205556) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,14 +57,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_022656) do
     t.datetime "created_at", null: false
     t.integer "foil_quantity", default: 0
     t.bigint "magic_card_id", null: false
+    t.boolean "needed", default: false, null: false
     t.text "notes"
     t.integer "proxy_foil_quantity", default: 0, null: false
     t.integer "proxy_quantity", default: 0, null: false
     t.integer "quantity", default: 0
     t.decimal "sell_price", precision: 12, scale: 2, default: "0.0"
+    t.bigint "source_collection_id"
+    t.boolean "staged", default: false, null: false
+    t.integer "staged_foil_quantity", default: 0, null: false
+    t.integer "staged_quantity", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["collection_id"], name: "index_collection_magic_cards_on_collection_id"
     t.index ["magic_card_id"], name: "index_collection_magic_cards_on_magic_card_id"
+    t.index ["needed"], name: "index_collection_magic_cards_on_needed"
+    t.index ["source_collection_id"], name: "index_collection_magic_cards_on_source_collection_id"
+    t.index ["staged"], name: "index_collection_magic_cards_on_staged"
   end
 
   create_table "collections", force: :cascade do |t|
@@ -304,6 +312,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_022656) do
   end
 
   add_foreign_key "collection_magic_cards", "collections"
+  add_foreign_key "collection_magic_cards", "collections", column: "source_collection_id"
   add_foreign_key "collection_magic_cards", "magic_cards"
   add_foreign_key "collections", "users"
   add_foreign_key "magic_card_legalities", "legalities"
