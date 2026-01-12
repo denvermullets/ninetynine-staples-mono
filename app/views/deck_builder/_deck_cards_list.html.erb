@@ -1,20 +1,82 @@
-<div class="space-y-4">
+<div class="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-4">
   <% @grouped_cards.each do |group_name, cards| %>
-    <div class="overflow-hidden border rounded-xl bg-foreground border-highlight">
-      <div class="px-4 py-3 border-b border-highlight bg-background">
-        <h3 class="font-semibold text-white">
-          <%= group_name %>
-          <span class="font-normal text-grey-text">(<%= cards.sum(&:display_quantity) %>)</span>
-        </h3>
+    <%
+      group_count = cards.sum(&:display_quantity)
+      group_value = cards.sum { |c| c.display_quantity * (c.magic_card.normal_price || 0).to_f }
+    %>
+    <div class="break-inside-avoid mb-4">
+      <!-- Group Header -->
+      <div class="flex items-center gap-2 pb-2 mb-1 border-b border-highlight">
+        <%= render partial: 'type_icon', locals: { type_name: group_name } %>
+        <span class="font-semibold text-white"><%= group_name %></span>
+        <span class="text-grey-text">(<%= group_count %>)</span>
+        <span class="text-grey-text">–</span>
+        <span class="text-grey-text"><%= number_to_currency(group_value) %></span>
       </div>
 
-      <table class="min-w-full">
-        <tbody class="divide-y divide-highlight">
-          <% cards.sort_by { |c| c.magic_card.name }.each do |card| %>
-            <%= render partial: 'card_row', locals: { card: card } %>
-          <% end %>
-        </tbody>
-      </table>
+      <!-- Card Rows -->
+      <div class="space-y-0.5">
+        <% cards.sort_by { |c| [c.magic_card.mana_value || 99, c.magic_card.name] }.each do |card| %>
+          <div class="flex items-center gap-2 py-0.5 text-sm group
+                      <%= 'text-blue-400' if card.staged? && card.from_owned_collection? %>
+                      <%= 'text-yellow-400' if card.staged? && card.planned? %>
+                      <%= 'text-orange-400' if card.needed? %>">
+            <!-- Quantity -->
+            <span class="w-4 text-right text-grey-text shrink-0"><%= card.display_quantity %></span>
+
+            <!-- Card Name -->
+            <span class="flex-1 truncate <%= card.staged? || card.needed? ? '' : 'text-white' %>">
+              <%= card.magic_card.name %>
+              <% if card.staged? && card.from_owned_collection? %>
+                <span class="text-xs opacity-75">(from <%= card.source_collection.name.truncate(15) %>)</span>
+              <% elsif card.staged? && card.planned? %>
+                <span class="text-xs opacity-75">(planned)</span>
+              <% elsif card.needed? %>
+                <span class="text-xs opacity-75">(need)</span>
+              <% end %>
+            </span>
+
+            <!-- Mana Cost -->
+            <span class="shrink-0 text-xs"><%= mana_symbols(card.magic_card.mana_cost) %></span>
+
+            <!-- Price -->
+            <span class="w-16 text-right text-grey-text shrink-0">
+              <%= number_to_currency(card.magic_card.normal_price || 0) %>
+            </span>
+
+            <!-- Actions (on hover) -->
+            <div class="hidden group-hover:flex items-center gap-1 shrink-0">
+              <% if card.staged? %>
+                <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+                    method: :delete,
+                    class: 'text-red-400 hover:text-red-300 text-xs',
+                    data: { turbo_confirm: 'Remove?' } do %>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                <% end %>
+              <% elsif card.needed? && card.available_swap?(current_user) %>
+                <%= button_to swap_card_deck_builder_path(@deck, card_id: card.id),
+                    method: :post,
+                    class: 'text-accent-50 hover:text-white text-xs' do %>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                  </svg>
+                <% end %>
+              <% elsif card.needed? %>
+                <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+                    method: :delete,
+                    class: 'text-red-400 hover:text-red-300 text-xs',
+                    data: { turbo_confirm: 'Remove?' } do %>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
     </div>
   <% end %>
 </div>
