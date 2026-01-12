@@ -1,0 +1,95 @@
+<% if current_user %>
+<!-- Import Modal -->
+<div
+  id="import-modal"
+  class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
+  onclick="if(event.target === this) this.classList.add('hidden')">
+  <div class="relative w-full max-w-md p-6 mx-4 border rounded-lg bg-foreground border-highlight">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-white">Import to Collection</h3>
+      <button
+        type="button"
+        onclick="document.getElementById('import-modal').classList.add('hidden')"
+        class="text-grey-text hover:text-white cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <%= form_with url: import_to_collection_precon_deck_path(@precon_deck), method: :post, class: "flex flex-col gap-4", data: { turbo: false }, id: "import-form" do |f| %>
+      <p class="text-sm text-grey-text">
+        Import all cards from <span class="text-white font-medium"><%= @precon_deck.name %></span> to a collection.
+      </p>
+
+      <!-- Existing Collection Selection -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-grey-text">Add to existing collection:</label>
+        <select
+          name="collection_id"
+          id="collection-select"
+          onchange="document.getElementById('new-collection-name').disabled = this.value !== ''"
+          class="w-full px-3 py-2 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-white focus:outline-none">
+          <option value="">-- Create new collection --</option>
+          <% @collections.each do |collection| %>
+            <option value="<%= collection.id %>"><%= collection.name %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <!-- New Collection Name -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-grey-text">Or create new collection named:</label>
+        <input
+          type="text"
+          name="collection_name"
+          id="new-collection-name"
+          placeholder="<%= @precon_deck.name %>"
+          class="w-full px-3 py-2 text-sm border rounded-md border-highlight bg-background text-white placeholder-grey-text focus:border-white focus:outline-none">
+      </div>
+
+      <p class="text-xs text-grey-text">
+        Note: Tokens are not included in the import. Card quantities will be added to any existing cards in the collection.
+      </p>
+
+      <!-- Validation Error -->
+      <div id="import-error" class="hidden p-3 text-sm text-red-400 bg-red-900/50 border border-red-700 rounded-md">
+        Please enter a collection name or select an existing collection.
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3 mt-2">
+        <button
+          type="button"
+          onclick="document.getElementById('import-modal').classList.add('hidden')"
+          class="px-4 py-2 text-sm border rounded-md border-highlight text-grey-text hover:bg-background cursor-pointer transition duration-300">
+          Cancel
+        </button>
+        <button
+          type="button"
+          onclick="validateAndSubmitImport()"
+          class="px-4 py-2 text-sm rounded-md bg-accent-50 text-background cursor-pointer transition duration-300">
+          Import Deck
+        </button>
+      </div>
+    <% end %>
+
+    <script>
+      function validateAndSubmitImport() {
+        const collectionId = document.getElementById('collection-select').value;
+        const collectionName = document.getElementById('new-collection-name').value.trim();
+        const errorDiv = document.getElementById('import-error');
+
+        if (!collectionId && !collectionName) {
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+
+        errorDiv.classList.add('hidden');
+        document.getElementById('import-form').submit();
+      }
+    </script>
+  </div>
+</div>
+<% end %>
