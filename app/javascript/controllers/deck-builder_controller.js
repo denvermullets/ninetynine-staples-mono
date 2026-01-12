@@ -16,6 +16,13 @@ export default class extends Controller {
 
   connect() {
     this.updateViewModeButtons();
+    this.syncGroupingFromSelect();
+  }
+
+  syncGroupingFromSelect() {
+    if (this.hasGroupingSelectTarget) {
+      this.groupingValue = this.groupingSelectTarget.value;
+    }
   }
 
   setViewMode(event) {
@@ -45,18 +52,29 @@ export default class extends Controller {
     this.refreshDeckDisplay();
   }
 
-  refreshDeckDisplay() {
+  async refreshDeckDisplay() {
     const url = new URL(window.location.href);
     url.searchParams.set("view_mode", this.viewModeValue);
     url.searchParams.set("grouping", this.groupingValue);
 
-    fetch(url, {
-      headers: { Accept: "text/vnd.turbo-stream.html" }
-    })
-      .then(response => response.text())
-      .then(html => {
-        Turbo.renderStreamMessage(html);
-        history.replaceState(null, "", url);
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: "text/vnd.turbo-stream.html",
+          "X-Requested-With": "XMLHttpRequest"
+        }
       });
+
+      if (!response.ok) {
+        console.error("Deck refresh failed:", response.status);
+        return;
+      }
+
+      const html = await response.text();
+      Turbo.renderStreamMessage(html);
+      history.replaceState(null, "", url);
+    } catch (error) {
+      console.error("Deck refresh error:", error);
+    }
   }
 }

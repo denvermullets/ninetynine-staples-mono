@@ -8,6 +8,16 @@ class DeckBuilderController < ApplicationController
     @grouping = params[:grouping] || 'type'
     @search_scope = params[:search_scope] || 'all'
     load_deck_cards
+
+    respond_to do |format|
+      format.html
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.update('deck_cards', partial: 'deck_cards'),
+          turbo_stream.update('deck_stats', partial: 'deck_stats')
+        ]
+      end
+    end
   end
 
   def search
@@ -43,8 +53,9 @@ class DeckBuilderController < ApplicationController
   def finalize
     result = DeckBuilder::Finalize.call(deck: @deck)
     if result[:success]
-      redirect_to deck_show_path(username: current_user.username, collection_id: @deck.id),
-                  notice: finalize_message(result)
+      msg = "Deck finalized! #{result[:cards_moved]} cards moved"
+      msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
+      redirect_to deck_show_path(username: current_user.username, collection_id: @deck.id), notice: msg
     else
       flash.now[:error] = result[:error]
       load_deck_cards
@@ -54,18 +65,10 @@ class DeckBuilderController < ApplicationController
 
   private
 
-  def set_deck
-    @deck = current_user.collections.find(params[:id])
-  end
+  def set_deck = @deck = current_user.collections.find(params[:id])
 
   def ensure_owner
     redirect_to root_path, alert: 'Access denied' unless @deck.user_id == current_user.id
-  end
-
-  def finalize_message(result)
-    msg = "Deck finalized! #{result[:cards_moved]} cards moved"
-    msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
-    msg
   end
 
   def load_deck_cards
@@ -86,20 +89,14 @@ class DeckBuilderController < ApplicationController
   end
 
   def render_card_action_response(result, success_message:)
-    if result[:success]
-      render_success_streams(success_message)
-    else
-      render_error_toast(result[:error])
-    end
-  end
+    return render_error_toast(result[:error]) unless result[:success]
 
-  def render_success_streams(message)
     flash.now[:type] = 'success'
     load_deck_cards
     render turbo_stream: [
-      turbo_stream.replace('deck_cards', partial: 'deck_cards'),
-      turbo_stream.replace('deck_stats', partial: 'deck_stats'),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+      turbo_stream.update('deck_cards', partial: 'deck_cards'),
+      turbo_stream.update('deck_stats', partial: 'deck_stats'),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: success_message })
     ]
   end
 

@@ -39,19 +39,22 @@
             </select>
 
             <div class="flex items-center gap-2 mt-2">
-              <div class="flex items-center gap-1">
-                <button data-action="click->add-card#decrementQuantity"
-                        class="px-2 py-0.5 text-xs border rounded border-highlight text-grey-text hover:text-white">-</button>
+              <div class="flex items-center">
+                <button type="button"
+                        data-action="click->add-card#decrementQuantity"
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition">-</button>
                 <input type="number"
                        data-add-card-target="quantityInput"
                        value="1" min="0"
-                       class="w-10 px-1 py-0.5 text-xs text-center border rounded bg-background border-highlight text-white" />
-                <button data-action="click->add-card#incrementQuantity"
-                        class="px-2 py-0.5 text-xs border rounded border-highlight text-grey-text hover:text-white">+</button>
+                       class="w-12 h-8 px-1 text-sm text-center border-y bg-background border-highlight text-white" />
+                <button type="button"
+                        data-action="click->add-card#incrementQuantity"
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition">+</button>
               </div>
-              <button data-add-card-target="addOwnedButton"
+              <button type="button"
+                      data-add-card-target="addOwnedButton"
                       data-action="click->add-card#addOwned"
-                      class="flex-1 px-2 py-1 text-xs rounded bg-accent-50 text-background font-medium hover:bg-accent-50/90">
+                      class="flex-1 px-3 py-1.5 text-xs rounded bg-accent-50 text-background font-medium hover:bg-accent-50/90 transition">
                 Add Owned
               </button>
             </div>
@@ -62,15 +65,17 @@
         <div class="mt-3 pt-3 <%= result[:owned_copies].any? ? 'border-t border-highlight' : '' %>">
           <% unless result[:owned_copies].any? %>
             <div class="flex items-center gap-2">
-              <div class="flex items-center gap-1">
-                <button data-action="click->add-card#decrementQuantity"
-                        class="px-2 py-0.5 text-xs border rounded border-highlight text-grey-text hover:text-white">-</button>
+              <div class="flex items-center">
+                <button type="button"
+                        data-action="click->add-card#decrementQuantity"
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition">-</button>
                 <input type="number"
                        data-add-card-target="quantityInput"
                        value="1" min="0" max="99"
-                       class="w-10 px-1 py-0.5 text-xs text-center border rounded bg-background border-highlight text-white" />
-                <button data-action="click->add-card#incrementQuantity"
-                        class="px-2 py-0.5 text-xs border rounded border-highlight text-grey-text hover:text-white">+</button>
+                       class="w-12 h-8 px-1 text-sm text-center border-y bg-background border-highlight text-white" />
+                <button type="button"
+                        data-action="click->add-card#incrementQuantity"
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition">+</button>
               </div>
             </div>
           <% end %>

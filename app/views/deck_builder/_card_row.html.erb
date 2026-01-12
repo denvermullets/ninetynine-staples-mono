@@ -10,30 +10,22 @@
 
   <!-- Card Info -->
   <td class="px-4 py-2">
-    <div class="flex items-center gap-3">
-      <% if card.magic_card.image_small.present? %>
-        <img src="<%= card.magic_card.image_small %>"
-             alt="<%= card.magic_card.name %>"
-             class="w-8 h-auto rounded"
-             loading="lazy" />
-      <% end %>
-      <div class="flex flex-col min-w-0">
-        <span class="font-medium text-white truncate"><%= card.magic_card.name %></span>
-        <span class="text-xs text-grey-text">
-          <% if card.staged? %>
-            <% if card.from_owned_collection? %>
-              <span class="text-blue-400">from <%= card.source_collection.name %></span>
-            <% else %>
-              <span class="text-yellow-400">Planned</span>
-            <% end %>
-          <% elsif card.needed? %>
-            <span class="text-orange-400">Need</span>
-            <% if card.available_swap?(current_user) %>
-              <span class="text-accent-50 ml-1">(available!)</span>
-            <% end %>
+    <div class="flex flex-col min-w-0">
+      <span class="font-medium text-white truncate"><%= card.magic_card.name %></span>
+      <span class="text-xs text-grey-text">
+        <% if card.staged? %>
+          <% if card.from_owned_collection? %>
+            <span class="text-blue-400">from <%= card.source_collection.name %></span>
+          <% else %>
+            <span class="text-yellow-400">Planned</span>
           <% end %>
-        </span>
-      </div>
+        <% elsif card.needed? %>
+          <span class="text-orange-400">Need</span>
+          <% if card.available_swap?(current_user) %>
+            <span class="text-accent-50 ml-1">(available!)</span>
+          <% end %>
+        <% end %>
+      </span>
     </div>
   </td>
 
