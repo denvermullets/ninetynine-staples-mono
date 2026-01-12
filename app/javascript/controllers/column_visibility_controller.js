@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus";
 // Connects to data-controller="column-visibility"
 export default class extends Controller {
   static targets = ["toggle", "error"];
-  static values = { url: String, minVisible: { type: Number, default: 1 } };
+  static values = { url: String, minVisible: { type: Number, default: 1 }, view: String };
 
   async toggle(event) {
     const checkboxes = this.element.querySelectorAll('input[type="checkbox"]');
@@ -37,7 +37,7 @@ export default class extends Controller {
           "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')
             .content,
         },
-        body: JSON.stringify({ visible_columns: visibleColumns }),
+        body: JSON.stringify({ visible_columns: visibleColumns, view: this.viewValue }),
       });
 
       if (!response.ok) {

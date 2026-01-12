@@ -53,9 +53,9 @@ module ApplicationHelper
     current_user&.role.to_i == 9001
   end
 
-  def column_visible?(column_key)
+  def column_visible?(column_key, view = nil)
     return true unless current_user
 
-    current_user.column_visible?(column_key)
+    current_user.column_visible?(column_key, view)
   end
 end

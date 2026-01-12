@@ -22,6 +22,12 @@ class SettingsController < ApplicationController
 
   def update_column_visibility
     columns = params[:visible_columns] || {}
+    view = params[:view]&.to_s
+
+    unless %w[collections boxsets].include?(view)
+      render json: { error: 'Invalid view parameter' }, status: :unprocessable_entity
+      return
+    end
 
     # Ensure at least one column remains visible
     visible_count = User::COLUMN_KEYS.count { |key| ['true', true].include?(columns[key]) }
@@ -35,7 +41,7 @@ class SettingsController < ApplicationController
       hash[key] = ['true', true].include?(columns[key])
     end
 
-    current_user.visible_columns = column_prefs
+    current_user.set_visible_columns(column_prefs, view: view)
 
     if current_user.save
       head :ok
