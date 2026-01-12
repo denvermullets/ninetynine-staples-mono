@@ -1,0 +1,73 @@
+<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+  <div class='flex flex-col mt-8 text-grey-text'>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class='text-3xl font-semibold text-white'><%= @precon_deck.name %></h1>
+        <p class="mt-1">
+          <span class="text-grey-text"><%= @precon_deck.deck_type %></span>
+          <span class="text-grey-text mx-2">|</span>
+          <span class="text-grey-text"><%= @precon_deck.release_date&.strftime('%B %d, %Y') %></span>
+          <span class="text-grey-text mx-2">|</span>
+          <span class="text-grey-text">Code: <%= @precon_deck.code %></span>
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <%= link_to 'Back to Precons', precon_decks_path, class: 'px-4 py-2 border border-highlight rounded-md text-grey-text hover:text-white hover:border-white transition duration-300' %>
+        <% if current_user %>
+          <button
+            type="button"
+            onclick="document.getElementById('import-modal').classList.remove('hidden')"
+            class="px-4 py-2 bg-accent-50 text-background rounded-md cursor-pointer transition duration-300"
+          >
+            Import to Collection
+          </button>
+        <% else %>
+          <%= link_to 'Log in to Import', login_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-md transition duration-300' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% commanders = @precon_deck.precon_deck_cards.commanders.includes(:magic_card) %>
+  <% main_board = @precon_deck.precon_deck_cards.main_board.includes(:magic_card) %>
+  <% side_board = @precon_deck.precon_deck_cards.side_board.includes(:magic_card) %>
+  <% tokens = @precon_deck.precon_deck_cards.tokens.includes(:magic_card) %>
+
+  <% if commanders.any? %>
+    <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
+      <div class="px-6 py-4 border-b border-highlight bg-background">
+        <h2 class="text-xl font-semibold text-white">Commander (<%= commanders.sum(&:quantity) %>)</h2>
+      </div>
+      <%= render partial: 'card_list', locals: { cards: commanders } %>
+    </div>
+  <% end %>
+
+  <% if main_board.any? %>
+    <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
+      <div class="px-6 py-4 border-b border-highlight bg-background">
+        <h2 class="text-xl font-semibold text-white">Main Board (<%= main_board.sum(&:quantity) %>)</h2>
+      </div>
+      <%= render partial: 'card_list', locals: { cards: main_board } %>
+    </div>
+  <% end %>
+
+  <% if side_board.any? %>
+    <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
+      <div class="px-6 py-4 border-b border-highlight bg-background">
+        <h2 class="text-xl font-semibold text-white">Sideboard (<%= side_board.sum(&:quantity) %>)</h2>
+      </div>
+      <%= render partial: 'card_list', locals: { cards: side_board } %>
+    </div>
+  <% end %>
+
+  <% if tokens.any? %>
+    <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
+      <div class="px-6 py-4 border-b border-highlight bg-background">
+        <h2 class="text-xl font-semibold text-white">Tokens (<%= tokens.sum(&:quantity) %>)</h2>
+      </div>
+      <%= render partial: 'card_list', locals: { cards: tokens } %>
+    </div>
+  <% end %>
+</div>
+
+<%= render partial: 'import_modal' %>
