@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_12_005420) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_12_022656) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -96,6 +96,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_005420) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "legalities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_legalities_on_name", unique: true
+  end
+
   create_table "magic_card_artists", force: :cascade do |t|
     t.bigint "artist_id", null: false
     t.datetime "created_at", null: false
@@ -130,6 +137,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_005420) do
     t.datetime "updated_at", null: false
     t.index ["keyword_id"], name: "index_magic_card_keywords_on_keyword_id"
     t.index ["magic_card_id"], name: "index_magic_card_keywords_on_magic_card_id"
+  end
+
+  create_table "magic_card_legalities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "legality_id", null: false
+    t.bigint "magic_card_id", null: false
+    t.string "status", null: false
+    t.datetime "updated_at", null: false
+    t.index ["legality_id"], name: "index_magic_card_legalities_on_legality_id"
+    t.index ["magic_card_id", "legality_id"], name: "index_magic_card_legalities_on_magic_card_id_and_legality_id", unique: true
+    t.index ["magic_card_id"], name: "index_magic_card_legalities_on_magic_card_id"
+    t.index ["status"], name: "index_magic_card_legalities_on_status"
   end
 
   create_table "magic_card_rulings", force: :cascade do |t|
@@ -179,6 +198,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_005420) do
     t.decimal "converted_mana_cost", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.integer "edhrec_rank"
+    t.decimal "edhrec_saltiness"
     t.string "face_name"
     t.string "flavor_text"
     t.decimal "foil_price", precision: 12, scale: 2, default: "0.0"
@@ -286,6 +306,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_005420) do
   add_foreign_key "collection_magic_cards", "collections"
   add_foreign_key "collection_magic_cards", "magic_cards"
   add_foreign_key "collections", "users"
+  add_foreign_key "magic_card_legalities", "legalities"
+  add_foreign_key "magic_card_legalities", "magic_cards"
   add_foreign_key "precon_deck_cards", "magic_cards"
   add_foreign_key "precon_deck_cards", "precon_decks"
 end

@@ -8,6 +8,7 @@
         <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text md:table-cell">Mana</th>
         <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-grey-text">Regular</th>
         <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-grey-text">Foil</th>
+        <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case lg:table-cell text-grey-text">Salt</th>
       </tr>
     </thead>
     <tbody class="bg-background" data-controller="expandable-row">
@@ -59,9 +60,14 @@
           <% else %>
             <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell"></td>
           <% end %>
+          <td class="hidden px-4 py-2 text-sm whitespace-nowrap lg:table-cell">
+            <% if card.edhrec_saltiness.present? %>
+              <%= number_with_precision(card.edhrec_saltiness, precision: 2) %>
+            <% end %>
+          </td>
         </tr>
         <tr data-expandable-row-target="content" data-card-id="<%= card.id %>" class="hidden border border-background">
-          <td colspan="6">
+          <td colspan="7">
             <%= turbo_frame_tag "card_details_#{card.id}", src: boxset_magic_card_path(card.id), loading: :lazy %>
           </td>
         </tr>
