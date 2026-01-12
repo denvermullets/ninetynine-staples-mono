@@ -21,7 +21,7 @@ class User < ApplicationRecord
     'mana' => true,
     'regular_price' => true,
     'foil_price' => true,
-    'salt' => true
+    'salt' => false
   }.freeze
 
   DEFAULT_PREFERENCES = {
