@@ -5,7 +5,8 @@ export default class extends Controller {
   static targets = [
     "viewModeList",
     "viewModeCard",
-    "groupingSelect"
+    "groupingSelect",
+    "cardPreview"
   ];
 
   static values = {
@@ -50,6 +51,16 @@ export default class extends Controller {
   changeGrouping(event) {
     this.groupingValue = event.target.value;
     this.refreshDeckDisplay();
+  }
+
+  previewCard(event) {
+    if (!this.hasCardPreviewTarget) return;
+
+    const imageUrl = event.currentTarget.dataset.cardImage;
+    if (imageUrl) {
+      this.cardPreviewTarget.src = imageUrl;
+      this.cardPreviewTarget.classList.remove("hidden");
+    }
   }
 
   async refreshDeckDisplay() {

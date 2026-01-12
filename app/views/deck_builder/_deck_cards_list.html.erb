@@ -8,31 +8,39 @@
       <!-- Group Header -->
       <div class="flex items-center gap-2 pb-2 mb-1 border-b border-highlight">
         <%= render partial: 'type_icon', locals: { type_name: group_name } %>
-        <span class="font-semibold text-white"><%= group_name %></span>
+        <span class="font-semibold text-grey-text"><%= group_name %></span>
         <span class="text-grey-text">(<%= group_count %>)</span>
-        <span class="text-grey-text">–</span>
-        <span class="text-grey-text"><%= number_to_currency(group_value) %></span>
+        <span class="text-grey-text/50">–</span>
+        <span class="text-grey-text/75"><%= number_to_currency(group_value) %></span>
       </div>
 
       <!-- Card Rows -->
       <div class="space-y-0.5">
         <% cards.sort_by { |c| [c.magic_card.mana_value || 99, c.magic_card.name] }.each do |card| %>
-          <div class="flex items-center gap-2 py-0.5 text-sm group
-                      <%= 'text-blue-400' if card.staged? && card.from_owned_collection? %>
-                      <%= 'text-yellow-400' if card.staged? && card.planned? %>
-                      <%= 'text-orange-400' if card.needed? %>">
+          <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer"
+               data-action="mouseenter->deck-builder#previewCard"
+               data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>">
             <!-- Quantity -->
-            <span class="w-4 text-right text-grey-text shrink-0"><%= card.display_quantity %></span>
+            <span class="w-4 text-right text-grey-text/75 shrink-0"><%= card.display_quantity %></span>
 
             <!-- Card Name -->
-            <span class="flex-1 truncate <%= card.staged? || card.needed? ? '' : 'text-white' %>">
+            <span class="flex-1 truncate font-medium
+                        <%= if card.staged? && card.from_owned_collection?
+                              'text-blue-400'
+                            elsif card.staged? && card.planned?
+                              'text-yellow-400'
+                            elsif card.needed?
+                              'text-orange-400'
+                            else
+                              'text-grey-text'
+                            end %>">
               <%= card.magic_card.name %>
               <% if card.staged? && card.from_owned_collection? %>
-                <span class="text-xs opacity-75">(from <%= card.source_collection.name.truncate(15) %>)</span>
+                <span class="text-xs font-normal opacity-75">(from <%= card.source_collection.name.truncate(15) %>)</span>
               <% elsif card.staged? && card.planned? %>
-                <span class="text-xs opacity-75">(planned)</span>
+                <span class="text-xs font-normal opacity-75">(planned)</span>
               <% elsif card.needed? %>
-                <span class="text-xs opacity-75">(need)</span>
+                <span class="text-xs font-normal opacity-75">(need)</span>
               <% end %>
             </span>
 
@@ -40,7 +48,7 @@
             <span class="shrink-0 text-xs"><%= mana_symbols(card.magic_card.mana_cost) %></span>
 
             <!-- Price -->
-            <span class="w-16 text-right text-grey-text shrink-0">
+            <span class="w-16 text-right text-grey-text/75 shrink-0">
               <%= number_to_currency(card.magic_card.normal_price || 0) %>
             </span>
 
