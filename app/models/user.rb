@@ -67,8 +67,6 @@ class User < ApplicationRecord
     case view&.to_s
     when 'boxsets'
       'visible_columns_boxsets'
-    when 'collections'
-      'visible_columns_collections'
     else
       'visible_columns_collections'
     end
