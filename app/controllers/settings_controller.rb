@@ -21,26 +21,34 @@ class SettingsController < ApplicationController
   end
 
   def update_column_visibility
+    view = params[:view]&.to_s
+    return render_invalid_view unless valid_view?(view)
+
+    column_prefs = build_column_prefs
+    return render_minimum_columns_error if column_prefs.values.count(true) < 1
+
+    current_user.set_visible_columns(column_prefs, view: view)
+    current_user.save ? head(:ok) : head(:unprocessable_entity)
+  end
+
+  private
+
+  def valid_view?(view)
+    %w[collections boxsets].include?(view)
+  end
+
+  def render_invalid_view
+    render json: { error: 'Invalid view parameter' }, status: :unprocessable_entity
+  end
+
+  def render_minimum_columns_error
+    render json: { error: 'At least one column must remain visible' }, status: :unprocessable_entity
+  end
+
+  def build_column_prefs
     columns = params[:visible_columns] || {}
-
-    # Ensure at least one column remains visible
-    visible_count = User::COLUMN_KEYS.count { |key| ['true', true].include?(columns[key]) }
-
-    if visible_count < 1
-      render json: { error: 'At least one column must remain visible' }, status: :unprocessable_entity
-      return
-    end
-
-    column_prefs = User::COLUMN_KEYS.each_with_object({}) do |key, hash|
+    User::COLUMN_KEYS.each_with_object({}) do |key, hash|
       hash[key] = ['true', true].include?(columns[key])
-    end
-
-    current_user.visible_columns = column_prefs
-
-    if current_user.save
-      head :ok
-    else
-      head :unprocessable_entity
     end
   end
 end

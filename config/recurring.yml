@@ -9,31 +9,31 @@
 #     priority: 2
 #     schedule: at 5am every day
 
-development:
-  periodic_cleanup:
-    command: "SolidQueue::Job.clear_finished_in_batches"
-    queue: background
-    schedule: at 10am every Sunday
-  ingest_prices:
-    queue: background
-    class: IngestPrices
-    schedule: at 5am every day
-  record_collection_history:
-    queue: background
-    class: RecordCollectionHistory
-    schedule: at 11pm every day
-  record_boxset_value_history:
-    queue: background
-    class: RecordBoxsetValueHistory
-    schedule: at 11:15pm every day
-  ingest_cards:
-    queue: background
-    class: IngestSets
-    schedule: at 12am every Saturday
-  ingest_decks:
-    queue: background
-    class: IngestPreconDecks
-    schedule: at 12am every Sunday
+# development:
+#   periodic_cleanup:
+#     command: "SolidQueue::Job.clear_finished_in_batches"
+#     queue: background
+#     schedule: at 10am every Sunday
+#   ingest_prices:
+#     queue: background
+#     class: IngestPrices
+#     schedule: at 5am every day
+#   record_collection_history:
+#     queue: background
+#     class: RecordCollectionHistory
+#     schedule: at 11pm every day
+#   record_boxset_value_history:
+#     queue: background
+#     class: RecordBoxsetValueHistory
+#     schedule: at 11:15pm every day
+#   ingest_cards:
+#     queue: background
+#     class: IngestSets
+#     schedule: at 12am every Saturday
+#   ingest_decks:
+#     queue: background
+#     class: IngestPreconDecks
+#     schedule: at 12am every Sunday
 
 production:
   periodic_cleanup:
