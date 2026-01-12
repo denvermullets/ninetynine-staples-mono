@@ -56,3 +56,7 @@ production:
     queue: background
     class: IngestSets
     schedule: at 12am every Saturday
+  ingest_decks:
+    queue: background
+    class: IngestPreconDecks
+    schedule: at 12am every Sunday
