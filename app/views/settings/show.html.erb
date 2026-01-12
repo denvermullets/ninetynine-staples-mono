@@ -1,25 +1,20 @@
 <div class='flex items-start justify-center w-full min-h-screen py-8 px-4'>
   <div class='w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl text-grey-text'>
     <h1 class='mb-6 text-xl font-bold text-center'>Settings</h1>
-
     <div class='space-y-8'>
       <!-- Collection Order Section -->
       <section>
         <h2 class='mb-4 text-lg font-semibold'>Collection Order</h2>
         <p class='mb-4 text-sm'>Use the arrows to reorder your collections. This order will be used in the sidebar and dropdowns.</p>
-
         <%= turbo_frame_tag "collection_list" do %>
           <%= render partial: 'collection_list', locals: { collections: @collections } %>
         <% end %>
       </section>
-
       <hr class='border-highlight'>
-
       <!-- Collections Column Visibility Section -->
       <section>
         <h2 class='mb-4 text-lg font-semibold'>Collections Table Columns</h2>
         <p class='mb-4 text-sm'>Choose which columns to display in collection tables. At least one column must remain visible.</p>
-
         <div data-controller="column-visibility"
              data-column-visibility-url-value="<%= update_column_visibility_path %>"
              data-column-visibility-view-value="collections"
@@ -39,8 +34,8 @@
                      data-column-key="<%= key %>">
                 <input type="checkbox"
                        data-action="change->column-visibility#toggle"
-                       <%= 'checked' if current_user.column_visible?(key, 'collections') %>
-                       class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+                <%= 'checked' if current_user.column_visible?(key, 'collections') %>
+                class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
                 <span><%= label %></span>
               </label>
             <% end %>
@@ -50,14 +45,11 @@
           </p>
         </div>
       </section>
-
       <hr class='border-highlight'>
-
       <!-- Box Sets Column Visibility Section -->
       <section>
-        <h2 class='mb-4 text-lg font-semibold'>Box Sets Table Columns</h2>
+        <h2 class='mb-4 text-lg font-semibold'>Boxsets Table Columns</h2>
         <p class='mb-4 text-sm'>Choose which columns to display in box set tables. At least one column must remain visible.</p>
-
         <div data-controller="column-visibility"
              data-column-visibility-url-value="<%= update_column_visibility_path %>"
              data-column-visibility-view-value="boxsets"
@@ -77,8 +69,8 @@
                      data-column-key="<%= key %>">
                 <input type="checkbox"
                        data-action="change->column-visibility#toggle"
-                       <%= 'checked' if current_user.column_visible?(key, 'boxsets') %>
-                       class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+                <%= 'checked' if current_user.column_visible?(key, 'boxsets') %>
+                class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
                 <span><%= label %></span>
               </label>
             <% end %>
