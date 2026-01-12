@@ -1,4 +1,6 @@
 class CollectionMagicCard < ApplicationRecord
+  BOARD_TYPES = %w[mainboard sideboard commander].freeze
+
   belongs_to :collection
   belongs_to :magic_card
   belongs_to :source_collection, class_name: 'Collection', optional: true
@@ -8,10 +10,16 @@ class CollectionMagicCard < ApplicationRecord
             numericality: { greater_than_or_equal_to: 0 }
   validates :staged_quantity, :staged_foil_quantity,
             numericality: { greater_than_or_equal_to: 0 }
+  validates :board_type, inclusion: { in: BOARD_TYPES }, allow_nil: true
 
   # Scopes
   scope :with_proxies, -> { where('proxy_quantity > 0 OR proxy_foil_quantity > 0') }
   scope :real_only, -> { where(proxy_quantity: 0, proxy_foil_quantity: 0) }
+
+  # Board type scopes
+  scope :commanders, -> { where(board_type: 'commander') }
+  scope :mainboard, -> { where(board_type: 'mainboard') }
+  scope :sideboard, -> { where(board_type: 'sideboard') }
 
   # Build mode scopes
   scope :staged, -> { where(staged: true) }
@@ -61,5 +69,9 @@ class CollectionMagicCard < ApplicationRecord
 
   def available_swap?(user)
     needed? && magic_card.user_owned_copies(user).any?
+  end
+
+  def commander?
+    board_type == 'commander'
   end
 end

@@ -9,7 +9,11 @@ class Collection < ApplicationRecord
 
   scope :by_user, ->(id) { where(user_id: id) }
   scope :by_type, ->(type) { where(collection_type: type) }
-  scope :decks, -> { where(collection_type: 'deck') }
+  scope :decks, -> { where('collection_type = ? OR collection_type LIKE ?', 'deck', '%_deck') }
+
+  def self.deck_type?(type)
+    type == 'deck' || type&.end_with?('_deck')
+  end
 
   # Helper methods for proxy tracking
   def total_estimated_value
@@ -49,6 +53,14 @@ class Collection < ApplicationRecord
 
   def owned_cards_count
     total_quantity + total_foil_quantity
+  end
+
+  def commanders
+    collection_magic_cards.commanders.includes(:magic_card)
+  end
+
+  def commander_deck?
+    collection_type == 'commander_deck'
   end
 
   # Aggregate collection history across multiple collections

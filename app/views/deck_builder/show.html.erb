@@ -33,14 +33,21 @@
     <!-- Sidebar: Card Preview + Search -->
     <div class="w-full md:w-80 shrink-0 space-y-4">
       <!-- Card Preview (desktop only) -->
-      <% first_card = @grouped_cards.values.flatten.first&.magic_card %>
+      <%
+        # Show commander first if this is a commander deck, otherwise first card
+        preview_card = if @deck.commander_deck? && @deck.commanders.any?
+                         @deck.commanders.first.magic_card
+                       else
+                         @grouped_cards.values.flatten.first&.magic_card
+                       end
+      %>
       <div class="hidden md:block">
         <div class="overflow-hidden border rounded-xl bg-foreground border-highlight">
           <img data-deck-builder-target="cardPreview"
-               src="<%= first_card&.image_large || first_card&.image_medium || '' %>"
+               src="<%= preview_card&.image_large || preview_card&.image_medium || '' %>"
                alt="Card preview"
-               class="w-full rounded-lg <%= 'hidden' unless first_card %>" />
-          <% unless first_card %>
+               class="w-full rounded-lg <%= 'hidden' unless preview_card %>" />
+          <% unless preview_card %>
             <div class="flex items-center justify-center h-64 text-grey-text">
               <span>Add cards to preview</span>
             </div>
