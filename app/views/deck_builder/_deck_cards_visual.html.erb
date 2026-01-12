@@ -6,7 +6,7 @@
       </h3>
 
       <div class="relative" data-controller="card-stack">
-        <% cards.sort_by { |c| c.magic_card.name }.each_with_index do |card, index| %>
+        <% cards.each_with_index do |card, index| %>
           <div data-card-stack-target="card"
                data-image-large="<%= card.magic_card.image_large %>"
                data-action="mouseenter->card-stack#showPreview mouseleave->card-stack#hidePreview"

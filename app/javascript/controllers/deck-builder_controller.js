@@ -2,22 +2,26 @@ import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="deck-builder"
 export default class extends Controller {
-  static targets = ["viewModeList", "viewModeCard", "groupingSelect", "cardPreview"];
+  static targets = ["viewModeList", "viewModeCard", "groupingSelect", "sortBySelect", "cardPreview", "cardPreviewName"];
 
   static values = {
     deckId: Number,
     viewMode: { type: String, default: "list" },
     grouping: { type: String, default: "type" },
+    sortBy: { type: String, default: "mana_value" },
   };
 
   connect() {
     this.updateViewModeButtons();
-    this.syncGroupingFromSelect();
+    this.syncSelectsFromValues();
   }
 
-  syncGroupingFromSelect() {
+  syncSelectsFromValues() {
     if (this.hasGroupingSelectTarget) {
       this.groupingValue = this.groupingSelectTarget.value;
+    }
+    if (this.hasSortBySelectTarget) {
+      this.sortByValue = this.sortBySelectTarget.value;
     }
   }
 
@@ -48,13 +52,22 @@ export default class extends Controller {
     this.refreshDeckDisplay();
   }
 
-  previewCard(event) {
-    if (!this.hasCardPreviewTarget) return;
+  changeSortBy(event) {
+    this.sortByValue = event.target.value;
+    this.refreshDeckDisplay();
+  }
 
+  previewCard(event) {
     const imageUrl = event.currentTarget.dataset.cardImage;
-    if (imageUrl) {
+    const cardName = event.currentTarget.dataset.cardName;
+
+    if (this.hasCardPreviewTarget && imageUrl) {
       this.cardPreviewTarget.src = imageUrl;
       this.cardPreviewTarget.classList.remove("hidden");
+    }
+
+    if (this.hasCardPreviewNameTarget && cardName) {
+      this.cardPreviewNameTarget.textContent = cardName;
     }
   }
 
@@ -62,6 +75,7 @@ export default class extends Controller {
     const url = new URL(window.location.href);
     url.searchParams.set("view_mode", this.viewModeValue);
     url.searchParams.set("grouping", this.groupingValue);
+    url.searchParams.set("sort_by", this.sortByValue);
 
     try {
       const response = await fetch(url, {

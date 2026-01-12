@@ -6,6 +6,7 @@ class DeckBuilderController < ApplicationController
   def show
     @view_mode = params[:view_mode] || 'list'
     @grouping = params[:grouping] || 'type'
+    @sort_by = params[:sort_by] || 'mana_value'
     @search_scope = params[:search_scope] || 'all'
     load_deck_cards
 
@@ -78,7 +79,7 @@ class DeckBuilderController < ApplicationController
     @needed_cards = all_cards.needed
     @owned_cards = all_cards.finalized.owned
     cards_to_group = @staged_cards + @needed_cards + @owned_cards
-    @grouped_cards = DeckBuilder::GroupCards.call(cards: cards_to_group, grouping: @grouping)
+    @grouped_cards = DeckBuilder::GroupCards.call(cards: cards_to_group, grouping: @grouping, sort_by: @sort_by)
     @stats = build_stats(cards_to_group)
   end
 

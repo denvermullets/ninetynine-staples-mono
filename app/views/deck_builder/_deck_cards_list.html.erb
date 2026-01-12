@@ -16,15 +16,16 @@
 
       <!-- Card Rows -->
       <div class="space-y-0.5">
-        <% cards.sort_by { |c| [c.magic_card.mana_value || 99, c.magic_card.name] }.each do |card| %>
+        <% cards.each do |card| %>
           <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer"
                data-action="mouseenter->deck-builder#previewCard"
-               data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>">
+               data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
+               data-card-name="<%= card.magic_card.name %>">
             <!-- Quantity -->
             <span class="w-4 text-right text-grey-text/75 shrink-0"><%= card.display_quantity %></span>
 
             <!-- Card Name -->
-            <span class="flex-1 truncate font-medium
+            <span class="flex-1 truncate font-medium group-hover:font-bold transition-all
                         <%= if card.staged? && card.from_owned_collection?
                               'text-blue-400'
                             elsif card.staged? && card.planned?
@@ -44,8 +45,19 @@
               <% end %>
             </span>
 
+            <!-- Sort Value (EDHREC/Salt) -->
+            <% if @sort_by == 'edhrec' %>
+              <span class="w-14 text-right shrink-0 text-xs text-grey-text/50">
+                <%= card.magic_card.edhrec_rank ? "##{number_with_delimiter(card.magic_card.edhrec_rank)}" : '-' %>
+              </span>
+            <% elsif @sort_by == 'salt' %>
+              <span class="w-10 text-right shrink-0 text-xs text-grey-text/50">
+                <%= card.magic_card.edhrec_saltiness ? format('%.2f', card.magic_card.edhrec_saltiness.to_f) : '-' %>
+              </span>
+            <% end %>
+
             <!-- Mana Cost -->
-            <span class="shrink-0 text-xs"><%= mana_symbols(card.magic_card.mana_cost) %></span>
+            <span class="w-20 shrink-0 text-xs text-right"><%= mana_symbols(card.magic_card.mana_cost) %></span>
 
             <!-- Price -->
             <span class="w-16 text-right text-grey-text/75 shrink-0">

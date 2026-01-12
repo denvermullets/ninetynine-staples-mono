@@ -2,7 +2,8 @@
      data-controller="deck-builder"
      data-deck-builder-deck-id-value="<%= @deck.id %>"
      data-deck-builder-view-mode-value="<%= @view_mode %>"
-     data-deck-builder-grouping-value="<%= @grouping %>">
+     data-deck-builder-grouping-value="<%= @grouping %>"
+     data-deck-builder-sort-by-value="<%= @sort_by %>">
 
   <!-- Header -->
   <div class="px-4 py-4 border-b md:px-12 border-highlight bg-foreground">
@@ -46,12 +47,17 @@
           <img data-deck-builder-target="cardPreview"
                src="<%= preview_card&.image_large || preview_card&.image_medium || '' %>"
                alt="Card preview"
-               class="w-full rounded-lg <%= 'hidden' unless preview_card %>" />
+               class="w-full rounded-t-lg <%= 'hidden' unless preview_card %>" />
           <% unless preview_card %>
             <div class="flex items-center justify-center h-64 text-grey-text">
               <span>Add cards to preview</span>
             </div>
           <% end %>
+          <div class="px-3 py-2 text-center">
+            <span data-deck-builder-target="cardPreviewName" class="text-sm font-medium text-grey-text">
+              <%= preview_card&.name || '' %>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -98,6 +104,21 @@
             <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>Rarity</option>
             <option value="set" <%= 'selected' if @grouping == 'set' %>>Set</option>
             <option value="none" <%= 'selected' if @grouping == 'none' %>>None</option>
+          </select>
+        </div>
+
+        <!-- Sort Selector -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-grey-text">Sort:</span>
+          <select data-deck-builder-target="sortBySelect"
+                  data-action="change->deck-builder#changeSortBy"
+                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none">
+            <option value="name" <%= 'selected' if @sort_by == 'name' %>>Name</option>
+            <option value="mana_value" <%= 'selected' if @sort_by == 'mana_value' %>>Mana Value</option>
+            <option value="price" <%= 'selected' if @sort_by == 'price' %>>Price</option>
+            <option value="rarity" <%= 'selected' if @sort_by == 'rarity' %>>Rarity</option>
+            <option value="edhrec" <%= 'selected' if @sort_by == 'edhrec' %>>EDHREC</option>
+            <option value="salt" <%= 'selected' if @sort_by == 'salt' %>>Salt</option>
           </select>
         </div>
 

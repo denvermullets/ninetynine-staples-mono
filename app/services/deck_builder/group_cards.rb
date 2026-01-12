@@ -1,21 +1,37 @@
 module DeckBuilder
   class GroupCards < Service
     GROUPING_OPTIONS = %w[type mana_value color color_identity rarity set none].freeze
+    SORT_OPTIONS = %w[name mana_value price rarity edhrec salt].freeze
 
     TYPE_ORDER = %w[
       Creature Planeswalker Instant Sorcery Artifact Enchantment Land Battle Other
     ].freeze
 
-    def initialize(cards:, grouping: 'type')
+    RARITY_ORDER = %w[mythic rare uncommon common].freeze
+
+    def initialize(cards:, grouping: 'type', sort_by: 'mana_value')
       @cards = cards
       @grouping = GROUPING_OPTIONS.include?(grouping) ? grouping : 'type'
+      @sort_by = SORT_OPTIONS.include?(sort_by) ? sort_by : 'mana_value'
     end
 
     def call
       return {} if @cards.empty?
 
-      grouped = @cards.group_by { |card| group_key(card) }
-      sort_groups(grouped)
+      # Extract commanders first - they always get their own section
+      commanders, other_cards = @cards.partition { |c| c.board_type == 'commander' }
+
+      result = {}
+      result['Commander'] = sort_cards(commanders) if commanders.any?
+
+      # Group remaining cards
+      grouped = other_cards.group_by { |card| group_key(card) }
+      sorted_groups = sort_groups(grouped)
+
+      # Sort cards within each group and merge
+      sorted_groups.each { |group_name, cards| result[group_name] = sort_cards(cards) }
+
+      result
     end
 
     private
@@ -69,6 +85,28 @@ module DeckBuilder
         ->(k) { k == 'X' ? 999 : k.to_i }
       else
         lambda(&:to_s)
+      end
+    end
+
+    def sort_cards(cards)
+      cards.sort_by { |c| card_sort_key(c) }
+    end
+
+    def card_sort_key(card)
+      magic_card = card.magic_card
+      name = magic_card.name.downcase
+
+      sort_key_for(magic_card, name)
+    end
+
+    def sort_key_for(magic_card, name)
+      case @sort_by
+      when 'mana_value' then [magic_card.mana_value || 99, name]
+      when 'price' then [(magic_card.normal_price || 0).to_f, name]
+      when 'rarity' then [RARITY_ORDER.index(magic_card.rarity) || 99, name]
+      when 'edhrec' then [magic_card.edhrec_rank || 999_999, name]
+      when 'salt' then [-(magic_card.edhrec_saltiness || 0).to_f, name]
+      else name
       end
     end
   end
