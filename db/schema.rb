@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_12_022656) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -96,6 +96,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "legalities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_legalities_on_name", unique: true
+  end
+
   create_table "magic_card_artists", force: :cascade do |t|
     t.bigint "artist_id", null: false
     t.datetime "created_at", null: false
@@ -130,6 +137,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
     t.datetime "updated_at", null: false
     t.index ["keyword_id"], name: "index_magic_card_keywords_on_keyword_id"
     t.index ["magic_card_id"], name: "index_magic_card_keywords_on_magic_card_id"
+  end
+
+  create_table "magic_card_legalities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "legality_id", null: false
+    t.bigint "magic_card_id", null: false
+    t.string "status", null: false
+    t.datetime "updated_at", null: false
+    t.index ["legality_id"], name: "index_magic_card_legalities_on_legality_id"
+    t.index ["magic_card_id", "legality_id"], name: "index_magic_card_legalities_on_magic_card_id_and_legality_id", unique: true
+    t.index ["magic_card_id"], name: "index_magic_card_legalities_on_magic_card_id"
+    t.index ["status"], name: "index_magic_card_legalities_on_status"
   end
 
   create_table "magic_card_rulings", force: :cascade do |t|
@@ -179,6 +198,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
     t.decimal "converted_mana_cost", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.integer "edhrec_rank"
+    t.decimal "edhrec_saltiness"
     t.string "face_name"
     t.string "flavor_text"
     t.decimal "foil_price", precision: 12, scale: 2, default: "0.0"
@@ -191,6 +211,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
     t.string "image_small"
     t.datetime "image_updated_at"
     t.boolean "is_reprint"
+    t.boolean "is_token", default: false, null: false
     t.string "mana_cost"
     t.decimal "mana_value", precision: 10, scale: 2
     t.string "name"
@@ -209,6 +230,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
     t.index ["boxset_id"], name: "index_magic_cards_on_boxset_id"
     t.index ["price_change_weekly_foil"], name: "index_magic_cards_on_price_change_weekly_foil"
     t.index ["price_change_weekly_normal"], name: "index_magic_cards_on_price_change_weekly_normal"
+  end
+
+  create_table "precon_deck_cards", force: :cascade do |t|
+    t.string "board_type", null: false
+    t.datetime "created_at", null: false
+    t.boolean "is_foil", default: false
+    t.bigint "magic_card_id", null: false
+    t.bigint "precon_deck_id", null: false
+    t.integer "quantity", default: 1
+    t.datetime "updated_at", null: false
+    t.index ["magic_card_id"], name: "index_precon_deck_cards_on_magic_card_id"
+    t.index ["precon_deck_id", "magic_card_id", "board_type"], name: "idx_precon_deck_cards_unique", unique: true
+    t.index ["precon_deck_id"], name: "index_precon_deck_cards_on_precon_deck_id"
+  end
+
+  create_table "precon_decks", force: :cascade do |t|
+    t.boolean "cards_ingested", default: false
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.string "deck_type"
+    t.string "file_name", null: false
+    t.string "name", null: false
+    t.date "release_date"
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_precon_decks_on_code"
+    t.index ["deck_type"], name: "index_precon_decks_on_deck_type"
+    t.index ["file_name"], name: "index_precon_decks_on_file_name", unique: true
   end
 
   create_table "printings", force: :cascade do |t|
@@ -258,4 +306,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_202448) do
   add_foreign_key "collection_magic_cards", "collections"
   add_foreign_key "collection_magic_cards", "magic_cards"
   add_foreign_key "collections", "users"
+  add_foreign_key "magic_card_legalities", "legalities"
+  add_foreign_key "magic_card_legalities", "magic_cards"
+  add_foreign_key "precon_deck_cards", "magic_cards"
+  add_foreign_key "precon_deck_cards", "precon_decks"
 end

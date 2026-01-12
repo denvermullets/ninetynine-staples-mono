@@ -32,6 +32,9 @@ class MagicCard < ApplicationRecord
   has_many :magic_card_keywords
   has_many :keywords, through: :magic_card_keywords
 
+  has_many :magic_card_legalities, dependent: :destroy
+  has_many :legalities, through: :magic_card_legalities
+
   def other_face
     return nil unless other_face_uuid.present?
 
