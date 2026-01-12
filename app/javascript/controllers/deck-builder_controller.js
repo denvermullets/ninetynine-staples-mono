@@ -2,17 +2,12 @@ import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="deck-builder"
 export default class extends Controller {
-  static targets = [
-    "viewModeList",
-    "viewModeCard",
-    "groupingSelect",
-    "cardPreview"
-  ];
+  static targets = ["viewModeList", "viewModeCard", "groupingSelect", "cardPreview"];
 
   static values = {
     deckId: Number,
     viewMode: { type: String, default: "list" },
-    grouping: { type: String, default: "type" }
+    grouping: { type: String, default: "type" },
   };
 
   connect() {
@@ -72,8 +67,8 @@ export default class extends Controller {
       const response = await fetch(url, {
         headers: {
           Accept: "text/vnd.turbo-stream.html",
-          "X-Requested-With": "XMLHttpRequest"
-        }
+          "X-Requested-With": "XMLHttpRequest",
+        },
       });
 
       if (!response.ok) {

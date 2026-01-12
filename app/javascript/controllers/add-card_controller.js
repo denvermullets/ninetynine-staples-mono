@@ -7,12 +7,12 @@ export default class extends Controller {
     "quantityInput",
     "foilQuantityInput",
     "addOwnedButton",
-    "addPlannedButton"
+    "addPlannedButton",
   ];
 
   static values = {
     deckId: Number,
-    cardId: Number
+    cardId: Number,
   };
 
   connect() {
@@ -118,9 +118,9 @@ export default class extends Controller {
         method: "POST",
         headers: {
           "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
-          Accept: "text/vnd.turbo-stream.html"
+          Accept: "text/vnd.turbo-stream.html",
         },
-        body: formData
+        body: formData,
       });
 
       const html = await response.text();

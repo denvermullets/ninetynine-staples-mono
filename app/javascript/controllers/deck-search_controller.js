@@ -7,7 +7,7 @@ export default class extends Controller {
   static values = {
     deckId: Number,
     scope: { type: String, default: "all" },
-    debounceMs: { type: Number, default: 300 }
+    debounceMs: { type: Number, default: 300 },
   };
 
   connect() {
@@ -45,9 +45,11 @@ export default class extends Controller {
 
     try {
       const response = await fetch(
-        `/deck-builder/${this.deckIdValue}/search?q=${encodeURIComponent(query)}&scope=${this.scopeValue}`,
+        `/deck-builder/${this.deckIdValue}/search?q=${encodeURIComponent(query)}&scope=${
+          this.scopeValue
+        }`,
         {
-          headers: { Accept: "text/html" }
+          headers: { Accept: "text/html" },
         }
       );
 

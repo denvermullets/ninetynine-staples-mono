@@ -31,7 +31,7 @@ export default class extends Controller {
 
       // restore selection state from URL params
       // handle both array params (?rarity[]=a&rarity[]=b) and comma-separated (?rarity[]=a,b)
-      const paramValues = urlParams.getAll(`${group}[]`).flatMap(v => v.split(','));
+      const paramValues = urlParams.getAll(`${group}[]`).flatMap((v) => v.split(","));
       if (paramValues.includes(value)) {
         this.selected[group].add(value);
         item.dataset.selected = "";
@@ -80,11 +80,11 @@ export default class extends Controller {
       item.dataset.selected = "";
     }
 
-    console.log(`After toggle: setSize=${groupSet.size}, values=${Array.from(groupSet).join(',')}`);
+    console.log(`After toggle: setSize=${groupSet.size}, values=${Array.from(groupSet).join(",")}`);
 
     // clear URL params to prevent Turbo from merging them with form submission
     const cleanUrl = window.location.pathname;
-    history.replaceState(null, '', cleanUrl);
+    history.replaceState(null, "", cleanUrl);
 
     // resyncs form input representation with internal state
     this.updateHiddenFields();
@@ -99,7 +99,7 @@ export default class extends Controller {
     // also remove any existing hidden fields for our groups from the entire form
     for (const group in this.selected) {
       const existingFields = this.form.querySelectorAll(`input[type="hidden"][name="${group}[]"]`);
-      existingFields.forEach(field => {
+      existingFields.forEach((field) => {
         if (field.parentElement !== this.hiddenFieldsContainer) {
           field.remove();
           console.log(`Removed existing hidden field: ${group}[]`);
@@ -115,9 +115,9 @@ export default class extends Controller {
         const input = document.createElement("input");
         input.type = "hidden";
         input.name = `${group}[]`;
-        input.value = values.join(',');
+        input.value = values.join(",");
         this.hiddenFieldsContainer.appendChild(input);
-        console.log(`Hidden field created: ${group}[]=${values.join(',')}`);
+        console.log(`Hidden field created: ${group}[]=${values.join(",")}`);
       } else {
         console.log(`No hidden field for ${group} (empty)`);
       }

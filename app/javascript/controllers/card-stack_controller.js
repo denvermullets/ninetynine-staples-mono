@@ -5,7 +5,7 @@ export default class extends Controller {
   static targets = ["card", "hoverPreview"];
 
   static values = {
-    stackOffset: { type: Number, default: 80 }
+    stackOffset: { type: Number, default: 80 },
   };
 
   connect() {
