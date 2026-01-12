@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_11_220129) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_12_005420) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -212,6 +212,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_11_220129) do
     t.index ["price_change_weekly_normal"], name: "index_magic_cards_on_price_change_weekly_normal"
   end
 
+  create_table "precon_deck_cards", force: :cascade do |t|
+    t.string "board_type", null: false
+    t.datetime "created_at", null: false
+    t.boolean "is_foil", default: false
+    t.bigint "magic_card_id", null: false
+    t.bigint "precon_deck_id", null: false
+    t.integer "quantity", default: 1
+    t.datetime "updated_at", null: false
+    t.index ["magic_card_id"], name: "index_precon_deck_cards_on_magic_card_id"
+    t.index ["precon_deck_id", "magic_card_id", "board_type"], name: "idx_precon_deck_cards_unique", unique: true
+    t.index ["precon_deck_id"], name: "index_precon_deck_cards_on_precon_deck_id"
+  end
+
+  create_table "precon_decks", force: :cascade do |t|
+    t.boolean "cards_ingested", default: false
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.string "deck_type"
+    t.string "file_name", null: false
+    t.string "name", null: false
+    t.date "release_date"
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_precon_decks_on_code"
+    t.index ["deck_type"], name: "index_precon_decks_on_deck_type"
+    t.index ["file_name"], name: "index_precon_decks_on_file_name", unique: true
+  end
+
   create_table "printings", force: :cascade do |t|
     t.string "boxset_code"
     t.datetime "created_at", null: false
@@ -259,4 +286,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_11_220129) do
   add_foreign_key "collection_magic_cards", "collections"
   add_foreign_key "collection_magic_cards", "magic_cards"
   add_foreign_key "collections", "users"
+  add_foreign_key "precon_deck_cards", "magic_cards"
+  add_foreign_key "precon_deck_cards", "precon_decks"
 end
