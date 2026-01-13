@@ -59,6 +59,8 @@ module DeckBuilder
         collection_name: cmc.collection.name,
         quantity: cmc.quantity,
         foil_quantity: cmc.foil_quantity,
+        proxy_quantity: cmc.proxy_quantity || 0,
+        proxy_foil_quantity: cmc.proxy_foil_quantity || 0,
         available_quantity: cmc.quantity - reserved_quantity(cmc, :staged_quantity),
         available_foil_quantity: cmc.foil_quantity - reserved_quantity(cmc, :staged_foil_quantity)
       }

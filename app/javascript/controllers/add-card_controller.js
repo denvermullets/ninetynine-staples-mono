@@ -131,6 +131,9 @@ export default class extends Controller {
       if (this.hasFoilQuantityInputTarget) {
         this.foilQuantityInputTarget.value = 0;
       }
+
+      // Dispatch event to clear search results
+      window.dispatchEvent(new CustomEvent("deck:card-added"));
     } catch (error) {
       console.error("Failed to add card:", error);
     }

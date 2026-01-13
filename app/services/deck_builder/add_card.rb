@@ -31,21 +31,25 @@ module DeckBuilder
     private
 
     def validate_source_availability
-      source = CollectionMagicCard.find_by(
+      @source = CollectionMagicCard.find_by(
         collection_id: @source_collection_id,
         magic_card_id: @magic_card.id,
         staged: false,
         needed: false
       )
 
-      return error_result('Card not found in source collection') unless source
+      return error_result('Card not found in source collection') unless @source
 
-      available_qty = source.quantity - already_staged_qty(:staged_quantity)
-      available_foil = source.foil_quantity - already_staged_qty(:staged_foil_quantity)
+      available_regular = @source.quantity - already_staged_qty(:staged_quantity)
+      available_foil = @source.foil_quantity - already_staged_qty(:staged_foil_quantity)
+      available_proxy = @source.proxy_quantity || 0
+      available_proxy_foil = @source.proxy_foil_quantity || 0
 
-      return error_result("Only #{available_qty} regular copies available") if @quantity > available_qty
+      total_available = available_regular + available_proxy
+      total_foil_available = available_foil + available_proxy_foil
 
-      return error_result("Only #{available_foil} foil copies available") if @foil_quantity > available_foil
+      return error_result("Only #{total_available} copies available") if @quantity > total_available
+      return error_result("Only #{total_foil_available} foil copies available") if @foil_quantity > total_foil_available
 
       { success: true }
     end

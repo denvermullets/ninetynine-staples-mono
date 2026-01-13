@@ -100,14 +100,35 @@ module DeckBuilder
     end
 
     def sort_key_for(magic_card, name)
-      case @sort_by
-      when 'mana_value' then [magic_card.mana_value || 99, name]
-      when 'price' then [(magic_card.normal_price || 0).to_f, name]
-      when 'rarity' then [RARITY_ORDER.index(magic_card.rarity) || 99, name]
-      when 'edhrec' then [magic_card.edhrec_rank || 999_999, name]
-      when 'salt' then [-(magic_card.edhrec_saltiness || 0).to_f, name]
-      else name
-      end
+      [sort_value_for(magic_card), name]
+    end
+
+    def sort_value_for(magic_card)
+      send("sort_by_#{@sort_by}", magic_card)
+    end
+
+    def sort_by_name(magic_card)
+      magic_card.name.downcase
+    end
+
+    def sort_by_mana_value(magic_card)
+      magic_card.mana_value || 99
+    end
+
+    def sort_by_price(magic_card)
+      (magic_card.normal_price || 0).to_f
+    end
+
+    def sort_by_rarity(magic_card)
+      RARITY_ORDER.index(magic_card.rarity) || 99
+    end
+
+    def sort_by_edhrec(magic_card)
+      magic_card.edhrec_rank || 999_999
+    end
+
+    def sort_by_salt(magic_card)
+      -(magic_card.edhrec_saltiness || 0).to_f
     end
   end
 end

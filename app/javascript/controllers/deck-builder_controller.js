@@ -40,10 +40,12 @@ export default class extends Controller {
       this.viewModeListTarget.classList.toggle("bg-accent-50", listActive);
       this.viewModeListTarget.classList.toggle("text-background", listActive);
       this.viewModeListTarget.classList.toggle("border-accent-50", listActive);
+      this.viewModeListTarget.classList.toggle("text-grey-text", !listActive);
 
       this.viewModeCardTarget.classList.toggle("bg-accent-50", cardActive);
       this.viewModeCardTarget.classList.toggle("text-background", cardActive);
       this.viewModeCardTarget.classList.toggle("border-accent-50", cardActive);
+      this.viewModeCardTarget.classList.toggle("text-grey-text", !cardActive);
     }
   }
 

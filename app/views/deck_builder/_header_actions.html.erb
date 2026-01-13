@@ -1,0 +1,11 @@
+<div class="flex items-center gap-3">
+  <% if @deck.in_build_mode? %>
+    <%= button_to 'Finalize Deck', finalize_deck_builder_path(@deck),
+        method: :post,
+        class: 'px-4 py-2 bg-accent-50 text-background font-medium rounded-lg hover:bg-accent-50/90 transition',
+        data: { turbo_confirm: 'This will move cards from source collections. Planned cards will become "needed". Continue?' } %>
+  <% end %>
+
+  <%= link_to 'Exit Build Mode', deck_show_path(username: current_user.username, collection_id: @deck.id),
+      class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition' %>
+</div>

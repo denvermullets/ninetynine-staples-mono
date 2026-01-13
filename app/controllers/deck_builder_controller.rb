@@ -56,7 +56,7 @@ class DeckBuilderController < ApplicationController
     if result[:success]
       msg = "Deck finalized! #{result[:cards_moved]} cards moved"
       msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
-      redirect_to deck_show_path(username: current_user.username, collection_id: @deck.id), notice: msg
+      redirect_to deck_show_path(username: current_user.username), notice: msg
     else
       flash.now[:error] = result[:error]
       load_deck_cards
@@ -97,6 +97,7 @@ class DeckBuilderController < ApplicationController
     render turbo_stream: [
       turbo_stream.update('deck_cards', partial: 'deck_cards'),
       turbo_stream.update('deck_stats', partial: 'deck_stats'),
+      turbo_stream.update('header_actions', partial: 'header_actions'),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: success_message })
     ]
   end
