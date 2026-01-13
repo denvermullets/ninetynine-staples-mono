@@ -116,8 +116,18 @@ module DeckBuilder
       total_value = owned_cards.sum do |c|
         (c.quantity * c.magic_card.normal_price.to_f) + (c.foil_quantity * c.magic_card.foil_price.to_f)
       end
-      collection.update!(total_quantity: owned_cards.sum(:quantity),
-                         total_foil_quantity: owned_cards.sum(:foil_quantity), total_value: total_value)
+      proxy_total_value = owned_cards.sum do |c|
+        (c.proxy_quantity.to_i * c.magic_card.normal_price.to_f) +
+          (c.proxy_foil_quantity.to_i * c.magic_card.foil_price.to_f)
+      end
+      collection.update!(
+        total_quantity: owned_cards.sum(:quantity),
+        total_foil_quantity: owned_cards.sum(:foil_quantity),
+        total_value: total_value,
+        total_proxy_quantity: owned_cards.sum(:proxy_quantity),
+        total_proxy_foil_quantity: owned_cards.sum(:proxy_foil_quantity),
+        proxy_total_value: proxy_total_value
+      )
     end
   end
 end

@@ -61,17 +61,21 @@ module DeckBuilder
     end
 
     def update_collection_totals(collection)
+      owned_cards = collection.collection_magic_cards.finalized.owned
       collection.update!(
-        total_quantity: collection.collection_magic_cards.finalized.owned.sum(:quantity),
-        total_foil_quantity: collection.collection_magic_cards.finalized.owned.sum(:foil_quantity),
-        total_value: calculate_total_value(collection)
+        total_quantity: owned_cards.sum(:quantity),
+        total_foil_quantity: owned_cards.sum(:foil_quantity),
+        total_value: calculate_value(owned_cards, :quantity, :foil_quantity),
+        total_proxy_quantity: owned_cards.sum(:proxy_quantity),
+        total_proxy_foil_quantity: owned_cards.sum(:proxy_foil_quantity),
+        proxy_total_value: calculate_value(owned_cards, :proxy_quantity, :proxy_foil_quantity)
       )
     end
 
-    def calculate_total_value(collection)
-      collection.collection_magic_cards.finalized.owned.sum do |cmc|
-        (cmc.quantity * cmc.magic_card.normal_price.to_f) +
-          (cmc.foil_quantity * cmc.magic_card.foil_price.to_f)
+    def calculate_value(cards, qty_field, foil_field)
+      cards.sum do |cmc|
+        (cmc.send(qty_field).to_i * cmc.magic_card.normal_price.to_f) +
+          (cmc.send(foil_field).to_i * cmc.magic_card.foil_price.to_f)
       end
     end
   end
