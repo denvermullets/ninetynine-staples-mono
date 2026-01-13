@@ -39,7 +39,8 @@ module DeckBuilder
     end
 
     def process_planned_card(card)
-      finalize_deck_card(card, needed: true)
+      # Planned cards stay staged - don't finalize them
+      # Just count them for the summary
       @cards_needed += card.total_staged
     end
 
@@ -78,7 +79,7 @@ module DeckBuilder
         staged: false, needed: false
       )
       reduce_source(source, staged_card)
-      finalize_deck_card(staged_card, needed: false)
+      finalize_deck_card(staged_card)
       update_collection_totals(source.collection)
     end
 
@@ -102,9 +103,9 @@ module DeckBuilder
 
     def source_empty_after_reduction?(_source, reductions) = reductions.values.all?(&:zero?)
 
-    def finalize_deck_card(staged_card, needed:)
+    def finalize_deck_card(staged_card)
       staged_card.update!(
-        staged: false, needed: needed, quantity: staged_card.staged_quantity,
+        staged: false, needed: false, quantity: staged_card.staged_quantity,
         foil_quantity: staged_card.staged_foil_quantity, staged_quantity: 0, staged_foil_quantity: 0,
         source_collection_id: nil
       )

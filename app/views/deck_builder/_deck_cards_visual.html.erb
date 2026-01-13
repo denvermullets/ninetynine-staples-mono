@@ -44,7 +44,7 @@
                   <span class="text-yellow-400">Planned</span>
                 <% elsif card.needed? %>
                   <span class="text-orange-400">Need</span>
-                  <% if card.available_swap?(current_user) %>
+                  <% if @is_owner && card.available_swap?(current_user) %>
                     <span class="text-accent-50">- Swap available!</span>
                   <% end %>
                 <% end %>

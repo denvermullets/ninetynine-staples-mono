@@ -1,7 +1,7 @@
 class DeckBuilderController < ApplicationController
-  before_action :authenticate_user!
   before_action :set_deck
-  before_action :ensure_owner
+  before_action :authenticate_user!, except: [:show]
+  before_action :ensure_owner, except: [:show]
 
   def show
     @view_mode = params[:view_mode] || 'list'
@@ -56,7 +56,7 @@ class DeckBuilderController < ApplicationController
     if result[:success]
       msg = "Deck finalized! #{result[:cards_moved]} cards moved"
       msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
-      redirect_to deck_show_path(username: current_user.username), notice: msg
+      redirect_to decks_index_path(username: current_user.username), notice: msg, status: :see_other
     else
       flash.now[:error] = result[:error]
       load_deck_cards
@@ -66,7 +66,10 @@ class DeckBuilderController < ApplicationController
 
   private
 
-  def set_deck = @deck = current_user.collections.find(params[:id])
+  def set_deck
+    @deck = Collection.find(params[:id])
+    @is_owner = current_user&.id == @deck.user_id
+  end
 
   def ensure_owner
     redirect_to root_path, alert: 'Access denied' unless @deck.user_id == current_user.id

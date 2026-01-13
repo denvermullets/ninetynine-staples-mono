@@ -64,36 +64,38 @@
               <%= number_to_currency(card.magic_card.normal_price || 0) %>
             </span>
 
-            <!-- Actions (on hover) -->
-            <div class="hidden group-hover:flex items-center gap-1 shrink-0">
-              <% if card.staged? %>
-                <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
-                    method: :delete,
-                    class: 'text-red-400 hover:text-red-300 text-xs',
-                    data: { turbo_confirm: 'Remove?' } do %>
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
+            <!-- Actions (on hover) - only for owner -->
+            <% if @is_owner %>
+              <div class="hidden group-hover:flex items-center gap-1 shrink-0">
+                <% if card.staged? %>
+                  <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+                      method: :delete,
+                      class: 'text-red-400 hover:text-red-300 text-xs',
+                      data: { turbo_confirm: 'Remove?' } do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  <% end %>
+                <% elsif card.needed? && card.available_swap?(current_user) %>
+                  <%= button_to swap_card_deck_builder_path(@deck, card_id: card.id),
+                      method: :post,
+                      class: 'text-accent-50 hover:text-white text-xs' do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                  <% end %>
+                <% elsif card.needed? %>
+                  <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+                      method: :delete,
+                      class: 'text-red-400 hover:text-red-300 text-xs',
+                      data: { turbo_confirm: 'Remove?' } do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  <% end %>
                 <% end %>
-              <% elsif card.needed? && card.available_swap?(current_user) %>
-                <%= button_to swap_card_deck_builder_path(@deck, card_id: card.id),
-                    method: :post,
-                    class: 'text-accent-50 hover:text-white text-xs' do %>
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                  </svg>
-                <% end %>
-              <% elsif card.needed? %>
-                <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
-                    method: :delete,
-                    class: 'text-red-400 hover:text-red-300 text-xs',
-                    data: { turbo_confirm: 'Remove?' } do %>
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                <% end %>
-              <% end %>
-            </div>
+              </div>
+            <% end %>
           </div>
         <% end %>
       </div>
