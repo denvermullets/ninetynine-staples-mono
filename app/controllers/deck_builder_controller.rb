@@ -89,7 +89,16 @@ class DeckBuilderController < ApplicationController
   def build_stats(cards)
     { total: cards.sum(&:display_quantity), staged: @staged_cards.sum(&:total_staged),
       needed: @needed_cards.sum { |c| c.quantity + c.foil_quantity },
-      owned: @owned_cards.sum { |c| c.quantity + c.foil_quantity } }
+      owned: @owned_cards.sum { |c| c.quantity + c.foil_quantity },
+      value: calculate_deck_value(cards) }
+  end
+
+  def calculate_deck_value(cards)
+    cards.sum do |card|
+      qty = card.display_quantity
+      price = card.magic_card.normal_price.to_f
+      qty * price
+    end
   end
 
   def render_card_action_response(result, success_message:)

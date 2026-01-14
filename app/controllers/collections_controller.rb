@@ -12,37 +12,29 @@ class CollectionsController < ApplicationController
   end
 
   def show
-    @user = User.find_by(username: params[:username])
-    return render :not_found unless @user
+    @user = User.find_by!(username: params[:username])
 
     @collection_type = nil
     setup_collections(@collection_type)
     search_magic_cards
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { render 'index' }
-    end
+    render 'index'
   end
 
   def show_decks
-    @user = User.find_by(username: params[:username])
-    return render :not_found unless @user
+    @user = User.find_by!(username: params[:username])
 
     @collection_type = 'deck'
     setup_collections(nil, use_deck_scope: true)
     search_magic_cards
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { render 'index' }
-    end
+    render 'index'
   end
 
   def load
-    return render :not_found unless params[:username].present?
+    raise ActiveRecord::RecordNotFound unless params[:username].present?
 
-    @user = User.find_by(username: params[:username])
+    @user = User.find_by!(username: params[:username])
     @collection_type = params[:collection_type]
     setup_collections(@collection_type)
     search_magic_cards

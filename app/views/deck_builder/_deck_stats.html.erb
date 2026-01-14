@@ -4,6 +4,11 @@
     <span class="font-semibold text-white"><%= @stats[:total] %></span>
   </div>
 
+  <div class="flex items-center gap-1.5">
+    <span class="text-grey-text">Value:</span>
+    <span class="font-semibold text-white"><%= number_to_currency(@stats[:value]) %></span>
+  </div>
+
   <% if @stats[:staged] > 0 %>
     <div class="flex items-center gap-1.5">
       <span class="w-2 h-2 rounded-full bg-blue-400"></span>

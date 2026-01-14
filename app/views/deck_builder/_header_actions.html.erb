@@ -8,7 +8,8 @@
     <% end %>
 
     <%= link_to 'Exit Build Mode', deck_show_path(username: current_user.username, collection_id: @deck.id),
-        class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition' %>
+        class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition',
+        data: { turbo_frame: '_top' } %>
   <% else %>
     <%= link_to 'Back to Decks', decks_index_path(username: @deck.user.username),
         class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition' %>
