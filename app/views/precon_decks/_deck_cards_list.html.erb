@@ -1,0 +1,58 @@
+<div class="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-4">
+  <% @grouped_cards.each do |group_name, cards| %>
+    <%
+      group_count = cards.sum(&:quantity)
+      group_value = cards.sum { |c| c.quantity * (c.magic_card.normal_price || 0).to_f }
+    %>
+    <div class="break-inside-avoid mb-4">
+      <!-- Group Header -->
+      <div class="flex items-center gap-2 pb-2 mb-1 border-b border-highlight">
+        <%= render partial: 'deck_builder/type_icon', locals: { type_name: group_name } %>
+        <span class="font-semibold text-grey-text"><%= group_name %></span>
+        <span class="text-grey-text">(<%= group_count %>)</span>
+        <span class="text-grey-text/50">-</span>
+        <span class="text-grey-text/75"><%= number_to_currency(group_value) %></span>
+      </div>
+
+      <!-- Card Rows -->
+      <div class="space-y-0.5">
+        <% cards.each do |card| %>
+          <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer"
+               data-action="mouseenter->precon-deck#previewCard"
+               data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
+               data-card-name="<%= card.magic_card.name %>">
+            <!-- Quantity -->
+            <span class="w-8 text-right text-grey-text/75 shrink-0"><%= card.quantity %></span>
+
+            <!-- Card Name -->
+            <span class="flex-1 truncate font-medium text-grey-text group-hover:text-white transition-all">
+              <%= card.magic_card.name %>
+              <% if card.is_foil %>
+                <span class="text-xs font-normal text-yellow-400">(Foil)</span>
+              <% end %>
+            </span>
+
+            <!-- Sort Value (EDHREC/Salt) -->
+            <% if @sort_by == 'edhrec' %>
+              <span class="w-14 text-right shrink-0 text-xs text-grey-text/50">
+                <%= card.magic_card.edhrec_rank ? "##{number_with_delimiter(card.magic_card.edhrec_rank)}" : '-' %>
+              </span>
+            <% elsif @sort_by == 'salt' %>
+              <span class="w-10 text-right shrink-0 text-xs text-grey-text/50">
+                <%= card.magic_card.edhrec_saltiness ? format('%.2f', card.magic_card.edhrec_saltiness.to_f) : '-' %>
+              </span>
+            <% end %>
+
+            <!-- Mana Cost -->
+            <span class="w-20 shrink-0 text-xs text-right"><%= mana_symbols(card.magic_card.mana_cost) %></span>
+
+            <!-- Price -->
+            <span class="w-16 text-right text-grey-text/75 shrink-0">
+              <%= number_to_currency(card.is_foil ? card.magic_card.foil_price : card.magic_card.normal_price || 0) %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
