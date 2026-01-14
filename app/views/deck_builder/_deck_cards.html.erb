@@ -7,9 +7,11 @@
     <p class="text-grey-text">Search for cards to add them to your deck</p>
   </div>
 <% else %>
-  <% if @view_mode == 'card' %>
-    <%= render partial: 'deck_cards_visual' %>
-  <% else %>
-    <%= render partial: 'deck_cards_list' %>
-  <% end %>
+  <div class="p-4 border rounded-xl bg-foreground border-highlight">
+    <% if @view_mode == 'card' %>
+      <%= render partial: 'deck_cards_visual' %>
+    <% else %>
+      <%= render partial: 'deck_cards_list' %>
+    <% end %>
+  </div>
 <% end %>
