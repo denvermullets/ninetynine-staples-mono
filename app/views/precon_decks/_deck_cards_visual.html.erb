@@ -1,0 +1,50 @@
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  <% @grouped_cards.each do |group_name, cards| %>
+    <div class="p-4 border rounded-xl bg-foreground border-highlight">
+      <h3 class="mb-3 text-sm font-semibold text-grey-text">
+        <%= group_name %> (<%= cards.sum(&:quantity) %>)
+      </h3>
+
+      <div class="relative" data-controller="card-stack">
+        <% cards.each_with_index do |card, index| %>
+          <div data-card-stack-target="card"
+               data-image-large="<%= card.magic_card.image_large %>"
+               data-action="mouseenter->card-stack#showPreview mouseleave->card-stack#hidePreview"
+               class="relative cursor-pointer rounded-lg overflow-hidden"
+               style="<%= 'margin-top: -80px;' if index > 0 %>">
+
+            <% if card.magic_card.image_medium.present? %>
+              <img src="<%= card.magic_card.image_medium %>"
+                   alt="<%= card.magic_card.name %>"
+                   class="w-full rounded-lg shadow-lg"
+                   loading="lazy" />
+            <% else %>
+              <div class="flex items-center justify-center w-full h-48 rounded-lg bg-background">
+                <span class="text-sm text-grey-text"><%= card.magic_card.name %></span>
+              </div>
+            <% end %>
+
+            <!-- Quantity Badge -->
+            <% if card.quantity > 1 %>
+              <span class="absolute px-2 py-1 text-xs font-bold rounded-full top-2 right-2 bg-background text-white shadow">
+                x<%= card.quantity %>
+              </span>
+            <% end %>
+
+            <!-- Foil Badge -->
+            <% if card.is_foil %>
+              <span class="absolute px-2 py-1 text-xs font-bold rounded-full top-2 left-2 bg-yellow-500/80 text-black shadow">
+                Foil
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Hover preview -->
+        <img data-card-stack-target="hoverPreview"
+             class="fixed z-50 hidden w-64 rounded-lg shadow-2xl pointer-events-none"
+             alt="Card preview" />
+      </div>
+    </div>
+  <% end %>
+</div>
