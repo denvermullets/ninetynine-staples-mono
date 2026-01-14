@@ -13,24 +13,14 @@ class PreconDecksController < ApplicationController
   end
 
   def show
-    @precon_deck = PreconDeck.includes(precon_deck_cards: { magic_card: %i[boxset colors magic_card_color_idents] })
-                             .find(params[:id])
-    @collections = current_user&.ordered_collections || []
-
-    @view_mode = params[:view_mode] || 'list'
-    @grouping = params[:grouping] || 'type'
-    @sort_by = params[:sort_by] || 'mana_value'
+    load_precon_deck_with_cards
+    set_view_options
 
     all_cards = @precon_deck.precon_deck_cards.to_a
     @grouped_cards = PreconDecks::GroupCards.call(cards: all_cards, grouping: @grouping, sort_by: @sort_by)
     @stats = build_stats(all_cards)
 
-    respond_to do |format|
-      format.html
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.update('deck_cards', partial: 'deck_cards')
-      end
-    end
+    respond_to_show
   end
 
   def import_to_collection
@@ -61,6 +51,25 @@ class PreconDecksController < ApplicationController
 
   def set_precon_deck
     @precon_deck = PreconDeck.find(params[:id])
+  end
+
+  def load_precon_deck_with_cards
+    @precon_deck = PreconDeck.includes(precon_deck_cards: { magic_card: %i[boxset colors magic_card_color_idents] })
+                             .find(params[:id])
+    @collections = current_user&.ordered_collections || []
+  end
+
+  def set_view_options
+    @view_mode = params[:view_mode] || 'list'
+    @grouping = params[:grouping] || 'type'
+    @sort_by = params[:sort_by] || 'mana_value'
+  end
+
+  def respond_to_show
+    respond_to do |format|
+      format.html
+      format.turbo_stream { render turbo_stream: turbo_stream.update('deck_cards', partial: 'deck_cards') }
+    end
   end
 
   def find_or_create_collection

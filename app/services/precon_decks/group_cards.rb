@@ -2,14 +2,15 @@ module PreconDecks
   class GroupCards < Service
     GROUPING_OPTIONS = %w[type mana_value color color_identity rarity set zone none].freeze
     SORT_OPTIONS = %w[name mana_value price rarity edhrec salt].freeze
-
-    TYPE_ORDER = %w[
-      Creature Planeswalker Instant Sorcery Artifact Enchantment Land Battle Other
-    ].freeze
-
+    TYPE_ORDER = %w[Creature Planeswalker Instant Sorcery Artifact Enchantment Land Battle Other].freeze
     RARITY_ORDER = %w[mythic rare uncommon common].freeze
-
-    ZONE_ORDER = %w[Commander Main\ Board Sideboard Tokens].freeze
+    ZONE_MAPPING = { 'commander' => 'Commander', 'mainBoard' => 'Main Board',
+                     'sideBoard' => 'Sideboard', 'tokens' => 'Tokens' }.freeze
+    GROUP_SORTERS = {
+      'type' => ->(key) { [TYPE_ORDER.index(key) || 999, key] },
+      'mana_value' => ->(key) { key == 'X' ? 999 : key.to_i },
+      'rarity' => ->(key) { [RARITY_ORDER.index(key&.downcase) || 999, key] }
+    }.freeze
 
     def initialize(cards:, grouping: 'type', sort_by: 'mana_value')
       @cards = cards
@@ -20,143 +21,73 @@ module PreconDecks
     def call
       return {} if @cards.empty?
 
-      if @grouping == 'zone'
-        group_by_zone
-      else
-        group_by_attribute
-      end
+      @grouping == 'zone' ? group_by_zone : group_by_attribute
     end
 
     private
 
     def group_by_zone
-      result = {}
-
-      commanders = @cards.select { |c| c.board_type == 'commander' }
-      main_board = @cards.select { |c| c.board_type == 'mainBoard' }
-      side_board = @cards.select { |c| c.board_type == 'sideBoard' }
-      tokens = @cards.select { |c| c.board_type == 'tokens' }
-
-      result['Commander'] = sort_cards(commanders) if commanders.any?
-      result['Main Board'] = sort_cards(main_board) if main_board.any?
-      result['Sideboard'] = sort_cards(side_board) if side_board.any?
-      result['Tokens'] = sort_cards(tokens) if tokens.any?
-
-      result
+      @cards.group_by(&:board_type)
+            .transform_keys { |k| ZONE_MAPPING[k] || k }
+            .transform_values { |cards| sort_cards(cards) }
+            .sort_by { |k, _| ZONE_MAPPING.values.index(k) || 999 }.to_h
     end
 
     def group_by_attribute
-      # Extract commanders first - they always get their own section
-      commanders, other_cards = @cards.partition { |c| c.board_type == 'commander' }
+      result = build_commander_section
+      result.merge!(build_main_sections)
+      result.merge!(build_tokens_section)
+    end
 
-      result = {}
-      result['Commander'] = sort_cards(commanders) if commanders.any?
+    def build_commander_section
+      commanders = @cards.select { |c| c.board_type == 'commander' }
+      commanders.any? ? { 'Commander' => sort_cards(commanders) } : {}
+    end
 
-      # Group remaining cards (excluding tokens for cleaner display)
-      main_cards = other_cards.reject { |c| c.board_type == 'tokens' }
+    def build_main_sections
+      main_cards = @cards.reject { |c| %w[commander tokens].include?(c.board_type) }
       grouped = main_cards.group_by { |card| group_key(card) }
-      sorted_groups = sort_groups(grouped)
+      sort_groups(grouped).transform_values { |cards| sort_cards(cards) }
+    end
 
-      sorted_groups.each { |group_name, cards| result[group_name] = sort_cards(cards) }
-
-      # Add tokens at the end if any
-      tokens = other_cards.select { |c| c.board_type == 'tokens' }
-      result['Tokens'] = sort_cards(tokens) if tokens.any?
-
-      result
+    def build_tokens_section
+      tokens = @cards.select { |c| c.board_type == 'tokens' }
+      tokens.any? ? { 'Tokens' => sort_cards(tokens) } : {}
     end
 
     def group_key(card)
       send("group_by_#{@grouping}", card)
     end
 
-    def group_by_type(card)
-      card.magic_card.primary_type || 'Other'
-    end
-
-    def group_by_mana_value(card)
-      mv = card.magic_card.mana_value&.to_i
-      mv.nil? ? 'X' : mv.to_s
-    end
+    def group_by_type(card) = card.magic_card.primary_type || 'Other'
+    def group_by_mana_value(card) = (mv = card.magic_card.mana_value&.to_i) ? mv.to_s : 'X'
 
     def group_by_color(card)
       colors = card.magic_card.colors
-      return 'Colorless' if colors.empty?
-
-      colors.map(&:name).sort.join('/')
+      colors.empty? ? 'Colorless' : colors.map(&:name).sort.join('/')
     end
 
-    def group_by_color_identity(card)
-      card.magic_card.color_identity_string.presence || 'Colorless'
-    end
-
-    def group_by_rarity(card)
-      card.magic_card.rarity&.capitalize || 'Unknown'
-    end
-
-    def group_by_set(card)
-      card.magic_card.boxset&.name || 'Unknown'
-    end
-
-    def group_by_none(_card)
-      'All Cards'
-    end
+    def group_by_color_identity(card) = card.magic_card.color_identity_string.presence || 'Colorless'
+    def group_by_rarity(card) = card.magic_card.rarity&.capitalize || 'Unknown'
+    def group_by_set(card) = card.magic_card.boxset&.name || 'Unknown'
+    def group_by_none(_card) = 'All Cards'
 
     def sort_groups(grouped)
-      sorter = group_sorter
-      grouped.sort_by { |k, _| sorter.call(k) }.to_h
+      grouped.sort_by { |k, _| group_sort_value(k) }.to_h
     end
 
-    def group_sorter
-      case @grouping
-      when 'type'
-        ->(k) { [TYPE_ORDER.index(k) || 999, k] }
-      when 'mana_value'
-        ->(k) { k == 'X' ? 999 : k.to_i }
-      when 'rarity'
-        ->(k) { [RARITY_ORDER.index(k&.downcase) || 999, k] }
-      else
-        ->(k) { k.to_s }
-      end
+    def group_sort_value(key)
+      (GROUP_SORTERS[@grouping] || lambda(&:to_s)).call(key)
     end
 
-    def sort_cards(cards)
-      cards.sort_by { |c| card_sort_key(c) }
-    end
+    def sort_cards(cards) = cards.sort_by { |c| [sort_value_for(c.magic_card), c.magic_card.name.downcase] }
 
-    def card_sort_key(card)
-      magic_card = card.magic_card
-      name = magic_card.name.downcase
-
-      [sort_value_for(magic_card), name]
-    end
-
-    def sort_value_for(magic_card)
-      send("sort_by_#{@sort_by}", magic_card)
-    end
-
-    def sort_by_name(magic_card)
-      magic_card.name.downcase
-    end
-
-    def sort_by_mana_value(magic_card)
-      magic_card.mana_value || 99
-    end
-
-    def sort_by_price(magic_card)
-      (magic_card.normal_price || 0).to_f
-    end
-
-    def sort_by_rarity(magic_card)
-      RARITY_ORDER.index(magic_card.rarity) || 99
-    end
-
-    def sort_by_edhrec(magic_card)
-      magic_card.edhrec_rank || 999_999
-    end
-
-    def sort_by_salt(magic_card)
-      -(magic_card.edhrec_saltiness || 0).to_f
-    end
+    def sort_value_for(card) = send("sort_by_#{@sort_by}", card)
+    def sort_by_name(card) = card.name.downcase
+    def sort_by_mana_value(card) = card.mana_value || 99
+    def sort_by_price(card) = (card.normal_price || 0).to_f
+    def sort_by_rarity(card) = RARITY_ORDER.index(card.rarity) || 99
+    def sort_by_edhrec(card) = card.edhrec_rank || 999_999
+    def sort_by_salt(card) = -(card.edhrec_saltiness || 0).to_f
   end
 end
