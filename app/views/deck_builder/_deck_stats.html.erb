@@ -1,0 +1,35 @@
+<div class="flex flex-wrap items-center gap-4 text-sm">
+  <div class="flex items-center gap-1.5">
+    <span class="text-grey-text">Cards:</span>
+    <span class="font-semibold text-white"><%= @stats[:total] %></span>
+  </div>
+
+  <div class="flex items-center gap-1.5">
+    <span class="text-grey-text">Value:</span>
+    <span class="font-semibold text-white"><%= number_to_currency(@stats[:value]) %></span>
+  </div>
+
+  <% if @stats[:staged] > 0 %>
+    <div class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+      <span class="text-blue-400">Staged:</span>
+      <span class="font-semibold text-blue-400"><%= @stats[:staged] %></span>
+    </div>
+  <% end %>
+
+  <% if @stats[:needed] > 0 %>
+    <div class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-orange-400"></span>
+      <span class="text-orange-400">Need:</span>
+      <span class="font-semibold text-orange-400"><%= @stats[:needed] %></span>
+    </div>
+  <% end %>
+
+  <% if @stats[:owned] > 0 %>
+    <div class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-accent-50"></span>
+      <span class="text-accent-50">Owned:</span>
+      <span class="font-semibold text-accent-50"><%= @stats[:owned] %></span>
+    </div>
+  <% end %>
+</div>

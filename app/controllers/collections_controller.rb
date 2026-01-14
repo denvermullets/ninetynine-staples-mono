@@ -12,37 +12,29 @@ class CollectionsController < ApplicationController
   end
 
   def show
-    @user = User.find_by(username: params[:username])
-    return render :not_found unless @user
+    @user = User.find_by!(username: params[:username])
 
     @collection_type = nil
     setup_collections(@collection_type)
     search_magic_cards
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { render 'index' }
-    end
+    render 'index'
   end
 
   def show_decks
-    @user = User.find_by(username: params[:username])
-    return render :not_found unless @user
+    @user = User.find_by!(username: params[:username])
 
     @collection_type = 'deck'
-    setup_collections(@collection_type)
+    setup_collections(nil, use_deck_scope: true)
     search_magic_cards
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { render 'index' }
-    end
+    render 'index'
   end
 
   def load
-    return render :not_found unless params[:username].present?
+    raise ActiveRecord::RecordNotFound unless params[:username].present?
 
-    @user = User.find_by(username: params[:username])
+    @user = User.find_by!(username: params[:username])
     @collection_type = params[:collection_type]
     setup_collections(@collection_type)
     search_magic_cards
@@ -63,27 +55,16 @@ class CollectionsController < ApplicationController
     end
   end
 
-  def setup_collections(collection_type = nil)
-    user_collections = collection_type ? @user.collections.by_type(collection_type) : @user.collections
-
-    @collection = Collection.find(params[:collection_id]) if params[:collection_id].present?
-    @collections_value = user_collections.sum(:total_value)
-    @collections = ordered_user_collections(user_collections, collection_type)
+  def setup_collections(collection_type = nil, use_deck_scope: false)
+    result = Collections::Setup.call(
+      user: @user, current_user: current_user, collection_id: params[:collection_id],
+      collection_type: collection_type, use_deck_scope: use_deck_scope
+    )
+    @collection = result[:collection]
+    @collections = result[:collections]
+    @collections_value = result[:collections_value]
+    @collection_history = result[:collection_history]
     @options = boxset_options
-    @collection_history = build_collection_history(user_collections)
-  end
-
-  def ordered_user_collections(user_collections, collection_type)
-    return user_collections.order(:id).to_a unless current_user&.id == @user.id
-
-    ordered = current_user.ordered_collections
-    collection_type ? ordered.select { |c| c.collection_type == collection_type } : ordered
-  end
-
-  def build_collection_history(user_collections)
-    return @collection.collection_history || {} if @collection.present?
-
-    Collection.aggregate_history(user_collections)
   end
 
   def search_magic_cards

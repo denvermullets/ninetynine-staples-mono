@@ -1,0 +1,130 @@
+<div class="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-4">
+  <% @grouped_cards.each do |group_name, cards| %>
+    <%
+      group_count = cards.sum(&:display_quantity)
+      group_value = cards.sum { |c| c.display_quantity * (c.magic_card.normal_price || 0).to_f }
+    %>
+    <div class="break-inside-avoid mb-4">
+      <!-- Group Header -->
+      <div class="flex items-center gap-2 pb-2 mb-1 border-b border-highlight">
+        <%= render partial: 'type_icon', locals: { type_name: group_name } %>
+        <span class="font-semibold text-grey-text"><%= group_name %></span>
+        <span class="text-grey-text">(<%= group_count %>)</span>
+        <span class="text-grey-text/50">–</span>
+        <span class="text-grey-text/75"><%= number_to_currency(group_value) %></span>
+      </div>
+
+      <!-- Card Rows -->
+      <div class="space-y-0.5">
+        <% cards.each do |card| %>
+          <%
+            current_qty = card.staged? ? card.staged_quantity : card.quantity
+            current_foil_qty = card.staged? ? card.staged_foil_quantity : card.foil_quantity
+          %>
+          <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer"
+               data-action="mouseenter->deck-builder#previewCard"
+               data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
+               data-card-name="<%= card.magic_card.name %>">
+            <!-- Quantity (inline editable for owner) -->
+            <% if @is_owner %>
+              <div class="w-8 shrink-0"
+                   data-controller="inline-quantity"
+                   data-inline-quantity-deck-id-value="<%= @deck.id %>"
+                   data-inline-quantity-card-id-value="<%= card.id %>">
+                <span data-inline-quantity-target="display"
+                      data-action="click->inline-quantity#edit"
+                      class="block w-full text-right text-grey-text/75 hover:text-accent-50 cursor-pointer">
+                  <%= card.display_quantity %>
+                </span>
+                <input type="number"
+                       data-inline-quantity-target="input"
+                       data-action="keydown->inline-quantity#handleKeydown blur->inline-quantity#save"
+                       value="<%= current_qty %>"
+                       min="1"
+                       class="hidden w-8 px-1 text-xs text-center border rounded border-highlight bg-background text-nine-white focus:border-accent-50 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                <% if current_foil_qty > 0 %>
+                  <input type="hidden"
+                         data-inline-quantity-target="foilInput"
+                         value="<%= current_foil_qty %>">
+                <% end %>
+              </div>
+            <% else %>
+              <span class="w-8 text-right text-grey-text/75 shrink-0"><%= card.display_quantity %></span>
+            <% end %>
+
+            <!-- Card Name -->
+            <span class="flex-1 truncate font-medium group-hover:font-bold transition-all
+                        <%= if card.staged? && card.from_owned_collection?
+                              'text-blue-400'
+                            elsif card.staged? && card.planned?
+                              'text-yellow-400'
+                            elsif card.needed?
+                              'text-orange-400'
+                            else
+                              'text-grey-text'
+                            end %>">
+              <%= card.magic_card.name %>
+              <% if card.staged? && card.from_owned_collection? %>
+                <span class="text-xs font-normal opacity-75">(from <%= card.source_collection.name.truncate(15) %>)</span>
+              <% elsif card.staged? && card.planned? %>
+                <span class="text-xs font-normal opacity-75">(planned)</span>
+              <% elsif card.needed? %>
+                <span class="text-xs font-normal opacity-75">(need)</span>
+              <% end %>
+            </span>
+
+            <!-- Sort Value (EDHREC/Salt) -->
+            <% if @sort_by == 'edhrec' %>
+              <span class="w-14 text-right shrink-0 text-xs text-grey-text/50">
+                <%= card.magic_card.edhrec_rank ? "##{number_with_delimiter(card.magic_card.edhrec_rank)}" : '-' %>
+              </span>
+            <% elsif @sort_by == 'salt' %>
+              <span class="w-10 text-right shrink-0 text-xs text-grey-text/50">
+                <%= card.magic_card.edhrec_saltiness ? format('%.2f', card.magic_card.edhrec_saltiness.to_f) : '-' %>
+              </span>
+            <% end %>
+
+            <!-- Mana Cost -->
+            <span class="w-20 shrink-0 text-xs text-right"><%= mana_symbols(card.magic_card.mana_cost) %></span>
+
+            <!-- Price -->
+            <span class="w-16 text-right text-grey-text/75 shrink-0">
+              <%= number_to_currency(card.magic_card.normal_price || 0) %>
+            </span>
+
+            <!-- Actions (on hover) - only for owner -->
+            <% if @is_owner %>
+              <div class="hidden group-hover:flex items-center gap-1 shrink-0">
+                <% if card.staged? %>
+                  <%= link_to confirm_remove_modal_deck_builder_path(@deck, card_id: card.id),
+                      class: 'text-red-400 hover:text-red-300 text-xs',
+                      data: { turbo_frame: 'deck_modal' } do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  <% end %>
+                <% elsif card.needed? && card.available_swap?(current_user) %>
+                  <%= button_to swap_card_deck_builder_path(@deck, card_id: card.id),
+                      method: :post,
+                      class: 'text-accent-50 hover:text-white text-xs' do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                  <% end %>
+                <% elsif card.needed? %>
+                  <%= link_to confirm_remove_modal_deck_builder_path(@deck, card_id: card.id),
+                      class: 'text-red-400 hover:text-red-300 text-xs',
+                      data: { turbo_frame: 'deck_modal' } do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  <% end %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

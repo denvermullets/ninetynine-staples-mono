@@ -1,0 +1,96 @@
+<div class="flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100">
+  <%= render partial: 'shared/page_header',
+    locals: { header: "#{@user.username}'s Decks",
+              subtext: @is_owner ? 'Manage your decks. Click on a deck to enter build mode.' : "Browse #{@user.username}'s deck collection." }
+  %>
+
+  <% if @is_owner %>
+    <div class="flex justify-end">
+      <%= link_to new_collection_path(collection_type: 'deck'),
+          class: 'px-4 py-2 bg-highlight text-white rounded-lg hover:bg-highlight/80 transition' do %>
+        + New Deck
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @decks.any? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <% @decks.each do |deck| %>
+        <% commander = deck.commanders.first&.magic_card %>
+        <% deck_path = deck_builder_path(deck) %>
+        <%= link_to deck_path, class: 'group' do %>
+          <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-white transition-all duration-200 hover:shadow-lg hover:shadow-highlight/20">
+            <!-- Card Image -->
+            <div class="relative h-48 bg-background overflow-hidden">
+              <% if commander&.image_large.present? %>
+                <img
+                  src="<%= commander.image_large %>"
+                  alt="<%= commander.name %>"
+                  class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
+                />
+              <% elsif deck.magic_cards.any? %>
+                <img
+                  src="<%= deck.magic_cards.last.image_large %>"
+                  alt="<%= deck.magic_cards.last.name %>"
+                  class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
+                />
+              <% else %>
+                <div class="w-full h-full flex items-center justify-center">
+                  <span class="text-grey-text text-4xl">?</span>
+                </div>
+              <% end %>
+
+              <!-- Build Mode Badge -->
+              <% if deck.in_build_mode? %>
+                <div class="absolute top-2 right-2 px-2 py-1 bg-yellow-500/90 text-black text-xs font-medium rounded">
+                  Building
+                </div>
+              <% end %>
+
+              <!-- Deck Type Badge -->
+              <div class="absolute bottom-2 left-2 px-2 py-1 bg-background/80 text-grey-text text-xs rounded">
+                <%= deck.collection_type&.titleize&.gsub('_', ' ') || 'Deck' %>
+              </div>
+            </div>
+
+            <!-- Deck Info -->
+            <div class="p-4 flex flex-col gap-2">
+              <h3 class="text-white font-medium truncate"><%= deck.name %></h3>
+
+              <% if commander %>
+                <p class="text-grey-text text-sm truncate"><%= commander.name %></p>
+              <% elsif deck.description.present? %>
+                <p class="text-grey-text text-sm truncate"><%= deck.description %></p>
+              <% end %>
+
+              <div class="flex items-center justify-between text-sm text-grey-text mt-2">
+                <span><%= deck.total_cards %> cards</span>
+                <span>$<%= number_with_precision(deck.total_value || 0, precision: 2, delimiter: ',') %></span>
+              </div>
+
+              <% if deck.in_build_mode? %>
+                <div class="text-xs text-yellow-500 mt-1">
+                  <%= deck.staged_cards_count %> staged
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="border rounded-3xl bg-foreground border-highlight p-12 text-center">
+      <p class="text-lg text-grey-text mb-4">
+        <% if @is_owner %>
+          You don't have any decks yet.
+        <% else %>
+          <%= @user.username %> doesn't have any decks yet.
+        <% end %>
+      </p>
+      <% if @is_owner %>
+        <%= link_to 'Create Your First Deck', new_collection_path(collection_type: 'deck'),
+            class: 'inline-block px-6 py-3 bg-highlight text-white rounded-lg hover:bg-highlight/80 transition' %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

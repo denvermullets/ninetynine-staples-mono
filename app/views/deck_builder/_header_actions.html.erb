@@ -1,0 +1,16 @@
+<div class="flex items-center gap-3">
+  <% if @is_owner %>
+    <% if @deck.in_build_mode? %>
+      <%= link_to 'Finalize Deck', confirm_finalize_modal_deck_builder_path(@deck),
+          class: 'px-4 py-2 bg-accent-50 text-background font-medium rounded-lg hover:bg-accent-50/90 transition',
+          data: { turbo_frame: 'deck_modal' } %>
+    <% end %>
+
+    <%= link_to 'Exit Build Mode', deck_show_path(username: current_user.username, collection_id: @deck.id),
+        class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition',
+        data: { turbo_frame: '_top' } %>
+  <% else %>
+    <%= link_to 'Back to Decks', decks_index_path(username: @deck.user.username),
+        class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition' %>
+  <% end %>
+</div>
