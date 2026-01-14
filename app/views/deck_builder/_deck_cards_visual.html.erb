@@ -1,0 +1,63 @@
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  <% @grouped_cards.each do |group_name, cards| %>
+    <div class="p-4 border rounded-xl bg-foreground border-highlight">
+      <h3 class="mb-3 text-sm font-semibold text-grey-text">
+        <%= group_name %> (<%= cards.sum(&:display_quantity) %>)
+      </h3>
+
+      <div class="relative" data-controller="card-stack">
+        <% cards.each_with_index do |card, index| %>
+          <div data-card-stack-target="card"
+               data-image-large="<%= card.magic_card.image_large %>"
+               data-action="mouseenter->card-stack#showPreview mouseleave->card-stack#hidePreview"
+               class="relative cursor-pointer rounded-lg overflow-hidden
+                      <%= 'ring-2 ring-blue-400' if card.staged? && card.from_owned_collection? %>
+                      <%= 'ring-2 ring-yellow-400' if card.staged? && card.planned? %>
+                      <%= 'ring-2 ring-orange-400' if card.needed? %>"
+               style="<%= 'margin-top: -80px;' if index > 0 %>">
+
+            <% if card.magic_card.image_medium.present? %>
+              <img src="<%= card.magic_card.image_medium %>"
+                   alt="<%= card.magic_card.name %>"
+                   class="w-full rounded-lg shadow-lg"
+                   loading="lazy" />
+            <% else %>
+              <div class="flex items-center justify-center w-full h-48 rounded-lg bg-background">
+                <span class="text-sm text-grey-text"><%= card.magic_card.name %></span>
+              </div>
+            <% end %>
+
+            <!-- Quantity Badge -->
+            <% qty = card.display_quantity %>
+            <% if qty > 1 %>
+              <span class="absolute px-2 py-1 text-xs font-bold rounded-full top-2 right-2 bg-background text-white shadow">
+                x<%= qty %>
+              </span>
+            <% end %>
+
+            <!-- Status Badge -->
+            <% if card.staged? || card.needed? %>
+              <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-xs text-center rounded-b-lg bg-black/80">
+                <% if card.from_owned_collection? %>
+                  <span class="text-blue-400">from <%= card.source_collection.name.truncate(20) %></span>
+                <% elsif card.planned? %>
+                  <span class="text-yellow-400">Planned</span>
+                <% elsif card.needed? %>
+                  <span class="text-orange-400">Need</span>
+                  <% if @is_owner && card.available_swap?(current_user) %>
+                    <span class="text-accent-50">- Swap available!</span>
+                  <% end %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Hover preview -->
+        <img data-card-stack-target="hoverPreview"
+             class="fixed z-50 hidden w-64 rounded-lg shadow-2xl pointer-events-none"
+             alt="Card preview" />
+      </div>
+    </div>
+  <% end %>
+</div>

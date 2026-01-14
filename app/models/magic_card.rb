@@ -76,6 +76,25 @@ class MagicCard < ApplicationRecord
     end
   end
 
+  # Build mode helper methods
+  def user_owned_copies(user)
+    return [] unless user
+
+    collection_magic_cards
+      .joins(:collection)
+      .where(collections: { user_id: user.id }, staged: false, needed: false)
+      .includes(:collection)
+  end
+
+  def primary_type
+    types = %w[Creature Artifact Enchantment Instant Sorcery Land Planeswalker Battle]
+    types.find { |t| card_type&.include?(t) } || card_type&.split(' - ')&.first
+  end
+
+  def color_identity_string
+    magic_card_color_idents.includes(:color).map { |mci| mci.color.name }.sort.join
+  end
+
   private
 
   def calculate_price_trend_for_type(type, days, threshold_percent)

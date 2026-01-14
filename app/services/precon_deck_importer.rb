@@ -1,6 +1,12 @@
 class PreconDeckImporter < Service
   include CollectionRecord::PriceCalculator
 
+  BOARD_TYPE_MAP = {
+    'mainBoard' => 'mainboard',
+    'sideBoard' => 'sideboard',
+    'commander' => 'commander'
+  }.freeze
+
   def initialize(precon_deck:, collection:, include_tokens: false)
     @precon_deck = precon_deck
     @collection = collection
@@ -30,6 +36,7 @@ class PreconDeckImporter < Service
 
   def add_card_to_collection(precon_deck_card)
     @magic_card = precon_deck_card.magic_card
+    @board_type = map_board_type(precon_deck_card.board_type)
     collection_card = find_or_initialize_collection_card
     normal_change, foil_change = quantity_changes(precon_deck_card)
 
@@ -41,8 +48,13 @@ class PreconDeckImporter < Service
     CollectionMagicCard.find_or_initialize_by(
       collection: @collection,
       magic_card: @magic_card,
-      card_uuid: @magic_card.card_uuid
+      card_uuid: @magic_card.card_uuid,
+      board_type: @board_type
     )
+  end
+
+  def map_board_type(precon_board_type)
+    BOARD_TYPE_MAP.fetch(precon_board_type, 'mainboard')
   end
 
   def quantity_changes(precon_deck_card)

@@ -1,0 +1,51 @@
+<% if @is_owner %>
+<div class="sticky p-4 border rounded-xl bg-foreground border-highlight top-4"
+     data-controller="deck-search"
+     data-deck-search-deck-id-value="<%= @deck.id %>"
+     data-deck-search-scope-value="<%= @search_scope %>">
+
+  <h2 class="mb-4 text-lg font-semibold text-white">Add Cards</h2>
+
+  <!-- Search Scope Toggle -->
+  <div class="flex mb-3 gap-2">
+    <button data-deck-search-target="scopeAll"
+            data-action="click->deck-search#setScope"
+            data-scope="all"
+            class="flex-1 px-3 py-1.5 text-xs border rounded-lg border-highlight text-grey-text hover:text-white transition cursor-pointer">
+      All Cards
+    </button>
+    <button data-deck-search-target="scopeOwned"
+            data-action="click->deck-search#setScope"
+            data-scope="owned"
+            class="flex-1 px-3 py-1.5 text-xs border rounded-lg border-highlight text-grey-text hover:text-white transition cursor-pointer">
+      My Collection
+    </button>
+  </div>
+
+  <!-- Search Form -->
+  <%= form_with url: search_deck_builder_path(@deck), method: :get, local: false,
+      data: { action: "submit->deck-search#submit", deck_search_target: "form" },
+      class: "relative" do |f| %>
+    <div class="flex">
+      <%= f.text_field :q,
+          placeholder: "Search cards...",
+          data: { deck_search_target: "input" },
+          class: "flex-1 px-4 py-2 border rounded-l-lg bg-background border-highlight text-white placeholder-grey-text focus:border-accent-50 focus:outline-none" %>
+      <%= f.hidden_field :scope, value: @search_scope, data: { deck_search_target: "scopeField" } %>
+      <%= f.submit "Search",
+          class: "px-4 py-2 bg-background text-grey-text rounded-r-lg border border-l-0 border-highlight hover:bg-highlight hover:cursor-pointer transition" %>
+    </div>
+    <div data-deck-search-target="loading" class="absolute hidden right-20 top-2.5">
+      <svg class="w-5 h-5 animate-spin text-grey-text" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+  <% end %>
+
+  <!-- Search Results -->
+  <div data-deck-search-target="results" class="mt-4 space-y-2 max-h-[60vh] overflow-y-auto">
+    <!-- Results will be inserted here -->
+  </div>
+</div>
+<% end %>

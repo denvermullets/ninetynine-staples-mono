@@ -34,8 +34,7 @@ export default class extends Controller {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')
-            .content,
+          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
         },
         body: JSON.stringify({ visible_columns: visibleColumns, view: this.viewValue }),
       });
@@ -74,9 +73,7 @@ export default class extends Controller {
 
     const toast = document.createElement("div");
     toast.className = `px-4 py-2 rounded-lg shadow-lg ${
-      type === "success"
-        ? "bg-accent-50 text-background"
-        : "bg-red-500 text-white"
+      type === "success" ? "bg-accent-50 text-background" : "bg-red-500 text-white"
     }`;
     toast.setAttribute("data-controller", "toast");
     toast.textContent = message;
