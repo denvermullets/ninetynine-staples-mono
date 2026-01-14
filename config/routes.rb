@@ -69,7 +69,10 @@ Rails.application.routes.draw do
       post :add_card
       delete :remove_card
       post :swap_card
+      patch :update_quantity
       post :finalize
+      get :confirm_remove_modal
+      get :confirm_finalize_modal
     end
   end
 end

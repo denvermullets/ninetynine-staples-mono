@@ -1,10 +1,9 @@
 <div class="flex items-center gap-3">
   <% if @is_owner %>
     <% if @deck.in_build_mode? %>
-      <%= button_to 'Finalize Deck', finalize_deck_builder_path(@deck),
-          method: :post,
+      <%= link_to 'Finalize Deck', confirm_finalize_modal_deck_builder_path(@deck),
           class: 'px-4 py-2 bg-accent-50 text-background font-medium rounded-lg hover:bg-accent-50/90 transition',
-          data: { turbo_confirm: 'This will move cards from source collections. Planned cards will remain staged. Continue?', turbo_frame: '_top' } %>
+          data: { turbo_frame: 'deck_modal' } %>
     <% end %>
 
     <%= link_to 'Exit Build Mode', deck_show_path(username: current_user.username, collection_id: @deck.id),

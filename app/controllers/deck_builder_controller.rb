@@ -1,4 +1,6 @@
 class DeckBuilderController < ApplicationController
+  include DeckBuilderModals
+
   before_action :set_deck
   before_action :authenticate_user!, except: [:show]
   before_action :ensure_owner, except: [:show]
@@ -51,6 +53,16 @@ class DeckBuilderController < ApplicationController
     render_card_action_response(result, success_message: "Swapped #{result[:card_name]}")
   end
 
+  def update_quantity
+    result = DeckBuilder::UpdateQuantity.call(
+      deck: @deck,
+      collection_magic_card_id: params[:card_id],
+      quantity: params[:quantity],
+      foil_quantity: params[:foil_quantity]
+    )
+    render_card_action_response(result, success_message: "Updated #{result[:card_name]} quantity")
+  end
+
   def finalize
     result = DeckBuilder::Finalize.call(deck: @deck)
     if result[:success]
@@ -76,29 +88,12 @@ class DeckBuilderController < ApplicationController
   end
 
   def load_deck_cards
-    all_cards = @deck.collection_magic_cards
-                     .includes(magic_card: %i[boxset sub_types colors magic_card_color_idents])
-    @staged_cards = all_cards.staged
-    @needed_cards = all_cards.needed
-    @owned_cards = all_cards.finalized.owned
-    cards_to_group = @staged_cards + @needed_cards + @owned_cards
-    @grouped_cards = DeckBuilder::GroupCards.call(cards: cards_to_group, grouping: @grouping, sort_by: @sort_by)
-    @stats = build_stats(cards_to_group)
-  end
-
-  def build_stats(cards)
-    { total: cards.sum(&:display_quantity), staged: @staged_cards.sum(&:total_staged),
-      needed: @needed_cards.sum { |c| c.quantity + c.foil_quantity },
-      owned: @owned_cards.sum { |c| c.quantity + c.foil_quantity },
-      value: calculate_deck_value(cards) }
-  end
-
-  def calculate_deck_value(cards)
-    cards.sum do |card|
-      qty = card.display_quantity
-      price = card.magic_card.normal_price.to_f
-      qty * price
-    end
+    result = DeckBuilder::LoadCards.call(deck: @deck, grouping: @grouping, sort_by: @sort_by)
+    @staged_cards = result[:staged_cards]
+    @needed_cards = result[:needed_cards]
+    @owned_cards = result[:owned_cards]
+    @grouped_cards = result[:grouped_cards]
+    @stats = result[:stats]
   end
 
   def render_card_action_response(result, success_message:)

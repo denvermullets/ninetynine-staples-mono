@@ -14,7 +14,7 @@ module DeckBuilder
       ActiveRecord::Base.transaction do
         validate_all_sources_available!
         process_staged_cards
-        update_collection_totals(@deck)
+        Collections::UpdateTotals.call(collection: @deck)
       end
       { success: true, cards_moved: @cards_moved, cards_needed: @cards_needed }
     rescue InsufficientCardsError => e
@@ -80,7 +80,7 @@ module DeckBuilder
       )
       reduce_source(source, staged_card)
       finalize_deck_card(staged_card)
-      update_collection_totals(source.collection)
+      Collections::UpdateTotals.call(collection: source.collection)
     end
 
     def reduce_source(source, staged_card)
@@ -108,25 +108,6 @@ module DeckBuilder
         staged: false, needed: false, quantity: staged_card.staged_quantity,
         foil_quantity: staged_card.staged_foil_quantity, staged_quantity: 0, staged_foil_quantity: 0,
         source_collection_id: nil
-      )
-    end
-
-    def update_collection_totals(collection)
-      owned_cards = collection.collection_magic_cards.finalized.owned
-      total_value = owned_cards.sum do |c|
-        (c.quantity * c.magic_card.normal_price.to_f) + (c.foil_quantity * c.magic_card.foil_price.to_f)
-      end
-      proxy_total_value = owned_cards.sum do |c|
-        (c.proxy_quantity.to_i * c.magic_card.normal_price.to_f) +
-          (c.proxy_foil_quantity.to_i * c.magic_card.foil_price.to_f)
-      end
-      collection.update!(
-        total_quantity: owned_cards.sum(:quantity),
-        total_foil_quantity: owned_cards.sum(:foil_quantity),
-        total_value: total_value,
-        total_proxy_quantity: owned_cards.sum(:proxy_quantity),
-        total_proxy_foil_quantity: owned_cards.sum(:proxy_foil_quantity),
-        proxy_total_value: proxy_total_value
       )
     end
   end

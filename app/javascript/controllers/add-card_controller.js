@@ -82,7 +82,7 @@ export default class extends Controller {
 
     const sourceId = this.sourceSelectTarget.value;
     if (!sourceId) {
-      alert("Please select a collection");
+      this.showAlert("Selection Required", "Please select a collection");
       return;
     }
 
@@ -101,7 +101,7 @@ export default class extends Controller {
       : 0;
 
     if (quantity === 0 && foilQuantity === 0) {
-      alert("Please enter a quantity");
+      this.showAlert("Quantity Required", "Please enter a quantity");
       return;
     }
 
@@ -137,5 +137,13 @@ export default class extends Controller {
     } catch (error) {
       console.error("Failed to add card:", error);
     }
+  }
+
+  showAlert(title, message) {
+    window.dispatchEvent(
+      new CustomEvent("alert:show", {
+        detail: { title, message },
+      })
+    );
   }
 }

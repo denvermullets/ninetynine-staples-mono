@@ -17,12 +17,40 @@
       <!-- Card Rows -->
       <div class="space-y-0.5">
         <% cards.each do |card| %>
+          <%
+            current_qty = card.staged? ? card.staged_quantity : card.quantity
+            current_foil_qty = card.staged? ? card.staged_foil_quantity : card.foil_quantity
+          %>
           <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer"
                data-action="mouseenter->deck-builder#previewCard"
                data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
                data-card-name="<%= card.magic_card.name %>">
-            <!-- Quantity -->
-            <span class="w-4 text-right text-grey-text/75 shrink-0"><%= card.display_quantity %></span>
+            <!-- Quantity (inline editable for owner) -->
+            <% if @is_owner %>
+              <div class="w-8 shrink-0"
+                   data-controller="inline-quantity"
+                   data-inline-quantity-deck-id-value="<%= @deck.id %>"
+                   data-inline-quantity-card-id-value="<%= card.id %>">
+                <span data-inline-quantity-target="display"
+                      data-action="click->inline-quantity#edit"
+                      class="block w-full text-right text-grey-text/75 hover:text-accent-50 cursor-pointer">
+                  <%= card.display_quantity %>
+                </span>
+                <input type="number"
+                       data-inline-quantity-target="input"
+                       data-action="keydown->inline-quantity#handleKeydown blur->inline-quantity#save"
+                       value="<%= current_qty %>"
+                       min="1"
+                       class="hidden w-8 px-1 text-xs text-center border rounded border-highlight bg-background text-nine-white focus:border-accent-50 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                <% if current_foil_qty > 0 %>
+                  <input type="hidden"
+                         data-inline-quantity-target="foilInput"
+                         value="<%= current_foil_qty %>">
+                <% end %>
+              </div>
+            <% else %>
+              <span class="w-8 text-right text-grey-text/75 shrink-0"><%= card.display_quantity %></span>
+            <% end %>
 
             <!-- Card Name -->
             <span class="flex-1 truncate font-medium group-hover:font-bold transition-all
@@ -68,10 +96,9 @@
             <% if @is_owner %>
               <div class="hidden group-hover:flex items-center gap-1 shrink-0">
                 <% if card.staged? %>
-                  <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
-                      method: :delete,
+                  <%= link_to confirm_remove_modal_deck_builder_path(@deck, card_id: card.id),
                       class: 'text-red-400 hover:text-red-300 text-xs',
-                      data: { turbo_confirm: 'Remove?' } do %>
+                      data: { turbo_frame: 'deck_modal' } do %>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -85,10 +112,9 @@
                     </svg>
                   <% end %>
                 <% elsif card.needed? %>
-                  <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
-                      method: :delete,
+                  <%= link_to confirm_remove_modal_deck_builder_path(@deck, card_id: card.id),
                       class: 'text-red-400 hover:text-red-300 text-xs',
-                      data: { turbo_confirm: 'Remove?' } do %>
+                      data: { turbo_frame: 'deck_modal' } do %>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
