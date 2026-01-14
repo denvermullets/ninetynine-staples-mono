@@ -46,7 +46,7 @@ class IngestPrices < ApplicationJob
       price_change_weekly_normal:,
       price_change_weekly_foil:
     )
-    UpdateCollections.perform_later(card)
+    UpdateCollections.perform_later(card) if CollectionMagicCard.exists?(magic_card_id: card.id)
   end
 
   private
