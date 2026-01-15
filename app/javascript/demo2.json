@@ -1,0 +1,102 @@
+{
+  "artist": "Anthony Palumbo",
+  "artistIds": ["afd2d541-4140-41ae-a28f-862436458fcb"],
+  "availability": ["mtgo", "paper"],
+  "boosterTypes": ["default"],
+  "borderColor": "black",
+  "colorIdentity": ["G"],
+  "colors": ["G"],
+  "convertedManaCost": 5.0,
+  "edhrecRank": 15648,
+  "finishes": ["nonfoil", "foil"],
+  "flavorText": "\"The dim resort to violence, for which the nimble prepare.\"\n—Leovold, emissary of Trest",
+  "frameVersion": "2015",
+  "hasFoil": true,
+  "hasNonFoil": true,
+  "identifiers": {
+    "cardKingdomFoilId": "281015",
+    "cardKingdomId": "280547",
+    "mcmId": "723468",
+    "mcmMetaId": "223553",
+    "mtgjsonV4Id": "217160c3-7b0e-5cf1-a3bd-5c95c1790f2d",
+    "mtgoId": "114799",
+    "multiverseId": "627749",
+    "scryfallCardBackId": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+    "scryfallId": "78075b31-8145-4053-90dd-6a34bd48fa7c",
+    "scryfallIllustrationId": "2e159814-0736-413c-ac8e-2a877242f839",
+    "scryfallOracleId": "27b0bd3f-2c11-474a-8512-fe035a514905",
+    "tcgplayerProductId": "507101"
+  },
+  "isReprint": true,
+  "language": "English",
+  "layout": "normal",
+  "legalities": {
+    "commander": "Legal",
+    "duel": "Legal",
+    "legacy": "Legal",
+    "oathbreaker": "Legal",
+    "pauper": "Legal",
+    "paupercommander": "Legal",
+    "vintage": "Legal"
+  },
+  "manaCost": "{4}{G}",
+  "manaValue": 5.0,
+  "name": "Entourage of Trest",
+  "number": "285",
+  "originalText": "When Entourage of Trest enters the battlefield, you become the monarch.\nEntourage of Trest can block an additional creature each combat as long as you're the monarch.",
+  "power": "4",
+  "printings": ["CMM", "CMR", "CN2", "PZ2"],
+  "purchaseUrls": {
+    "cardKingdom": "https://mtgjson.com/links/9bd92f705b2d6511",
+    "cardKingdomFoil": "https://mtgjson.com/links/7b1908a79bbdff48",
+    "cardmarket": "https://mtgjson.com/links/b144980d59c352b6",
+    "tcgplayer": "https://mtgjson.com/links/61016e741adbc08b"
+  },
+  "rarity": "common",
+  "rulings": [
+    {
+      "date": "2016-08-23",
+      "text": "Entourage of Trest checks if you're the monarch only as blockers are declared. If it blocks two attacking creatures, another player becoming the monarch won't change or undo that block."
+    },
+    {
+      "date": "2020-11-10",
+      "text": "If a creature blocks two creatures, its combat damage is assigned to those creatures and vice versa using the same rules as if one creature were blocked by two creatures."
+    },
+    {
+      "date": "2020-11-10",
+      "text": "If combat damage dealt to the monarch causes that player to lose the game, the triggered ability that causes the controller of the attacking creature to become the monarch doesn't resolve. In most cases, the controller of the attacking creature will still become the monarch as it is likely their turn."
+    },
+    {
+      "date": "2020-11-10",
+      "text": "If the monarch leaves the game during another player's turn, that player becomes the monarch. If the monarch leaves the game during their turn, the next player in turn order becomes the monarch."
+    },
+    {
+      "date": "2020-11-10",
+      "text": "If the triggered ability that causes the monarch to draw a card goes on the stack and a different player becomes the monarch before that ability resolves, the first player will still draw the card."
+    },
+    {
+      "date": "2020-11-10",
+      "text": "The game starts with no monarch. Once an effect makes one player the monarch, the game will have exactly one monarch from that point forward. As a player becomes the monarch, the current monarch (if any) ceases being the monarch."
+    },
+    {
+      "date": "2020-11-10",
+      "text": "There are two inherent triggered abilities associated with being the monarch. These triggered abilities have no source and are controlled by the player who was the monarch at the time the abilities triggered. The full texts of these abilities are \"At the beginning of the monarch's end step, that player draws a card\" and \"Whenever a creature deals combat damage to the monarch, its controller becomes the monarch.\""
+    }
+  ],
+  "setCode": "CMM",
+  "sourceProducts": {
+    "foil": [
+      "27cadb89-a295-5ce4-89e1-5854303185db",
+      "b9f3d07f-8ad0-5def-8086-e5199e004d4d",
+      "d03a0e5f-11c7-504a-a486-44179896f770"
+    ],
+    "nonfoil": ["b9f3d07f-8ad0-5def-8086-e5199e004d4d", "d03a0e5f-11c7-504a-a486-44179896f770"]
+  },
+  "subtypes": ["Elf", "Soldier"],
+  "supertypes": [],
+  "text": "When this creature enters, you become the monarch.\nThis creature can block an additional creature each combat as long as you're the monarch.",
+  "toughness": "4",
+  "type": "Creature — Elf Soldier",
+  "types": ["Creature"],
+  "uuid": "004ac549-3b39-5821-ad89-8095dd63669e"
+}

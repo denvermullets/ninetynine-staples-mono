@@ -46,9 +46,9 @@
           </div>
         </div>
         <!-- Regular Quantity -->
-        <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.has_non_foil ? 'bg-background' : 'bg-highlight opacity-50' %>">
+        <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
           <span class="flex-1 text-sm text-grey-text">Regular:</span>
-          <% if magic_card.has_non_foil %>
+          <% if magic_card.non_foil_available? %>
             <button
             type="button"
             data-action="click->card-locations#decrementTransferRegular"
@@ -74,9 +74,9 @@
             <% end %>
           </div>
           <!-- Foil Quantity -->
-          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.has_foil ? 'bg-background' : 'bg-highlight opacity-50' %>">
+          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
             <span class="flex-1 text-sm text-grey-text">Foil:</span>
-            <% if magic_card.has_foil %>
+            <% if magic_card.foil_available? %>
               <button
             type="button"
             data-action="click->card-locations#decrementTransferFoil"

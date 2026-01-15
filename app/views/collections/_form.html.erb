@@ -27,8 +27,8 @@
       </div>
       <%= f.number_field :quantity, value: 0,
         data: { collection_selector_target: 'quantity' },
-        disabled: !magic_card.has_non_foil || editable == false,
-        class: "w-auto md:w-24 border text-grey-text rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.has_non_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
+        disabled: !magic_card.non_foil_available? || editable == false,
+        class: "w-auto md:w-24 border text-grey-text rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.non_foil_available? ? 'bg-background' : 'bg-highlight' } border-highlight"
       %>
       <p class='hidden mt-2 text-xs text-grey-text md:block'>Quantity</p>
     </div>
@@ -39,8 +39,8 @@
       </div>
       <%= f.number_field :foil_quantity, value: 0,
         data: { collection_selector_target: 'foilQuantity' },
-        disabled: !magic_card.has_foil || editable == false,
-        class: "w-auto md:w-24 border text-grey-text rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.has_foil ? 'bg-background' : 'bg-highlight' } border-highlight"
+        disabled: !magic_card.foil_available? || editable == false,
+        class: "w-auto md:w-24 border text-grey-text rounded-md focus:border-accent-50 focus:ring-accent-50 #{magic_card.foil_available? ? 'bg-background' : 'bg-highlight' } border-highlight"
       %>
       <p class='hidden mt-2 text-xs md:block text-grey-text'>Quantity</p>
     </div>

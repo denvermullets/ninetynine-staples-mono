@@ -35,6 +35,15 @@ class MagicCard < ApplicationRecord
   has_many :magic_card_legalities, dependent: :destroy
   has_many :legalities, through: :magic_card_legalities
 
+  has_many :magic_card_finishes
+  has_many :finishes, through: :magic_card_finishes
+
+  has_many :magic_card_frame_effects
+  has_many :frame_effects, through: :magic_card_frame_effects
+
+  has_many :magic_card_variations
+  has_many :variations, through: :magic_card_variations, source: :variation
+
   def other_face
     return nil unless other_face_uuid.present?
 
@@ -93,6 +102,18 @@ class MagicCard < ApplicationRecord
 
   def color_identity_string
     magic_card_color_idents.includes(:color).map { |mci| mci.color.name }.sort.join
+  end
+
+  def foil_available?
+    has_foil || finishes.exists?(name: 'etched')
+  end
+
+  def non_foil_available?
+    has_non_foil
+  end
+
+  def has_etched_finish?
+    finishes.exists?(name: 'etched')
   end
 
   private

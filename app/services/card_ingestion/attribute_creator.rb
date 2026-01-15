@@ -14,6 +14,10 @@ module CardIngestion
       create_color_identities
       create_keywords
       create_legalities
+      create_finishes
+      create_frame_effects
+      create_rulings
+      create_variations
 
       @magic_card
     end
@@ -79,6 +83,39 @@ module CardIngestion
           { magic_card_id: @magic_card.id, legality_id: legality.id, status: status },
           unique_by: %i[magic_card_id legality_id]
         )
+      end
+    end
+
+    def create_finishes
+      @card_data['finishes']&.each do |finish_name|
+        finish = Finish.find_or_create_by(name: finish_name)
+        MagicCardFinish.find_or_create_by(magic_card: @magic_card, finish: finish)
+      end
+    end
+
+    def create_frame_effects
+      @card_data['frameEffects']&.each do |effect_name|
+        frame_effect = FrameEffect.find_or_create_by(name: effect_name)
+        MagicCardFrameEffect.find_or_create_by(magic_card: @magic_card, frame_effect: frame_effect)
+      end
+    end
+
+    def create_rulings
+      @card_data['rulings']&.each do |ruling_data|
+        ruling = Ruling.find_or_create_by(
+          ruling: ruling_data['text'],
+          ruling_date: ruling_data['date']
+        )
+        MagicCardRuling.find_or_create_by(magic_card: @magic_card, ruling: ruling)
+      end
+    end
+
+    def create_variations
+      @card_data['variations']&.each do |variation_uuid|
+        variation = MagicCard.find_by(card_uuid: variation_uuid)
+        next unless variation
+
+        MagicCardVariation.find_or_create_by(magic_card: @magic_card, variation: variation)
       end
     end
   end
