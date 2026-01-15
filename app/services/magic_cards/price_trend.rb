@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module MagicCard
+module MagicCards
   class PriceTrend < Service
     def initialize(price_history)
       @price_history = price_history

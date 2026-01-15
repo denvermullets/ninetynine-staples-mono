@@ -96,6 +96,6 @@ class MagicCard < ApplicationRecord
   private
 
   def price_trend_service
-    @price_trend_service ||= MagicCard::PriceTrend.new(price_history)
+    @price_trend_service ||= MagicCards::PriceTrend.new(price_history)
   end
 end
