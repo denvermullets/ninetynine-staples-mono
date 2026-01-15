@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_12_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_14_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -100,6 +100,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_220000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "finishes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_finishes_on_name", unique: true
+  end
+
+  create_table "frame_effects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_frame_effects_on_name", unique: true
+  end
+
   create_table "keywords", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "keyword"
@@ -138,6 +152,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_220000) do
     t.datetime "updated_at", null: false
     t.index ["color_id"], name: "index_magic_card_colors_on_color_id"
     t.index ["magic_card_id"], name: "index_magic_card_colors_on_magic_card_id"
+  end
+
+  create_table "magic_card_finishes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "finish_id", null: false
+    t.bigint "magic_card_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["finish_id"], name: "index_magic_card_finishes_on_finish_id"
+    t.index ["magic_card_id", "finish_id"], name: "index_magic_card_finishes_on_magic_card_id_and_finish_id", unique: true
+    t.index ["magic_card_id"], name: "index_magic_card_finishes_on_magic_card_id"
+  end
+
+  create_table "magic_card_frame_effects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "frame_effect_id", null: false
+    t.bigint "magic_card_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["frame_effect_id"], name: "index_magic_card_frame_effects_on_frame_effect_id"
+    t.index ["magic_card_id", "frame_effect_id"], name: "idx_on_magic_card_id_frame_effect_id_83bcab9345", unique: true
+    t.index ["magic_card_id"], name: "index_magic_card_frame_effects_on_magic_card_id"
   end
 
   create_table "magic_card_keywords", force: :cascade do |t|
@@ -197,10 +231,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_220000) do
     t.index ["magic_card_id"], name: "index_magic_card_types_on_magic_card_id"
   end
 
+  create_table "magic_card_variations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "magic_card_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "variation_id", null: false
+    t.index ["magic_card_id", "variation_id"], name: "index_magic_card_variations_on_magic_card_id_and_variation_id", unique: true
+    t.index ["magic_card_id"], name: "index_magic_card_variations_on_magic_card_id"
+    t.index ["variation_id"], name: "index_magic_card_variations_on_variation_id"
+  end
+
   create_table "magic_cards", force: :cascade do |t|
     t.string "art_crop"
     t.string "border_color"
     t.bigint "boxset_id"
+    t.boolean "can_be_brawl_commander", default: false
+    t.boolean "can_be_commander", default: false
+    t.boolean "can_be_oathbreaker_commander", default: false
     t.string "card_number"
     t.string "card_side"
     t.string "card_type"
@@ -222,6 +269,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_220000) do
     t.datetime "image_updated_at"
     t.boolean "is_reprint"
     t.boolean "is_token", default: false, null: false
+    t.string "layout"
     t.string "mana_cost"
     t.decimal "mana_value", precision: 10, scale: 2
     t.string "name"
@@ -234,6 +282,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_220000) do
     t.decimal "price_change_weekly_normal", precision: 10, scale: 2
     t.jsonb "price_history"
     t.string "rarity"
+    t.string "security_stamp"
     t.string "text"
     t.string "toughness"
     t.datetime "updated_at", null: false
@@ -317,8 +366,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_12_220000) do
   add_foreign_key "collection_magic_cards", "collections", column: "source_collection_id"
   add_foreign_key "collection_magic_cards", "magic_cards"
   add_foreign_key "collections", "users"
+  add_foreign_key "magic_card_finishes", "finishes"
+  add_foreign_key "magic_card_finishes", "magic_cards"
+  add_foreign_key "magic_card_frame_effects", "frame_effects"
+  add_foreign_key "magic_card_frame_effects", "magic_cards"
   add_foreign_key "magic_card_legalities", "legalities"
   add_foreign_key "magic_card_legalities", "magic_cards"
+  add_foreign_key "magic_card_variations", "magic_cards"
+  add_foreign_key "magic_card_variations", "magic_cards", column: "variation_id"
   add_foreign_key "precon_deck_cards", "magic_cards"
   add_foreign_key "precon_deck_cards", "precon_decks"
 end
