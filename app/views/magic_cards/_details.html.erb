@@ -1,7 +1,7 @@
 <%= turbo_frame_tag "card_details_#{card.id}" do %>
   <div class="grid grid-cols-1 gap-6 p-2 md:grid-cols-3 md:p-8 bg-menu">
     <div class="flex flex-row items-center justify-between w-auto mt-4 text-end md:hidden">
-      <% if card.has_foil %>
+      <% if card.foil_available? %>
         <h3 class="font-normal text-md text-grey-text"><%= card.name %></h3>
         <p class="text-md text-grey-text">(R) $<%= card.normal_price %> / (foil) $<%= card.foil_price %></p>
       <% else %>

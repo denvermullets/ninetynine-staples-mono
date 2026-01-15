@@ -43,6 +43,9 @@
               <% else %>
                 <%= card.name %>
               <% end %>
+              <% if card.etched_finish? %>
+                <span class="ml-2 px-1.5 py-0.5 text-xs rounded bg-purple-900/30 text-purple-400 border border-purple-500/30" title="Etched finish">E</span>
+              <% end %>
             </td>
           <% end %>
           <% if column_visible?('type', 'boxsets') %>
@@ -56,7 +59,7 @@
             </td>
           <% end %>
           <% if column_visible?('regular_price', 'boxsets') %>
-            <% if card.has_non_foil %>
+            <% if card.non_foil_available? %>
               <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.normal_price) %>
@@ -72,7 +75,7 @@
             <% end %>
           <% end %>
           <% if column_visible?('foil_price', 'boxsets') %>
-            <% if card.has_foil %>
+            <% if card.foil_available? %>
               <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.foil_price) %>
