@@ -17,9 +17,10 @@ export default class extends Controller {
 
   connect() {
     // if the user is coming from a preloaded url, select the option if found
-    const code = new URLSearchParams(window.location.search).get("code") || this.defaultCodeValue;
+    // only prefill dropdown if code is explicitly in URL (not from default)
+    const urlCode = new URLSearchParams(window.location.search).get("code");
 
-    this.filterOptions(code);
+    this.filterOptions(urlCode);
     this.boundHandleClickOutside = this.handleClickOutside.bind(this);
   }
 
