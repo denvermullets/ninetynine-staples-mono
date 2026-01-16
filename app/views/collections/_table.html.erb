@@ -42,6 +42,9 @@
               <% if card.etched_finish? %>
                 <span class="ml-2 px-1.5 py-0.5 text-xs rounded bg-purple-900/30 text-purple-400 border border-purple-500/30" title="Etched finish">E</span>
               <% end %>
+              <% if card.is_token %>
+                <span class="ml-2 px-1.5 py-0.5 text-xs rounded bg-amber-900/30 text-amber-400 border border-amber-500/30" title="Token">T</span>
+              <% end %>
             </td>
           <% end %>
           <% if column_visible?('type', 'collections') %>
