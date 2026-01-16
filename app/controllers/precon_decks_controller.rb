@@ -5,11 +5,13 @@ class PreconDecksController < ApplicationController
     @deck_types = PreconDeck.ingested.distinct.pluck(:deck_type).compact.sort
     @selected_type = params[:deck_type]
     @card_search = params[:card_search]
+    @sort_column = sort_column
+    @sort_direction = sort_direction
 
     decks = PreconDeck.ingested.by_type(@selected_type)
     decks = search_by_card(decks) if @card_search.present?
 
-    @pagy, @precon_decks = pagy(decks.order(:name), items: 50)
+    @pagy, @precon_decks = pagy(decks.order("#{@sort_column} #{@sort_direction}"), items: 50)
   end
 
   def show
@@ -102,5 +104,13 @@ class PreconDecksController < ApplicationController
       total: cards.sum(&:quantity),
       value: cards.sum { |c| c.quantity * (c.magic_card.normal_price || 0).to_f }
     }
+  end
+
+  def sort_column
+    %w[name deck_type release_date code].include?(params[:sort]) ? params[:sort] : 'name'
+  end
+
+  def sort_direction
+    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
   end
 end
