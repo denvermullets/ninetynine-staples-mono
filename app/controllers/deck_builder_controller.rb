@@ -76,6 +76,14 @@ class DeckBuilderController < ApplicationController
     end
   end
 
+  def update_deck
+    if @deck.update(deck_params)
+      redirect_back fallback_location: deck_builder_path(@deck), notice: 'Deck updated successfully'
+    else
+      redirect_back fallback_location: deck_builder_path(@deck), alert: 'Failed to update deck'
+    end
+  end
+
   private
 
   def set_deck
@@ -112,5 +120,9 @@ class DeckBuilderController < ApplicationController
   def render_error_toast(message)
     flash.now[:type] = 'error'
     render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+  end
+
+  def deck_params
+    params.permit(:name, :description, :collection_type)
   end
 end

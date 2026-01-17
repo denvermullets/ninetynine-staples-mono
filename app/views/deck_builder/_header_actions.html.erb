@@ -6,6 +6,10 @@
           data: { turbo_frame: 'deck_modal' } %>
     <% end %>
 
+    <%= link_to 'Edit Info', edit_deck_modal_deck_builder_path(@deck),
+        class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition',
+        data: { turbo_frame: 'deck_modal' } %>
+
     <%= link_to 'Exit Build Mode', deck_show_path(username: current_user.username, collection_id: @deck.id),
         class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:text-white hover:border-white transition',
         data: { turbo_frame: '_top' } %>

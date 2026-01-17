@@ -1,4 +1,8 @@
 class CollectionsController < ApplicationController
+  before_action :authenticate_user!, only: %i[edit_collection_modal update]
+  before_action :set_collection, only: %i[edit_collection_modal update]
+  before_action :ensure_owner, only: %i[edit_collection_modal update]
+
   def new
     @collection = Collection.new
 
@@ -9,6 +13,18 @@ class CollectionsController < ApplicationController
     collection = Collection.new(collection_params)
 
     collection.save ? redirect_to(root_path) : render(:new, status: :unprocessable_entity)
+  end
+
+  def edit_collection_modal
+    render partial: 'collections/edit_collection_modal', locals: { collection: @collection }
+  end
+
+  def update
+    if @collection.update(collection_params)
+      redirect_back fallback_location: root_path, notice: 'Collection updated successfully'
+    else
+      redirect_back fallback_location: root_path, alert: 'Failed to update collection'
+    end
   end
 
   def show
@@ -73,8 +89,20 @@ class CollectionsController < ApplicationController
     @filtered_cards = CollectionQuery::Filter.call(cards: searched, params: params)
   end
 
+  def set_collection
+    @collection = Collection.find(params[:id])
+  end
+
+  def ensure_owner
+    redirect_to root_path, alert: 'Access denied' unless @collection.user_id == current_user.id
+  end
+
   def collection_params
-    params.require(:collection).permit(:description, :name, :collection_type, :user_id)
+    if params[:collection].present?
+      params.require(:collection).permit(:description, :name, :collection_type, :user_id)
+    else
+      params.permit(:description, :name, :collection_type)
+    end
   end
 
   def setup_view_mode

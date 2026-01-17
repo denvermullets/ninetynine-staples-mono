@@ -12,7 +12,10 @@
     </div>
     <div class="mb-4">
       <%= f.label :collection_type, class: "block text-sm font-medium " %>
-      <%= f.text_field :collection_type, class: "mt-1 block w-full rounded-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50" %>
+      <%= f.select :collection_type,
+          options_for_select([['Collection', 'collection'], ['Deck', 'deck']], params[:collection_type] || 'collection'),
+          {},
+          class: "mt-1 block w-full rounded-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50" %>
     </div>
     <div class="mt-6">
       <%= f.submit "Create Collection", class: "w-full bg-accent-50 hover:bg-highlight text-background font-medium py-2 px-4 rounded-lg transition hover:cursor-pointer hover:text-grey-text" %>

@@ -23,4 +23,8 @@ module DeckBuilderModals
       danger: false
     }
   end
+
+  def edit_deck_modal
+    render partial: 'deck_builder/edit_deck_modal', locals: { deck: @deck }
+  end
 end

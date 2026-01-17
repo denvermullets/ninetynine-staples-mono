@@ -1,0 +1,60 @@
+<%= turbo_frame_tag "collection_modal" do %>
+  <dialog id="edit-collection-dialog"
+          class="p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0"
+          data-controller="modal"
+          data-action="click->modal#closeOnBackdrop keydown.esc->modal#close">
+    <div class="w-96 p-6" data-modal-target="content">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-nine-white">Edit Collection</h3>
+        <button type="button"
+                data-action="click->modal#close"
+                class="text-grey-text hover:text-nine-white cursor-pointer">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <%= form_with url: collection_path(collection),
+                    method: :patch,
+                    data: { turbo_frame: "_top" },
+                    class: "space-y-4" do |f| %>
+        <div>
+          <%= f.label :name, class: "block text-sm font-medium text-grey-text mb-1" %>
+          <%= f.text_field :name,
+              value: collection.name,
+              class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
+        </div>
+
+        <div>
+          <%= f.label :description, class: "block text-sm font-medium text-grey-text mb-1" %>
+          <%= f.text_field :description,
+              value: collection.description,
+              class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
+        </div>
+
+        <div>
+          <%= f.label :collection_type, "Type", class: "block text-sm font-medium text-grey-text mb-1" %>
+          <%= f.select :collection_type,
+              options_for_select([
+                ['Collection', 'collection'],
+                ['Standard Deck', 'deck'],
+                ['Commander Deck', 'commander_deck']
+              ], collection.collection_type),
+              {},
+              class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button"
+                  data-action="click->modal#close"
+                  class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-background cursor-pointer">
+            Cancel
+          </button>
+          <%= f.submit "Save Changes",
+              class: "px-4 py-2 text-sm transition rounded-md bg-accent-50 hover:bg-nine-white text-background cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+  </dialog>
+<% end %>
