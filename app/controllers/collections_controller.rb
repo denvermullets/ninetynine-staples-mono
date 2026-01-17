@@ -1,4 +1,8 @@
 class CollectionsController < ApplicationController
+  before_action :authenticate_user!, only: %i[edit_collection_modal update]
+  before_action :set_collection, only: %i[edit_collection_modal update]
+  before_action :ensure_owner, only: %i[edit_collection_modal update]
+
   def new
     @collection = Collection.new
 
@@ -9,6 +13,18 @@ class CollectionsController < ApplicationController
     collection = Collection.new(collection_params)
 
     collection.save ? redirect_to(root_path) : render(:new, status: :unprocessable_entity)
+  end
+
+  def edit_collection_modal
+    render partial: 'collections/edit_collection_modal', locals: { collection: @collection }
+  end
+
+  def update
+    if @collection.update(collection_params)
+      redirect_back fallback_location: root_path, notice: 'Collection updated successfully'
+    else
+      redirect_back fallback_location: root_path, alert: 'Failed to update collection'
+    end
   end
 
   def show
@@ -73,8 +89,20 @@ class CollectionsController < ApplicationController
     @filtered_cards = CollectionQuery::Filter.call(cards: searched, params: params)
   end
 
+  def set_collection
+    @collection = Collection.find(params[:id])
+  end
+
+  def ensure_owner
+    redirect_to root_path, alert: 'Access denied' unless @collection.user_id == current_user.id
+  end
+
   def collection_params
-    params.require(:collection).permit(:description, :name, :collection_type, :user_id)
+    if params[:collection].present?
+      params.require(:collection).permit(:description, :name, :collection_type, :user_id)
+    else
+      params.permit(:description, :name, :collection_type)
+    end
   end
 
   def setup_view_mode
@@ -84,24 +112,16 @@ class CollectionsController < ApplicationController
 
     return unless @filtered_cards.present?
 
-    paginate_or_load_all
-    setup_visual_mode_data if @view_mode == 'visual'
+    paginate_cards
+    load_visual_mode_data if @view_mode == 'visual'
   end
 
-  def paginate_or_load_all
-    if skip_pagination?
-      @magic_cards = @filtered_cards.to_a
-      @pagy = nil
-    else
-      @pagy, @magic_cards = pagy(:offset, @filtered_cards)
-    end
+  def paginate_cards
+    skip = @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
+    @pagy, @magic_cards = skip ? [nil, @filtered_cards.to_a] : pagy(:offset, @filtered_cards)
   end
 
-  def skip_pagination?
-    @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
-  end
-
-  def setup_visual_mode_data
+  def load_visual_mode_data
     result = Collections::VisualModeSetup.call(cards: @magic_cards, user: @user, grouping: @grouping)
     @aggregated_quantities = result[:aggregated_quantities]
     @grouped_cards = result[:grouped_cards]

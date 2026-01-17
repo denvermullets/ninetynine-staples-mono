@@ -15,10 +15,8 @@ class DeckBuilderController < ApplicationController
     respond_to do |format|
       format.html
       format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.update('deck_cards', partial: 'deck_cards'),
-          turbo_stream.update('deck_stats', partial: 'deck_stats')
-        ]
+        render turbo_stream: [turbo_stream.update('deck_cards', partial: 'deck_cards'),
+                              turbo_stream.update('deck_stats', partial: 'deck_stats')]
       end
     end
   end
@@ -32,11 +30,8 @@ class DeckBuilderController < ApplicationController
 
   def add_card
     result = DeckBuilder::AddCard.call(
-      deck: @deck,
-      magic_card_id: params[:magic_card_id],
-      source_collection_id: params[:source_collection_id],
-      quantity: params[:quantity],
-      foil_quantity: params[:foil_quantity]
+      deck: @deck, magic_card_id: params[:magic_card_id], source_collection_id: params[:source_collection_id],
+      quantity: params[:quantity], foil_quantity: params[:foil_quantity]
     )
     render_card_action_response(result, success_message: "Added #{result[:card_name]}")
   end
@@ -76,6 +71,11 @@ class DeckBuilderController < ApplicationController
     end
   end
 
+  def update_deck
+    msg = @deck.update(deck_params) ? { notice: 'Deck updated successfully' } : { alert: 'Failed to update deck' }
+    redirect_back fallback_location: deck_builder_path(@deck), **msg
+  end
+
   private
 
   def set_deck
@@ -97,7 +97,11 @@ class DeckBuilderController < ApplicationController
   end
 
   def render_card_action_response(result, success_message:)
-    return render_error_toast(result[:error]) unless result[:success]
+    unless result[:success]
+      flash.now[:type] = 'error'
+      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+                                                                locals: { message: result[:error] })
+    end
 
     flash.now[:type] = 'success'
     load_deck_cards
@@ -109,8 +113,7 @@ class DeckBuilderController < ApplicationController
     ]
   end
 
-  def render_error_toast(message)
-    flash.now[:type] = 'error'
-    render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+  def deck_params
+    params.permit(:name, :description, :collection_type)
   end
 end

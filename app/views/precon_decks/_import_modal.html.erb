@@ -29,7 +29,7 @@
         <select
           name="collection_id"
           id="collection-select"
-          onchange="document.getElementById('new-collection-name').disabled = this.value !== ''"
+          onchange="toggleNewCollectionFields(this.value)"
           class="w-full px-3 py-2 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-white focus:outline-none">
           <option value="">-- Create new collection --</option>
           <% @collections.each do |collection| %>
@@ -47,6 +47,18 @@
           id="new-collection-name"
           placeholder="<%= @precon_deck.name %>"
           class="w-full px-3 py-2 text-sm border rounded-md border-highlight bg-background text-white placeholder-grey-text focus:border-white focus:outline-none">
+      </div>
+
+      <!-- Deck Type Selection -->
+      <div class="flex flex-col gap-2" id="deck-type-container">
+        <label class="text-sm text-grey-text">Deck type:</label>
+        <select
+          name="collection_type"
+          id="deck-type-select"
+          class="w-full px-3 py-2 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-white focus:outline-none">
+          <option value="deck">Deck</option>
+          <option value="commander_deck">Commander Deck</option>
+        </select>
       </div>
 
       <p class="text-xs text-grey-text">
@@ -76,6 +88,13 @@
     <% end %>
 
     <script>
+      function toggleNewCollectionFields(collectionId) {
+        const isNewCollection = collectionId === '';
+        document.getElementById('new-collection-name').disabled = !isNewCollection;
+        document.getElementById('deck-type-select').disabled = !isNewCollection;
+        document.getElementById('deck-type-container').style.opacity = isNewCollection ? '1' : '0.5';
+      }
+
       function validateAndSubmitImport() {
         const collectionId = document.getElementById('collection-select').value;
         const collectionName = document.getElementById('new-collection-name').value.trim();

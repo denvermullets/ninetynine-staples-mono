@@ -37,15 +37,17 @@
       <div>
         <%= @collection_type&.capitalize&.pluralize || 'Collections' %>
       </div>
-      <% @collections.each do |collection| %>
-        <% show_path = @collection_type == 'deck' ? deck_show_path(username: params[:username], collection_id: collection.id) : collection_show_path(username: params[:username], collection_id: collection.id) %>
+      <% @collections.each do |col| %>
+        <% show_path = @collection_type == 'deck' ? deck_show_path(username: params[:username], collection_id: col.id) : collection_show_path(username: params[:username], collection_id: col.id) %>
         <%= render partial: 'binder',
                  locals: {
-                   name: collection.name,
-                   description: collection.description,
-                   card: collection.magic_cards.count.zero? ? MagicCard.last : collection.magic_cards.last,
+                   name: col.name,
+                   description: col.description,
+                   card: col.magic_cards.count.zero? ? MagicCard.last : col.magic_cards.last,
                    link: show_path,
-                   active: collection.id == params[:collection_id].to_i
+                   active: col.id == params[:collection_id].to_i,
+                   collection: col,
+                   is_owner: is_own_collection
                  }
         %>
       <% end %>
@@ -146,4 +148,6 @@
       <% end %>
     </div>
   </div>
+
+  <%= turbo_frame_tag "collection_modal" %>
 </div>
