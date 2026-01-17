@@ -22,5 +22,9 @@
   </div>
 <% end %>
 <%= turbo_stream.update 'table-container' do %>
-  <%= render 'table' %>
+  <% if @view_mode == 'visual' %>
+    <%= render 'visual' %>
+  <% else %>
+    <%= render 'table' %>
+  <% end %>
 <% end %>

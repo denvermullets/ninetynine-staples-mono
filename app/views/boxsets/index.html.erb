@@ -1,4 +1,10 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100' data-controller="chart-toggle">
+<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'
+     data-controller="chart-toggle boxset-view"
+     data-boxset-view-view-mode-value="<%= @view_mode || 'table' %>"
+     data-boxset-view-grouping-value="<%= @grouping || 'none' %>"
+     data-boxset-view-grouping-allowed-value="<%= @grouping_allowed || false %>"
+     data-boxset-view-load-path-value="<%= load_boxset_path %>"
+     data-boxset-view-default-code="<%= @default_code || @boxset&.code %>">
   <%= render partial: 'shared/page_header',
     locals: { header: 'Boxsets',
               subtext: 'View cards by selecting a specific boxset release. Click on a card to add to Collection.' }
@@ -6,6 +12,49 @@
   <div class="flex flex-col md:flex-row md:flex-wrap px-8 py-4 gap-4 border rounded-3xl bg-foreground border-highlight">
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_boxset_path, default_code: @default_code } %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_boxset_path, show_price_filter: true } %>
+    <!-- View Mode Toggle -->
+    <div class="w-auto">
+      <div class="flex flex-col">
+        <h3 class="mb-2 text-grey-text">View</h3>
+        <div class="flex flex-row flex-wrap">
+          <button
+            type="button"
+            data-boxset-view-target="tableButton"
+            data-action="click->boxset-view#setViewMode"
+            data-view-mode="table"
+            class="cursor-pointer px-4 py-2 text-sm rounded-lg transition border-2 border-transparent <%= @view_mode == 'visual' ? 'bg-background text-grey-text hover:bg-menu' : 'bg-highlight text-nine-white' %>"
+          >
+            Table
+          </button>
+          <button
+            type="button"
+            data-boxset-view-target="visualButton"
+            data-action="click->boxset-view#setViewMode"
+            data-view-mode="visual"
+            class="cursor-pointer px-4 py-2 text-sm rounded-lg transition border-2 border-transparent <%= @view_mode == 'visual' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+          >
+            Visual
+          </button>
+        </div>
+        <p class="mt-2 text-xs text-grey-text">Switch display mode</p>
+      </div>
+    </div>
+    <!-- Grouping Dropdown (only visible in visual mode when boxset selected) -->
+    <div id="grouping-container" class="w-auto flex items-center <%= 'hidden' unless @view_mode == 'visual' && @grouping_allowed %>">
+      <div class="flex flex-col">
+        <h3 class="mb-2 text-grey-text">Group By</h3>
+        <select
+          data-boxset-view-target="groupingSelect"
+          data-action="change->boxset-view#changeGrouping"
+          class="px-4 py-2 border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:ring-accent-50"
+        >
+          <option value="none" <%= 'selected' if @grouping == 'none' %>>No Grouping</option>
+          <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>By Rarity</option>
+          <option value="color" <%= 'selected' if @grouping == 'color' %>>By Color</option>
+        </select>
+        <p class="mt-2 text-xs text-grey-text">Group cards in visual view</p>
+      </div>
+    </div>
     <div id="chart-toggle-button">
       <% if @boxset.present? && @boxset.value_history.present? && (@boxset.value_history['normal'].any? || @boxset.value_history['foil'].any?) %>
         <button
@@ -27,7 +76,11 @@
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">
       <% if @magic_cards.present? %>
-        <%= render partial: 'table' %>
+        <% if @view_mode == 'visual' %>
+          <%= render partial: 'visual' %>
+        <% else %>
+          <%= render partial: 'table' %>
+        <% end %>
       <% else %>
         <div class="p-8 mt-6 text-center border rounded-3xl border-highlight bg-background">
           <p class="text-lg text-grey-text">
