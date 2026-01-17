@@ -37,7 +37,7 @@ module DeckBuilder
     end
 
     def calculate_deck_value(cards)
-      cards.sum { |card| card.display_quantity * card.magic_card.normal_price.to_f }
+      cards.sum(&:display_value)
     end
   end
 end

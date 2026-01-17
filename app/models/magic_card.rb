@@ -93,6 +93,14 @@ class MagicCard < ApplicationRecord
     finishes.exists?(name: 'etched')
   end
 
+  # Returns the best available price for display purposes
+  # Falls back to foil_price for foil-only cards
+  def display_price
+    return normal_price if normal_price.to_f.positive?
+
+    foil_price.to_f
+  end
+
   private
 
   def price_trend_service
