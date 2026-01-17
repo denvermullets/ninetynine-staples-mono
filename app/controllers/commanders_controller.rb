@@ -53,15 +53,18 @@ class CommandersController < ApplicationController
   end
 
   def build_boxset_options
-    boxsets_with_commanders = Boxset.joins(:magic_cards)
-                                    .where(magic_cards: { can_be_commander: true })
-                                    .distinct
-                                    .order(release_date: :desc)
+    Rails.cache.fetch('commanders/boxset_options', expires_in: 1.hour) do
+      boxsets_with_commanders = Boxset.joins(:magic_cards)
+                                      .where(magic_cards: { can_be_commander: true })
+                                      .distinct
+                                      .order(release_date: :desc)
 
-    [
-      { id: 'all', name: 'All Commanders', code: 'all', keyrune_code: 'pmtg1' }
-    ] + boxsets_with_commanders.map do |boxset|
-      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code&.downcase || 'default' }
+      [
+        { id: 'all', name: 'All Commanders', code: 'all', keyrune_code: 'pmtg1' }
+      ] + boxsets_with_commanders.map do |boxset|
+        keyrune = boxset.keyrune_code&.downcase || 'default'
+        { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: keyrune }
+      end
     end
   end
 

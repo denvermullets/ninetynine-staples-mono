@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_14_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_17_170248) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -287,8 +287,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_14_200000) do
     t.string "toughness"
     t.datetime "updated_at", null: false
     t.index ["boxset_id"], name: "index_magic_cards_on_boxset_id"
+    t.index ["can_be_commander", "boxset_id"], name: "index_magic_cards_on_can_be_commander_and_boxset_id"
+    t.index ["can_be_commander"], name: "index_magic_cards_on_can_be_commander"
+    t.index ["card_side"], name: "index_magic_cards_on_card_side"
+    t.index ["edhrec_rank"], name: "index_magic_cards_on_edhrec_rank"
     t.index ["price_change_weekly_foil"], name: "index_magic_cards_on_price_change_weekly_foil"
     t.index ["price_change_weekly_normal"], name: "index_magic_cards_on_price_change_weekly_normal"
+    t.index ["rarity"], name: "index_magic_cards_on_rarity"
   end
 
   create_table "precon_deck_cards", force: :cascade do |t|

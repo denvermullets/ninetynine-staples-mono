@@ -65,27 +65,35 @@ module CollectionQuery
     end
 
     def filter_by_colors(cards)
-      # if "C" (colorless) is selected, ONLY include colorless cards (no WUBRG)
+      # if "C" (colorless) is selected, ONLY include colorless cards (no colors)
       if @colors.include?('C')
-        return cards.select do |card|
-          next if card.mana_cost.nil?
-
-          card.mana_cost.scan(/[WUBRG]/).empty?
-        end
+        return cards.left_joins(:magic_card_colors)
+                    .where(magic_card_colors: { id: nil })
       end
 
-      cards.select do |card|
-        next if card.mana_cost.nil?
-
-        mana_symbols = card.mana_cost.scan(/[WUBRG]/).uniq.sort
-        selected_symbols = @colors.uniq.sort
-
-        if @exact_color_match
-          mana_symbols == selected_symbols
-        else
-          mana_symbols.intersect?(selected_symbols)
-        end
+      if @exact_color_match
+        filter_by_exact_colors(cards)
+      else
+        filter_by_any_colors(cards)
       end
+    end
+
+    def filter_by_any_colors(cards)
+      cards.joins(magic_card_colors: :color)
+           .where(colors: { name: @colors })
+           .distinct
+    end
+
+    def filter_by_exact_colors(cards)
+      selected = @colors.uniq.sort
+
+      # Find cards that have exactly the selected colors (no more, no less)
+      cards.where(
+        id: MagicCard.joins(magic_card_colors: :color)
+                    .group('magic_cards.id')
+                    .having('ARRAY_AGG(colors.name ORDER BY colors.name) = ARRAY[?]::varchar[]', selected)
+                    .select(:id)
+      )
     end
   end
 end
