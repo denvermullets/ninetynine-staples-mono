@@ -21,6 +21,9 @@
         <%= form.hidden_field :code, value: params[:code] %>
         <%= form.hidden_field :collection_id, value: params[:collection_id] %>
         <%= form.hidden_field :valuable_only, value: params[:valuable_only] %>
+        <%= form.hidden_field :owned_only, value: params[:owned_only] %>
+        <%= form.hidden_field :sort, value: params[:sort] %>
+        <%= form.hidden_field :direction, value: params[:direction] %>
         <%= form.submit 'Search',
               class: 'p-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700'
           %>

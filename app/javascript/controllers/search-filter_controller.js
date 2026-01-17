@@ -72,6 +72,7 @@ export default class extends Controller {
 
         const usernameValue = currentParams.get("username");
         const collectionId = currentParams.get("collection_id");
+        const isCommandersPage = window.location.pathname.includes("/commanders");
 
         const queryString = new URLSearchParams({
           ...(currentParams.get("code") && { code: currentParams.get("code") }),
@@ -88,9 +89,21 @@ export default class extends Controller {
           ...(currentParams.get("price_change_range") && {
             price_change_range: currentParams.get("price_change_range"),
           }),
+          ...(currentParams.get("owned_only") && {
+            owned_only: currentParams.get("owned_only"),
+          }),
+          ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
+          ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
         }).toString();
 
-        const basePath = usernameValue ? `/collections/${usernameValue}` : `/boxsets`;
+        let basePath;
+        if (isCommandersPage) {
+          basePath = `/commanders`;
+        } else if (usernameValue) {
+          basePath = `/collections/${usernameValue}`;
+        } else {
+          basePath = `/boxsets`;
+        }
         const fullBasePath = collectionId ? `${basePath}/${collectionId}` : basePath;
         const pushUrl = `${window.location.origin}${fullBasePath}${
           queryString ? `?${queryString}` : ""

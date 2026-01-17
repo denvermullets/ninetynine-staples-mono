@@ -38,6 +38,8 @@ Rails.application.routes.draw do
   post 'dashboard/backfill-price-change-weekly', to: 'dashboard#backfill_price_change_weekly', as: :dashboard_backfill_price_change_weekly
 
   get 'load_boxset', to: 'boxsets#load_boxset', as: :load_boxset
+  get 'commanders', to: 'commanders#index', as: :commanders
+  get 'load_commanders', to: 'commanders#load_commanders', as: :load_commanders
   get 'load_collection', to: 'collections#load', as: :load_collection
   resources :boxsets
   resources :magic_cards
