@@ -112,24 +112,16 @@ class CollectionsController < ApplicationController
 
     return unless @filtered_cards.present?
 
-    paginate_or_load_all
-    setup_visual_mode_data if @view_mode == 'visual'
+    paginate_cards
+    load_visual_mode_data if @view_mode == 'visual'
   end
 
-  def paginate_or_load_all
-    if skip_pagination?
-      @magic_cards = @filtered_cards.to_a
-      @pagy = nil
-    else
-      @pagy, @magic_cards = pagy(:offset, @filtered_cards)
-    end
+  def paginate_cards
+    skip = @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
+    @pagy, @magic_cards = skip ? [nil, @filtered_cards.to_a] : pagy(:offset, @filtered_cards)
   end
 
-  def skip_pagination?
-    @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
-  end
-
-  def setup_visual_mode_data
+  def load_visual_mode_data
     result = Collections::VisualModeSetup.call(cards: @magic_cards, user: @user, grouping: @grouping)
     @aggregated_quantities = result[:aggregated_quantities]
     @grouped_cards = result[:grouped_cards]
