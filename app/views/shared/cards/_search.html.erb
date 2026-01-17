@@ -24,6 +24,8 @@
         <%= form.hidden_field :owned_only, value: params[:owned_only] %>
         <%= form.hidden_field :sort, value: params[:sort] %>
         <%= form.hidden_field :direction, value: params[:direction] %>
+        <%= form.hidden_field :view_mode, value: params[:view_mode] %>
+        <%= form.hidden_field :grouping, value: params[:grouping] %>
         <%= form.submit 'Search',
               class: 'p-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700'
           %>

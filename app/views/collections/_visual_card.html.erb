@@ -1,0 +1,42 @@
+<% quantities = @aggregated_quantities&.dig(card.id) || { total_quantity: 0, total_foil_quantity: 0 } %>
+<% total_qty = quantities[:total_quantity] + quantities[:total_foil_quantity] %>
+<% foil_qty = quantities[:total_foil_quantity] %>
+
+<div class="relative overflow-hidden transition-transform rounded-xl group hover:scale-105">
+  <% if card.image_medium.present? %>
+    <img src="<%= card.image_medium %>"
+         alt="<%= card.name %>"
+         class="w-full rounded-xl shadow-lg"
+         loading="lazy" />
+  <% else %>
+    <div class="flex items-center justify-center w-full rounded-xl bg-background aspect-[5/7]">
+      <span class="p-2 text-sm text-center text-grey-text"><%= card.name %></span>
+    </div>
+  <% end %>
+
+  <% if total_qty > 1 %>
+    <span class="absolute px-2 py-1 text-xs font-bold rounded-full top-2 right-2 bg-background/90 text-white shadow">
+      x<%= total_qty %>
+    </span>
+  <% end %>
+
+  <% if foil_qty > 0 %>
+    <span class="absolute px-2 py-1 text-xs font-bold rounded-full top-2 left-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow">
+      <% if foil_qty == total_qty %>
+        Foil
+      <% else %>
+        <%= foil_qty %> Foil
+      <% end %>
+    </span>
+  <% end %>
+
+  <div class="absolute bottom-0 left-0 right-0 px-2 py-2 text-xs rounded-b-xl bg-black/80">
+    <div class="font-medium truncate text-nine-white"><%= card.name %></div>
+    <div class="flex justify-between mt-1">
+      <span class="text-grey-text"><%= number_to_currency(card.normal_price) %></span>
+      <% if card.foil_price.present? && card.foil_price > 0 %>
+        <span class="text-yellow-400"><%= number_to_currency(card.foil_price) %></span>
+      <% end %>
+    </div>
+  </div>
+</div>
