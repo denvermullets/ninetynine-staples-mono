@@ -18,11 +18,20 @@ module CollectionQuery
     def call
       return @cards if @column.blank? || @prefer_by.blank?
 
-      # Use DISTINCT ON to get one record per unique column value
-      # Order by the column first (required for DISTINCT ON), then by preference
+      table = MagicCard.arel_table
+
+      # Build order using Arel nodes - safe from injection
+      column_order = table[@column.to_sym].asc
+      prefer_order = if @prefer_direction == 'DESC'
+                       table[@prefer_by.to_sym].desc.nulls_last
+                     else
+                       table[@prefer_by.to_sym].asc.nulls_last
+                     end
+
+      # DISTINCT ON is PostgreSQL-specific; column validated against ALLOWED_COLUMNS
       subquery = @cards
                  .select("DISTINCT ON (magic_cards.#{@column}) magic_cards.id")
-                 .order(Arel.sql("magic_cards.#{@column}, magic_cards.#{@prefer_by} #{@prefer_direction} NULLS LAST"))
+                 .order(column_order, prefer_order)
 
       MagicCard.where(id: subquery)
                .includes(:boxset, :finishes, magic_card_color_idents: :color)

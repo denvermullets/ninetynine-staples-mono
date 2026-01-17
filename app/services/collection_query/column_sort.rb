@@ -14,7 +14,7 @@ module CollectionQuery
     def initialize(records:, column:, direction: 'asc', table_name: nil)
       @records = records
       @column = sanitize_column(column)
-      @direction = direction.to_s.downcase == 'desc' ? 'DESC' : 'ASC'
+      @direction = direction.to_s.downcase == 'desc' ? :desc : :asc
       @table_name = sanitize_table_name(table_name)
     end
 
@@ -26,8 +26,9 @@ module CollectionQuery
     def call
       return @records if @column.blank?
 
-      if numeric_column?
-        sort_with_nulls_last
+      if numeric_column? && @direction == :desc
+        # For DESC with numeric columns, add NULLS LAST to keep nulls at end
+        sort_desc_nulls_last
       else
         sort_standard
       end
@@ -51,16 +52,17 @@ module CollectionQuery
       NUMERIC_COLUMNS.include?(@column)
     end
 
-    def qualified_column
-      @table_name ? "#{@table_name}.#{@column}" : @column
-    end
-
-    def sort_with_nulls_last
-      @records.order(Arel.sql("#{qualified_column} #{@direction} NULLS LAST"))
+    def sort_desc_nulls_last
+      table = @table_name ? Arel::Table.new(@table_name.to_sym) : @records.klass.arel_table
+      @records.order(table[@column.to_sym].desc.nulls_last)
     end
 
     def sort_standard
-      @records.order("#{qualified_column} #{@direction}")
+      if @table_name
+        @records.order("#{@table_name}.#{@column}" => @direction)
+      else
+        @records.order(@column => @direction)
+      end
     end
   end
 end
