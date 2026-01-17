@@ -17,6 +17,7 @@ class CollectionsController < ApplicationController
     @collection_type = nil
     setup_collections(@collection_type)
     search_magic_cards
+    setup_view_mode
 
     render 'index'
   end
@@ -27,6 +28,7 @@ class CollectionsController < ApplicationController
     @collection_type = 'deck'
     setup_collections(nil, use_deck_scope: true)
     search_magic_cards
+    setup_view_mode
 
     render 'index'
   end
@@ -38,6 +40,7 @@ class CollectionsController < ApplicationController
     @collection_type = params[:collection_type]
     setup_collections(@collection_type)
     search_magic_cards
+    setup_view_mode
 
     respond_to do |format|
       format.turbo_stream
@@ -103,5 +106,22 @@ class CollectionsController < ApplicationController
 
   def collection_params
     params.require(:collection).permit(:description, :name, :collection_type, :user_id)
+  end
+
+  def setup_view_mode
+    @view_mode = params[:view_mode] || 'table'
+    @grouping = params[:grouping] || 'none'
+
+    return unless @view_mode == 'visual' && @magic_cards.present?
+
+    @aggregated_quantities = Collections::AggregateQuantities.call(
+      magic_cards: @magic_cards,
+      user: @user
+    )
+
+    @grouped_cards = Collections::GroupCards.call(
+      cards: @magic_cards,
+      grouping: @grouping
+    )
   end
 end

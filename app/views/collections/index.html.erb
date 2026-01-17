@@ -1,4 +1,9 @@
-<div class="flex items-start gap-4 md:gap-8 px-4 md:px-24 py-4 md:py-8" data-controller="collection-sidebar">
+<div class="flex items-start gap-4 md:gap-8 px-4 md:px-24 py-4 md:py-8"
+     data-controller="collection-sidebar collection-view"
+     data-collection-view-view-mode-value="<%= @view_mode || 'table' %>"
+     data-collection-view-grouping-value="<%= @grouping || 'none' %>"
+     data-collection-view-load-path-value="<%= load_collection_path(collection_type: @collection_type) %>"
+     data-collection-view-username-value="<%= params[:username] %>">
   <!-- Mobile Filter Button -->
   <button
     data-action="click->collection-sidebar#toggle"
@@ -23,6 +28,8 @@
     data-collection-sidebar-target="sidebar"
     class="hidden md:flex flex-col shrink-0 h-auto px-4 md:px-8 py-3 md:py-4 gap-3 md:gap-8 border w-[85vw] md:w-72 max-w-sm md:max-w-none rounded-3xl md:rounded-3xl border-highlight bg-foreground text-grey-text fixed md:relative inset-y-0 left-0 z-40 md:z-auto <%= 'overflow-y-auto max-h-screen' if is_own_collection %>"
   >
+    <%= render partial: 'view_toggle' %>
+    <%= render partial: 'grouping_dropdown' %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
     <div class='flex flex-col space-y-2'>
@@ -56,8 +63,8 @@
   </div>
   <!-- Main Content -->
   <div class="flex flex-col grow gap-8 min-w-0">
-    <!-- Top Bar -->
-    <div class="shrink-0 px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text overflow-hidden">
+    <!-- Top Bar / Stats -->
+    <div data-collection-view-target="statsBar" class="shrink-0 px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text overflow-hidden <%= 'hidden' if @view_mode == 'visual' %>">
       <% if @collection.present? %>
         <% if @collection_type == 'deck' && current_user&.id == @user.id %>
           <div class="flex items-center justify-end mb-4">
@@ -125,11 +132,15 @@
         </div>
       <% end %>
     </div>
-    <!-- Table Content -->
+    <!-- Table/Visual Content -->
     <div class="grow">
       <%= turbo_frame_tag 'boxset_content' do %>
         <div id="table-container" class="min-w-full">
-          <%= render partial: 'table' %>
+          <% if @view_mode == 'visual' %>
+            <%= render partial: 'visual' %>
+          <% else %>
+            <%= render partial: 'table' %>
+          <% end %>
         </div>
       <% end %>
     </div>

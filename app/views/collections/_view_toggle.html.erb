@@ -1,0 +1,24 @@
+<div class="flex flex-col">
+  <h3 class="mb-2 text-grey-text">View</h3>
+  <div class="flex items-center gap-2">
+    <button
+      type="button"
+      data-collection-view-target="tableButton"
+      data-action="click->collection-view#setViewMode"
+      data-view-mode="table"
+      class="px-3 py-1.5 text-sm rounded-md transition cursor-pointer <%= @view_mode == 'visual' ? 'bg-background text-grey-text hover:bg-menu' : 'bg-highlight text-nine-white' %>"
+    >
+      Table
+    </button>
+    <button
+      type="button"
+      data-collection-view-target="visualButton"
+      data-action="click->collection-view#setViewMode"
+      data-view-mode="visual"
+      class="px-3 py-1.5 text-sm rounded-md transition cursor-pointer <%= @view_mode == 'visual' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+    >
+      Visual
+    </button>
+  </div>
+  <p class="mt-2 text-xs text-grey-text">Switch between table and visual views</p>
+</div>

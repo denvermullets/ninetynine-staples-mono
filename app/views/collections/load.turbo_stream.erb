@@ -1,9 +1,10 @@
 <%= turbo_stream.replace "search-form" do %>
   <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path } %>
 <% end %>
-<%# <%= turbo_stream.replace "collection-boxset-dropdown" do %>
-  <%# <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path } %>
-  <%# <% end %>
-  <%= turbo_stream.update 'table-container' do %>
+<%= turbo_stream.update 'table-container' do %>
+  <% if @view_mode == 'visual' %>
+    <%= render partial: 'visual' %>
+  <% else %>
     <%= render partial: 'table' %>
   <% end %>
+<% end %>
