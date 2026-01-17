@@ -5,6 +5,7 @@ export default class extends Controller {
   static values = {
     viewMode: { type: String, default: "table" },
     grouping: { type: String, default: "none" },
+    groupingAllowed: { type: Boolean, default: false },
     loadPath: String,
     username: String,
   };
@@ -59,7 +60,10 @@ export default class extends Controller {
     if (this.hasGroupingSelectTarget) {
       const container = this.groupingSelectTarget.closest(".grouping-container");
       if (container) {
-        container.classList.toggle("hidden", this.viewModeValue !== "visual");
+        // Only show grouping when in visual mode AND a boxset is selected (code param present)
+        const hasBoxsetFilter = new URLSearchParams(window.location.search).has("code");
+        const shouldShow = this.viewModeValue === "visual" && hasBoxsetFilter;
+        container.classList.toggle("hidden", !shouldShow);
       }
     }
   }
@@ -88,7 +92,11 @@ export default class extends Controller {
 
     const url = `${this.loadPathValue}?${queryParams}`;
 
-    fetch(url)
+    fetch(url, {
+      headers: {
+        Accept: "text/vnd.turbo-stream.html",
+      },
+    })
       .then((response) => response.text())
       .then((html) => {
         Turbo.renderStreamMessage(html);

@@ -1,0 +1,22 @@
+<div class="relative overflow-hidden transition-transform rounded-xl group hover:scale-105">
+  <% if card.image_medium.present? %>
+    <img src="<%= card.image_medium %>"
+         alt="<%= card.name %>"
+         class="w-full rounded-xl shadow-lg"
+         loading="lazy" />
+  <% else %>
+    <div class="flex items-center justify-center w-full rounded-xl bg-background aspect-[5/7]">
+      <span class="p-2 text-sm text-center text-grey-text"><%= card.name %></span>
+    </div>
+  <% end %>
+
+  <div class="absolute bottom-0 left-0 right-0 px-2 py-2 text-xs rounded-b-xl bg-black/80">
+    <div class="font-medium truncate text-nine-white"><%= card.name %></div>
+    <div class="flex justify-between mt-1">
+      <span class="text-grey-text"><%= number_to_currency(card.normal_price) %></span>
+      <% if card.foil_price.present? && card.foil_price > 0 %>
+        <span class="text-yellow-400"><%= number_to_currency(card.foil_price) %></span>
+      <% end %>
+    </div>
+  </div>
+</div>
