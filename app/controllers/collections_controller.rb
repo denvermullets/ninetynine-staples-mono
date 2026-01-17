@@ -50,14 +50,6 @@ class CollectionsController < ApplicationController
 
   private
 
-  def boxset_options
-    # just get the boxset_id's for cards in the collection and create the options list from that
-    boxset_ids = load_collection_ids(@user.collections)
-    Boxset.where(id: boxset_ids).map do |boxset|
-      { id: boxset.id, name: boxset.name, code: boxset.code, keyrune_code: boxset.keyrune_code.downcase }
-    end
-  end
-
   def setup_collections(collection_type = nil, use_deck_scope: false)
     result = Collections::Setup.call(
       user: @user, current_user: current_user, collection_id: params[:collection_id],
@@ -67,41 +59,18 @@ class CollectionsController < ApplicationController
     @collections = result[:collections]
     @collections_value = result[:collections_value]
     @collection_history = result[:collection_history]
-    @options = boxset_options
+    @options = Collections::BoxsetOptions.call(collections: @user.collections, collection_id: params[:collection_id])
   end
 
   def search_magic_cards
     return if @user.nil?
 
-    magic_cards = Search::Collection.call(
-      cards: load_collection,
-      search_term: params[:search],
-      code: params[:code],
-      sort_by: :price,
-      collection_id: params[:collection_id] || nil
+    cards = MagicCard.joins(collection_magic_cards: :collection).where(collections: { user_id: @user.id })
+    searched = Search::Collection.call(
+      cards: cards, search_term: params[:search], code: params[:code],
+      sort_by: :price, collection_id: params[:collection_id]
     )
-
-    magic_cards = filter_cards(magic_cards)
-
-    @pagy, @magic_cards = pagy(:offset, magic_cards)
-  end
-
-  def filter_cards(cards)
-    CollectionQuery::Filter.call(cards: cards, params: params)
-  end
-
-  def load_collection
-    MagicCard
-      .joins(collection_magic_cards: :collection)
-      .where(collections: { user_id: @user.id })
-  end
-
-  def load_collection_ids(collections)
-    if params[:collection_id].present?
-      collections.find_by(id: params[:collection_id]).magic_cards.pluck(:boxset_id).uniq.compact
-    else
-      collections.map { |col| col.magic_cards.pluck(:boxset_id) }.uniq.compact.flatten
-    end
+    @filtered_cards = CollectionQuery::Filter.call(cards: searched, params: params)
   end
 
   def collection_params
@@ -111,17 +80,30 @@ class CollectionsController < ApplicationController
   def setup_view_mode
     @view_mode = params[:view_mode] || 'table'
     @grouping = params[:grouping] || 'none'
+    @grouping_allowed = params[:code].present?
 
-    return unless @view_mode == 'visual' && @magic_cards.present?
+    return unless @filtered_cards.present?
 
-    @aggregated_quantities = Collections::AggregateQuantities.call(
-      magic_cards: @magic_cards,
-      user: @user
-    )
+    paginate_or_load_all
+    setup_visual_mode_data if @view_mode == 'visual'
+  end
 
-    @grouped_cards = Collections::GroupCards.call(
-      cards: @magic_cards,
-      grouping: @grouping
-    )
+  def paginate_or_load_all
+    if skip_pagination?
+      @magic_cards = @filtered_cards.to_a
+      @pagy = nil
+    else
+      @pagy, @magic_cards = pagy(:offset, @filtered_cards)
+    end
+  end
+
+  def skip_pagination?
+    @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
+  end
+
+  def setup_visual_mode_data
+    result = Collections::VisualModeSetup.call(cards: @magic_cards, user: @user, grouping: @grouping)
+    @aggregated_quantities = result[:aggregated_quantities]
+    @grouped_cards = result[:grouped_cards]
   end
 end

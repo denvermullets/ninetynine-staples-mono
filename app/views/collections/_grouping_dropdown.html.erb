@@ -1,4 +1,4 @@
-<div class="grouping-container <%= 'hidden' unless @view_mode == 'visual' %>">
+<div class="grouping-container <%= 'hidden' unless @view_mode == 'visual' && @grouping_allowed %>">
   <div class="flex flex-col">
     <h3 class="mb-2 text-grey-text">Group By</h3>
     <select
@@ -10,6 +10,6 @@
       <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>Rarity</option>
       <option value="color" <%= 'selected' if @grouping == 'color' %>>Color</option>
     </select>
-    <p class="mt-2 text-xs text-grey-text">Group cards in visual view</p>
+    <p class="mt-2 text-xs text-grey-text">Group cards by boxset</p>
   </div>
 </div>

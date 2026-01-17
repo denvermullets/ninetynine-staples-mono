@@ -116,6 +116,8 @@ export default class extends Controller {
       }),
       ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
       ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
+      ...(currentParams.get("view_mode") && { view_mode: currentParams.get("view_mode") }),
+      ...(currentParams.get("grouping") && { grouping: currentParams.get("grouping") }),
       ...(this.usernameValue && { username: this.usernameValue }),
     }).toString();
 
@@ -138,6 +140,8 @@ export default class extends Controller {
           }),
           ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
           ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
+          ...(currentParams.get("view_mode") && { view_mode: currentParams.get("view_mode") }),
+          ...(currentParams.get("grouping") && { grouping: currentParams.get("grouping") }),
         }).toString();
 
         let basePath;

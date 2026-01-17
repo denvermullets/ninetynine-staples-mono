@@ -2,6 +2,7 @@
      data-controller="collection-sidebar collection-view"
      data-collection-view-view-mode-value="<%= @view_mode || 'table' %>"
      data-collection-view-grouping-value="<%= @grouping || 'none' %>"
+     data-collection-view-grouping-allowed-value="<%= @grouping_allowed || false %>"
      data-collection-view-load-path-value="<%= load_collection_path(collection_type: @collection_type) %>"
      data-collection-view-username-value="<%= params[:username] %>">
   <!-- Mobile Filter Button -->
