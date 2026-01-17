@@ -6,7 +6,7 @@ module CollectionQuery
     attr_reader :column, :direction
 
     VALID_DIRECTIONS = %w[asc desc].freeze
-    DEFAULT_DIRECTION = 'asc'
+    DEFAULT_DIRECTION = 'asc'.freeze
 
     def initialize(params:, allowed_columns:, default_column: nil, preserve_params: [])
       @params = params

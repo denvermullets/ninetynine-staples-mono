@@ -13,7 +13,8 @@ class PreconDecksController < ApplicationController
 
     decks = PreconDeck.ingested.by_type(@selected_type)
     decks = search_by_card(decks) if @card_search.present?
-    decks = CollectionQuery::ColumnSort.call(records: decks, column: sort_config.column, direction: sort_config.direction)
+    decks = CollectionQuery::ColumnSort.call(records: decks, column: sort_config.column,
+                                             direction: sort_config.direction)
 
     @pagy, @precon_decks = pagy(decks, items: 50)
   end
