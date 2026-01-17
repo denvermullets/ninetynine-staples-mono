@@ -1,6 +1,6 @@
 <%= turbo_frame_tag "deck_modal" do %>
   <dialog id="confirm-dialog"
-          class="p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50"
+          class="m-auto p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50"
           data-controller="modal"
           data-action="click->modal#closeOnBackdrop keydown.esc->modal#close">
     <div class="w-80 p-6" data-modal-target="content">
