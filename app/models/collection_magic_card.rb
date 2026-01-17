@@ -50,6 +50,22 @@ class CollectionMagicCard < ApplicationRecord
     (proxy_quantity * magic_card.normal_price) + (proxy_foil_quantity * magic_card.foil_price)
   end
 
+  # Value for deck builder display (handles both staged and non-staged cards)
+  # For foil-only cards, uses foil_price for all quantities
+  def display_value
+    normal_price = magic_card.normal_price.to_f
+    foil_price = magic_card.foil_price.to_f
+
+    # For foil-only cards (no non-foil price), treat all quantities as foil
+    if normal_price.zero? && foil_price.positive?
+      display_quantity * foil_price
+    elsif staged?
+      (staged_quantity * normal_price) + (staged_foil_quantity * foil_price)
+    else
+      real_value
+    end
+  end
+
   # Build mode methods
   def planned?
     staged? && source_collection_id.nil?

@@ -2,7 +2,7 @@
   <% @grouped_cards.each do |group_name, cards| %>
     <%
       group_count = cards.sum(&:display_quantity)
-      group_value = cards.sum { |c| c.display_quantity * (c.magic_card.normal_price || 0).to_f }
+      group_value = cards.sum(&:display_value)
     %>
     <div class="break-inside-avoid mb-4">
       <!-- Group Header -->
@@ -89,7 +89,7 @@
 
             <!-- Price -->
             <span class="w-16 text-right text-grey-text/75 shrink-0">
-              <%= number_to_currency(card.magic_card.normal_price || 0) %>
+              <%= number_to_currency(card.magic_card.display_price) %>
             </span>
 
             <!-- Actions (on hover) - only for owner -->
