@@ -1,4 +1,6 @@
 class PreconDecksController < ApplicationController
+  SORT_COLUMNS = %w[name deck_type release_date code].freeze
+
   before_action :set_precon_deck, only: %i[show import_to_collection]
 
   def index
@@ -10,8 +12,9 @@ class PreconDecksController < ApplicationController
 
     decks = PreconDeck.ingested.by_type(@selected_type)
     decks = search_by_card(decks) if @card_search.present?
+    decks = CollectionQuery::ColumnSort.call(records: decks, column: @sort_column, direction: @sort_direction)
 
-    @pagy, @precon_decks = pagy(decks.order("#{@sort_column} #{@sort_direction}"), items: 50)
+    @pagy, @precon_decks = pagy(decks, items: 50)
   end
 
   def show
@@ -107,7 +110,7 @@ class PreconDecksController < ApplicationController
   end
 
   def sort_column
-    %w[name deck_type release_date code].include?(params[:sort]) ? params[:sort] : 'name'
+    SORT_COLUMNS.include?(params[:sort]) ? params[:sort] : 'name'
   end
 
   def sort_direction
