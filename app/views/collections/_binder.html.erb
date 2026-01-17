@@ -1,20 +1,49 @@
-<%= link_to link, class: "block" do %>
-  <div class="flex flex-row gap-2 p-2 transition border rounded-xl text-grey-text hover:border-accent-50 <%= active ? 'border-accent-50' : 'border-highlight'%>">
-    <div class="relative w-12 h-12 overflow-hidden rounded-lg">
-      <%= image_tag card.art_crop.present? ? card.art_crop : card.image_small,
-                  alt: card.name,
-                  class: "absolute top-0 left-0 w-full h-full object-cover transform "
-    %>
-    </div>
-    <div class='flex flex-col gap-2 align-middle'>
-      <div class='text-sm font-semibold'>
-        <%= name %>
+<div class="relative group"
+     <% if local_assigns[:collection] && local_assigns[:is_owner] %>
+     data-controller="context-menu"
+     data-context-menu-edit-url-value="<%= edit_collection_modal_collection_path(collection) %>"
+     data-context-menu-frame-id-value="collection_modal"
+     data-action="contextmenu->context-menu#open"
+     <% end %>>
+  <%= link_to link, class: "block" do %>
+    <div class="flex flex-row items-center gap-2 p-2 h-16 transition border rounded-xl text-grey-text hover:border-accent-50 <%= active ? 'border-accent-50' : 'border-highlight'%>">
+      <div class="relative w-12 h-12 shrink-0 overflow-hidden rounded-lg">
+        <%= image_tag card.art_crop.present? ? card.art_crop : card.image_small,
+                    alt: card.name,
+                    class: "absolute top-0 left-0 w-full h-full object-cover transform "
+      %>
       </div>
-      <% if description.present? %>
-        <div class='text-[10px]'>
-          <%= description %>
+      <div class='flex flex-col justify-center min-w-0 <%= local_assigns[:is_owner] ? "pr-6" : "" %>'>
+        <div class='text-sm font-semibold truncate'>
+          <%= name %>
         </div>
-      <% end %>
+        <% if description.present? %>
+          <div class='text-[10px] truncate'>
+            <%= description %>
+          </div>
+        <% end %>
+      </div>
     </div>
-  </div>
-<% end %>
+  <% end %>
+
+  <% if local_assigns[:collection] && local_assigns[:is_owner] %>
+    <!-- 3-dot menu button -->
+    <button type="button"
+            data-action="click->context-menu#open"
+            class="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-grey-text hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+      </svg>
+    </button>
+
+    <!-- Context Menu -->
+    <div data-context-menu-target="menu"
+         class="hidden fixed z-50 min-w-[120px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+      <button type="button"
+              data-action="click->context-menu#edit"
+              class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+        Edit
+      </button>
+    </div>
+  <% end %>
+</div>

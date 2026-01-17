@@ -18,6 +18,12 @@
       <% @decks.each do |deck| %>
         <% commander = deck.commanders.first&.magic_card %>
         <% deck_path = deck_builder_path(deck) %>
+        <div class="relative"
+             <% if @is_owner %>
+             data-controller="context-menu"
+             data-context-menu-edit-url-value="<%= edit_deck_modal_deck_builder_path(deck) %>"
+             data-action="contextmenu->context-menu#open"
+             <% end %>>
         <%= link_to deck_path, class: 'group' do %>
           <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-white transition-all duration-200 hover:shadow-lg hover:shadow-highlight/20">
             <!-- Card Image -->
@@ -76,6 +82,19 @@
             </div>
           </div>
         <% end %>
+
+        <% if @is_owner %>
+          <!-- Context Menu -->
+          <div data-context-menu-target="menu"
+               class="hidden fixed z-50 min-w-[120px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+            <button type="button"
+                    data-action="click->context-menu#edit"
+                    class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition">
+              Edit
+            </button>
+          </div>
+        <% end %>
+        </div>
       <% end %>
     </div>
   <% else %>
@@ -93,4 +112,6 @@
       <% end %>
     </div>
   <% end %>
+
+  <%= turbo_frame_tag "deck_modal" %>
 </div>

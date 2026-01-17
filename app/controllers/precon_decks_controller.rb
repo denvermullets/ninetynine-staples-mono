@@ -86,16 +86,9 @@ class PreconDecksController < ApplicationController
       current_user.collections.create!(
         name: params[:collection_name],
         description: "Preconstructed #{@precon_deck.deck_type} deck",
-        collection_type: collection_type_from_precon
+        collection_type: params[:collection_type] || 'deck'
       )
     end
-  end
-
-  def collection_type_from_precon
-    return 'deck' if @precon_deck.deck_type.blank?
-
-    # Convert "Commander" -> "commander_deck", "Duel Commander" -> "duel_commander_deck"
-    "#{@precon_deck.deck_type.parameterize.underscore}_deck"
   end
 
   def search_by_card(decks)

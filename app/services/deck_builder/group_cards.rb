@@ -116,7 +116,7 @@ module DeckBuilder
     end
 
     def sort_by_price(magic_card)
-      (magic_card.normal_price || 0).to_f
+      magic_card.display_price
     end
 
     def sort_by_rarity(magic_card)

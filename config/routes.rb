@@ -58,7 +58,11 @@ Rails.application.routes.draw do
   resources :collection_magic_cards
 
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
-  resources :collections, only: %w[new create]
+  resources :collections, only: %w[new create update] do
+    member do
+      get :edit_collection_modal
+    end
+  end
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index
@@ -75,6 +79,8 @@ Rails.application.routes.draw do
       post :finalize
       get :confirm_remove_modal
       get :confirm_finalize_modal
+      get :edit_deck_modal
+      patch :update_deck
     end
   end
 end
