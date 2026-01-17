@@ -1,21 +1,19 @@
 class CommandersController < ApplicationController
   SORT_COLUMNS = %w[name card_type mana_value edhrec_rank edhrec_saltiness].freeze
+  PRESERVE_PARAMS = %i[code search owned_only rarity mana].freeze
 
-  helper_method :sort_params
+  helper_method :sort_config
 
   def index
     @options = build_boxset_options
     @default_code = params[:code]
-    @sort_column = sort_column
-    @sort_direction = sort_direction
+    @boxset = determine_boxset
     load_default_commanders
   end
 
   def load_commanders
     @options = build_boxset_options
     @boxset = determine_boxset
-    @sort_column = sort_column
-    @sort_direction = sort_direction
     @pagy, @magic_cards = pagy(:offset, search_commanders, items: 50)
 
     respond_to do |format|
@@ -34,7 +32,7 @@ class CommandersController < ApplicationController
     @cards = @cards.where("card_side IS NULL OR card_side != 'b'")
     @cards = filter_cards
     @cards = CollectionQuery::Deduplicate.call(cards: @cards, column: :name, prefer_by: :edhrec_rank)
-    CollectionQuery::ColumnSort.call(cards: @cards, column: @sort_column, direction: @sort_direction)
+    CollectionQuery::ColumnSort.call(cards: @cards, column: sort_config.column, direction: sort_config.direction)
   end
 
   def base_commander_query
@@ -51,16 +49,7 @@ class CommandersController < ApplicationController
   end
 
   def filter_cards
-    rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
-    colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
-
-    CollectionQuery::Filter.call(
-      cards: @cards,
-      code: nil,
-      collection_id: nil,
-      rarities: rarities,
-      colors: colors
-    )
+    CollectionQuery::Filter.call(cards: @cards, params: params)
   end
 
   def build_boxset_options
@@ -86,23 +75,12 @@ class CommandersController < ApplicationController
     @pagy, @magic_cards = pagy(:offset, search_commanders, items: 50)
   end
 
-  def sort_column
-    SORT_COLUMNS.include?(params[:sort]) ? params[:sort] : 'name'
-  end
-
-  def sort_direction
-    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
-  end
-
-  def sort_params(column)
-    {
-      sort: column,
-      direction: @sort_column == column && @sort_direction == 'asc' ? 'desc' : 'asc',
-      code: params[:code],
-      search: params[:search],
-      owned_only: params[:owned_only],
-      'rarity[]': params[:rarity],
-      'mana[]': params[:mana]
-    }.compact_blank
+  def sort_config
+    @sort_config ||= CollectionQuery::SortConfig.new(
+      params: params,
+      allowed_columns: SORT_COLUMNS,
+      default_column: 'name',
+      preserve_params: PRESERVE_PARAMS
+    )
   end
 end

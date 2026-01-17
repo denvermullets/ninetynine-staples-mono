@@ -4,42 +4,42 @@
     <thead class="bg-background">
       <tr>
         <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">
-          <%= link_to load_commanders_path(sort_params('name')), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
+          <%= link_to load_commanders_path(sort_config.link_params(:name)), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
             Name
-            <% if @sort_column == 'name' %>
-              <span class="text-accent-50"><%= @sort_direction == 'asc' ? '▲' : '▼' %></span>
+            <% if sort_config.indicator(:name) %>
+              <span class="text-accent-50"><%= sort_config.indicator(:name) %></span>
             <% end %>
           <% end %>
         </th>
         <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text lg:table-cell">
-          <%= link_to load_commanders_path(sort_params('card_type')), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
+          <%= link_to load_commanders_path(sort_config.link_params(:card_type)), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
             Type
-            <% if @sort_column == 'card_type' %>
-              <span class="text-accent-50"><%= @sort_direction == 'asc' ? '▲' : '▼' %></span>
+            <% if sort_config.indicator(:card_type) %>
+              <span class="text-accent-50"><%= sort_config.indicator(:card_type) %></span>
             <% end %>
           <% end %>
         </th>
         <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text md:table-cell">
-          <%= link_to load_commanders_path(sort_params('mana_value')), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
+          <%= link_to load_commanders_path(sort_config.link_params(:mana_value)), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
             Mana
-            <% if @sort_column == 'mana_value' %>
-              <span class="text-accent-50"><%= @sort_direction == 'asc' ? '▲' : '▼' %></span>
+            <% if sort_config.indicator(:mana_value) %>
+              <span class="text-accent-50"><%= sort_config.indicator(:mana_value) %></span>
             <% end %>
           <% end %>
         </th>
         <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text md:table-cell">
-          <%= link_to load_commanders_path(sort_params('edhrec_rank')), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
+          <%= link_to load_commanders_path(sort_config.link_params(:edhrec_rank)), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
             EDHREC Rank
-            <% if @sort_column == 'edhrec_rank' %>
-              <span class="text-accent-50"><%= @sort_direction == 'asc' ? '▲' : '▼' %></span>
+            <% if sort_config.indicator(:edhrec_rank) %>
+              <span class="text-accent-50"><%= sort_config.indicator(:edhrec_rank) %></span>
             <% end %>
           <% end %>
         </th>
         <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case lg:table-cell text-grey-text">
-          <%= link_to load_commanders_path(sort_params('edhrec_saltiness')), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
+          <%= link_to load_commanders_path(sort_config.link_params(:edhrec_saltiness)), data: { turbo_stream: true }, class: 'flex items-center gap-1 hover:text-white' do %>
             Salt
-            <% if @sort_column == 'edhrec_saltiness' %>
-              <span class="text-accent-50"><%= @sort_direction == 'asc' ? '▲' : '▼' %></span>
+            <% if sort_config.indicator(:edhrec_saltiness) %>
+              <span class="text-accent-50"><%= sort_config.indicator(:edhrec_saltiness) %></span>
             <% end %>
           <% end %>
         </th>

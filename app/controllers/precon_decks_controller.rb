@@ -1,18 +1,19 @@
 class PreconDecksController < ApplicationController
   SORT_COLUMNS = %w[name deck_type release_date code].freeze
+  PRESERVE_PARAMS = %i[deck_type card_search].freeze
 
   before_action :set_precon_deck, only: %i[show import_to_collection]
+
+  helper_method :sort_config
 
   def index
     @deck_types = PreconDeck.ingested.distinct.pluck(:deck_type).compact.sort
     @selected_type = params[:deck_type]
     @card_search = params[:card_search]
-    @sort_column = sort_column
-    @sort_direction = sort_direction
 
     decks = PreconDeck.ingested.by_type(@selected_type)
     decks = search_by_card(decks) if @card_search.present?
-    decks = CollectionQuery::ColumnSort.call(records: decks, column: @sort_column, direction: @sort_direction)
+    decks = CollectionQuery::ColumnSort.call(records: decks, column: sort_config.column, direction: sort_config.direction)
 
     @pagy, @precon_decks = pagy(decks, items: 50)
   end
@@ -109,11 +110,12 @@ class PreconDecksController < ApplicationController
     }
   end
 
-  def sort_column
-    SORT_COLUMNS.include?(params[:sort]) ? params[:sort] : 'name'
-  end
-
-  def sort_direction
-    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
+  def sort_config
+    @sort_config ||= CollectionQuery::SortConfig.new(
+      params: params,
+      allowed_columns: SORT_COLUMNS,
+      default_column: 'name',
+      preserve_params: PRESERVE_PARAMS
+    )
   end
 end
