@@ -5,12 +5,17 @@
 module CollectionQuery
   class ColumnSort < Service
     NUMERIC_COLUMNS = %w[edhrec_rank edhrec_saltiness mana_value normal_price foil_price].freeze
+    # Allowlist of valid column names to prevent SQL injection
+    ALLOWED_COLUMNS = %w[
+      name card_type mana_value edhrec_rank edhrec_saltiness
+      normal_price foil_price release_date code deck_type
+    ].freeze
 
     def initialize(records:, column:, direction: 'asc', table_name: nil)
       @records = records
-      @column = column.to_s
+      @column = sanitize_column(column)
       @direction = direction.to_s.downcase == 'desc' ? 'DESC' : 'ASC'
-      @table_name = table_name
+      @table_name = sanitize_table_name(table_name)
     end
 
     # Backwards compatible alias
@@ -29,6 +34,18 @@ module CollectionQuery
     end
 
     private
+
+    def sanitize_column(column)
+      col = column.to_s
+      ALLOWED_COLUMNS.include?(col) ? col : nil
+    end
+
+    def sanitize_table_name(table_name)
+      return nil if table_name.blank?
+
+      # Only allow alphanumeric and underscore for table names
+      table_name.to_s.match?(/\A[a-zA-Z_][a-zA-Z0-9_]*\z/) ? table_name.to_s : nil
+    end
 
     def numeric_column?
       NUMERIC_COLUMNS.include?(@column)
