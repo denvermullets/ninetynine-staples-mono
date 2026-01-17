@@ -103,12 +103,19 @@ export default class extends Controller {
   loadTableData(code) {
     // handling if there's params on the url and then push the history
     const currentParams = new URLSearchParams(window.location.search);
+    const isCommandersPage = window.location.pathname.includes("/commanders");
+
     const queryParams = new URLSearchParams({
       code,
       ...(currentParams.get("search") && { search: currentParams.get("search") }),
       ...(currentParams.get("valuable_only") && {
         valuable_only: currentParams.get("valuable_only"),
       }),
+      ...(currentParams.get("owned_only") && {
+        owned_only: currentParams.get("owned_only"),
+      }),
+      ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
+      ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
       ...(this.usernameValue && { username: this.usernameValue }),
     }).toString();
 
@@ -126,9 +133,21 @@ export default class extends Controller {
           ...(currentParams.get("valuable_only") && {
             valuable_only: currentParams.get("valuable_only"),
           }),
+          ...(currentParams.get("owned_only") && {
+            owned_only: currentParams.get("owned_only"),
+          }),
+          ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
+          ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
         }).toString();
 
-        const basePath = this.usernameValue ? `/collections/${this.usernameValue}` : `/boxsets`;
+        let basePath;
+        if (isCommandersPage) {
+          basePath = `/commanders`;
+        } else if (this.usernameValue) {
+          basePath = `/collections/${this.usernameValue}`;
+        } else {
+          basePath = `/boxsets`;
+        }
         const fullBasePath = this.collectionValue
           ? `${basePath}/${this.collectionValue}`
           : basePath;

@@ -84,12 +84,7 @@ class CollectionsController < ApplicationController
   end
 
   def filter_cards(cards)
-    rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
-    colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
-
-    CollectionQuery::Filter.call(
-      cards: cards, code: nil, collection_id: nil, rarities: rarities, colors: colors
-    )
+    CollectionQuery::Filter.call(cards: cards, params: params)
   end
 
   def load_collection

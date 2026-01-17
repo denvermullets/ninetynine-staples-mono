@@ -38,29 +38,7 @@ class BoxsetsController < ApplicationController
   end
 
   def filter_cards
-    # split comma-separated values into arrays for OR filtering
-    rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
-    colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
-
-    # Parse price change range
-    price_change_min, price_change_max = parse_price_change_range
-
-    CollectionQuery::Filter.call(
-      cards: @cards,
-      code: nil,
-      collection_id: nil,
-      rarities: rarities,
-      colors: colors,
-      price_change_min: price_change_min,
-      price_change_max: price_change_max
-    )
-  end
-
-  def parse_price_change_range
-    return [nil, nil] if params[:price_change_range].blank?
-
-    min, max = params[:price_change_range].split(',').map(&:to_f)
-    [min, max]
+    CollectionQuery::Filter.call(cards: @cards, params: params)
   end
 
   def fetch_boxset(code)
