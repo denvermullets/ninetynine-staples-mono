@@ -144,13 +144,13 @@
                 <% if can_set_commander %>
                   <button type="button"
                           data-action="click->context-menu#setCommander"
-                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition">
+                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
                     Set as Commander
                   </button>
                 <% elsif is_commander %>
                   <button type="button"
                           data-action="click->context-menu#removeCommander"
-                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition">
+                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
                     Remove as Commander
                   </button>
                 <% end %>

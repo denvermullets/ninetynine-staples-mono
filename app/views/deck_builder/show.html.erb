@@ -70,7 +70,7 @@
           <button data-deck-builder-target="viewModeList"
                   data-action="click->deck-builder#setViewMode"
                   data-mode="list"
-                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:text-white transition flex items-center gap-1 cursor-pointer">
+                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition flex items-center gap-1 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
@@ -79,7 +79,7 @@
           <button data-deck-builder-target="viewModeCard"
                   data-action="click->deck-builder#setViewMode"
                   data-mode="card"
-                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:text-white transition flex items-center gap-1 cursor-pointer">
+                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition flex items-center gap-1 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"/>
             </svg>
@@ -92,7 +92,7 @@
           <span class="text-sm text-grey-text">Group:</span>
           <select data-deck-builder-target="groupingSelect"
                   data-action="change->deck-builder#changeGrouping"
-                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none">
+                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none cursor-pointer">
             <option value="type" <%= 'selected' if @grouping == 'type' %>>Type</option>
             <option value="mana_value" <%= 'selected' if @grouping == 'mana_value' %>>Mana Value</option>
             <option value="color" <%= 'selected' if @grouping == 'color' %>>Color</option>
@@ -108,7 +108,7 @@
           <span class="text-sm text-grey-text">Sort:</span>
           <select data-deck-builder-target="sortBySelect"
                   data-action="change->deck-builder#changeSortBy"
-                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none">
+                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none cursor-pointer">
             <option value="name" <%= 'selected' if @sort_by == 'name' %>>Name</option>
             <option value="mana_value" <%= 'selected' if @sort_by == 'mana_value' %>>Mana Value</option>
             <option value="price" <%= 'selected' if @sort_by == 'price' %>>Price</option>
@@ -147,7 +147,7 @@
         <h3 data-alert-modal-target="title" class="text-lg font-semibold text-nine-white">Alert</h3>
         <button type="button"
                 data-action="click->alert-modal#close"
-                class="text-grey-text hover:text-nine-white">
+                class="text-grey-text hover:text-nine-white cursor-pointer">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -157,7 +157,7 @@
       <div class="flex justify-end">
         <button type="button"
                 data-action="click->alert-modal#close"
-                class="px-4 py-2 text-sm transition rounded-md bg-accent-50 text-background hover:bg-nine-white">
+                class="px-4 py-2 text-sm transition rounded-md bg-accent-50 text-grey-text border border-accent-50 hover:bg-foreground hover:text-accent-50 cursor-pointer">
           OK
         </button>
       </div>

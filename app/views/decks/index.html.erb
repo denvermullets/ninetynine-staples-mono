@@ -25,19 +25,22 @@
              data-action="contextmenu->context-menu#open"
              <% end %>>
         <%= link_to deck_path, class: 'group' do %>
-          <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-white transition-all duration-200 hover:shadow-lg hover:shadow-highlight/20">
+          <div class="relative flex flex-col border rounded-2xl bg-foreground border-accent-50 overflow-hidden hover:border-white transition-all duration-200 hover:shadow-lg hover:shadow-accent-50/20">
             <!-- Card Image -->
             <div class="relative h-48 bg-background overflow-hidden">
-              <% if commander&.image_large.present? %>
+              <% if commander %>
+                <%# Commander deck - use art_crop if available %>
                 <img
-                  src="<%= commander.image_large %>"
+                  src="<%= commander.art_crop.presence || commander.image_large %>"
                   alt="<%= commander.name %>"
                   class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
                 />
               <% elsif deck.magic_cards.any? %>
+                <%# Non-commander deck - use art_crop of first card %>
+                <% first_card = deck.magic_cards.first %>
                 <img
-                  src="<%= deck.magic_cards.last.image_large %>"
-                  alt="<%= deck.magic_cards.last.name %>"
+                  src="<%= first_card.art_crop.presence || first_card.image_large %>"
+                  alt="<%= first_card.name %>"
                   class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
                 />
               <% else %>
@@ -89,7 +92,7 @@
                class="hidden fixed z-50 min-w-[120px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
             <button type="button"
                     data-action="click->context-menu#edit"
-                    class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition">
+                    class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
               Edit
             </button>
           </div>
