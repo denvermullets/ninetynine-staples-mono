@@ -1,5 +1,6 @@
 class DeckBuilderController < ApplicationController
   include DeckBuilderModals
+  include DeckBuilderCardActions
 
   before_action :set_deck
   before_action :authenticate_user!, except: [:show]
@@ -14,10 +15,7 @@ class DeckBuilderController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.turbo_stream do
-        render turbo_stream: [turbo_stream.update('deck_cards', partial: 'deck_cards'),
-                              turbo_stream.update('deck_stats', partial: 'deck_stats')]
-      end
+      format.turbo_stream { render_deck_cards_stream }
     end
   end
 
@@ -50,117 +48,14 @@ class DeckBuilderController < ApplicationController
 
   def update_quantity
     result = DeckBuilder::UpdateQuantity.call(
-      deck: @deck,
-      collection_magic_card_id: params[:card_id],
-      quantity: params[:quantity],
-      foil_quantity: params[:foil_quantity]
+      deck: @deck, collection_magic_card_id: params[:card_id],
+      quantity: params[:quantity], foil_quantity: params[:foil_quantity]
     )
     render_card_action_response(result, success_message: "Updated #{result[:card_name]} quantity")
   end
 
-  def finalize
-    result = DeckBuilder::Finalize.call(deck: @deck)
-    if result[:success]
-      msg = "Deck finalized! #{result[:cards_moved]} cards moved"
-      msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
-      redirect_to decks_index_path(username: current_user.username), notice: msg, status: :see_other
-    else
-      flash.now[:error] = result[:error]
-      load_deck_cards
-      render :show, status: :unprocessable_entity
-    end
-  end
-
   def update_deck
-    if @deck.update(deck_params)
-      flash.now[:type] = 'success'
-      render turbo_stream: [
-        turbo_stream.update('deck-name', @deck.name),
-        turbo_stream.update('deck-description', @deck.description),
-        turbo_stream.update('deck_modal', ''),
-        turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: 'Deck updated successfully' })
-      ]
-    else
-      flash.now[:type] = 'error'
-      render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-                                                         locals: { message: 'Failed to update deck' })
-    end
-  end
-
-  def set_commander
-    card = @deck.collection_magic_cards.find(params[:card_id])
-
-    unless card.magic_card.can_be_commander
-      flash.now[:type] = 'error'
-      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-                                                                locals: { message: 'This card cannot be a commander' })
-    end
-
-    if @deck.commanders.count >= 2
-      flash.now[:type] = 'error'
-      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-                                                                locals: { message: 'Maximum of 2 commanders allowed' })
-    end
-
-    card.update!(board_type: 'commander')
-    flash.now[:type] = 'success'
-    load_deck_cards
-    render turbo_stream: [
-      turbo_stream.update('deck_cards', partial: 'deck_cards'),
-      turbo_stream.update('deck_stats', partial: 'deck_stats'),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: "#{card.magic_card.name} set as commander" })
-    ]
-  end
-
-  def remove_commander
-    card = @deck.collection_magic_cards.find(params[:card_id])
-
-    unless card.commander?
-      flash.now[:type] = 'error'
-      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-                                                                locals: { message: 'This card is not a commander' })
-    end
-
-    card.update!(board_type: 'mainboard')
-    flash.now[:type] = 'success'
-    load_deck_cards
-    render turbo_stream: [
-      turbo_stream.update('deck_cards', partial: 'deck_cards'),
-      turbo_stream.update('deck_stats', partial: 'deck_stats'),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: "#{card.magic_card.name} moved to mainboard" })
-    ]
-  end
-
-  def transfer_card
-    card = @deck.collection_magic_cards.find(params[:card_id])
-    to_collection = current_user.collections.find(params[:to_collection_id])
-    card_name = card.magic_card.name
-
-    result = CollectionRecord::Transfer.call(params: {
-      magic_card_id: card.magic_card_id,
-      from_collection_id: @deck.id,
-      to_collection_id: to_collection.id,
-      quantity: card.quantity,
-      foil_quantity: card.foil_quantity,
-      proxy_quantity: 0,
-      proxy_foil_quantity: 0
-    })
-
-    if result[:success]
-      flash.now[:type] = 'success'
-      load_deck_cards
-      render turbo_stream: [
-        turbo_stream.update('deck_cards', partial: 'deck_cards'),
-        turbo_stream.update('deck_stats', partial: 'deck_stats'),
-        turbo_stream.update('deck_modal', ''),
-        turbo_stream.append('toasts', partial: 'shared/toast',
-                                       locals: { message: "#{card_name} transferred to #{to_collection.name}" })
-      ]
-    else
-      flash.now[:type] = 'error'
-      render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-                                                         locals: { message: result[:error] })
-    end
+    @deck.update(deck_params) ? render_update_deck_success : render_error_toast('Failed to update deck')
   end
 
   private
@@ -184,11 +79,7 @@ class DeckBuilderController < ApplicationController
   end
 
   def render_card_action_response(result, success_message:)
-    unless result[:success]
-      flash.now[:type] = 'error'
-      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-                                                                locals: { message: result[:error] })
-    end
+    return render_error_toast(result[:error]) unless result[:success]
 
     flash.now[:type] = 'success'
     load_deck_cards
@@ -197,6 +88,23 @@ class DeckBuilderController < ApplicationController
       turbo_stream.update('deck_stats', partial: 'deck_stats'),
       turbo_stream.update('header_actions', partial: 'header_actions'),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: success_message })
+    ]
+  end
+
+  def render_deck_cards_stream
+    render turbo_stream: [
+      turbo_stream.update('deck_cards', partial: 'deck_cards'),
+      turbo_stream.update('deck_stats', partial: 'deck_stats')
+    ]
+  end
+
+  def render_update_deck_success
+    flash.now[:type] = 'success'
+    render turbo_stream: [
+      turbo_stream.update('deck-name', @deck.name),
+      turbo_stream.update('deck-description', @deck.description),
+      turbo_stream.update('deck_modal', ''),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: 'Deck updated successfully' })
     ]
   end
 
