@@ -129,6 +129,7 @@ export default class extends Controller {
     const commanderId = event.currentTarget.dataset.commanderId;
     const commanderName = event.currentTarget.dataset.commanderName;
     const commanderImage = event.currentTarget.dataset.commanderImage;
+    const commanderImageLarge = event.currentTarget.dataset.commanderImageLarge;
     const index = event.currentTarget.dataset.index;
 
     const hiddenField = this.element.querySelector(
@@ -155,6 +156,9 @@ export default class extends Controller {
     if (displayImage && commanderImage) {
       displayImage.src = commanderImage;
       displayImage.alt = commanderName;
+      // Update card-hover controller values for the image
+      displayImage.dataset.cardHoverImageValue = commanderImageLarge || commanderImage;
+      displayImage.dataset.cardHoverNameValue = commanderName;
     }
     if (selectedDisplay) {
       selectedDisplay.classList.remove("hidden");

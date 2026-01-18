@@ -19,8 +19,12 @@
     <div class="<%= has_commander ? 'flex' : 'hidden' %> items-center gap-3 p-2 border border-highlight rounded bg-background" data-opponent-selected="<%= index %>">
       <img src="<%= f.object.commander&.image_small %>"
            alt="<%= f.object.commander&.name %>"
-           class="w-8 h-11 rounded object-cover"
-           data-opponent-image="<%= index %>">
+           class="w-8 h-11 rounded object-cover cursor-pointer"
+           data-opponent-image="<%= index %>"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= f.object.commander&.image_large %>"
+           data-card-hover-name-value="<%= f.object.commander&.name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
       <span class="text-grey-text flex-1" data-opponent-name="<%= index %>"><%= f.object.commander&.name %></span>
     </div>
 

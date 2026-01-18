@@ -123,7 +123,13 @@
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <% if deck[:commander_image].present? %>
-                    <img src="<%= deck[:commander_image] %>" alt="" class="w-8 h-11 rounded object-cover hidden sm:block">
+                    <img src="<%= deck[:commander_image] %>"
+                         alt="<%= deck[:commander_name] %>"
+                         class="w-8 h-11 rounded object-cover hidden sm:block cursor-pointer"
+                         data-controller="card-hover"
+                         data-card-hover-image-value="<%= deck[:commander_image_large] %>"
+                         data-card-hover-name-value="<%= deck[:commander_name] %>"
+                         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
                   <% end %>
                   <div>
                     <p class="text-grey-text font-medium"><%= deck[:name] %></p>

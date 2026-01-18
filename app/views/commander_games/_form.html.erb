@@ -87,33 +87,21 @@
 
   <!-- Ratings -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="flex flex-col gap-2" data-controller="rating-slider">
-      <%= f.label :fun_rating, 'Fun Rating', class: 'text-grey-text font-medium' %>
-      <div class="flex items-center gap-4">
-        <%= f.range_field :fun_rating,
-            min: 1, max: 10, step: 1,
-            value: commander_game.fun_rating || 5,
-            data: { rating_slider_target: 'slider', action: 'input->rating-slider#update' },
-            class: 'flex-1 h-2 rounded-lg appearance-none cursor-pointer' %>
-        <span data-rating-slider-target="value" class="text-2xl font-bold text-grey-text w-8 text-center">
-          <%= commander_game.fun_rating || 5 %>
-        </span>
-      </div>
+    <div class="flex flex-col gap-2">
+      <%= f.label :fun_rating, 'Fun Rating (1-10)', class: 'text-grey-text font-medium' %>
+      <%= f.number_field :fun_rating,
+          min: 1, max: 10, step: 1,
+          value: commander_game.fun_rating || 5,
+          class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
       <p class="text-xs text-grey-text/50">1 = Miserable, 10 = Best game ever</p>
     </div>
 
-    <div class="flex flex-col gap-2" data-controller="rating-slider">
-      <%= f.label :performance_rating, 'Performance Rating', class: 'text-grey-text font-medium' %>
-      <div class="flex items-center gap-4">
-        <%= f.range_field :performance_rating,
-            min: 1, max: 10, step: 1,
-            value: commander_game.performance_rating || 5,
-            data: { rating_slider_target: 'slider', action: 'input->rating-slider#update' },
-            class: 'flex-1 h-2 rounded-lg appearance-none cursor-pointer' %>
-        <span data-rating-slider-target="value" class="text-2xl font-bold text-grey-text w-8 text-center">
-          <%= commander_game.performance_rating || 5 %>
-        </span>
-      </div>
+    <div class="flex flex-col gap-2">
+      <%= f.label :performance_rating, 'Performance Rating (1-10)', class: 'text-grey-text font-medium' %>
+      <%= f.number_field :performance_rating,
+          min: 1, max: 10, step: 1,
+          value: commander_game.performance_rating || 5,
+          class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
       <p class="text-xs text-grey-text/50">1 = Deck did nothing, 10 = Perfect execution</p>
     </div>
   </div>

@@ -1,10 +1,14 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+<div class='flex flex-col flex-auto h-auto px-4 pt-8 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
   <!-- Header -->
   <div class="flex flex-col md:flex-row gap-6 items-start">
     <% if @commander_game.tracked_deck.commander.image_small.present? %>
       <img src="<%= @commander_game.tracked_deck.commander.image_small %>"
            alt="<%= @commander_game.tracked_deck.commander.name %>"
-           class="w-24 h-32 rounded-lg object-cover shadow-lg">
+           class="w-24 h-32 rounded-lg object-cover shadow-lg cursor-pointer"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= @commander_game.tracked_deck.commander.image_large %>"
+           data-card-hover-name-value="<%= @commander_game.tracked_deck.commander.name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
     <% end %>
 
     <div class="flex-1">
@@ -76,7 +80,13 @@
         <% @opponents.each do |opponent| %>
           <div class="flex items-center gap-3 p-3 border rounded-lg border-highlight/50 <%= opponent.won? ? 'bg-accent-50/10' : '' %>">
             <% if opponent.commander.image_small.present? %>
-              <img src="<%= opponent.commander.image_small %>" alt="" class="w-10 h-14 rounded object-cover">
+              <img src="<%= opponent.commander.image_small %>"
+                   alt="<%= opponent.commander.name %>"
+                   class="w-10 h-14 rounded object-cover cursor-pointer"
+                   data-controller="card-hover"
+                   data-card-hover-image-value="<%= opponent.commander.image_large %>"
+                   data-card-hover-name-value="<%= opponent.commander.name %>"
+                   data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
             <% end %>
             <div class="flex-1">
               <p class="text-grey-text font-medium"><%= opponent.commander_display_name %></p>

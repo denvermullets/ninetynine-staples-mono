@@ -30,7 +30,13 @@
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <% if deck.commander.image_small.present? %>
-                    <img src="<%= deck.commander.image_small %>" alt="<%= deck.commander.name %>" class="w-10 h-14 rounded object-cover hidden sm:block">
+                    <img src="<%= deck.commander.image_small %>"
+                         alt="<%= deck.commander.name %>"
+                         class="w-10 h-14 rounded object-cover hidden sm:block cursor-pointer"
+                         data-controller="card-hover"
+                         data-card-hover-image-value="<%= deck.commander.image_large %>"
+                         data-card-hover-name-value="<%= deck.commander.name %>"
+                         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
                   <% end %>
                   <div class="flex flex-col">
                     <span class="text-grey-text font-medium"><%= deck.name %></span>

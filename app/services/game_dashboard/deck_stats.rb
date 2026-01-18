@@ -12,6 +12,7 @@ module GameDashboard
           name: deck.name,
           commander_name: deck.commander_display_name,
           commander_image: deck.commander.image_small,
+          commander_image_large: deck.commander.image_large,
           status: deck.status,
           status_badge_class: deck.status_badge_class,
           games_count: deck.games_count,

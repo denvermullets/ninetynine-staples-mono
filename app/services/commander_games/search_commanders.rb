@@ -17,7 +17,7 @@ module CommanderGames
 
       MagicCard
         .where(id: newest_ids)
-        .select(:id, :name, :image_small)
+        .select(:id, :name, :image_small, :image_large)
         .order(:name)
         .limit(@limit)
     end

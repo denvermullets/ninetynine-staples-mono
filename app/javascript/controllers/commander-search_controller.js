@@ -55,6 +55,7 @@ export default class extends Controller {
     const commanderId = event.currentTarget.dataset.commanderId;
     const commanderName = event.currentTarget.dataset.commanderName;
     const commanderImage = event.currentTarget.dataset.commanderImage;
+    const commanderImageLarge = event.currentTarget.dataset.commanderImageLarge;
 
     this.hiddenFieldTarget.value = commanderId;
     this.selectedNameTarget.textContent = commanderName;
@@ -62,6 +63,10 @@ export default class extends Controller {
     if (this.hasSelectedImageTarget && commanderImage) {
       this.selectedImageTarget.src = commanderImage;
       this.selectedImageTarget.alt = commanderName;
+      // Update card-hover controller values for the image
+      this.selectedImageTarget.dataset.cardHoverImageValue =
+        commanderImageLarge || commanderImage;
+      this.selectedImageTarget.dataset.cardHoverNameValue = commanderName;
     }
 
     this.inputTarget.value = "";

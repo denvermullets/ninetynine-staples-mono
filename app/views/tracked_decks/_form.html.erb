@@ -29,8 +29,12 @@
     <div data-commander-search-target="selectedDisplay" class="<%= has_commander ? '' : 'hidden' %> flex items-center gap-3 p-3 border border-highlight rounded-lg bg-background">
       <img src="<%= tracked_deck.commander&.image_small %>"
            alt="<%= tracked_deck.commander&.name %>"
-           class="w-12 h-16 rounded object-cover"
-           data-commander-search-target="selectedImage">
+           class="w-12 h-16 rounded object-cover cursor-pointer"
+           data-commander-search-target="selectedImage"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= tracked_deck.commander&.image_large %>"
+           data-card-hover-name-value="<%= tracked_deck.commander&.name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
       <span class="text-grey-text flex-1" data-commander-search-target="selectedName"><%= tracked_deck.commander&.name %></span>
       <button type="button" data-action="click->commander-search#clear" class="text-accent-100 hover:text-accent-100/80 cursor-pointer">
         Clear
@@ -78,8 +82,12 @@
       <div data-commander-search-target="selectedDisplay" class="<%= has_partner ? '' : 'hidden' %> flex items-center gap-3 p-3 border border-highlight rounded-lg bg-background">
         <img src="<%= tracked_deck.partner_commander&.image_small %>"
              alt="<%= tracked_deck.partner_commander&.name %>"
-             class="w-12 h-16 rounded object-cover"
-             data-commander-search-target="selectedImage">
+             class="w-12 h-16 rounded object-cover cursor-pointer"
+             data-commander-search-target="selectedImage"
+             data-controller="card-hover"
+             data-card-hover-image-value="<%= tracked_deck.partner_commander&.image_large %>"
+             data-card-hover-name-value="<%= tracked_deck.partner_commander&.name %>"
+             data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
         <span class="text-grey-text flex-1" data-commander-search-target="selectedName"><%= tracked_deck.partner_commander&.name %></span>
         <button type="button" data-action="click->commander-search#clear" class="text-accent-100 hover:text-accent-100/80 cursor-pointer">
           Clear
