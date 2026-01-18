@@ -30,6 +30,12 @@ textarea {
   @apply px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-accent-50 focus:border-accent-50;
 }
 
+/* Date input calendar icon - make it visible on dark backgrounds */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
 @custom-variant nine-hover (&:hover);
 
 @theme {

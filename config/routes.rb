@@ -83,4 +83,19 @@ Rails.application.routes.draw do
       patch :update_deck
     end
   end
+
+  # Game tracking routes
+  resources :tracked_decks, path: 'tracked-decks' do
+    collection do
+      get :search_commanders
+    end
+  end
+
+  resources :commander_games, path: 'games' do
+    collection do
+      get :search_opponents
+    end
+  end
+
+  get 'game-dashboard', to: 'game_dashboard#index', as: :game_dashboard
 end
