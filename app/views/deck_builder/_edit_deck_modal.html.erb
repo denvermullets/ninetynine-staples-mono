@@ -17,7 +17,6 @@
 
       <%= form_with url: update_deck_deck_builder_path(deck),
                     method: :patch,
-                    data: { turbo_frame: "_top" },
                     class: "space-y-4" do |f| %>
         <div>
           <%= f.label :name, class: "block text-sm font-medium text-grey-text mb-1" %>

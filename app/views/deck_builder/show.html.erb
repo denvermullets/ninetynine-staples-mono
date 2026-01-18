@@ -10,14 +10,14 @@
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-semibold text-white"><%= @deck.name %></h1>
+          <h1 id="deck-name" class="text-2xl font-semibold text-white"><%= @deck.name %></h1>
           <% if @is_owner %>
             <span class="px-2 py-1 text-xs font-medium rounded bg-yellow-500/20 text-yellow-400">Build Mode</span>
           <% else %>
             <span class="px-2 py-1 text-xs font-medium rounded bg-grey-text/20 text-grey-text">Viewing</span>
           <% end %>
         </div>
-        <p class="text-sm text-grey-text"><%= @deck.description %></p>
+        <p id="deck-description" class="text-sm text-grey-text"><%= @deck.description %></p>
       </div>
 
       <%= turbo_frame_tag 'header_actions' do %>

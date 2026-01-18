@@ -72,8 +72,63 @@ class DeckBuilderController < ApplicationController
   end
 
   def update_deck
-    msg = @deck.update(deck_params) ? { notice: 'Deck updated successfully' } : { alert: 'Failed to update deck' }
-    redirect_back fallback_location: deck_builder_path(@deck), **msg
+    if @deck.update(deck_params)
+      flash.now[:type] = 'success'
+      render turbo_stream: [
+        turbo_stream.update('deck-name', @deck.name),
+        turbo_stream.update('deck-description', @deck.description),
+        turbo_stream.update('deck_modal', ''),
+        turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: 'Deck updated successfully' })
+      ]
+    else
+      flash.now[:type] = 'error'
+      render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+                                                         locals: { message: 'Failed to update deck' })
+    end
+  end
+
+  def set_commander
+    card = @deck.collection_magic_cards.find(params[:card_id])
+
+    unless card.magic_card.can_be_commander
+      flash.now[:type] = 'error'
+      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+                                                                locals: { message: 'This card cannot be a commander' })
+    end
+
+    if @deck.commanders.count >= 2
+      flash.now[:type] = 'error'
+      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+                                                                locals: { message: 'Maximum of 2 commanders allowed' })
+    end
+
+    card.update!(board_type: 'commander')
+    flash.now[:type] = 'success'
+    load_deck_cards
+    render turbo_stream: [
+      turbo_stream.update('deck_cards', partial: 'deck_cards'),
+      turbo_stream.update('deck_stats', partial: 'deck_stats'),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: "#{card.magic_card.name} set as commander" })
+    ]
+  end
+
+  def remove_commander
+    card = @deck.collection_magic_cards.find(params[:card_id])
+
+    unless card.commander?
+      flash.now[:type] = 'error'
+      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+                                                                locals: { message: 'This card is not a commander' })
+    end
+
+    card.update!(board_type: 'mainboard')
+    flash.now[:type] = 'success'
+    load_deck_cards
+    render turbo_stream: [
+      turbo_stream.update('deck_cards', partial: 'deck_cards'),
+      turbo_stream.update('deck_stats', partial: 'deck_stats'),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: "#{card.magic_card.name} moved to mainboard" })
+    ]
   end
 
   private
