@@ -1,7 +1,13 @@
+<% can_set_commander = @is_owner && !card.commander? && @deck.commander_deck? && card.magic_card.can_be_commander %>
 <tr class="hover:bg-background/50 transition
     <%= 'bg-blue-900/10' if card.staged? && card.from_owned_collection? %>
     <%= 'bg-yellow-900/10' if card.staged? && card.planned? %>
-    <%= 'bg-orange-900/10' if card.needed? %>">
+    <%= 'bg-orange-900/10' if card.needed? %>"
+    <% if can_set_commander %>
+    data-controller="context-menu"
+    data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(@deck, card_id: card.id) %>"
+    data-action="click->context-menu#open contextmenu->context-menu#open"
+    <% end %>>
 
   <!-- Quantity -->
   <td class="w-16 px-4 py-2 text-grey-text">
@@ -11,7 +17,16 @@
   <!-- Card Info -->
   <td class="px-4 py-2">
     <div class="flex flex-col min-w-0">
-      <span class="font-medium text-white truncate"><%= card.magic_card.name %></span>
+      <div class="flex items-center gap-2">
+        <span class="font-medium text-white truncate"><%= card.magic_card.name %></span>
+        <% if can_set_commander && @deck.commanders.empty? %>
+          <%= button_to set_commander_deck_builder_path(@deck, card_id: card.id),
+              method: :post,
+              class: 'text-accent-50 hover:text-accent-100 text-xs' do %>
+            Set as Commander
+          <% end %>
+        <% end %>
+      </div>
       <span class="text-xs text-grey-text">
         <% if card.staged? %>
           <% if card.from_owned_collection? %>
@@ -63,6 +78,18 @@
       <% end %>
     <% else %>
       <span class="text-xs text-grey-text">Owned</span>
+    <% end %>
+
+    <% if can_set_commander %>
+      <!-- Context Menu -->
+      <div data-context-menu-target="menu"
+           class="hidden fixed z-50 min-w-[160px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+        <button type="button"
+                data-action="click->context-menu#setCommander"
+                class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition">
+          Set as Commander
+        </button>
+      </div>
     <% end %>
   </td>
 </tr>

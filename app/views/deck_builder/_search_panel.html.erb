@@ -11,13 +11,13 @@
     <button data-deck-search-target="scopeAll"
             data-action="click->deck-search#setScope"
             data-scope="all"
-            class="flex-1 px-3 py-1.5 text-xs border rounded-lg border-highlight text-grey-text hover:text-white transition cursor-pointer">
+            class="flex-1 px-3 py-1.5 text-xs border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer">
       All Cards
     </button>
     <button data-deck-search-target="scopeOwned"
             data-action="click->deck-search#setScope"
             data-scope="owned"
-            class="flex-1 px-3 py-1.5 text-xs border rounded-lg border-highlight text-grey-text hover:text-white transition cursor-pointer">
+            class="flex-1 px-3 py-1.5 text-xs border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer">
       My Collection
     </button>
   </div>
@@ -33,7 +33,7 @@
           class: "flex-1 px-4 py-2 border rounded-l-lg bg-background border-highlight text-white placeholder-grey-text focus:border-accent-50 focus:outline-none" %>
       <%= f.hidden_field :scope, value: @search_scope, data: { deck_search_target: "scopeField" } %>
       <%= f.submit "Search",
-          class: "px-4 py-2 bg-background text-grey-text rounded-r-lg border border-l-0 border-highlight hover:bg-highlight hover:cursor-pointer transition" %>
+          class: "px-4 py-2 bg-background text-grey-text rounded-r-lg border border-l-0 border-highlight hover:bg-highlight cursor-pointer transition" %>
     </div>
     <div data-deck-search-target="loading" class="absolute hidden right-20 top-2.5">
       <svg class="w-5 h-5 animate-spin text-grey-text" fill="none" viewBox="0 0 24 24">

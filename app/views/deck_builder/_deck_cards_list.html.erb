@@ -20,9 +20,32 @@
           <%
             current_qty = card.staged? ? card.staged_quantity : card.quantity
             current_foil_qty = card.staged? ? card.staged_foil_quantity : card.foil_quantity
+            can_set_commander = @is_owner && !card.commander? && card.magic_card.can_be_commander
+            is_commander = @is_owner && card.commander?
+            is_staged_owned = card.staged? && card.from_owned_collection?
+            is_staged_planned = card.staged? && card.planned?
+            is_needed = card.needed?
+            is_finalized = !card.staged? && !card.needed?
+            can_remove = is_staged_owned || is_staged_planned || is_needed || is_finalized
           %>
-          <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer"
+          <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer relative"
+               <% if @is_owner %>
+               data-controller="context-menu"
+               <% if can_set_commander %>
+               data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(@deck, card_id: card.id) %>"
+               <% end %>
+               <% if is_commander %>
+               data-context-menu-remove-commander-url-value="<%= remove_commander_deck_builder_path(@deck, card_id: card.id) %>"
+               <% end %>
+               <% if is_staged_owned || is_finalized %>
+               data-context-menu-transfer-url-value="<%= transfer_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
+               <% elsif is_staged_planned || is_needed %>
+               data-context-menu-remove-url-value="<%= remove_card_deck_builder_path(@deck, card_id: card.id) %>"
+               <% end %>
+               data-action="mouseenter->deck-builder#previewCard click->context-menu#open contextmenu->context-menu#open"
+               <% else %>
                data-action="mouseenter->deck-builder#previewCard"
+               <% end %>
                data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
                data-card-name="<%= card.magic_card.name %>">
             <!-- Quantity (inline editable for owner) -->
@@ -92,33 +115,36 @@
               <%= number_to_currency(card.magic_card.display_price) %>
             </span>
 
-            <!-- Actions (on hover) - only for owner -->
             <% if @is_owner %>
-              <div class="hidden group-hover:flex items-center gap-1 shrink-0">
-                <% if card.staged? %>
-                  <%= link_to confirm_remove_modal_deck_builder_path(@deck, card_id: card.id),
-                      class: 'text-red-400 hover:text-red-300 text-xs',
-                      data: { turbo_frame: 'deck_modal' } do %>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  <% end %>
-                <% elsif card.needed? && card.available_swap?(current_user) %>
-                  <%= button_to swap_card_deck_builder_path(@deck, card_id: card.id),
-                      method: :post,
-                      class: 'text-accent-50 hover:text-white text-xs' do %>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                    </svg>
-                  <% end %>
-                <% elsif card.needed? %>
-                  <%= link_to confirm_remove_modal_deck_builder_path(@deck, card_id: card.id),
-                      class: 'text-red-400 hover:text-red-300 text-xs',
-                      data: { turbo_frame: 'deck_modal' } do %>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  <% end %>
+              <!-- Context Menu -->
+              <div data-context-menu-target="menu"
+                   class="hidden fixed z-50 min-w-40 py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+                <% if can_set_commander %>
+                  <button type="button"
+                          data-action="click->context-menu#setCommander"
+                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+                    Set as Commander
+                  </button>
+                <% end %>
+                <% if is_commander %>
+                  <button type="button"
+                          data-action="click->context-menu#removeCommander"
+                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+                    Remove as Commander
+                  </button>
+                <% end %>
+                <% if is_staged_owned || is_finalized %>
+                  <button type="button"
+                          data-action="click->context-menu#transferCard"
+                          class="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer">
+                    Remove from Deck
+                  </button>
+                <% elsif is_staged_planned || is_needed %>
+                  <button type="button"
+                          data-action="click->context-menu#removeCard"
+                          class="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer">
+                    Remove Card
+                  </button>
                 <% end %>
               </div>
             <% end %>

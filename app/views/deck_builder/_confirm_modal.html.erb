@@ -8,7 +8,7 @@
         <h3 class="text-lg font-semibold text-nine-white"><%= local_assigns[:title] || 'Confirm' %></h3>
         <button type="button"
                 data-action="click->modal#close"
-                class="text-grey-text hover:text-nine-white">
+                class="text-grey-text hover:text-nine-white cursor-pointer">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -20,13 +20,13 @@
       <div class="flex justify-end gap-3">
         <button type="button"
                 data-action="click->modal#close"
-                class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-background">
+                class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-100 hover:border-accent-100 cursor-pointer">
           Cancel
         </button>
         <%= button_to local_assigns[:confirm_text] || 'Confirm',
                       local_assigns[:confirm_url],
                       method: local_assigns[:confirm_method] || :post,
-                      class: "px-4 py-2 text-sm transition rounded-md #{local_assigns[:danger] ? 'bg-red-500 hover:bg-red-400' : 'bg-accent-50 hover:bg-nine-white'} text-background",
+                      class: "px-4 py-2 text-sm transition rounded-md #{local_assigns[:danger] ? 'bg-red-500 hover:bg-red-400 border border-red-500 hover:border-red-400' : 'bg-accent-50 border border-accent-50 hover:bg-foreground hover:text-accent-50'} text-grey-text cursor-pointer",
                       data: { turbo_frame: "_top" } %>
       </div>
     </div>

@@ -7,7 +7,7 @@
   <% if @is_owner %>
     <div class="flex justify-end">
       <%= link_to new_collection_path(collection_type: 'deck'),
-          class: 'px-4 py-2 bg-highlight text-white rounded-lg hover:bg-highlight/80 transition' do %>
+          class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' do %>
         + New Deck
       <% end %>
     </div>
@@ -25,19 +25,22 @@
              data-action="contextmenu->context-menu#open"
              <% end %>>
         <%= link_to deck_path, class: 'group' do %>
-          <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-white transition-all duration-200 hover:shadow-lg hover:shadow-highlight/20">
+          <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-accent-50 transition-all duration-200 hover:shadow-lg hover:shadow-accent-50/20">
             <!-- Card Image -->
             <div class="relative h-48 bg-background overflow-hidden">
-              <% if commander&.image_large.present? %>
+              <% if commander %>
+                <%# Commander deck - use art_crop if available %>
                 <img
-                  src="<%= commander.image_large %>"
+                  src="<%= commander.art_crop.presence || commander.image_large %>"
                   alt="<%= commander.name %>"
                   class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
                 />
               <% elsif deck.magic_cards.any? %>
+                <%# Non-commander deck - use art_crop of first card %>
+                <% first_card = deck.magic_cards.first %>
                 <img
-                  src="<%= deck.magic_cards.last.image_large %>"
-                  alt="<%= deck.magic_cards.last.name %>"
+                  src="<%= first_card.art_crop.presence || first_card.image_large %>"
+                  alt="<%= first_card.name %>"
                   class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
                 />
               <% else %>
@@ -46,9 +49,14 @@
                 </div>
               <% end %>
 
-              <!-- Build Mode Badge -->
               <% if deck.in_build_mode? %>
-                <div class="absolute top-2 right-2 px-2 py-1 bg-yellow-500/90 text-black text-xs font-medium rounded">
+                <!-- Staged Cards Badge -->
+                <div class="absolute top-2 left-2 px-2 py-1 bg-accent-400 text-foreground text-xs font-medium rounded">
+                  <%= deck.staged_cards_count %> staged
+                </div>
+
+                <!-- Build Mode Badge -->
+                <div class="absolute top-2 right-2 px-2 py-1 bg-accent-400 text-foreground text-xs font-medium rounded">
                   Building
                 </div>
               <% end %>
@@ -61,7 +69,7 @@
 
             <!-- Deck Info -->
             <div class="p-4 flex flex-col gap-2">
-              <h3 class="text-white font-medium truncate"><%= deck.name %></h3>
+              <h3 class="text-grey-text font-medium truncate"><%= deck.name %></h3>
 
               <% if commander %>
                 <p class="text-grey-text text-sm truncate"><%= commander.name %></p>
@@ -73,12 +81,6 @@
                 <span><%= deck.total_cards %> cards</span>
                 <span>$<%= number_with_precision(deck.total_value || 0, precision: 2, delimiter: ',') %></span>
               </div>
-
-              <% if deck.in_build_mode? %>
-                <div class="text-xs text-yellow-500 mt-1">
-                  <%= deck.staged_cards_count %> staged
-                </div>
-              <% end %>
             </div>
           </div>
         <% end %>
@@ -89,7 +91,7 @@
                class="hidden fixed z-50 min-w-[120px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
             <button type="button"
                     data-action="click->context-menu#edit"
-                    class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition">
+                    class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
               Edit
             </button>
           </div>
@@ -108,7 +110,7 @@
       </p>
       <% if @is_owner %>
         <%= link_to 'Create Your First Deck', new_collection_path(collection_type: 'deck'),
-            class: 'inline-block px-6 py-3 bg-highlight text-white rounded-lg hover:bg-highlight/80 transition' %>
+            class: 'inline-block px-6 py-3 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' %>
       <% end %>
     </div>
   <% end %>

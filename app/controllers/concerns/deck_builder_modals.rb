@@ -27,4 +27,15 @@ module DeckBuilderModals
   def edit_deck_modal
     render partial: 'deck_builder/edit_deck_modal', locals: { deck: @deck }
   end
+
+  def transfer_card_modal
+    card = @deck.collection_magic_cards.find(params[:card_id])
+    # For finalized cards, we need to show collections to transfer to
+    collections = current_user.collections.where.not(id: @deck.id).order(:name)
+    render partial: 'deck_builder/transfer_card_modal', locals: {
+      card: card,
+      deck: @deck,
+      collections: collections
+    }
+  end
 end
