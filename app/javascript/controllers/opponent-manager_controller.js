@@ -19,16 +19,43 @@ export default class extends Controller {
     const template = this.templateTarget.content.cloneNode(true);
     const index = Date.now(); // Use timestamp for unique index
 
-    // Replace INDEX placeholder with actual index
+    // Replace INDEX placeholder with actual index in names
     template.querySelectorAll("[name*='INDEX']").forEach((el) => {
       el.name = el.name.replace(/INDEX/g, index);
     });
 
+    // Replace INDEX placeholder in ids
     template.querySelectorAll("[id*='INDEX']").forEach((el) => {
       el.id = el.id.replace(/INDEX/g, index);
     });
 
+    // Replace INDEX in data-index attributes
     template.querySelectorAll("[data-index]").forEach((el) => {
+      el.dataset.index = index;
+    });
+
+    // Replace INDEX in opponent-specific data attributes
+    template.querySelectorAll("[data-opponent-search='INDEX']").forEach((el) => {
+      el.dataset.opponentSearch = index;
+    });
+
+    template.querySelectorAll("[data-opponent-results='INDEX']").forEach((el) => {
+      el.dataset.opponentResults = index;
+    });
+
+    template.querySelectorAll("[data-opponent-selected='INDEX']").forEach((el) => {
+      el.dataset.opponentSelected = index;
+    });
+
+    template.querySelectorAll("[data-opponent-name='INDEX']").forEach((el) => {
+      el.dataset.opponentName = index;
+    });
+
+    template.querySelectorAll("[data-opponent-image='INDEX']").forEach((el) => {
+      el.dataset.opponentImage = index;
+    });
+
+    template.querySelectorAll("[data-opponent-row]").forEach((el) => {
       el.dataset.index = index;
     });
 
@@ -101,13 +128,20 @@ export default class extends Controller {
   selectOpponent(event) {
     const commanderId = event.currentTarget.dataset.commanderId;
     const commanderName = event.currentTarget.dataset.commanderName;
+    const commanderImage = event.currentTarget.dataset.commanderImage;
     const index = event.currentTarget.dataset.index;
 
     const hiddenField = this.element.querySelector(
       `[name*="[${index}][commander_id]"]`
     );
+    const selectedDisplay = this.element.querySelector(
+      `[data-opponent-selected="${index}"]`
+    );
     const displayName = this.element.querySelector(
       `[data-opponent-name="${index}"]`
+    );
+    const displayImage = this.element.querySelector(
+      `[data-opponent-image="${index}"]`
     );
     const searchInput = this.element.querySelector(
       `[data-opponent-search="${index}"]`
@@ -118,7 +152,18 @@ export default class extends Controller {
 
     if (hiddenField) hiddenField.value = commanderId;
     if (displayName) displayName.textContent = commanderName;
-    if (searchInput) searchInput.value = "";
+    if (displayImage && commanderImage) {
+      displayImage.src = commanderImage;
+      displayImage.alt = commanderName;
+    }
+    if (selectedDisplay) {
+      selectedDisplay.classList.remove("hidden");
+      selectedDisplay.classList.add("flex");
+    }
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.classList.add("hidden");
+    }
     if (resultsContainer) {
       resultsContainer.innerHTML = "";
       resultsContainer.classList.add("hidden");

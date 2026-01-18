@@ -13,24 +13,25 @@
 
   <!-- Commander Search for Opponent -->
   <div class="flex flex-col gap-2">
-    <% if f.object.commander.present? %>
-      <div class="flex items-center gap-3 p-2 border border-highlight rounded bg-background">
-        <img src="<%= f.object.commander.image_small %>" alt="" class="w-8 h-11 rounded object-cover">
-        <span class="text-grey-text flex-1" data-opponent-name="<%= index %>"><%= f.object.commander.name %></span>
-      </div>
-    <% else %>
-      <div class="hidden items-center gap-3 p-2 border border-highlight rounded bg-background" data-opponent-selected="<%= index %>">
-        <span class="text-grey-text flex-1" data-opponent-name="<%= index %>"></span>
-      </div>
-    <% end %>
+    <% has_commander = f.object.commander.present? %>
 
+    <!-- Selected Commander Display -->
+    <div class="<%= has_commander ? 'flex' : 'hidden' %> items-center gap-3 p-2 border border-highlight rounded bg-background" data-opponent-selected="<%= index %>">
+      <img src="<%= f.object.commander&.image_small %>"
+           alt="<%= f.object.commander&.name %>"
+           class="w-8 h-11 rounded object-cover"
+           data-opponent-image="<%= index %>">
+      <span class="text-grey-text flex-1" data-opponent-name="<%= index %>"><%= f.object.commander&.name %></span>
+    </div>
+
+    <!-- Search Input -->
     <div class="relative">
       <input type="text"
              placeholder="Search opponent's commander..."
              data-opponent-search="<%= index %>"
              data-index="<%= index %>"
              data-action="input->opponent-manager#searchOpponent"
-             class="w-full border text-grey-text text-sm rounded bg-background border-highlight focus:border-accent-50 px-3 py-2 <%= f.object.commander.present? ? 'hidden' : '' %>">
+             class="w-full border text-grey-text text-sm rounded bg-background border-highlight focus:border-accent-50 px-3 py-2 <%= has_commander ? 'hidden' : '' %>">
       <div data-opponent-results="<%= index %>"
            class="hidden absolute z-10 w-full mt-1 max-h-48 overflow-y-auto border border-highlight rounded bg-foreground shadow-lg">
       </div>
