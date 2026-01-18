@@ -1,0 +1,142 @@
+<%= form_with model: tracked_deck, class: 'space-y-6' do |f| %>
+  <% if tracked_deck.errors.any? %>
+    <div class="p-4 border border-accent-100 rounded-lg bg-accent-100/10">
+      <h3 class="text-accent-100 font-medium mb-2">Please fix the following errors:</h3>
+      <ul class="list-disc list-inside text-accent-100 text-sm">
+        <% tracked_deck.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Deck Name -->
+  <div class="flex flex-col gap-2">
+    <%= f.label :name, 'Deck Name', class: 'text-grey-text font-medium' %>
+    <%= f.text_field :name,
+        placeholder: 'e.g., Krenko Goblins',
+        class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+  </div>
+
+  <!-- Commander Search -->
+  <div class="flex flex-col gap-2" data-controller="commander-search">
+    <%= f.label :commander_id, 'Commander', class: 'text-grey-text font-medium' %>
+    <%= f.hidden_field :commander_id, data: { commander_search_target: 'hiddenField' } %>
+
+    <% has_commander = tracked_deck.commander.present? %>
+
+    <!-- Selected Commander Display -->
+    <div data-commander-search-target="selectedDisplay" class="<%= has_commander ? '' : 'hidden' %> flex items-center gap-3 p-3 border border-highlight rounded-lg bg-background">
+      <img src="<%= tracked_deck.commander&.image_small %>"
+           alt="<%= tracked_deck.commander&.name %>"
+           class="w-12 h-16 rounded object-cover cursor-pointer"
+           data-commander-search-target="selectedImage"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= tracked_deck.commander&.image_large %>"
+           data-card-hover-name-value="<%= tracked_deck.commander&.name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+      <span class="text-grey-text flex-1" data-commander-search-target="selectedName"><%= tracked_deck.commander&.name %></span>
+      <button type="button" data-action="click->commander-search#clear" class="text-accent-100 hover:text-accent-100/80 cursor-pointer">
+        Clear
+      </button>
+    </div>
+
+    <!-- Search Input Container -->
+    <div data-commander-search-target="inputContainer" class="<%= has_commander ? 'hidden' : '' %> relative">
+      <input type="text"
+             placeholder="Search for a commander..."
+             data-commander-search-target="input"
+             data-action="input->commander-search#search"
+             class="w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3">
+      <div data-commander-search-target="results"
+           class="hidden absolute z-10 w-full mt-1 max-h-64 overflow-y-auto border border-highlight rounded-lg bg-foreground shadow-lg">
+      </div>
+    </div>
+  </div>
+
+  <!-- Partner Commander Search (optional, hidden by default) -->
+  <div data-controller="partner-toggle">
+    <% has_partner = tracked_deck.partner_commander.present? %>
+
+    <!-- Add Partner Button (shown when no partner) -->
+    <button type="button"
+            data-partner-toggle-target="addButton"
+            data-action="click->partner-toggle#show"
+            class="<%= has_partner ? 'hidden' : '' %> flex items-center gap-2 text-accent-50 hover:text-accent-50/80 text-sm cursor-pointer">
+      <span class="text-lg">+</span> Add Partner Commander
+    </button>
+
+    <!-- Partner Commander Section (hidden by default unless partner exists) -->
+    <div data-partner-toggle-target="container" class="<%= has_partner ? '' : 'hidden' %> flex flex-col gap-2" data-controller="commander-search">
+      <div class="flex justify-between items-center">
+        <%= f.label :partner_commander_id, 'Partner Commander', class: 'text-grey-text font-medium' %>
+        <button type="button"
+                data-action="click->partner-toggle#hide"
+                class="text-accent-100 hover:text-accent-100/80 text-sm cursor-pointer">
+          Remove Partner
+        </button>
+      </div>
+      <%= f.hidden_field :partner_commander_id, data: { commander_search_target: 'hiddenField', partner_toggle_target: 'hiddenField' } %>
+
+      <!-- Selected Partner Display -->
+      <div data-commander-search-target="selectedDisplay" class="<%= has_partner ? '' : 'hidden' %> flex items-center gap-3 p-3 border border-highlight rounded-lg bg-background">
+        <img src="<%= tracked_deck.partner_commander&.image_small %>"
+             alt="<%= tracked_deck.partner_commander&.name %>"
+             class="w-12 h-16 rounded object-cover cursor-pointer"
+             data-commander-search-target="selectedImage"
+             data-controller="card-hover"
+             data-card-hover-image-value="<%= tracked_deck.partner_commander&.image_large %>"
+             data-card-hover-name-value="<%= tracked_deck.partner_commander&.name %>"
+             data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+        <span class="text-grey-text flex-1" data-commander-search-target="selectedName"><%= tracked_deck.partner_commander&.name %></span>
+        <button type="button" data-action="click->commander-search#clear" class="text-accent-100 hover:text-accent-100/80 cursor-pointer">
+          Clear
+        </button>
+      </div>
+
+      <!-- Search Input Container -->
+      <div data-commander-search-target="inputContainer" class="<%= has_partner ? 'hidden' : '' %> relative">
+        <input type="text"
+               placeholder="Search for a partner commander..."
+               data-commander-search-target="input"
+               data-action="input->commander-search#search"
+               class="w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3">
+        <div data-commander-search-target="results"
+             class="hidden absolute z-10 w-full mt-1 max-h-64 overflow-y-auto border border-highlight rounded-lg bg-foreground shadow-lg">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status & Last Tweaked -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-2">
+      <%= f.label :status, 'Status', class: 'text-grey-text font-medium' %>
+      <%= f.select :status,
+          options_for_select(TrackedDeck::STATUSES.map { |s| [s.titleize.gsub('_', ' '), s] }, tracked_deck.status),
+          {},
+          { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <%= f.label :last_tweaked_at, 'Last Tweaked', class: 'text-grey-text font-medium' %>
+      <%= f.date_field :last_tweaked_at, class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="flex flex-col gap-2">
+    <%= f.label :notes, 'Notes', class: 'text-grey-text font-medium' %>
+    <%= f.text_area :notes,
+        rows: 4,
+        placeholder: 'Add any notes about this deck...',
+        class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+  </div>
+
+  <!-- Submit -->
+  <div class="flex gap-4">
+    <%= f.submit tracked_deck.new_record? ? 'Create Deck' : 'Update Deck',
+        class: 'px-6 py-3 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' %>
+    <%= link_to 'Cancel', tracked_decks_path, class: 'px-6 py-3 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-100 hover:text-accent-100 cursor-pointer' %>
+  </div>
+<% end %>

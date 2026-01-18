@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_secure_password
   has_many :collections
+  has_many :tracked_decks, dependent: :destroy
+  has_many :commander_games, dependent: :destroy
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }

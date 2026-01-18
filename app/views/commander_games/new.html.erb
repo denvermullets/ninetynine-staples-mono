@@ -1,0 +1,10 @@
+<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+  <%= render partial: 'shared/page_header',
+    locals: { header: 'Record Game',
+              subtext: 'Log a Commander game to track your deck performance.' }
+  %>
+
+  <div class="border rounded-3xl bg-foreground border-highlight p-6 md:p-8">
+    <%= render 'form', commander_game: @commander_game, tracked_decks: @tracked_decks %>
+  </div>
+</div>

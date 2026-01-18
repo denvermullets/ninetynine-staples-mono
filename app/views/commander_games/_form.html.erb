@@ -1,0 +1,149 @@
+<%= form_with model: commander_game, class: 'space-y-6', data: { controller: 'opponent-manager' } do |f| %>
+  <% if commander_game.errors.any? %>
+    <div class="p-4 border border-accent-100 rounded-lg bg-accent-100/10">
+      <h3 class="text-accent-100 font-medium mb-2">Please fix the following errors:</h3>
+      <ul class="list-disc list-inside text-accent-100 text-sm">
+        <% commander_game.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Deck Selection -->
+  <div class="flex flex-col gap-2">
+    <%= f.label :tracked_deck_id, 'Deck Played', class: 'text-grey-text font-medium' %>
+    <%= f.select :tracked_deck_id,
+        options_from_collection_for_select(tracked_decks, :id, :name, commander_game.tracked_deck_id || params[:tracked_deck_id]),
+        { prompt: 'Select a deck...' },
+        { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
+  </div>
+
+  <!-- Date and Result -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-2">
+      <%= f.label :played_on, 'Date Played', class: 'text-grey-text font-medium' %>
+      <%= f.date_field :played_on, class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <%= f.label :won, 'Did you win?', class: 'text-grey-text font-medium' %>
+      <div class="flex gap-4">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <%= f.radio_button :won, true, class: 'text-accent-50 focus:ring-accent-50 cursor-pointer' %>
+          <span class="text-accent-50">Yes, I won!</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <%= f.radio_button :won, false, class: 'text-accent-100 focus:ring-accent-100 cursor-pointer' %>
+          <span class="text-accent-100">No, I lost</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pod Size and Bracket -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="flex flex-col gap-2">
+      <%= f.label :pod_size, 'Pod Size', class: 'text-grey-text font-medium' %>
+      <%= f.select :pod_size,
+          (2..8).map { |n| ["#{n} players", n] },
+          { selected: commander_game.pod_size || 4 },
+          { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <%= f.label :bracket_level, 'Bracket Level', class: 'text-grey-text font-medium' %>
+      <%= f.select :bracket_level,
+          (1..5).map { |n| ["Bracket #{n}", n] },
+          { include_blank: 'Unknown', selected: commander_game.bracket_level },
+          { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <%= f.label :turn_ended_on, 'Turn Game Ended', class: 'text-grey-text font-medium' %>
+      <%= f.number_field :turn_ended_on,
+          min: 1,
+          placeholder: 'e.g., 10',
+          class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+    </div>
+  </div>
+
+  <!-- Win Condition (when you won) -->
+  <div class="flex flex-col gap-2">
+    <%= f.label :win_condition, 'How did you win? (if applicable)', class: 'text-grey-text font-medium' %>
+    <%= f.select :win_condition,
+        CommanderGame::WIN_CONDITIONS.map { |c| [c, c] },
+        { include_blank: 'Select win condition...' },
+        { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <%= f.label :how_won, 'Win Description (optional)', class: 'text-grey-text font-medium' %>
+    <%= f.text_area :how_won,
+        rows: 2,
+        placeholder: 'e.g., "Thoracle + Demonic Consultation" or "Swung with commander for 21"',
+        class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+  </div>
+
+  <!-- Ratings -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="flex flex-col gap-2">
+      <%= f.label :fun_rating, 'Fun Rating (1-10)', class: 'text-grey-text font-medium' %>
+      <%= f.number_field :fun_rating,
+          min: 1, max: 10, step: 1,
+          value: commander_game.fun_rating || 5,
+          class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+      <p class="text-xs text-grey-text/50">1 = Miserable, 10 = Best game ever</p>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <%= f.label :performance_rating, 'Performance Rating (1-10)', class: 'text-grey-text font-medium' %>
+      <%= f.number_field :performance_rating,
+          min: 1, max: 10, step: 1,
+          value: commander_game.performance_rating || 5,
+          class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+      <p class="text-xs text-grey-text/50">1 = Deck did nothing, 10 = Perfect execution</p>
+    </div>
+  </div>
+
+  <!-- Opponents Section -->
+  <div class="border rounded-xl border-highlight p-4 space-y-4">
+    <div class="flex justify-between items-center">
+      <h3 class="text-lg font-medium text-grey-text">Opponents</h3>
+      <button type="button"
+              data-action="click->opponent-manager#add"
+              data-opponent-manager-target="addButton"
+              class="px-3 py-1 text-sm bg-accent-50 text-background rounded border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer">
+        + Add Opponent
+      </button>
+    </div>
+
+    <div data-opponent-manager-target="container" class="space-y-4">
+      <%= f.fields_for :game_opponents do |opponent_form| %>
+        <%= render 'opponent_fields', f: opponent_form, index: opponent_form.index %>
+      <% end %>
+    </div>
+
+    <template data-opponent-manager-target="template">
+      <%= f.fields_for :game_opponents, GameOpponent.new, child_index: 'INDEX' do |opponent_form| %>
+        <%= render 'opponent_fields', f: opponent_form, index: 'INDEX' %>
+      <% end %>
+    </template>
+  </div>
+
+  <!-- Notes -->
+  <div class="flex flex-col gap-2">
+    <%= f.label :notes, 'Game Notes', class: 'text-grey-text font-medium' %>
+    <%= f.text_area :notes,
+        rows: 3,
+        placeholder: 'Any memorable moments, plays, or lessons learned...',
+        class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
+  </div>
+
+  <!-- Submit -->
+  <div class="flex gap-4">
+    <%= f.submit commander_game.new_record? ? 'Record Game' : 'Update Game',
+        class: 'px-6 py-3 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' %>
+    <%= link_to 'Cancel', commander_games_path, class: 'px-6 py-3 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-100 hover:text-accent-100 cursor-pointer' %>
+  </div>
+<% end %>

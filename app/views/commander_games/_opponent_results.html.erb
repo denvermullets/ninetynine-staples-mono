@@ -1,0 +1,25 @@
+<% if commanders.any? %>
+  <% commanders.each do |commander| %>
+    <button type="button"
+            data-action="click->opponent-manager#selectOpponent"
+            data-commander-id="<%= commander.id %>"
+            data-commander-name="<%= commander.name %>"
+            data-commander-image="<%= commander.image_small %>"
+            data-commander-image-large="<%= commander.image_large %>"
+            data-index="<%= index %>"
+            class="w-full flex items-center gap-3 p-2 hover:bg-background text-left border-b border-highlight last:border-0 cursor-pointer">
+      <% if commander.image_small.present? %>
+        <img src="<%= commander.image_small %>"
+             alt="<%= commander.name %>"
+             class="w-8 h-11 rounded object-cover"
+             data-controller="card-hover"
+             data-card-hover-image-value="<%= commander.image_large %>"
+             data-card-hover-name-value="<%= commander.name %>"
+             data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+      <% end %>
+      <span class="text-grey-text text-sm"><%= commander.name %></span>
+    </button>
+  <% end %>
+<% else %>
+  <p class="p-2 text-grey-text/70 text-sm">No commanders found</p>
+<% end %>

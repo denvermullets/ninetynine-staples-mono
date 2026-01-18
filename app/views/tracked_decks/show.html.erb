@@ -1,0 +1,139 @@
+<div class='flex flex-col flex-auto h-auto px-4 pt-8 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+  <!-- Header with deck info -->
+  <div class="flex flex-col md:flex-row gap-6 items-start">
+    <% if @tracked_deck.commander.image_small.present? %>
+      <img src="<%= @tracked_deck.commander.image_small %>"
+           alt="<%= @tracked_deck.commander.name %>"
+           class="w-24 h-32 rounded-lg object-cover shadow-lg cursor-pointer"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= @tracked_deck.commander.image_large %>"
+           data-card-hover-name-value="<%= @tracked_deck.commander.name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+    <% end %>
+
+    <div class="flex-1">
+      <div class="flex flex-wrap items-center gap-3 mb-2">
+        <h1 class="text-2xl md:text-3xl font-bold text-grey-text"><%= @tracked_deck.name %></h1>
+        <span class="px-3 py-1 rounded-full text-sm <%= @tracked_deck.status_badge_class %>">
+          <%= @tracked_deck.status.titleize.gsub('_', ' ') %>
+        </span>
+      </div>
+      <p class="text-grey-text mb-4"><%= @tracked_deck.commander_display_name %></p>
+
+      <div class="flex flex-wrap gap-3">
+        <%= link_to edit_tracked_deck_path(@tracked_deck), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
+          Edit Deck
+        <% end %>
+        <%= link_to new_commander_game_path(tracked_deck_id: @tracked_deck.id), class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
+          + Record Game
+        <% end %>
+        <%= link_to 'Delete', tracked_deck_path(@tracked_deck), method: :delete, data: { turbo_method: :delete, turbo_confirm: 'Are you sure you want to delete this deck and all its games?' }, class: 'px-4 py-2 text-accent-100 hover:text-accent-100/80 cursor-pointer' %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold text-grey-text"><%= @stats[:total_games] %></p>
+      <p class="text-sm text-grey-text/70">Total Games</p>
+    </div>
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold text-accent-50"><%= @stats[:wins] %></p>
+      <p class="text-sm text-grey-text/70">Wins</p>
+    </div>
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold text-accent-100"><%= @stats[:losses] %></p>
+      <p class="text-sm text-grey-text/70">Losses</p>
+    </div>
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold <%= @stats[:win_rate] >= 50 ? 'text-accent-50' : 'text-accent-100' %>">
+        <%= @stats[:win_rate] %>%
+      </p>
+      <p class="text-sm text-grey-text/70">Win Rate</p>
+    </div>
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold text-accent-300"><%= @stats[:avg_fun_rating] || '-' %></p>
+      <p class="text-sm text-grey-text/70">Avg Fun</p>
+    </div>
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold text-accent-200"><%= @stats[:avg_performance_rating] || '-' %></p>
+      <p class="text-sm text-grey-text/70">Avg Performance</p>
+    </div>
+  </div>
+
+  <!-- Win Rate by Bracket -->
+  <% if @stats[:win_rate_by_bracket].any? %>
+    <div class="border rounded-3xl bg-foreground border-highlight p-6">
+      <h2 class="text-xl font-bold text-grey-text mb-4">Win Rate by Bracket</h2>
+      <div class="grid grid-cols-5 gap-4">
+        <% (1..5).each do |bracket| %>
+          <div class="text-center">
+            <div class="text-sm text-grey-text/70 mb-2">Bracket <%= bracket %></div>
+            <% rate = @stats[:win_rate_by_bracket][bracket] %>
+            <% if rate %>
+              <div class="text-2xl font-bold <%= rate >= 50 ? 'text-accent-50' : 'text-accent-100' %>">
+                <%= rate %>%
+              </div>
+              <div class="text-xs text-grey-text/50"><%= @stats[:games_by_bracket][bracket] %> games</div>
+            <% else %>
+              <div class="text-2xl font-bold text-grey-text/30">-</div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Notes -->
+  <% if @tracked_deck.notes.present? %>
+    <div class="border rounded-3xl bg-foreground border-highlight p-6">
+      <h2 class="text-xl font-bold text-grey-text mb-4">Notes</h2>
+      <p class="text-grey-text whitespace-pre-wrap"><%= @tracked_deck.notes %></p>
+    </div>
+  <% end %>
+
+  <!-- Recent Games -->
+  <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
+    <div class="flex justify-between items-center px-6 py-4 border-b border-highlight">
+      <h2 class="text-xl font-bold text-grey-text">Recent Games</h2>
+      <%= link_to 'View All Games', commander_games_path, class: 'text-accent-50 hover:text-accent-100' %>
+    </div>
+
+    <% if @recent_games.any? %>
+      <table class="min-w-full">
+        <thead class="bg-background">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Result</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden md:table-cell">Win Condition</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden lg:table-cell">Bracket</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden lg:table-cell">Fun</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-highlight">
+          <% @recent_games.each do |game| %>
+            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= commander_game_path(game) %>'">
+              <td class="px-6 py-4 text-grey-text"><%= game.played_on.strftime('%b %d, %Y') %></td>
+              <td class="px-6 py-4">
+                <span class="px-2 py-1 rounded-full text-xs <%= game.result_badge_class %>">
+                  <%= game.result_text %>
+                </span>
+              </td>
+              <td class="px-6 py-4 text-grey-text hidden md:table-cell">
+                <%= game.won? ? game.win_condition : (game.winning_opponent&.win_condition || '-') %>
+              </td>
+              <td class="px-6 py-4 text-grey-text hidden lg:table-cell"><%= game.bracket_level || '-' %></td>
+              <td class="px-6 py-4 text-grey-text hidden lg:table-cell"><%= game.fun_rating || '-' %>/10</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="p-8 text-center">
+        <p class="text-grey-text mb-4">No games recorded yet</p>
+        <%= link_to '+ Record First Game', new_commander_game_path(tracked_deck_id: @tracked_deck.id), class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+      </div>
+    <% end %>
+  </div>
+</div>

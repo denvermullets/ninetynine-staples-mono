@@ -44,6 +44,11 @@ class MagicCard < ApplicationRecord
   has_many :magic_card_variations
   has_many :variations, through: :magic_card_variations, source: :variation
 
+  has_many :tracked_decks_as_commander, class_name: 'TrackedDeck', foreign_key: :commander_id
+  has_many :tracked_decks_as_partner, class_name: 'TrackedDeck', foreign_key: :partner_commander_id
+  has_many :game_opponents_as_commander, class_name: 'GameOpponent', foreign_key: :commander_id
+  has_many :game_opponents_as_partner, class_name: 'GameOpponent', foreign_key: :partner_commander_id
+
   def other_face
     return nil unless other_face_uuid.present?
 

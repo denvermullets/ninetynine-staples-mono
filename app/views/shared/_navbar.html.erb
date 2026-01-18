@@ -22,6 +22,9 @@
           <div class="<%= nav_item_classes('/decks/' + current_user.username) %>">
             <%= link_to 'Decks', decks_index_path(current_user.username) %>
           </div>
+          <div class="<%= nav_item_classes('/game-dashboard') %>">
+            <%= link_to 'Game Tracker', game_dashboard_path %>
+          </div>
         <% else %>
           <p class="<%= nav_item_classes('/collections/') %>">Collections</p>
           <p class="<%= nav_item_classes('/decks') %>">Decks</p>
@@ -88,6 +91,9 @@
       </div>
       <div class="<%= nav_item_classes('/decks/' + current_user.username) %>">
         <%= link_to 'Decks', decks_index_path(current_user.username) %>
+      </div>
+      <div class="<%= nav_item_classes('/game-dashboard') %>">
+        <%= link_to 'Game Tracker', game_dashboard_path %>
       </div>
       <% if current_user.role.to_i == 9001 %>
         <div class="pt-2 border-t border-gray-700">
