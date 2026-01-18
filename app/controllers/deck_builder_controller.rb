@@ -1,5 +1,6 @@
 class DeckBuilderController < ApplicationController
   include DeckBuilderModals
+  include DeckBuilderCardActions
 
   before_action :set_deck
   before_action :authenticate_user!, except: [:show]
@@ -14,10 +15,7 @@ class DeckBuilderController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.turbo_stream do
-        render turbo_stream: [turbo_stream.update('deck_cards', partial: 'deck_cards'),
-                              turbo_stream.update('deck_stats', partial: 'deck_stats')]
-      end
+      format.turbo_stream { render_deck_cards_stream }
     end
   end
 
@@ -50,30 +48,14 @@ class DeckBuilderController < ApplicationController
 
   def update_quantity
     result = DeckBuilder::UpdateQuantity.call(
-      deck: @deck,
-      collection_magic_card_id: params[:card_id],
-      quantity: params[:quantity],
-      foil_quantity: params[:foil_quantity]
+      deck: @deck, collection_magic_card_id: params[:card_id],
+      quantity: params[:quantity], foil_quantity: params[:foil_quantity]
     )
     render_card_action_response(result, success_message: "Updated #{result[:card_name]} quantity")
   end
 
-  def finalize
-    result = DeckBuilder::Finalize.call(deck: @deck)
-    if result[:success]
-      msg = "Deck finalized! #{result[:cards_moved]} cards moved"
-      msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
-      redirect_to decks_index_path(username: current_user.username), notice: msg, status: :see_other
-    else
-      flash.now[:error] = result[:error]
-      load_deck_cards
-      render :show, status: :unprocessable_entity
-    end
-  end
-
   def update_deck
-    msg = @deck.update(deck_params) ? { notice: 'Deck updated successfully' } : { alert: 'Failed to update deck' }
-    redirect_back fallback_location: deck_builder_path(@deck), **msg
+    @deck.update(deck_params) ? render_update_deck_success : render_error_toast('Failed to update deck')
   end
 
   private
@@ -97,11 +79,7 @@ class DeckBuilderController < ApplicationController
   end
 
   def render_card_action_response(result, success_message:)
-    unless result[:success]
-      flash.now[:type] = 'error'
-      return render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
-                                                                locals: { message: result[:error] })
-    end
+    return render_error_toast(result[:error]) unless result[:success]
 
     flash.now[:type] = 'success'
     load_deck_cards
@@ -110,6 +88,23 @@ class DeckBuilderController < ApplicationController
       turbo_stream.update('deck_stats', partial: 'deck_stats'),
       turbo_stream.update('header_actions', partial: 'header_actions'),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: success_message })
+    ]
+  end
+
+  def render_deck_cards_stream
+    render turbo_stream: [
+      turbo_stream.update('deck_cards', partial: 'deck_cards'),
+      turbo_stream.update('deck_stats', partial: 'deck_stats')
+    ]
+  end
+
+  def render_update_deck_success
+    flash.now[:type] = 'success'
+    render turbo_stream: [
+      turbo_stream.update('deck-name', @deck.name),
+      turbo_stream.update('deck-description', @deck.description),
+      turbo_stream.update('deck_modal', ''),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: 'Deck updated successfully' })
     ]
   end
 

@@ -17,7 +17,6 @@
 
       <%= form_with url: update_deck_deck_builder_path(deck),
                     method: :patch,
-                    data: { turbo_frame: "_top" },
                     class: "space-y-4" do |f| %>
         <div>
           <%= f.label :name, class: "block text-sm font-medium text-grey-text mb-1" %>
@@ -48,11 +47,11 @@
         <div class="flex justify-end gap-3 pt-2">
           <button type="button"
                   data-action="click->modal#close"
-                  class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-background cursor-pointer">
+                  class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-100 hover:border-accent-100 cursor-pointer">
             Cancel
           </button>
           <%= f.submit "Save Changes",
-              class: "px-4 py-2 text-sm transition rounded-md bg-accent-50 hover:bg-nine-white text-background cursor-pointer" %>
+              class: "px-4 py-2 text-sm transition rounded-md bg-accent-50 text-grey-text border border-accent-50 hover:bg-foreground hover:text-accent-50 cursor-pointer" %>
         </div>
       <% end %>
     </div>

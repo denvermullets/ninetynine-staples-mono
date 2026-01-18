@@ -8,21 +8,19 @@
       <div class="relative" data-controller="card-stack">
         <% cards.each_with_index do |card, index| %>
           <div data-card-stack-target="card"
-               data-image-large="<%= card.magic_card.image_large %>"
-               data-action="mouseenter->card-stack#showPreview mouseleave->card-stack#hidePreview"
-               class="relative cursor-pointer rounded-lg overflow-hidden
+               data-action="mouseenter->card-stack#expand mouseleave->card-stack#collapse"
+               class="relative cursor-pointer rounded-2xl overflow-hidden
                       <%= 'ring-2 ring-blue-400' if card.staged? && card.from_owned_collection? %>
                       <%= 'ring-2 ring-yellow-400' if card.staged? && card.planned? %>
-                      <%= 'ring-2 ring-orange-400' if card.needed? %>"
-               style="<%= 'margin-top: -80px;' if index > 0 %>">
+                      <%= 'ring-2 ring-orange-400' if card.needed? %>">
 
             <% if card.magic_card.image_medium.present? %>
               <img src="<%= card.magic_card.image_medium %>"
                    alt="<%= card.magic_card.name %>"
-                   class="w-full rounded-lg shadow-lg"
+                   class="w-full rounded-2xl shadow-lg"
                    loading="lazy" />
             <% else %>
-              <div class="flex items-center justify-center w-full h-48 rounded-lg bg-background">
+              <div class="flex items-center justify-center w-full h-48 rounded-2xl bg-background">
                 <span class="text-sm text-grey-text"><%= card.magic_card.name %></span>
               </div>
             <% end %>
@@ -50,13 +48,9 @@
                 <% end %>
               </div>
             <% end %>
+
           </div>
         <% end %>
-
-        <!-- Hover preview -->
-        <img data-card-stack-target="hoverPreview"
-             class="fixed z-50 hidden w-64 rounded-lg shadow-2xl pointer-events-none"
-             alt="Card preview" />
       </div>
     </div>
   <% end %>

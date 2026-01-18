@@ -34,7 +34,7 @@
             <label class="text-xs text-grey-text">Add from collection:</label>
             <select data-add-card-target="sourceSelect"
                     data-action="change->add-card#updateAvailability"
-                    class="w-full px-2 py-1.5 mt-1 text-xs border rounded bg-background border-highlight text-white">
+                    class="w-full px-2 py-1.5 mt-1 text-xs border rounded bg-background border-highlight text-white cursor-pointer">
               <% available_copies.each do |owned| %>
                 <%
                   total_available = owned[:available_quantity] + owned[:proxy_quantity]
@@ -56,19 +56,19 @@
               <div class="flex items-center">
                 <button type="button"
                         data-action="click->add-card#decrementQuantity"
-                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition">-</button>
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">-</button>
                 <input type="number"
                        data-add-card-target="quantityInput"
                        value="1" min="1" max="<%= first_max %>"
                        class="w-12 h-8 px-1 text-sm text-center border-y bg-background border-highlight text-white" />
                 <button type="button"
                         data-action="click->add-card#incrementQuantity"
-                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition">+</button>
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">+</button>
               </div>
               <button type="button"
                       data-add-card-target="addOwnedButton"
                       data-action="click->add-card#addOwned"
-                      class="flex-1 px-3 py-1.5 text-xs rounded bg-accent-50 text-background font-medium hover:bg-accent-50/90 transition">
+                      class="flex-1 px-3 py-1.5 text-xs rounded bg-accent-50 text-grey-text font-medium border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
                 Add
               </button>
             </div>
@@ -82,21 +82,21 @@
               <div class="flex items-center">
                 <button type="button"
                         data-action="click->add-card#decrementQuantity"
-                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition">-</button>
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">-</button>
                 <input type="number"
                        data-add-card-target="quantityInput"
                        value="1" min="1" max="99"
                        class="w-12 h-8 px-1 text-sm text-center border-y bg-background border-highlight text-white" />
                 <button type="button"
                         data-action="click->add-card#incrementQuantity"
-                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition">+</button>
+                        class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">+</button>
               </div>
             </div>
           <% end %>
 
           <button data-add-card-target="addPlannedButton"
                   data-action="click->add-card#addPlanned"
-                  class="w-full px-2 py-1.5 mt-2 text-xs border rounded border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 transition">
+                  class="w-full px-2 py-1.5 mt-2 text-xs border rounded border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 transition cursor-pointer">
             <% if available_copies.any? %>
               Or Add as Planned
             <% else %>

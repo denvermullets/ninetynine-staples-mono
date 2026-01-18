@@ -77,10 +77,14 @@ Rails.application.routes.draw do
       post :swap_card
       patch :update_quantity
       post :finalize
+      patch :set_commander
+      patch :remove_commander
       get :confirm_remove_modal
       get :confirm_finalize_modal
       get :edit_deck_modal
       patch :update_deck
+      get :transfer_card_modal
+      post :transfer_card
     end
   end
 

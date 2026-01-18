@@ -2,52 +2,57 @@ import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="card-stack"
 export default class extends Controller {
-  static targets = ["card", "hoverPreview"];
+  static targets = ["card"];
 
   static values = {
-    stackOffset: { type: Number, default: 80 },
+    overlapPercent: { type: Number, default: 85 },
   };
 
   connect() {
+    // Wait for images to load to get accurate card height
+    this.cardTargets.forEach((card) => {
+      const img = card.querySelector("img");
+      if (img && !img.complete) {
+        img.addEventListener("load", () => this.applyStackOffset(), { once: true });
+      }
+    });
     this.applyStackOffset();
   }
 
   applyStackOffset() {
+    const firstCard = this.cardTargets[0];
+    if (!firstCard) return;
+
+    // Get the actual card height
+    const cardHeight = firstCard.offsetHeight || 280;
+    const overlapAmount = Math.floor(cardHeight * (this.overlapPercentValue / 100));
+
     this.cardTargets.forEach((card, index) => {
+      card.style.transition = "margin-top 0.2s ease-out";
       if (index > 0) {
-        card.style.marginTop = `-${this.stackOffsetValue}px`;
+        card.style.marginTop = `-${overlapAmount}px`;
       }
+      card.dataset.defaultMargin = index > 0 ? `-${overlapAmount}` : "0";
     });
   }
 
-  showPreview(event) {
-    const card = event.currentTarget;
-    const imageUrl = card.dataset.imageLarge;
+  expand(event) {
+    const hoveredCard = event.currentTarget;
+    const hoveredIndex = this.cardTargets.indexOf(hoveredCard);
 
-    if (this.hasHoverPreviewTarget && imageUrl) {
-      this.hoverPreviewTarget.src = imageUrl;
-      this.hoverPreviewTarget.classList.remove("hidden");
-
-      // Position to the right of the stack
-      const rect = this.element.getBoundingClientRect();
-      const previewWidth = 256; // w-64 = 16rem = 256px
-      const viewportWidth = window.innerWidth;
-
-      // Check if there's room on the right
-      if (rect.right + previewWidth + 20 < viewportWidth) {
-        this.hoverPreviewTarget.style.left = `${rect.right + 10}px`;
-      } else {
-        // Place on the left
-        this.hoverPreviewTarget.style.left = `${rect.left - previewWidth - 10}px`;
-      }
-
-      this.hoverPreviewTarget.style.top = `${Math.max(10, rect.top)}px`;
+    // Only push the card immediately below down to reveal the hovered card
+    // Other cards stay stacked relative to each other
+    const nextCard = this.cardTargets[hoveredIndex + 1];
+    if (nextCard) {
+      nextCard.style.marginTop = "0px";
     }
   }
 
-  hidePreview() {
-    if (this.hasHoverPreviewTarget) {
-      this.hoverPreviewTarget.classList.add("hidden");
-    }
+  collapse() {
+    // Reset all cards to their default stacked position
+    this.cardTargets.forEach((card) => {
+      const defaultMargin = card.dataset.defaultMargin || "0";
+      card.style.marginTop = `${defaultMargin}px`;
+    });
   }
 }
