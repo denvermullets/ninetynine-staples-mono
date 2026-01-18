@@ -10,10 +10,10 @@ module CommanderGames
 
       # Get the newest version of each commander (highest id per name)
       newest_ids = MagicCard
-        .where(can_be_commander: true)
-        .where('name ILIKE ?', "%#{@query}%")
-        .group(:name)
-        .select('MAX(id) as id')
+                   .where(can_be_commander: true)
+                   .where('name ILIKE ?', "%#{@query}%")
+                   .group(:name)
+                   .select('MAX(id) as id')
 
       MagicCard
         .where(id: newest_ids)

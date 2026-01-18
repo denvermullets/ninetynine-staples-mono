@@ -6,7 +6,7 @@ module GameDashboard
     end
 
     def call
-      @decks.map do |deck|
+      deck_data = @decks.map do |deck|
         {
           id: deck.id,
           name: deck.name,
@@ -23,7 +23,9 @@ module GameDashboard
           avg_performance_rating: deck.avg_performance_rating,
           last_played: deck.last_played_on
         }
-      end.sort_by { |d| [-d[:games_count], d[:name]] }
+      end
+
+      deck_data.sort_by { |d| [-d[:games_count], d[:name]] }
     end
   end
 end

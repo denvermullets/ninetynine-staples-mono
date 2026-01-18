@@ -24,7 +24,7 @@ module TrackedDecks
     private
 
     def calculate_win_rate
-      return 0.0 if @games.count.zero?
+      return 0.0 if @games.none?
 
       (@games.wins.count.to_f / @games.count * 100).round(1)
     end
@@ -40,7 +40,7 @@ module TrackedDecks
     def win_rate_by_bracket
       (1..5).each_with_object({}) do |bracket, result|
         games = @games.by_bracket(bracket)
-        next if games.count.zero?
+        next if games.none?
 
         result[bracket] = (games.wins.count.to_f / games.count * 100).round(1)
       end

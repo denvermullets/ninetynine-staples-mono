@@ -5,7 +5,7 @@ class CommanderGamesController < ApplicationController
 
   def index
     games = current_user.commander_games
-                        .includes(tracked_deck: [:commander, :partner_commander])
+                        .includes(tracked_deck: %i[commander partner_commander])
                         .recent
     @pagy, @games = pagy(games, items: 20)
   end
@@ -70,8 +70,8 @@ class CommanderGamesController < ApplicationController
       :tracked_deck_id, :played_on, :won, :turn_ended_on, :pod_size,
       :bracket_level, :fun_rating, :performance_rating,
       :win_condition, :how_won, :notes,
-      game_opponents_attributes: [
-        :id, :commander_id, :partner_commander_id, :won, :win_condition, :how_won, :_destroy
+      game_opponents_attributes: %i[
+        id commander_id partner_commander_id won win_condition how_won _destroy
       ]
     )
   end

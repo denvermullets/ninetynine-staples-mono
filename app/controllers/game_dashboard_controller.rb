@@ -7,7 +7,7 @@ class GameDashboardController < ApplicationController
     @bracket_stats = GameDashboard::BracketStats.call(user: current_user)
     @opponent_stats = GameDashboard::OpponentStats.call(user: current_user)
     @recent_games = current_user.commander_games
-                                .includes(tracked_deck: [:commander, :partner_commander])
+                                .includes(tracked_deck: %i[commander partner_commander])
                                 .recent
                                 .limit(5)
   end

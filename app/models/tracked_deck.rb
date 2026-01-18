@@ -53,16 +53,14 @@ class TrackedDeck < ApplicationRecord
     end
   end
 
+  STATUS_BADGE_CLASSES = {
+    'active' => 'bg-accent-50/20 text-accent-50',
+    'worth_upgrading' => 'bg-accent-300/20 text-accent-300',
+    'chopping_block' => 'bg-accent-100/20 text-accent-100',
+    'retired' => 'bg-gray-500/20 text-gray-400'
+  }.freeze
+
   def status_badge_class
-    case status
-    when 'active'
-      'bg-accent-50/20 text-accent-50'       # green
-    when 'worth_upgrading'
-      'bg-accent-300/20 text-accent-300'     # yellow
-    when 'chopping_block'
-      'bg-accent-100/20 text-accent-100'     # red
-    when 'retired'
-      'bg-gray-500/20 text-gray-400'
-    end
+    STATUS_BADGE_CLASSES[status]
   end
 end

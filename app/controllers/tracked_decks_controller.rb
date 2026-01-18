@@ -28,8 +28,7 @@ class TrackedDecksController < ApplicationController
     end
   end
 
-  def edit
-  end
+  def edit; end
 
   def update
     if @tracked_deck.update(tracked_deck_params)

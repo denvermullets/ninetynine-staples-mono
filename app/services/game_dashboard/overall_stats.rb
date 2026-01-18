@@ -24,7 +24,7 @@ module GameDashboard
     private
 
     def calculate_win_rate
-      return 0.0 if @games.count.zero?
+      return 0.0 if @games.none?
 
       (@games.wins.count.to_f / @games.count * 100).round(1)
     end
