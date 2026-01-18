@@ -1,0 +1,111 @@
+<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row gap-6 items-start">
+    <% if @commander_game.tracked_deck.commander.image_small.present? %>
+      <img src="<%= @commander_game.tracked_deck.commander.image_small %>"
+           alt="<%= @commander_game.tracked_deck.commander.name %>"
+           class="w-24 h-32 rounded-lg object-cover shadow-lg">
+    <% end %>
+
+    <div class="flex-1">
+      <div class="flex flex-wrap items-center gap-3 mb-2">
+        <h1 class="text-2xl md:text-3xl font-bold text-grey-text">
+          <%= @commander_game.played_on.strftime('%B %d, %Y') %>
+        </h1>
+        <span class="px-3 py-1 rounded-full text-sm <%= @commander_game.result_badge_class %>">
+          <%= @commander_game.result_text %>
+        </span>
+      </div>
+      <p class="text-grey-text mb-1">
+        <%= link_to @commander_game.deck_name, tracked_deck_path(@commander_game.tracked_deck), class: 'hover:text-accent-50' %>
+        <span class="text-grey-text/50">with</span>
+        <%= @commander_game.commander_name %>
+      </p>
+      <p class="text-grey-text/70 text-sm">
+        <%= @commander_game.pod_size %> players
+        <% if @commander_game.bracket_level %>
+          &bull; Bracket <%= @commander_game.bracket_level %>
+        <% end %>
+        <% if @commander_game.turn_ended_on %>
+          &bull; Ended turn <%= @commander_game.turn_ended_on %>
+        <% end %>
+      </p>
+
+      <div class="flex flex-wrap gap-3 mt-4">
+        <%= link_to edit_commander_game_path(@commander_game), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
+          Edit Game
+        <% end %>
+        <%= link_to 'Delete', commander_game_path(@commander_game), method: :delete, data: { turbo_method: :delete, turbo_confirm: 'Are you sure you want to delete this game?' }, class: 'px-4 py-2 text-accent-100 hover:text-accent-100/80 cursor-pointer' %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Details -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold text-accent-300"><%= @commander_game.fun_rating || '-' %></p>
+      <p class="text-sm text-grey-text/70">Fun Rating</p>
+    </div>
+    <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
+      <p class="text-3xl font-bold text-accent-200"><%= @commander_game.performance_rating || '-' %></p>
+      <p class="text-sm text-grey-text/70">Performance</p>
+    </div>
+    <% if @commander_game.won? && @commander_game.win_condition.present? %>
+      <div class="border rounded-xl bg-foreground border-highlight p-4 text-center col-span-2">
+        <p class="text-xl font-bold text-accent-50"><%= @commander_game.win_condition %></p>
+        <p class="text-sm text-grey-text/70">Win Condition</p>
+        <% if @commander_game.how_won.present? %>
+          <p class="text-sm text-grey-text mt-1"><%= @commander_game.how_won %></p>
+        <% end %>
+      </div>
+    <% elsif !@commander_game.won? && @commander_game.winning_opponent.present? %>
+      <div class="border rounded-xl bg-foreground border-highlight p-4 text-center col-span-2">
+        <p class="text-xl font-bold text-accent-100">Lost to <%= @commander_game.winning_opponent.commander_display_name %></p>
+        <% if @commander_game.winning_opponent.win_condition.present? %>
+          <p class="text-sm text-grey-text/70">via <%= @commander_game.winning_opponent.win_condition %></p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Opponents -->
+  <% if @opponents.any? %>
+    <div class="border rounded-3xl bg-foreground border-highlight p-6">
+      <h2 class="text-xl font-bold text-grey-text mb-4">Opponents (<%= @opponents.count %>)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @opponents.each do |opponent| %>
+          <div class="flex items-center gap-3 p-3 border rounded-lg border-highlight/50 <%= opponent.won? ? 'bg-accent-50/10' : '' %>">
+            <% if opponent.commander.image_small.present? %>
+              <img src="<%= opponent.commander.image_small %>" alt="" class="w-10 h-14 rounded object-cover">
+            <% end %>
+            <div class="flex-1">
+              <p class="text-grey-text font-medium"><%= opponent.commander_display_name %></p>
+              <% if opponent.won? %>
+                <p class="text-sm text-accent-50">
+                  Winner
+                  <% if opponent.win_condition.present? %>
+                    &bull; <%= opponent.win_condition %>
+                  <% end %>
+                </p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Notes -->
+  <% if @commander_game.notes.present? %>
+    <div class="border rounded-3xl bg-foreground border-highlight p-6">
+      <h2 class="text-xl font-bold text-grey-text mb-4">Notes</h2>
+      <p class="text-grey-text whitespace-pre-wrap"><%= @commander_game.notes %></p>
+    </div>
+  <% end %>
+
+  <!-- Navigation -->
+  <div class="flex justify-between">
+    <%= link_to '&larr; All Games'.html_safe, commander_games_path, class: 'text-accent-50 hover:text-accent-100' %>
+    <%= link_to "View #{@commander_game.deck_name}", tracked_deck_path(@commander_game.tracked_deck), class: 'text-accent-50 hover:text-accent-100' %>
+  </div>
+</div>

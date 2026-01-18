@@ -1,0 +1,10 @@
+<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+  <%= render partial: 'shared/page_header',
+    locals: { header: 'Track New Deck',
+              subtext: 'Add a deck to track your games and view performance statistics.' }
+  %>
+
+  <div class="border rounded-3xl bg-foreground border-highlight p-6 md:p-8">
+    <%= render 'form', tracked_deck: @tracked_deck %>
+  </div>
+</div>

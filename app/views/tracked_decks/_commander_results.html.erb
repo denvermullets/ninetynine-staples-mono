@@ -1,0 +1,17 @@
+<% if commanders.any? %>
+  <% commanders.each do |commander| %>
+    <button type="button"
+            data-action="click->commander-search#select"
+            data-commander-id="<%= commander.id %>"
+            data-commander-name="<%= commander.name %>"
+            data-commander-image="<%= commander.image_small %>"
+            class="w-full flex items-center gap-3 p-3 hover:bg-background text-left border-b border-highlight last:border-0 cursor-pointer">
+      <% if commander.image_small.present? %>
+        <img src="<%= commander.image_small %>" alt="<%= commander.name %>" class="w-10 h-14 rounded object-cover">
+      <% end %>
+      <span class="text-grey-text"><%= commander.name %></span>
+    </button>
+  <% end %>
+<% else %>
+  <p class="p-3 text-grey-text/70 text-sm">No commanders found</p>
+<% end %>
