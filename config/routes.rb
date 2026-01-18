@@ -83,6 +83,8 @@ Rails.application.routes.draw do
       get :confirm_finalize_modal
       get :edit_deck_modal
       patch :update_deck
+      get :transfer_card_modal
+      post :transfer_card
     end
   end
 

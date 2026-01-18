@@ -6,6 +6,8 @@ export default class extends Controller {
     editUrl: String,
     setCommanderUrl: String,
     removeCommanderUrl: String,
+    removeUrl: String,
+    transferUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -127,5 +129,47 @@ export default class extends Controller {
       .catch((error) => {
         console.error("Error removing commander:", error);
       });
+  }
+
+  removeCard(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.removeUrlValue;
+    if (!url) return;
+
+    fetch(url, {
+      method: "DELETE",
+      headers: {
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+        Accept: "text/vnd.turbo-stream.html",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.text();
+        }
+        throw new Error("Failed to remove card");
+      })
+      .then((html) => {
+        Turbo.renderStreamMessage(html);
+      })
+      .catch((error) => {
+        console.error("Error removing card:", error);
+      });
+  }
+
+  transferCard(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.transferUrlValue;
+    if (!url) return;
+
+    // Open the transfer modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
   }
 }

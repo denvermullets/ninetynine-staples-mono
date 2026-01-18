@@ -131,6 +131,38 @@ class DeckBuilderController < ApplicationController
     ]
   end
 
+  def transfer_card
+    card = @deck.collection_magic_cards.find(params[:card_id])
+    to_collection = current_user.collections.find(params[:to_collection_id])
+    card_name = card.magic_card.name
+
+    result = CollectionRecord::Transfer.call(params: {
+      magic_card_id: card.magic_card_id,
+      from_collection_id: @deck.id,
+      to_collection_id: to_collection.id,
+      quantity: card.quantity,
+      foil_quantity: card.foil_quantity,
+      proxy_quantity: 0,
+      proxy_foil_quantity: 0
+    })
+
+    if result[:success]
+      flash.now[:type] = 'success'
+      load_deck_cards
+      render turbo_stream: [
+        turbo_stream.update('deck_cards', partial: 'deck_cards'),
+        turbo_stream.update('deck_stats', partial: 'deck_stats'),
+        turbo_stream.update('deck_modal', ''),
+        turbo_stream.append('toasts', partial: 'shared/toast',
+                                       locals: { message: "#{card_name} transferred to #{to_collection.name}" })
+      ]
+    else
+      flash.now[:type] = 'error'
+      render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+                                                         locals: { message: result[:error] })
+    end
+  end
+
   private
 
   def set_deck
