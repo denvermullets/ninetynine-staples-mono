@@ -9,23 +9,20 @@
       </ul>
     </div>
   <% end %>
-
   <!-- Deck Selection -->
   <div class="flex flex-col gap-2">
     <%= f.label :tracked_deck_id, 'Deck Played', class: 'text-grey-text font-medium' %>
     <%= f.select :tracked_deck_id,
-        options_from_collection_for_select(tracked_decks, :id, :name, commander_game.tracked_deck_id || params[:tracked_deck_id]),
+        options_from_collection_for_select(tracked_decks, :id, :dropdown_display_name, commander_game.tracked_deck_id || params[:tracked_deck_id]),
         { prompt: 'Select a deck...' },
         { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
   </div>
-
   <!-- Date and Result -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="flex flex-col gap-2">
       <%= f.label :played_on, 'Date Played', class: 'text-grey-text font-medium' %>
       <%= f.date_field :played_on, class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
     </div>
-
     <div class="flex flex-col gap-2">
       <%= f.label :won, 'Did you win?', class: 'text-grey-text font-medium' %>
       <div class="flex gap-4">
@@ -40,7 +37,6 @@
       </div>
     </div>
   </div>
-
   <!-- Pod Size and Bracket -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div class="flex flex-col gap-2">
@@ -50,7 +46,6 @@
           { selected: commander_game.pod_size || 4 },
           { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
     </div>
-
     <div class="flex flex-col gap-2">
       <%= f.label :bracket_level, 'Bracket Level', class: 'text-grey-text font-medium' %>
       <%= f.select :bracket_level,
@@ -58,7 +53,6 @@
           { include_blank: 'Unknown', selected: commander_game.bracket_level },
           { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
     </div>
-
     <div class="flex flex-col gap-2">
       <%= f.label :turn_ended_on, 'Turn Game Ended', class: 'text-grey-text font-medium' %>
       <%= f.number_field :turn_ended_on,
@@ -67,7 +61,6 @@
           class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
     </div>
   </div>
-
   <!-- Win Condition (when you won) -->
   <div class="flex flex-col gap-2">
     <%= f.label :win_condition, 'How did you win? (if applicable)', class: 'text-grey-text font-medium' %>
@@ -76,7 +69,6 @@
         { include_blank: 'Select win condition...' },
         { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
   </div>
-
   <div class="flex flex-col gap-2">
     <%= f.label :how_won, 'Win Description (optional)', class: 'text-grey-text font-medium' %>
     <%= f.text_area :how_won,
@@ -84,7 +76,6 @@
         placeholder: 'e.g., "Thoracle + Demonic Consultation" or "Swung with commander for 21"',
         class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
   </div>
-
   <!-- Ratings -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div class="flex flex-col gap-2">
@@ -95,7 +86,6 @@
           class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
       <p class="text-xs text-grey-text/50">1 = Miserable, 10 = Best game ever</p>
     </div>
-
     <div class="flex flex-col gap-2">
       <%= f.label :performance_rating, 'Performance Rating (1-10)', class: 'text-grey-text font-medium' %>
       <%= f.number_field :performance_rating,
@@ -105,32 +95,28 @@
       <p class="text-xs text-grey-text/50">1 = Deck did nothing, 10 = Perfect execution</p>
     </div>
   </div>
-
   <!-- Opponents Section -->
   <div class="border rounded-xl border-highlight p-4 space-y-4">
     <div class="flex justify-between items-center">
       <h3 class="text-lg font-medium text-grey-text">Opponents</h3>
       <button type="button"
               data-action="click->opponent-manager#add"
-              data-opponent-manager-target="addButton"
-              class="px-3 py-1 text-sm bg-accent-50 text-background rounded border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer">
+        data-opponent-manager-target="addButton"
+        class="px-3 py-1 text-sm bg-accent-50 text-background rounded border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer">
         + Add Opponent
       </button>
     </div>
-
     <div data-opponent-manager-target="container" class="space-y-4">
       <%= f.fields_for :game_opponents do |opponent_form| %>
         <%= render 'opponent_fields', f: opponent_form, index: opponent_form.index %>
       <% end %>
     </div>
-
     <template data-opponent-manager-target="template">
       <%= f.fields_for :game_opponents, GameOpponent.new, child_index: 'INDEX' do |opponent_form| %>
         <%= render 'opponent_fields', f: opponent_form, index: 'INDEX' %>
       <% end %>
     </template>
   </div>
-
   <!-- Notes -->
   <div class="flex flex-col gap-2">
     <%= f.label :notes, 'Game Notes', class: 'text-grey-text font-medium' %>
@@ -139,7 +125,6 @@
         placeholder: 'Any memorable moments, plays, or lessons learned...',
         class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' %>
   </div>
-
   <!-- Submit -->
   <div class="flex gap-4">
     <%= f.submit commander_game.new_record? ? 'Record Game' : 'Update Game',
