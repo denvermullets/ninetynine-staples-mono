@@ -10,6 +10,15 @@ class DecksController < ApplicationController
     'value_asc' => { label: 'Value (Low-High)', order: { total_value: :asc } }
   }.freeze
 
+  BUILDING_SELECT_SQL = <<~SQL.squish
+    collections.*,
+    EXISTS(
+      SELECT 1 FROM collection_magic_cards
+      WHERE collection_magic_cards.collection_id = collections.id
+      AND collection_magic_cards.staged = true
+    ) AS is_building
+  SQL
+
   def index
     @user = User.find_by!(username: params[:username])
     @sort = params[:sort].presence_in(SORT_OPTIONS.keys) || 'updated_desc'
@@ -18,7 +27,7 @@ class DecksController < ApplicationController
     @decks = @user.collections.decks
     @decks = if @sort == 'building'
                @decks.left_joins(:collection_magic_cards)
-                     .select('collections.*, EXISTS(SELECT 1 FROM collection_magic_cards WHERE collection_magic_cards.collection_id = collections.id AND collection_magic_cards.staged = true) AS is_building')
+                     .select(BUILDING_SELECT_SQL)
                      .group('collections.id')
                      .order(Arel.sql('is_building DESC, collections.updated_at DESC'))
              else
