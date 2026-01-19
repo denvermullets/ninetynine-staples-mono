@@ -80,7 +80,7 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def display_quantity
-    staged? ? total_staged : (quantity + foil_quantity)
+    staged? ? total_staged : (total_regular + total_foil)
   end
 
   def available_swap?(user)

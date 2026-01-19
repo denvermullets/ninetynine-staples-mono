@@ -30,8 +30,8 @@ module DeckBuilder
       {
         total: cards.sum(&:display_quantity),
         staged: staged.sum(&:total_staged),
-        needed: needed.sum { |c| c.quantity + c.foil_quantity },
-        owned: owned.sum { |c| c.quantity + c.foil_quantity },
+        needed: needed.sum(&:display_quantity),
+        owned: owned.sum(&:display_quantity),
         value: calculate_deck_value(cards)
       }
     end
