@@ -38,4 +38,16 @@ module DeckBuilderModals
       collections: collections
     }
   end
+
+  def swap_printing_modal
+    card = @deck.collection_magic_cards.find(params[:card_id])
+    printings = MagicCard.where(scryfall_oracle_id: card.magic_card.scryfall_oracle_id)
+                         .includes(:boxset)
+                         .order('boxsets.release_date DESC')
+    render partial: 'deck_builder/swap_printing_modal', locals: {
+      card: card,
+      deck: @deck,
+      printings: printings
+    }
+  end
 end

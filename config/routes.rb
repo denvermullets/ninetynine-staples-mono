@@ -86,6 +86,8 @@ Rails.application.routes.draw do
       patch :update_deck
       get :transfer_card_modal
       post :transfer_card
+      get :swap_printing_modal
+      post :swap_printing
     end
   end
 

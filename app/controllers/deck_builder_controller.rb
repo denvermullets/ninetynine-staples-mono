@@ -87,6 +87,7 @@ class DeckBuilderController < ApplicationController
       turbo_stream.update('deck_cards', partial: 'deck_cards'),
       turbo_stream.update('deck_stats', partial: 'deck_stats'),
       turbo_stream.update('header_actions', partial: 'header_actions'),
+      turbo_stream.update('deck_modal', ''),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: success_message })
     ]
   end

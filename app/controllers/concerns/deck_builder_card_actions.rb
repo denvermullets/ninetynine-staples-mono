@@ -38,6 +38,13 @@ module DeckBuilderCardActions
     end
   end
 
+  def swap_printing
+    result = DeckBuilder::SwapPrinting.call(
+      deck: @deck, collection_magic_card_id: params[:card_id], new_magic_card_id: params[:new_magic_card_id]
+    )
+    render_card_action_response(result, success_message: "Swapped printing for #{result[:card_name]}")
+  end
+
   private
 
   def execute_transfer(card, to_collection)
