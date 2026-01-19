@@ -98,15 +98,23 @@
             </div>
           <% end %>
 
-          <button data-add-card-target="addPlannedButton"
-                  data-action="click->add-card#addPlanned"
-                  class="w-full px-2 py-1.5 mt-2 text-xs border rounded border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 transition cursor-pointer">
-            <% if available_copies.any? %>
-              Or Add as Planned
-            <% else %>
-              Add as Planned
-            <% end %>
-          </button>
+          <div class="flex items-center gap-2 mt-2">
+            <button data-add-card-target="addPlannedButton"
+                    data-action="click->add-card#addPlanned"
+                    class="flex-1 px-2 py-1.5 text-xs border rounded border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 transition cursor-pointer">
+              <% if available_copies.any? %>
+                Or Add as Planned
+              <% else %>
+                Add as Planned
+              <% end %>
+            </button>
+            <div class="relative group">
+              <span class="flex items-center justify-center w-5 h-5 text-xs border rounded-full cursor-help border-grey-text text-grey-text hover:border-white hover:text-white">?</span>
+              <div class="absolute bottom-full right-0 mb-2 w-48 p-2 text-xs bg-background border border-highlight rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <p class="text-grey-text">Add cards you want but don't own yet. They'll appear in your deck's "needed" list.</p>
+              </div>
+            </div>
+          </div>
         </div>
       <% end %>
     </div>
