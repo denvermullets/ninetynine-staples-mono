@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_18_180003) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_19_133915) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -350,6 +350,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_18_180003) do
     t.decimal "price_change_weekly_normal", precision: 10, scale: 2
     t.jsonb "price_history"
     t.string "rarity"
+    t.uuid "scryfall_oracle_id"
     t.string "security_stamp"
     t.string "text"
     t.string "toughness"
@@ -362,6 +363,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_18_180003) do
     t.index ["price_change_weekly_foil"], name: "index_magic_cards_on_price_change_weekly_foil"
     t.index ["price_change_weekly_normal"], name: "index_magic_cards_on_price_change_weekly_normal"
     t.index ["rarity"], name: "index_magic_cards_on_rarity"
+    t.index ["scryfall_oracle_id"], name: "index_magic_cards_on_scryfall_oracle_id"
   end
 
   create_table "precon_deck_cards", force: :cascade do |t|

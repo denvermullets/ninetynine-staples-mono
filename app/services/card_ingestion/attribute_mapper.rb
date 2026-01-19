@@ -28,6 +28,7 @@ module CardIngestion
         is_reprint: @card_data['isReprint'],
         card_number: @card_data['number'],
         identifiers: @card_data['identifiers'],
+        scryfall_oracle_id: @card_data.dig('identifiers', 'scryfallOracleId'),
         card_uuid: @card_data['uuid'],
         is_token: @is_token,
         face_name: @card_data['faceName'],

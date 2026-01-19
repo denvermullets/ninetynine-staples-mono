@@ -40,4 +40,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def backfill_scryfall_oracle_id
+    BackfillScryfallOracleId.perform_later
+
+    redirect_to '/jobs'
+  end
 end

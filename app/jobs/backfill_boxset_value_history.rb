@@ -1,6 +1,8 @@
 # Backfills boxset value history using existing card price history data
 # This builds a complete historical record by aggregating card prices for each date
 class BackfillBoxsetValueHistory < ApplicationJob
+  queue_as :background
+
   def perform
     puts 'Starting boxset value history backfill'
 

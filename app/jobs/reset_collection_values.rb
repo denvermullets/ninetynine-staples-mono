@@ -1,5 +1,7 @@
 # job will reset all the collection values to $0
 class ResetCollectionValues < ApplicationJob
+  queue_as :background
+
   def perform
     Collection.find_each do |col|
       cards = col.collection_magic_cards
