@@ -13,7 +13,7 @@
   <div class="flex flex-col gap-2">
     <%= f.label :tracked_deck_id, 'Deck Played', class: 'text-grey-text font-medium' %>
     <%= f.select :tracked_deck_id,
-        options_from_collection_for_select(tracked_decks, :id, :name, commander_game.tracked_deck_id || params[:tracked_deck_id]),
+        options_from_collection_for_select(tracked_decks, :id, :dropdown_display_name, commander_game.tracked_deck_id || params[:tracked_deck_id]),
         { prompt: 'Select a deck...' },
         { class: 'w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3' } %>
   </div>

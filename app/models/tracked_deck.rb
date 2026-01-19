@@ -54,6 +54,10 @@ class TrackedDeck < ApplicationRecord
     end
   end
 
+  def dropdown_display_name
+    "#{commander_display_name} - #{name}"
+  end
+
   STATUS_BADGE_CLASSES = {
     'active' => 'bg-accent-50/20 text-accent-50',
     'worth_upgrading' => 'bg-accent-300/20 text-accent-300',
