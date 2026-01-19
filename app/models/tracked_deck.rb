@@ -12,6 +12,7 @@ class TrackedDeck < ApplicationRecord
 
   scope :active, -> { where(status: 'active') }
   scope :retired, -> { where(status: 'retired') }
+  scope :not_retired, -> { where.not(status: 'retired') }
   scope :chopping_block, -> { where(status: 'chopping_block') }
   scope :by_user, ->(user_id) { where(user_id: user_id) }
 
@@ -51,6 +52,10 @@ class TrackedDeck < ApplicationRecord
     else
       commander.name
     end
+  end
+
+  def dropdown_display_name
+    "#{commander_display_name} - #{name}"
   end
 
   STATUS_BADGE_CLASSES = {
