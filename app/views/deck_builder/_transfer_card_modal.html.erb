@@ -65,11 +65,11 @@
           <div class="flex justify-end gap-3 pt-2">
             <button type="button"
                     data-action="click->modal#close"
-                    class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 cursor-pointer">
+                    class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-100 hover:border-accent-100 cursor-pointer">
               Cancel
             </button>
             <%= f.submit "Transfer",
-                class: "px-4 py-2 text-sm transition rounded-md bg-red-500 text-grey-text border border-red-500 hover:bg-foreground hover:text-red-500 cursor-pointer" %>
+                class: "px-4 py-2 text-sm font-medium transition rounded-md bg-accent-50 text-foreground border border-accent-50 hover:bg-foreground hover:text-accent-50 hover:border-accent-50 cursor-pointer" %>
           </div>
         <% end %>
       <% end %>

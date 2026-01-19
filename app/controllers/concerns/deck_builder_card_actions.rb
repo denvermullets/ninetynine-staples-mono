@@ -47,8 +47,8 @@ module DeckBuilderCardActions
                                       to_collection_id: to_collection.id,
                                       quantity: card.quantity,
                                       foil_quantity: card.foil_quantity,
-                                      proxy_quantity: 0,
-                                      proxy_foil_quantity: 0
+                                      proxy_quantity: card.proxy_quantity,
+                                      proxy_foil_quantity: card.proxy_foil_quantity
                                     })
   end
 
