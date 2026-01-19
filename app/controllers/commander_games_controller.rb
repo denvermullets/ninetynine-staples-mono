@@ -16,7 +16,7 @@ class CommanderGamesController < ApplicationController
 
   def new
     @commander_game = current_user.commander_games.build(played_on: Date.current)
-    @tracked_decks = current_user.tracked_decks.active.includes(:commander)
+    @tracked_decks = current_user.tracked_decks.not_retired.includes(:commander)
     3.times { @commander_game.game_opponents.build }
   end
 
@@ -26,7 +26,7 @@ class CommanderGamesController < ApplicationController
     if @commander_game.save
       redirect_to @commander_game, notice: 'Game recorded!'
     else
-      @tracked_decks = current_user.tracked_decks.active.includes(:commander)
+      @tracked_decks = current_user.tracked_decks.not_retired.includes(:commander)
       render :new, status: :unprocessable_entity
     end
   end

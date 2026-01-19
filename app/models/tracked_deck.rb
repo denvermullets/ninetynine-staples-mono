@@ -12,6 +12,7 @@ class TrackedDeck < ApplicationRecord
 
   scope :active, -> { where(status: 'active') }
   scope :retired, -> { where(status: 'retired') }
+  scope :not_retired, -> { where.not(status: 'retired') }
   scope :chopping_block, -> { where(status: 'chopping_block') }
   scope :by_user, ->(user_id) { where(user_id: user_id) }
 
