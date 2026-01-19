@@ -18,20 +18,32 @@ module DeckBuilder
     private
 
     def search_all_cards
+      # Get IDs of newest version of each card (by release_date)
+      newest_card_ids = MagicCard
+                        .joins(:boxset)
+                        .select('DISTINCT ON (magic_cards.name) magic_cards.id')
+                        .where('magic_cards.name ILIKE ?', "%#{@query}%")
+                        .order('magic_cards.name, boxsets.release_date DESC')
+
       MagicCard
-        .where('name ILIKE ?', "%#{@query}%")
+        .where(id: newest_card_ids)
         .includes(:boxset)
         .order(:name)
         .limit(@limit)
     end
 
     def search_owned_cards
+      # Get IDs of newest version of each owned card (by release_date)
+      newest_card_ids = MagicCard
+                        .joins(:boxset, collection_magic_cards: :collection)
+                        .select('DISTINCT ON (magic_cards.name) magic_cards.id')
+                        .where(collections: { user_id: @user.id })
+                        .where(collection_magic_cards: { staged: false, needed: false })
+                        .where('magic_cards.name ILIKE ?', "%#{@query}%")
+                        .order('magic_cards.name, boxsets.release_date DESC')
+
       MagicCard
-        .joins(collection_magic_cards: :collection)
-        .where(collections: { user_id: @user.id })
-        .where(collection_magic_cards: { staged: false, needed: false })
-        .where('magic_cards.name ILIKE ?', "%#{@query}%")
-        .distinct
+        .where(id: newest_card_ids)
         .includes(:boxset)
         .order(:name)
         .limit(@limit)
