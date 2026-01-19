@@ -7,8 +7,12 @@
     <% if result[:card].image_small.present? %>
       <img src="<%= result[:card].image_small %>"
            alt="<%= result[:card].name %>"
-           class="w-12 h-auto rounded"
-           loading="lazy" />
+           class="w-12 h-auto rounded cursor-pointer"
+           loading="lazy"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= result[:card].image_large %>"
+           data-card-hover-name-value="<%= result[:card].name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
     <% end %>
 
     <div class="flex-1 min-w-0">
