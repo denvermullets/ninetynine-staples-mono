@@ -1,0 +1,82 @@
+<div class="p-3 border rounded-lg border-highlight hover:border-accent-50/50 transition"
+     data-controller="add-card"
+     data-add-card-deck-id-value="<%= @deck.id %>"
+     data-add-card-card-id-value="<%= result[:card].id %>">
+
+  <div class="flex items-start gap-3">
+    <% if result[:card].image_small.present? %>
+      <img src="<%= result[:card].image_small %>"
+           alt="<%= result[:card].name %>"
+           class="w-12 h-auto rounded cursor-pointer"
+           loading="lazy"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= result[:card].image_large %>"
+           data-card-hover-name-value="<%= result[:card].name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
+    <% end %>
+
+    <div class="flex-1 min-w-0">
+      <h4 class="font-medium text-grey-text truncate"><%= result[:card].name %></h4>
+      <p class="text-xs text-grey-text truncate"><%= result[:card].card_type %></p>
+      <p class="text-xs text-grey-text/70 truncate">
+        <%= result[:card].boxset&.name %> (<%= result[:card].boxset&.code&.upcase %>)
+        <span class="text-accent-50/70">- Latest</span>
+      </p>
+
+      <% if result[:already_in_deck] %>
+        <span class="inline-block px-2 py-1 mt-2 text-xs rounded bg-highlight text-grey-text">
+          Already in deck
+        </span>
+      <% else %>
+        <div class="flex items-center gap-2 mt-3">
+          <div class="flex items-center">
+            <button type="button"
+                    data-action="click->add-card#decrementQuantity"
+                    class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">-</button>
+            <input type="number"
+                   data-add-card-target="quantityInput"
+                   value="1" min="1" max="99"
+                   class="w-12 h-8 px-1 text-sm text-center border-y bg-background border-highlight text-white" />
+            <button type="button"
+                    data-action="click->add-card#incrementQuantity"
+                    class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">+</button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2 mt-2">
+          <!-- Add New with select dropdown -->
+          <div class="flex items-center gap-2">
+            <select data-add-card-target="cardTypeSelect"
+                    class="flex-1 px-2 py-1.5 text-xs border rounded bg-background border-highlight text-white cursor-pointer">
+              <option value="regular">Regular</option>
+              <option value="foil">Foil</option>
+              <option value="proxy">Proxy</option>
+              <option value="foil_proxy">Foil Proxy</option>
+            </select>
+            <button type="button"
+                    data-action="click->add-card#addNew"
+                    class="px-3 py-1.5 text-xs border rounded border-accent-50/50 text-accent-50 hover:bg-accent-50/10 transition cursor-pointer">
+              Add New
+            </button>
+          </div>
+
+          <!-- Add as Planned button with help tooltip -->
+          <div class="flex items-center gap-2">
+            <button data-add-card-target="addPlannedButton"
+                    data-action="click->add-card#addPlanned"
+                    class="flex-1 px-2 py-1.5 text-xs border rounded border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 transition cursor-pointer">
+              Add as Planned
+            </button>
+            <div class="relative group">
+              <span class="flex items-center justify-center w-5 h-5 text-xs border rounded-full cursor-help border-grey-text text-grey-text hover:border-white hover:text-white">?</span>
+              <div class="absolute bottom-full right-0 mb-2 w-48 p-2 text-xs bg-background border border-highlight rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <p class="text-grey-text"><strong>Add New:</strong> Add directly to deck as owned.</p>
+                <p class="text-grey-text mt-1"><strong>Add as Planned:</strong> Add to "needed" list.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

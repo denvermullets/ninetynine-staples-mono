@@ -93,8 +93,12 @@ module DeckBuilderCardActions
   end
 
   def handle_finalize_failure(result)
-    flash.now[:error] = result[:error]
     load_deck_cards
-    render :show, status: :unprocessable_entity
+    render turbo_stream: [
+      turbo_stream.update('deck_cards', partial: 'deck_builder/deck_cards'),
+      turbo_stream.update('deck_stats', partial: 'deck_builder/deck_stats'),
+      turbo_stream.update('deck_modal', ''),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: result[:error], type: 'error' })
+    ], status: :unprocessable_entity
   end
 end

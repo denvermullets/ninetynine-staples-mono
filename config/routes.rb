@@ -74,6 +74,7 @@ Rails.application.routes.draw do
     member do
       get :search
       post :add_card
+      post :add_new_card
       delete :remove_card
       post :swap_card
       patch :update_quantity
@@ -88,6 +89,8 @@ Rails.application.routes.draw do
       post :transfer_card
       get :swap_printing_modal
       post :swap_printing
+      get :swap_source_modal
+      post :swap_source
     end
   end
 

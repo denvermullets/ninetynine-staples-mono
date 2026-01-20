@@ -8,11 +8,13 @@ export default class extends Controller {
     "foilQuantityInput",
     "addOwnedButton",
     "addPlannedButton",
+    "cardTypeSelect",
   ];
 
   static values = {
     deckId: Number,
     cardId: Number,
+    collectionId: Number,
   };
 
   connect() {
@@ -80,7 +82,14 @@ export default class extends Controller {
   async addOwned(event) {
     event.preventDefault();
 
-    const sourceId = this.sourceSelectTarget.value;
+    // Use collectionId value if available (new owned partial), otherwise use sourceSelect
+    let sourceId;
+    if (this.hasCollectionIdValue && this.collectionIdValue) {
+      sourceId = this.collectionIdValue;
+    } else if (this.hasSourceSelectTarget) {
+      sourceId = this.sourceSelectTarget.value;
+    }
+
     if (!sourceId) {
       this.showAlert("Selection Required", "Please select a collection");
       return;
@@ -92,6 +101,47 @@ export default class extends Controller {
   async addPlanned(event) {
     event.preventDefault();
     await this.submitAdd(null);
+  }
+
+  async addNew(event) {
+    event.preventDefault();
+
+    const cardType = this.hasCardTypeSelectTarget
+      ? this.cardTypeSelectTarget.value
+      : "regular";
+
+    const quantity = parseInt(this.quantityInputTarget.value) || 1;
+
+    const formData = new FormData();
+    formData.append("magic_card_id", this.cardIdValue);
+    formData.append("card_type", cardType);
+    formData.append("quantity", quantity);
+
+    try {
+      const response = await fetch(
+        `/deck-builder/${this.deckIdValue}/add_new_card`,
+        {
+          method: "POST",
+          headers: {
+            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')
+              .content,
+            Accept: "text/vnd.turbo-stream.html",
+          },
+          body: formData,
+        }
+      );
+
+      const html = await response.text();
+      Turbo.renderStreamMessage(html);
+
+      // Reset the form
+      this.quantityInputTarget.value = 1;
+
+      // Dispatch event to clear search results
+      window.dispatchEvent(new CustomEvent("deck:card-added"));
+    } catch (error) {
+      console.error("Failed to add card:", error);
+    }
   }
 
   async submitAdd(sourceCollectionId) {

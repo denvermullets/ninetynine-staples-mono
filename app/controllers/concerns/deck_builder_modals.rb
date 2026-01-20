@@ -50,4 +50,60 @@ module DeckBuilderModals
       printings: printings
     }
   end
+
+  def swap_source_modal
+    card = @deck.collection_magic_cards.staged.find(params[:card_id])
+    available_sources = find_available_sources(card)
+    render partial: 'deck_builder/swap_source_modal', locals: {
+      card: card,
+      deck: @deck,
+      available_sources: available_sources
+    }
+  end
+
+  private
+
+  def find_available_sources(card)
+    magic_card = card.magic_card
+    oracle_id = magic_card.scryfall_oracle_id
+    total_needed = card.staged_quantity + card.staged_foil_quantity
+
+    # Find all printings of this card by oracle_id
+    printing_ids = MagicCard.where(scryfall_oracle_id: oracle_id).pluck(:id)
+
+    user_copies = CollectionMagicCard
+      .joins(:collection, :magic_card)
+      .includes(:collection, magic_card: :boxset)
+      .where(collections: { user_id: current_user.id })
+      .where(magic_card_id: printing_ids, staged: false, needed: false)
+      .where.not(collection_id: @deck.id)
+
+    user_copies.filter_map do |cmc|
+      staged_from_source = CollectionMagicCard.staged
+        .where(source_collection_id: cmc.collection_id, magic_card_id: cmc.magic_card_id)
+        .where.not(id: card.id)
+
+      already_staged = staged_from_source.sum(:staged_quantity) + staged_from_source.sum(:staged_foil_quantity)
+
+      regular = cmc.quantity
+      foil = cmc.foil_quantity
+      proxy = cmc.proxy_quantity || 0
+      proxy_foil = cmc.proxy_foil_quantity || 0
+      total_available = regular + foil + proxy + proxy_foil - already_staged
+
+      next if total_available < total_needed
+
+      {
+        collection_id: cmc.collection_id,
+        collection_name: cmc.collection.name,
+        magic_card: cmc.magic_card,
+        regular: regular,
+        foil: foil,
+        proxy: proxy,
+        proxy_foil: proxy_foil,
+        total_available: total_available,
+        is_current: cmc.collection_id == card.source_collection_id && cmc.magic_card_id == card.magic_card_id
+      }
+    end
+  end
 end

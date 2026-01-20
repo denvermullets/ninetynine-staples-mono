@@ -54,8 +54,26 @@ class DeckBuilderController < ApplicationController
     render_card_action_response(result, success_message: "Updated #{result[:card_name]} quantity")
   end
 
+  def add_new_card
+    result = DeckBuilder::AddNewCard.call(
+      deck: @deck, magic_card_id: params[:magic_card_id],
+      card_type: params[:card_type], quantity: params[:quantity]
+    )
+    render_card_action_response(result, success_message: "Added #{result[:card_name]}")
+  end
+
   def update_deck
     @deck.update(deck_params) ? render_update_deck_success : render_error_toast('Failed to update deck')
+  end
+
+  def swap_source
+    result = DeckBuilder::SwapSource.call(
+      deck: @deck,
+      collection_magic_card_id: params[:card_id],
+      new_source_collection_id: params[:source_collection_id],
+      new_magic_card_id: params[:magic_card_id]
+    )
+    render_card_action_response(result, success_message: "Changed source to #{result[:source_name]}")
   end
 
   private

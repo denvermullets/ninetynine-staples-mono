@@ -11,70 +11,97 @@ module DeckBuilder
     def call
       return [] if @query.blank? || @query.length < 2
 
-      cards = @scope == 'owned' ? search_owned_cards : search_all_cards
-      cards.map { |card| build_search_result(card) }
+      @scope == 'owned' ? search_owned_only : search_all_cards
     end
 
     private
 
     def search_all_cards
-      # Get IDs of newest version of each card (by release_date)
+      results = []
+
+      owned_results = build_owned_results
+      results.concat(owned_results)
+
+      if results.size < @limit
+        latest_results = build_latest_results(owned_results)
+        results.concat(latest_results.first(@limit - results.size))
+      end
+
+      results.first(@limit)
+    end
+
+    def search_owned_only
+      build_owned_results.first(@limit)
+    end
+
+    def build_owned_results
+      owned_cards = CollectionMagicCard
+        .joins(:collection, :magic_card)
+        .includes(magic_card: :boxset, collection: [])
+        .where(collections: { user_id: @user.id })
+        .where(staged: false, needed: false)
+        .where('magic_cards.name ILIKE ?', "%#{@query}%")
+        .order('magic_cards.name ASC')
+
+      owned_cards.filter_map do |cmc|
+        quantities = calculate_available_quantities(cmc)
+        next if quantities[:total_available].zero? && quantities[:total_foil_available].zero?
+
+        already_in_deck = @deck.collection_magic_cards.exists?(
+          magic_card_id: cmc.magic_card_id,
+          source_collection_id: cmc.collection_id
+        )
+
+        {
+          type: :owned,
+          card: cmc.magic_card,
+          collection_magic_card_id: cmc.id,
+          collection_id: cmc.collection_id,
+          collection_name: cmc.collection.name,
+          quantities: quantities,
+          already_in_deck: already_in_deck
+        }
+      end
+    end
+
+    def build_latest_results(_owned_results)
       newest_card_ids = MagicCard
-                        .joins(:boxset)
-                        .select('DISTINCT ON (magic_cards.name) magic_cards.id')
-                        .where('magic_cards.name ILIKE ?', "%#{@query}%")
-                        .order('magic_cards.name, boxsets.release_date DESC')
+        .joins(:boxset)
+        .select('DISTINCT ON (magic_cards.name) magic_cards.id')
+        .where('magic_cards.name ILIKE ?', "%#{@query}%")
+        .order('magic_cards.name, boxsets.release_date DESC')
 
       MagicCard
         .where(id: newest_card_ids)
         .includes(:boxset)
         .order(:name)
-        .limit(@limit)
+        .map do |card|
+          already_in_deck = @deck.collection_magic_cards.exists?(magic_card_id: card.id)
+
+          {
+            type: :latest,
+            card: card,
+            already_in_deck: already_in_deck
+          }
+        end
     end
 
-    def search_owned_cards
-      # Get IDs of newest version of each owned card (by release_date)
-      newest_card_ids = MagicCard
-                        .joins(:boxset, collection_magic_cards: :collection)
-                        .select('DISTINCT ON (magic_cards.name) magic_cards.id')
-                        .where(collections: { user_id: @user.id })
-                        .where(collection_magic_cards: { staged: false, needed: false })
-                        .where('magic_cards.name ILIKE ?', "%#{@query}%")
-                        .order('magic_cards.name, boxsets.release_date DESC')
+    def calculate_available_quantities(cmc)
+      staged_regular = reserved_quantity(cmc, :staged_quantity)
+      staged_foil = reserved_quantity(cmc, :staged_foil_quantity)
 
-      MagicCard
-        .where(id: newest_card_ids)
-        .includes(:boxset)
-        .order(:name)
-        .limit(@limit)
-    end
-
-    def build_search_result(card)
-      owned_copies = card.collection_magic_cards
-                         .joins(:collection)
-                         .where(collections: { user_id: @user.id })
-                         .where(staged: false, needed: false)
-                         .includes(:collection)
-
-      already_in_deck = @deck.collection_magic_cards.exists?(magic_card_id: card.id)
+      available_regular = cmc.quantity - staged_regular
+      available_foil = cmc.foil_quantity - staged_foil
+      proxy_qty = cmc.proxy_quantity || 0
+      proxy_foil_qty = cmc.proxy_foil_quantity || 0
 
       {
-        card: card,
-        owned_copies: owned_copies.map { |cmc| format_owned_copy(cmc) },
-        already_in_deck: already_in_deck
-      }
-    end
-
-    def format_owned_copy(cmc)
-      {
-        collection_id: cmc.collection_id,
-        collection_name: cmc.collection.name,
-        quantity: cmc.quantity,
-        foil_quantity: cmc.foil_quantity,
-        proxy_quantity: cmc.proxy_quantity || 0,
-        proxy_foil_quantity: cmc.proxy_foil_quantity || 0,
-        available_quantity: cmc.quantity - reserved_quantity(cmc, :staged_quantity),
-        available_foil_quantity: cmc.foil_quantity - reserved_quantity(cmc, :staged_foil_quantity)
+        regular: available_regular,
+        foil: available_foil,
+        proxy: proxy_qty,
+        proxy_foil: proxy_foil_qty,
+        total_available: available_regular + proxy_qty,
+        total_foil_available: available_foil + proxy_foil_qty
       }
     end
 

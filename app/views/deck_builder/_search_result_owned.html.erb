@@ -1,0 +1,96 @@
+<div class="p-3 border rounded-lg border-highlight hover:border-accent-50/50 transition"
+     data-controller="add-card"
+     data-add-card-deck-id-value="<%= @deck.id %>"
+     data-add-card-card-id-value="<%= result[:card].id %>"
+     data-add-card-collection-id-value="<%= result[:collection_id] %>">
+
+  <div class="flex items-start gap-3">
+    <% if result[:card].image_small.present? %>
+      <img src="<%= result[:card].image_small %>"
+           alt="<%= result[:card].name %>"
+           class="w-12 h-auto rounded cursor-pointer"
+           loading="lazy"
+           data-controller="card-hover"
+           data-card-hover-image-value="<%= result[:card].image_large %>"
+           data-card-hover-name-value="<%= result[:card].name %>"
+           data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
+    <% end %>
+
+    <div class="flex-1 min-w-0">
+      <h4 class="font-medium text-grey-text truncate"><%= result[:card].name %></h4>
+      <p class="text-xs text-grey-text truncate"><%= result[:card].card_type %></p>
+      <p class="text-xs text-grey-text/70 truncate"><%= result[:card].boxset&.name %> (<%= result[:card].boxset&.code&.upcase %>)</p>
+
+      <% if result[:already_in_deck] %>
+        <span class="inline-block px-2 py-1 mt-2 text-xs rounded bg-highlight text-grey-text">
+          Already in deck
+        </span>
+      <% else %>
+        <div class="mt-2 p-2 rounded bg-highlight/50 border border-highlight">
+          <div class="flex items-center gap-1 text-xs text-accent-50">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span class="font-medium"><%= result[:collection_name] %></span>
+          </div>
+          <% quantities = result[:quantities] %>
+          <p class="text-xs text-grey-text mt-1">
+            <%
+              parts = []
+              parts << "#{quantities[:regular]} regular" if quantities[:regular] > 0
+              parts << "#{quantities[:foil]} foil" if quantities[:foil] > 0
+              parts << "#{quantities[:proxy]} proxy" if quantities[:proxy] > 0
+              parts << "#{quantities[:proxy_foil]} foil proxy" if quantities[:proxy_foil] > 0
+            %>
+            <%= parts.join(', ') %> available
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 mt-3">
+          <% has_regular = quantities[:total_available] > 0 %>
+          <% has_foil = quantities[:total_foil_available] > 0 %>
+
+          <% if has_regular %>
+            <div class="flex items-center">
+              <button type="button"
+                      data-action="click->add-card#decrementQuantity"
+                      class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">-</button>
+              <input type="number"
+                     data-add-card-target="quantityInput"
+                     value="1" min="0" max="<%= quantities[:total_available] %>"
+                     class="w-12 h-8 px-1 text-sm text-center border-y bg-background border-highlight text-white" />
+              <button type="button"
+                      data-action="click->add-card#incrementQuantity"
+                      class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">+</button>
+            </div>
+          <% else %>
+            <input type="hidden" data-add-card-target="quantityInput" value="0" />
+          <% end %>
+
+          <% if has_foil %>
+            <div class="flex items-center">
+              <span class="text-xs text-yellow-400 mr-1">✦</span>
+              <button type="button"
+                      data-action="click->add-card#decrementFoilQuantity"
+                      class="w-8 h-8 flex items-center justify-center text-sm border rounded-l border-yellow-500/50 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 transition cursor-pointer">-</button>
+              <input type="number"
+                     data-add-card-target="foilQuantityInput"
+                     value="<%= has_regular ? 0 : 1 %>" min="0" max="<%= quantities[:total_foil_available] %>"
+                     class="w-12 h-8 px-1 text-sm text-center border-y bg-background border-yellow-500/50 text-yellow-400" />
+              <button type="button"
+                      data-action="click->add-card#incrementFoilQuantity"
+                      class="w-8 h-8 flex items-center justify-center text-sm border rounded-r border-yellow-500/50 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 transition cursor-pointer">+</button>
+            </div>
+          <% end %>
+
+          <button type="button"
+                  data-add-card-target="addOwnedButton"
+                  data-action="click->add-card#addOwned"
+                  class="flex-1 px-3 py-1.5 text-xs rounded bg-accent-50 text-grey-text font-medium border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+            Add
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

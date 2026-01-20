@@ -9,6 +9,7 @@ export default class extends Controller {
     removeUrl: String,
     transferUrl: String,
     swapPrintingUrl: String,
+    swapSourceUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -182,6 +183,20 @@ export default class extends Controller {
     if (!url) return;
 
     // Open the swap printing modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  swapSource(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.swapSourceUrlValue;
+    if (!url) return;
+
+    // Open the swap source modal via Turbo frame
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
       frame.src = url;
