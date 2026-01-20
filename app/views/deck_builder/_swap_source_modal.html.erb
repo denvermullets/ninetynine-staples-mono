@@ -1,0 +1,140 @@
+<%= turbo_frame_tag "deck_modal" do %>
+  <dialog id="swap-source-dialog"
+          class="p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 max-h-[85vh] overflow-hidden"
+          data-controller="modal"
+          data-action="click->modal#closeOnBackdrop keydown.esc->modal#close">
+    <div class="w-[700px] max-w-[90vw] p-6 flex flex-col max-h-[85vh]" data-modal-target="content">
+      <div class="flex items-center justify-between mb-4 shrink-0">
+        <h3 class="text-lg font-semibold text-grey-text">
+          <%= card.planned? ? 'Source from Collection' : 'Change Source' %> - <%= card.magic_card.name %>
+        </h3>
+        <button type="button"
+                data-action="click->modal#close"
+                class="text-grey-text hover:text-nine-white cursor-pointer">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="mb-4 text-sm text-grey-text">
+        <%
+          staged_parts = []
+          staged_parts << "#{card.staged_quantity} regular" if card.staged_quantity > 0
+          staged_parts << "#{card.staged_foil_quantity} foil" if card.staged_foil_quantity > 0
+          staged_parts << "#{card.staged_proxy_quantity} proxy" if card.staged_proxy_quantity > 0
+          staged_parts << "#{card.staged_proxy_foil_quantity} foil proxy" if card.staged_proxy_foil_quantity > 0
+          staged_text = staged_parts.any? ? staged_parts.join(', ') : 'none'
+        %>
+        <% if card.planned? %>
+          <p>This is a <strong class="text-accent-400">planned</strong> card (<%= card.total_staged %> copies: <%= staged_text %>).</p>
+          <p class="mt-1">Select a printing to source it from:</p>
+        <% else %>
+          <p>Currently sourcing <strong><%= card.total_staged %></strong> copies (<%= staged_text %>)
+          from <strong class="text-blue-400"><%= card.source_collection.name %></strong></p>
+        <% end %>
+      </div>
+
+      <div class="overflow-y-auto flex-1 space-y-3">
+        <% available_sources.each do |source| %>
+          <%
+            mc = source[:magic_card]
+            parts = []
+            parts << "#{source[:regular]}" if source[:regular] > 0
+            parts << "#{source[:foil]} foil" if source[:foil] > 0
+            parts << "#{source[:proxy]} proxy" if source[:proxy] > 0
+            parts << "#{source[:proxy_foil]} foil proxy" if source[:proxy_foil] > 0
+            availability_text = parts.join(', ')
+          %>
+          <% if source[:is_current] %>
+            <div class="p-3 rounded-lg border-2 border-blue-500 bg-blue-500/10">
+              <div class="flex gap-3">
+                <% if mc.image_small.present? %>
+                  <img src="<%= mc.image_small %>"
+                       alt="<%= mc.name %>"
+                       class="w-16 h-auto rounded shrink-0 cursor-pointer"
+                       loading="lazy"
+                       data-controller="card-hover"
+                       data-card-hover-image-value="<%= mc.image_large || mc.image_medium %>"
+                       data-card-hover-name-value="<%= mc.name %>"
+                       data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
+                <% end %>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-blue-400"><%= source[:collection_name] %></span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-blue-500 text-white">Current</span>
+                  </div>
+                  <p class="text-xs text-grey-text mt-1"><%= mc.boxset&.name %> (<%= mc.boxset&.code&.upcase %>)</p>
+                  <p class="text-xs text-grey-text/75 mt-1"><%= availability_text %> available</p>
+                </div>
+              </div>
+            </div>
+          <% else %>
+            <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: source[:collection_id], magic_card_id: mc.id),
+                method: :post,
+                class: "contents" do |f| %>
+              <button type="submit"
+                      class="w-full p-3 rounded-lg border border-highlight bg-background hover:border-accent-50 hover:bg-background/75 transition cursor-pointer text-left">
+                <div class="flex gap-3">
+                  <% if mc.image_small.present? %>
+                    <img src="<%= mc.image_small %>"
+                         alt="<%= mc.name %>"
+                         class="w-16 h-auto rounded shrink-0 cursor-pointer"
+                         loading="lazy"
+                         data-controller="card-hover"
+                         data-card-hover-image-value="<%= mc.image_large || mc.image_medium %>"
+                         data-card-hover-name-value="<%= mc.name %>"
+                         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
+                  <% end %>
+                  <div class="flex-1 min-w-0">
+                    <span class="font-medium text-grey-text"><%= source[:collection_name] %></span>
+                    <p class="text-xs text-grey-text mt-1"><%= mc.boxset&.name %> (<%= mc.boxset&.code&.upcase %>)</p>
+                    <p class="text-xs text-grey-text/75 mt-1"><%= availability_text %> available</p>
+                  </div>
+                </div>
+              </button>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <% unless card.planned? %>
+          <div class="pt-3 mt-3 border-t border-highlight">
+            <p class="text-xs text-grey-text mb-2">Or convert to a planned card:</p>
+            <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: nil),
+                method: :post,
+                class: "contents" do |f| %>
+              <button type="submit"
+                      class="w-full p-3 rounded-lg border border-accent-400/50 bg-background hover:border-accent-400 hover:bg-accent-400/10 transition cursor-pointer text-left">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span class="font-medium text-accent-400">Convert to Planned</span>
+                </div>
+                <p class="text-xs text-grey-text mt-1">Card will no longer be sourced from a collection</p>
+              </button>
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if available_sources.empty? %>
+          <div class="p-4 text-center text-grey-text">
+            <% if card.planned? %>
+              <p>You don't own any printing of this card.</p>
+            <% else %>
+              <p>No other copies of this card available in your collections.</p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="flex justify-end pt-4 mt-4 border-t border-highlight shrink-0">
+        <button type="button"
+                data-action="click->modal#close"
+                class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 cursor-pointer">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </dialog>
+<% end %>

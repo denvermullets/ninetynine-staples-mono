@@ -8,15 +8,19 @@ export default class extends Controller {
     "foilQuantityInput",
     "addOwnedButton",
     "addPlannedButton",
+    "cardTypeSelect",
   ];
 
   static values = {
     deckId: Number,
     cardId: Number,
+    collectionId: Number,
+    cardType: String,
   };
 
   connect() {
     this.updateAvailability();
+    this.updateMaxQuantity();
   }
 
   updateAvailability() {
@@ -40,6 +44,35 @@ export default class extends Controller {
       if (parseInt(this.foilQuantityInputTarget.value) > maxFoil) {
         this.foilQuantityInputTarget.value = maxFoil;
       }
+    }
+  }
+
+  updateMaxQuantity() {
+    if (!this.hasCardTypeSelectTarget || !this.hasQuantityInputTarget) return;
+
+    const select = this.cardTypeSelectTarget;
+    const cardType = select.value;
+
+    // Get max quantity from data attributes on the select element
+    let maxQty = 99;
+    switch (cardType) {
+      case "regular":
+        maxQty = parseInt(select.dataset.addCardTargetRegularMax) || 99;
+        break;
+      case "foil":
+        maxQty = parseInt(select.dataset.addCardTargetFoilMax) || 99;
+        break;
+      case "proxy":
+        maxQty = parseInt(select.dataset.addCardTargetProxyMax) || 99;
+        break;
+      case "foil_proxy":
+        maxQty = parseInt(select.dataset.addCardTargetProxyFoilMax) || 99;
+        break;
+    }
+
+    this.quantityInputTarget.max = maxQty;
+    if (parseInt(this.quantityInputTarget.value) > maxQty) {
+      this.quantityInputTarget.value = maxQty;
     }
   }
 
@@ -80,13 +113,28 @@ export default class extends Controller {
   async addOwned(event) {
     event.preventDefault();
 
-    const sourceId = this.sourceSelectTarget.value;
+    // Use collectionId value if available (new owned partial), otherwise use sourceSelect
+    let sourceId;
+    if (this.hasCollectionIdValue && this.collectionIdValue) {
+      sourceId = this.collectionIdValue;
+    } else if (this.hasSourceSelectTarget) {
+      sourceId = this.sourceSelectTarget.value;
+    }
+
     if (!sourceId) {
       this.showAlert("Selection Required", "Please select a collection");
       return;
     }
 
-    await this.submitAdd(sourceId);
+    // Get card type from data value (owned partial) or dropdown (if present)
+    let cardType = null;
+    if (this.hasCardTypeValue && this.cardTypeValue) {
+      cardType = this.cardTypeValue;
+    } else if (this.hasCardTypeSelectTarget) {
+      cardType = this.cardTypeSelectTarget.value;
+    }
+
+    await this.submitAdd(sourceId, cardType);
   }
 
   async addPlanned(event) {
@@ -94,13 +142,62 @@ export default class extends Controller {
     await this.submitAdd(null);
   }
 
-  async submitAdd(sourceCollectionId) {
-    const quantity = parseInt(this.quantityInputTarget.value) || 0;
-    const foilQuantity = this.hasFoilQuantityInputTarget
-      ? parseInt(this.foilQuantityInputTarget.value) || 0
-      : 0;
+  async addNew(event) {
+    event.preventDefault();
 
-    if (quantity === 0 && foilQuantity === 0) {
+    const cardType = this.hasCardTypeSelectTarget
+      ? this.cardTypeSelectTarget.value
+      : "regular";
+
+    await this.submitNewCard(cardType);
+  }
+
+  async addNewWithType(event) {
+    event.preventDefault();
+
+    const cardType = event.currentTarget.dataset.cardType || "regular";
+    await this.submitNewCard(cardType);
+  }
+
+  async submitNewCard(cardType) {
+    const quantity = parseInt(this.quantityInputTarget.value) || 1;
+
+    const formData = new FormData();
+    formData.append("magic_card_id", this.cardIdValue);
+    formData.append("card_type", cardType);
+    formData.append("quantity", quantity);
+
+    try {
+      const response = await fetch(
+        `/deck-builder/${this.deckIdValue}/add_new_card`,
+        {
+          method: "POST",
+          headers: {
+            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')
+              .content,
+            Accept: "text/vnd.turbo-stream.html",
+          },
+          body: formData,
+        }
+      );
+
+      const html = await response.text();
+      Turbo.renderStreamMessage(html);
+
+      // Reset the form
+      this.quantityInputTarget.value = 1;
+
+      // Dispatch event to clear search results
+      window.dispatchEvent(new CustomEvent("deck:card-added"));
+    } catch (error) {
+      console.error("Failed to add card:", error);
+    }
+  }
+
+  async submitAdd(sourceCollectionId, cardType = null) {
+    const quantity = parseInt(this.quantityInputTarget.value) || 0;
+
+    if (quantity === 0) {
       this.showAlert("Quantity Required", "Please enter a quantity");
       return;
     }
@@ -108,7 +205,9 @@ export default class extends Controller {
     const formData = new FormData();
     formData.append("magic_card_id", this.cardIdValue);
     formData.append("quantity", quantity);
-    formData.append("foil_quantity", foilQuantity);
+    if (cardType) {
+      formData.append("card_type", cardType);
+    }
     if (sourceCollectionId) {
       formData.append("source_collection_id", sourceCollectionId);
     }

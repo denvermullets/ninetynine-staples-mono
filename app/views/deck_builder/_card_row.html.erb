@@ -1,7 +1,7 @@
 <% can_set_commander = @is_owner && !card.commander? && @deck.commander_deck? && card.magic_card.can_be_commander %>
 <tr class="hover:bg-background/50 transition
     <%= 'bg-blue-900/10' if card.staged? && card.from_owned_collection? %>
-    <%= 'bg-yellow-900/10' if card.staged? && card.planned? %>
+    <%= 'bg-accent-400/10' if card.staged? && card.planned? %>
     <%= 'bg-orange-900/10' if card.needed? %>"
     <% if can_set_commander %>
     data-controller="context-menu"
@@ -32,7 +32,7 @@
           <% if card.from_owned_collection? %>
             <span class="text-blue-400">from <%= card.source_collection.name %></span>
           <% else %>
-            <span class="text-yellow-400">Planned</span>
+            <span class="text-accent-400">Planned</span>
           <% end %>
         <% elsif card.needed? %>
           <span class="text-orange-400">Need</span>

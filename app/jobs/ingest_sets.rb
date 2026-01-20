@@ -1,6 +1,8 @@
 require 'open-uri'
 
 class IngestSets < ApplicationJob
+  queue_as :background
+
   def perform
     puts 'loading SetList.json from mtgjson.com'
     source = URI.open('https://mtgjson.com/api/v5/SetList.json')

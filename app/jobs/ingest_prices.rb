@@ -1,6 +1,8 @@
 require 'open-uri'
 
 class IngestPrices < ApplicationJob
+  queue_as :background
+
   def perform
     puts 'loading AllPricesToday.json from mtgjson.com'
     # /Users/denvermullets/Downloads/000-mtg/AllPricesToday.json

@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   post 'dashboard/backfill-boxset-history', to: 'dashboard#backfill_boxset_history', as: :dashboard_backfill_boxset_history
   post 'dashboard/trim-boxset-history', to: 'dashboard#trim_boxset_history', as: :dashboard_trim_boxset_history
   post 'dashboard/backfill-price-change-weekly', to: 'dashboard#backfill_price_change_weekly', as: :dashboard_backfill_price_change_weekly
+  post 'dashboard/backfill-scryfall-oracle-id', to: 'dashboard#backfill_scryfall_oracle_id', as: :dashboard_backfill_scryfall_oracle_id
 
   get 'load_boxset', to: 'boxsets#load_boxset', as: :load_boxset
   get 'commanders', to: 'commanders#index', as: :commanders
@@ -73,6 +74,7 @@ Rails.application.routes.draw do
     member do
       get :search
       post :add_card
+      post :add_new_card
       delete :remove_card
       post :swap_card
       patch :update_quantity
@@ -85,6 +87,13 @@ Rails.application.routes.draw do
       patch :update_deck
       get :transfer_card_modal
       post :transfer_card
+      get :swap_printing_modal
+      post :swap_printing
+      get :swap_source_modal
+      post :swap_source
+      get :edit_staged_modal
+      patch :update_staged
+      get :view_card_modal
     end
   end
 

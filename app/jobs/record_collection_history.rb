@@ -1,5 +1,7 @@
 # Records daily snapshot of collection values for historical tracking
 class RecordCollectionHistory < ApplicationJob
+  queue_as :background
+
   def perform
     puts 'Recording collection history snapshots'
 

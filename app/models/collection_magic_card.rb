@@ -8,7 +8,7 @@ class CollectionMagicCard < ApplicationRecord
   # Validations
   validates :quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity,
             numericality: { greater_than_or_equal_to: 0 }
-  validates :staged_quantity, :staged_foil_quantity,
+  validates :staged_quantity, :staged_foil_quantity, :staged_proxy_quantity, :staged_proxy_foil_quantity,
             numericality: { greater_than_or_equal_to: 0 }
   validates :board_type, inclusion: { in: BOARD_TYPES }, allow_nil: true
 
@@ -60,7 +60,9 @@ class CollectionMagicCard < ApplicationRecord
     if normal_price.zero? && foil_price.positive?
       display_quantity * foil_price
     elsif staged?
-      (staged_quantity * normal_price) + (staged_foil_quantity * foil_price)
+      # Regular and proxy use normal_price, foil and proxy_foil use foil_price
+      ((staged_quantity + staged_proxy_quantity) * normal_price) +
+        ((staged_foil_quantity + staged_proxy_foil_quantity) * foil_price)
     else
       real_value
     end
@@ -76,7 +78,7 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def total_staged
-    staged_quantity + staged_foil_quantity
+    staged_quantity + staged_foil_quantity + staged_proxy_quantity + staged_proxy_foil_quantity
   end
 
   def display_quantity

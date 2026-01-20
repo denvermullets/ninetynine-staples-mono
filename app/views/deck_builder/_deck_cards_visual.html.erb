@@ -11,7 +11,7 @@
                data-action="mouseenter->card-stack#expand mouseleave->card-stack#collapse"
                class="relative cursor-pointer rounded-2xl overflow-hidden
                       <%= 'ring-2 ring-blue-400' if card.staged? && card.from_owned_collection? %>
-                      <%= 'ring-2 ring-yellow-400' if card.staged? && card.planned? %>
+                      <%= 'ring-2 ring-accent-400' if card.staged? && card.planned? %>
                       <%= 'ring-2 ring-orange-400' if card.needed? %>">
 
             <% if card.magic_card.image_medium.present? %>
@@ -39,7 +39,7 @@
                 <% if card.from_owned_collection? %>
                   <span class="text-blue-400">from <%= card.source_collection.name.truncate(20) %></span>
                 <% elsif card.planned? %>
-                  <span class="text-yellow-400">Planned</span>
+                  <span class="text-accent-400">Planned</span>
                 <% elsif card.needed? %>
                   <span class="text-orange-400">Need</span>
                   <% if @is_owner && card.available_swap?(current_user) %>
