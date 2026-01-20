@@ -1,4 +1,6 @@
 class BackfillPriceChangeWeekly < ApplicationJob
+  queue_as :background
+
   def perform
     puts 'Starting backfill of price_change_weekly for all magic cards'
 

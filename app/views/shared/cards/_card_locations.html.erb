@@ -1,10 +1,17 @@
 <div class="flex flex-col w-full gap-4" data-controller="card-locations">
   <%
-    # Calculate totals across all collections
-    total_regular = card_locations.sum(&:quantity)
-    total_foil = card_locations.sum(&:foil_quantity)
-    total_proxy = card_locations.sum(&:proxy_quantity)
-    total_proxy_foil = card_locations.sum(&:proxy_foil_quantity)
+    # Filter out 0/0/0/0 records for non-admins (these are typically staged deck records)
+    visible_locations = if current_user_admin?
+      card_locations
+    else
+      card_locations.reject { |loc| loc.quantity.zero? && loc.foil_quantity.zero? && (loc.proxy_quantity || 0).zero? && (loc.proxy_foil_quantity || 0).zero? }
+    end
+
+    # Calculate totals across all visible collections
+    total_regular = visible_locations.sum(&:quantity)
+    total_foil = visible_locations.sum(&:foil_quantity)
+    total_proxy = visible_locations.sum(&:proxy_quantity)
+    total_proxy_foil = visible_locations.sum(&:proxy_foil_quantity)
     has_proxies = total_proxy > 0 || total_proxy_foil > 0
   %>
 
@@ -37,8 +44,8 @@
         </tr>
       </thead>
       <tbody class="divide-y bg-foreground divide-highlight">
-        <% if card_locations.any? %>
-          <% card_locations.each do |location| %>
+        <% if visible_locations.any? %>
+          <% visible_locations.each do |location| %>
             <tr class="text-grey-text hover:bg-menu">
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.collection.name %></td>
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.quantity %></td>

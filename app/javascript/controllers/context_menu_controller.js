@@ -8,6 +8,10 @@ export default class extends Controller {
     removeCommanderUrl: String,
     removeUrl: String,
     transferUrl: String,
+    swapPrintingUrl: String,
+    swapSourceUrl: String,
+    editStagedUrl: String,
+    viewCardUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -167,6 +171,62 @@ export default class extends Controller {
     if (!url) return;
 
     // Open the transfer modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  swapPrinting(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.swapPrintingUrlValue;
+    if (!url) return;
+
+    // Open the swap printing modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  swapSource(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.swapSourceUrlValue;
+    if (!url) return;
+
+    // Open the swap source modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  editStaged(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.editStagedUrlValue;
+    if (!url) return;
+
+    // Open the edit staged modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  viewCard(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.viewCardUrlValue;
+    if (!url) return;
+
+    // Open the view card modal via Turbo frame
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
       frame.src = url;

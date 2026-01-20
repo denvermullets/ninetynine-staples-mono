@@ -12,7 +12,7 @@
         <div class="flex items-center gap-3">
           <h1 id="deck-name" class="text-2xl font-semibold text-white"><%= @deck.name %></h1>
           <% if @is_owner %>
-            <span class="px-2 py-1 text-xs font-medium rounded bg-yellow-500/20 text-yellow-400">Build Mode</span>
+            <span class="px-2 py-1 text-xs font-medium rounded bg-accent-400/20 text-accent-400">Build Mode</span>
           <% else %>
             <span class="px-2 py-1 text-xs font-medium rounded bg-grey-text/20 text-grey-text">Viewing</span>
           <% end %>
@@ -26,9 +26,9 @@
     </div>
   </div>
 
-  <div class="flex flex-col flex-1 gap-4 p-4 md:flex-row md:p-8">
+  <div class="flex flex-col flex-1 gap-4 p-4 lg:flex-row lg:p-8">
     <!-- Sidebar: Card Preview + Search -->
-    <div class="w-full md:w-80 shrink-0 space-y-4">
+    <div class="w-full lg:w-80 shrink-0 space-y-4">
       <!-- Card Preview (desktop only) -->
       <%
         # Show commander first if this is a commander deck, otherwise first card
@@ -38,7 +38,7 @@
                          @grouped_cards.values.flatten.first&.magic_card
                        end
       %>
-      <div class="hidden md:block">
+      <div class="hidden lg:block">
         <div class="overflow-hidden border rounded-xl bg-foreground border-highlight">
           <img data-deck-builder-target="cardPreview"
                src="<%= preview_card&.image_large || preview_card&.image_medium || '' %>"

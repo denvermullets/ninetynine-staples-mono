@@ -1,6 +1,8 @@
 # Removes boxset value history data prior to the boxset's release date
 # This cleans up any historical data that predates when the boxset was actually released
 class TrimBoxsetValueHistory < ApplicationJob
+  queue_as :background
+
   def perform
     puts 'Starting boxset value history trim'
 

@@ -1,6 +1,8 @@
 require 'open-uri'
 
 class IngestSetCards < ApplicationJob
+  queue_as :background
+
   def perform(set)
     puts "loading #{set['name']} - #{set['code']}.json from mtgjson.com"
     source = URI.open("https://mtgjson.com/api/v5/#{set['code']}.json")

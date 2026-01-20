@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class DeckBuilderController < ApplicationController
   include DeckBuilderModals
   include DeckBuilderCardActions
@@ -12,7 +13,6 @@ class DeckBuilderController < ApplicationController
     @sort_by = params[:sort_by] || 'mana_value'
     @search_scope = params[:search_scope] || 'all'
     load_deck_cards
-
     respond_to do |format|
       format.html
       format.turbo_stream { render_deck_cards_stream }
@@ -29,7 +29,7 @@ class DeckBuilderController < ApplicationController
   def add_card
     result = DeckBuilder::AddCard.call(
       deck: @deck, magic_card_id: params[:magic_card_id], source_collection_id: params[:source_collection_id],
-      quantity: params[:quantity], foil_quantity: params[:foil_quantity]
+      card_type: params[:card_type] || 'regular', quantity: params[:quantity]
     )
     render_card_action_response(result, success_message: "Added #{result[:card_name]}")
   end
@@ -54,8 +54,23 @@ class DeckBuilderController < ApplicationController
     render_card_action_response(result, success_message: "Updated #{result[:card_name]} quantity")
   end
 
+  def add_new_card
+    result = DeckBuilder::AddNewCard.call(
+      deck: @deck, magic_card_id: params[:magic_card_id], card_type: params[:card_type], quantity: params[:quantity]
+    )
+    render_card_action_response(result, success_message: "Added #{result[:card_name]}")
+  end
+
   def update_deck
     @deck.update(deck_params) ? render_update_deck_success : render_error_toast('Failed to update deck')
+  end
+
+  def swap_source
+    result = DeckBuilder::SwapSource.call(
+      deck: @deck, collection_magic_card_id: params[:card_id],
+      new_source_collection_id: params[:source_collection_id], new_magic_card_id: params[:magic_card_id]
+    )
+    render_card_action_response(result, success_message: "Changed source to #{result[:source_name]}")
   end
 
   private
@@ -66,16 +81,13 @@ class DeckBuilderController < ApplicationController
   end
 
   def ensure_owner
-    redirect_to root_path, alert: 'Access denied' unless @deck.user_id == current_user.id
+    redirect_to(root_path, alert: 'Access denied') unless @deck.user_id == current_user.id
   end
 
   def load_deck_cards
     result = DeckBuilder::LoadCards.call(deck: @deck, grouping: @grouping, sort_by: @sort_by)
-    @staged_cards = result[:staged_cards]
-    @needed_cards = result[:needed_cards]
-    @owned_cards = result[:owned_cards]
-    @grouped_cards = result[:grouped_cards]
-    @stats = result[:stats]
+    @staged_cards, @needed_cards, @owned_cards = result.values_at(:staged_cards, :needed_cards, :owned_cards)
+    @grouped_cards, @stats = result.values_at(:grouped_cards, :stats)
   end
 
   def render_card_action_response(result, success_message:)
@@ -87,6 +99,7 @@ class DeckBuilderController < ApplicationController
       turbo_stream.update('deck_cards', partial: 'deck_cards'),
       turbo_stream.update('deck_stats', partial: 'deck_stats'),
       turbo_stream.update('header_actions', partial: 'header_actions'),
+      turbo_stream.update('deck_modal', ''),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: success_message })
     ]
   end
@@ -108,7 +121,6 @@ class DeckBuilderController < ApplicationController
     ]
   end
 
-  def deck_params
-    params.permit(:name, :description, :collection_type)
-  end
+  def deck_params = params.permit(:name, :description, :collection_type)
 end
+# rubocop:enable Metrics/ClassLength

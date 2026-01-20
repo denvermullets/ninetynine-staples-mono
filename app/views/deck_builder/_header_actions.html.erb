@@ -1,5 +1,13 @@
-<div class="flex items-center gap-3">
+<div class="flex flex-wrap items-center gap-3">
   <% if @is_owner %>
+    <!-- Beta Info Badge -->
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent-100/20 border border-accent-100/30">
+      <svg class="w-4 h-4 text-accent-100 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-xs text-white">Beta - may affect collections. Report issues to admin.</span>
+    </div>
+
     <% if @deck.in_build_mode? %>
       <%= link_to 'Finalize Deck', confirm_finalize_modal_deck_builder_path(@deck),
           class: 'px-4 py-2 bg-accent-50 text-foreground font-medium rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer',
