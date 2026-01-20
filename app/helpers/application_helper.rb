@@ -31,8 +31,8 @@ module ApplicationHelper
     return if text.nil?
 
     # Replace each {X} with the corresponding mana symbol icon
-    result = text.gsub(/\{(.*?)\}/) do |match|
-      symbol = $1
+    result = text.gsub(/\{(.*?)\}/) do |_match|
+      symbol = ::Regexp.last_match(1)
       css_class = MANA_SYMBOLS[symbol] || "ms ms-#{symbol.downcase}"
       "<i class='no-tailwind ms ms-cost ml-0 #{css_class}' style='font-size: 0.875rem;'></i>"
     end

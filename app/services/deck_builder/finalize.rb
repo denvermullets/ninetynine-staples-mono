@@ -72,9 +72,7 @@ module DeckBuilder
       ]
 
       validations.each do |needed, available, type|
-        if needed > available
-          raise InsufficientCardsError, "Only #{available} #{type} #{name} available"
-        end
+        raise InsufficientCardsError, "Only #{available} #{type} #{name} available" if needed > available
       end
     end
 
