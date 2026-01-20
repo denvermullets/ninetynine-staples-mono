@@ -149,6 +149,17 @@ export default class extends Controller {
       ? this.cardTypeSelectTarget.value
       : "regular";
 
+    await this.submitNewCard(cardType);
+  }
+
+  async addNewWithType(event) {
+    event.preventDefault();
+
+    const cardType = event.currentTarget.dataset.cardType || "regular";
+    await this.submitNewCard(cardType);
+  }
+
+  async submitNewCard(cardType) {
     const quantity = parseInt(this.quantityInputTarget.value) || 1;
 
     const formData = new FormData();
