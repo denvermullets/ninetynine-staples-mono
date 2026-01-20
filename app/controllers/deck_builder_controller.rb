@@ -28,8 +28,11 @@ class DeckBuilderController < ApplicationController
 
   def add_card
     result = DeckBuilder::AddCard.call(
-      deck: @deck, magic_card_id: params[:magic_card_id], source_collection_id: params[:source_collection_id],
-      quantity: params[:quantity], foil_quantity: params[:foil_quantity]
+      deck: @deck,
+      magic_card_id: params[:magic_card_id],
+      source_collection_id: params[:source_collection_id],
+      card_type: params[:card_type] || 'regular',
+      quantity: params[:quantity]
     )
     render_card_action_response(result, success_message: "Added #{result[:card_name]}")
   end

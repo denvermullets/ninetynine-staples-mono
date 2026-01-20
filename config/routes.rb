@@ -91,6 +91,9 @@ Rails.application.routes.draw do
       post :swap_printing
       get :swap_source_modal
       post :swap_source
+      get :edit_staged_modal
+      patch :update_staged
+      get :view_card_modal
     end
   end
 

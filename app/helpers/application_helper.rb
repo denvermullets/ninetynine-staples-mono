@@ -26,6 +26,20 @@ module ApplicationHelper
     end.join.html_safe
   end
 
+  # Parse card text and replace {X} mana symbols with icons
+  def card_text_with_symbols(text)
+    return if text.nil?
+
+    # Replace each {X} with the corresponding mana symbol icon
+    result = text.gsub(/\{(.*?)\}/) do |match|
+      symbol = $1
+      css_class = MANA_SYMBOLS[symbol] || "ms ms-#{symbol.downcase}"
+      "<i class='no-tailwind ms ms-cost ml-0 #{css_class}' style='font-size: 0.875rem;'></i>"
+    end
+
+    result.html_safe
+  end
+
   def nav_item_classes(route)
     base_classes = 'px-4 py-2 rounded-3xl text-grey-text'
     active_classes = 'border-grey-text border'

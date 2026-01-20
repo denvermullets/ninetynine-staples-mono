@@ -52,7 +52,7 @@ module DeckBuilder
       return { success: false, error: 'Card not found in source collection' } unless source_cmc
 
       total_available = calculate_total_available(source_cmc, target_magic_card_id)
-      total_needed = @deck_card.staged_quantity + @deck_card.staged_foil_quantity
+      total_needed = @deck_card.total_staged
 
       return { success: false, error: "Only #{total_available} copies available" } if total_needed > total_available
 
@@ -65,7 +65,10 @@ module DeckBuilder
         .where(source_collection_id: cmc.collection_id, magic_card_id: magic_card_id)
         .where.not(id: @deck_card.id)
 
-      staged_total = already_staged.sum(:staged_quantity) + already_staged.sum(:staged_foil_quantity)
+      staged_total = already_staged.sum(:staged_quantity) +
+                     already_staged.sum(:staged_foil_quantity) +
+                     already_staged.sum(:staged_proxy_quantity) +
+                     already_staged.sum(:staged_proxy_foil_quantity)
 
       cmc.quantity + cmc.foil_quantity + (cmc.proxy_quantity || 0) + (cmc.proxy_foil_quantity || 0) - staged_total
     end

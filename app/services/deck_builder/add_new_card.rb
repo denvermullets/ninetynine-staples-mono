@@ -46,7 +46,9 @@ module DeckBuilder
         proxy_quantity: 0,
         proxy_foil_quantity: 0,
         staged_quantity: 0,
-        staged_foil_quantity: 0
+        staged_foil_quantity: 0,
+        staged_proxy_quantity: 0,
+        staged_proxy_foil_quantity: 0
       )
     end
 

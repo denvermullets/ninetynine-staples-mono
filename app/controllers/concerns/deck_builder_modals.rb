@@ -61,12 +61,88 @@ module DeckBuilderModals
     }
   end
 
+  def edit_staged_modal
+    card = @deck.collection_magic_cards.staged.find(params[:card_id])
+    available_quantities = calculate_available_for_edit(card)
+
+    # Max includes current staged amounts + available
+    max_quantities = {
+      regular: card.staged_quantity + (available_quantities[:regular] || 0),
+      foil: card.staged_foil_quantity + (available_quantities[:foil] || 0),
+      proxy: card.staged_proxy_quantity + (available_quantities[:proxy] || 0),
+      proxy_foil: card.staged_proxy_foil_quantity + (available_quantities[:proxy_foil] || 0)
+    }
+
+    render partial: 'deck_builder/edit_staged_modal', locals: {
+      card: card,
+      deck: @deck,
+      available_quantities: available_quantities,
+      max_quantities: max_quantities
+    }
+  end
+
+  def view_card_modal
+    card = @deck.collection_magic_cards.find(params[:card_id])
+    magic_card = card.magic_card
+
+    # Get all user's copies of this card (by oracle_id)
+    oracle_id = magic_card.scryfall_oracle_id
+    user_copies = if oracle_id.present?
+                    printing_ids = MagicCard.where(scryfall_oracle_id: oracle_id).pluck(:id)
+                    CollectionMagicCard
+                      .joins(:collection, :magic_card)
+                      .includes(:collection, magic_card: :boxset)
+                      .where(collections: { user_id: current_user.id })
+                      .where(magic_card_id: printing_ids, staged: false, needed: false)
+                      .order('collections.name')
+                  else
+                    []
+                  end
+
+    render partial: 'deck_builder/view_card_modal', locals: {
+      card: card,
+      deck: @deck,
+      magic_card: magic_card,
+      user_copies: user_copies
+    }
+  end
+
   private
+
+  def calculate_available_for_edit(card)
+    return {} unless card.source_collection_id
+
+    source = CollectionMagicCard.find_by(
+      collection_id: card.source_collection_id,
+      magic_card_id: card.magic_card_id,
+      staged: false,
+      needed: false
+    )
+
+    return {} unless source
+
+    # Get amounts already staged from this source (excluding current card)
+    other_staged = CollectionMagicCard.staged
+      .where(source_collection_id: card.source_collection_id, magic_card_id: card.magic_card_id)
+      .where.not(id: card.id)
+
+    other_staged_regular = other_staged.sum(:staged_quantity)
+    other_staged_foil = other_staged.sum(:staged_foil_quantity)
+    other_staged_proxy = other_staged.sum(:staged_proxy_quantity)
+    other_staged_proxy_foil = other_staged.sum(:staged_proxy_foil_quantity)
+
+    {
+      regular: [source.quantity - other_staged_regular, 0].max,
+      foil: [source.foil_quantity - other_staged_foil, 0].max,
+      proxy: [(source.proxy_quantity || 0) - other_staged_proxy, 0].max,
+      proxy_foil: [(source.proxy_foil_quantity || 0) - other_staged_proxy_foil, 0].max
+    }
+  end
 
   def find_available_sources(card)
     magic_card = card.magic_card
     oracle_id = magic_card.scryfall_oracle_id
-    total_needed = card.staged_quantity + card.staged_foil_quantity
+    total_needed = card.total_staged
 
     # Find all printings of this card by oracle_id
     printing_ids = MagicCard.where(scryfall_oracle_id: oracle_id).pluck(:id)
@@ -83,7 +159,10 @@ module DeckBuilderModals
         .where(source_collection_id: cmc.collection_id, magic_card_id: cmc.magic_card_id)
         .where.not(id: card.id)
 
-      already_staged = staged_from_source.sum(:staged_quantity) + staged_from_source.sum(:staged_foil_quantity)
+      already_staged = staged_from_source.sum(:staged_quantity) +
+                       staged_from_source.sum(:staged_foil_quantity) +
+                       staged_from_source.sum(:staged_proxy_quantity) +
+                       staged_from_source.sum(:staged_proxy_foil_quantity)
 
       regular = cmc.quantity
       foil = cmc.foil_quantity

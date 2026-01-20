@@ -10,6 +10,8 @@ export default class extends Controller {
     transferUrl: String,
     swapPrintingUrl: String,
     swapSourceUrl: String,
+    editStagedUrl: String,
+    viewCardUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -197,6 +199,34 @@ export default class extends Controller {
     if (!url) return;
 
     // Open the swap source modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  editStaged(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.editStagedUrlValue;
+    if (!url) return;
+
+    // Open the edit staged modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  viewCard(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.viewCardUrlValue;
+    if (!url) return;
+
+    // Open the view card modal via Turbo frame
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
       frame.src = url;

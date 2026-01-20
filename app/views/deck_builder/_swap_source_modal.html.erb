@@ -18,14 +18,19 @@
       </div>
 
       <div class="mb-4 text-sm text-grey-text">
+        <%
+          staged_parts = []
+          staged_parts << "#{card.staged_quantity} regular" if card.staged_quantity > 0
+          staged_parts << "#{card.staged_foil_quantity} foil" if card.staged_foil_quantity > 0
+          staged_parts << "#{card.staged_proxy_quantity} proxy" if card.staged_proxy_quantity > 0
+          staged_parts << "#{card.staged_proxy_foil_quantity} foil proxy" if card.staged_proxy_foil_quantity > 0
+          staged_text = staged_parts.any? ? staged_parts.join(', ') : 'none'
+        %>
         <% if card.planned? %>
-          <p>This is a <strong class="text-yellow-400">planned</strong> card (<%= card.staged_quantity + card.staged_foil_quantity %> copies<% if card.staged_foil_quantity > 0 %>, <%= card.staged_foil_quantity %> foil<% end %>).</p>
+          <p>This is a <strong class="text-accent-400">planned</strong> card (<%= card.total_staged %> copies: <%= staged_text %>).</p>
           <p class="mt-1">Select a printing to source it from:</p>
         <% else %>
-          <p>Currently sourcing <strong><%= card.staged_quantity + card.staged_foil_quantity %></strong> copies
-          <% if card.staged_foil_quantity > 0 %>
-            (<%= card.staged_foil_quantity %> foil)
-          <% end %>
+          <p>Currently sourcing <strong><%= card.total_staged %></strong> copies (<%= staged_text %>)
           from <strong class="text-blue-400"><%= card.source_collection.name %></strong></p>
         <% end %>
       </div>
@@ -45,7 +50,14 @@
             <div class="p-3 rounded-lg border-2 border-blue-500 bg-blue-500/10">
               <div class="flex gap-3">
                 <% if mc.image_small.present? %>
-                  <img src="<%= mc.image_small %>" alt="<%= mc.name %>" class="w-16 h-auto rounded shrink-0" loading="lazy" />
+                  <img src="<%= mc.image_small %>"
+                       alt="<%= mc.name %>"
+                       class="w-16 h-auto rounded shrink-0 cursor-pointer"
+                       loading="lazy"
+                       data-controller="card-hover"
+                       data-card-hover-image-value="<%= mc.image_large || mc.image_medium %>"
+                       data-card-hover-name-value="<%= mc.name %>"
+                       data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
                 <% end %>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
@@ -65,7 +77,14 @@
                       class="w-full p-3 rounded-lg border border-highlight bg-background hover:border-accent-50 hover:bg-background/75 transition cursor-pointer text-left">
                 <div class="flex gap-3">
                   <% if mc.image_small.present? %>
-                    <img src="<%= mc.image_small %>" alt="<%= mc.name %>" class="w-16 h-auto rounded shrink-0" loading="lazy" />
+                    <img src="<%= mc.image_small %>"
+                         alt="<%= mc.name %>"
+                         class="w-16 h-auto rounded shrink-0 cursor-pointer"
+                         loading="lazy"
+                         data-controller="card-hover"
+                         data-card-hover-image-value="<%= mc.image_large || mc.image_medium %>"
+                         data-card-hover-name-value="<%= mc.name %>"
+                         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
                   <% end %>
                   <div class="flex-1 min-w-0">
                     <span class="font-medium text-grey-text"><%= source[:collection_name] %></span>
@@ -85,12 +104,12 @@
                 method: :post,
                 class: "contents" do |f| %>
               <button type="submit"
-                      class="w-full p-3 rounded-lg border border-yellow-500/50 bg-background hover:border-yellow-500 hover:bg-yellow-500/10 transition cursor-pointer text-left">
+                      class="w-full p-3 rounded-lg border border-accent-400/50 bg-background hover:border-accent-400 hover:bg-accent-400/10 transition cursor-pointer text-left">
                 <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
-                  <span class="font-medium text-yellow-400">Convert to Planned</span>
+                  <span class="font-medium text-accent-400">Convert to Planned</span>
                 </div>
                 <p class="text-xs text-grey-text mt-1">Card will no longer be sourced from a collection</p>
               </button>

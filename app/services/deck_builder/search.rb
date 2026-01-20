@@ -43,25 +43,60 @@ module DeckBuilder
         .where('magic_cards.name ILIKE ?', "%#{@query}%")
         .order('magic_cards.name ASC')
 
-      owned_cards.filter_map do |cmc|
+      results = []
+
+      owned_cards.each do |cmc|
         quantities = calculate_available_quantities(cmc)
-        next if quantities[:total_available].zero? && quantities[:total_foil_available].zero?
 
         already_in_deck = @deck.collection_magic_cards.exists?(
           magic_card_id: cmc.magic_card_id,
           source_collection_id: cmc.collection_id
         )
 
-        {
+        base_result = {
           type: :owned,
           card: cmc.magic_card,
           collection_magic_card_id: cmc.id,
           collection_id: cmc.collection_id,
           collection_name: cmc.collection.name,
-          quantities: quantities,
           already_in_deck: already_in_deck
         }
+
+        # Create separate results for each available card type
+        if quantities[:regular] > 0
+          results << base_result.merge(
+            card_type: :regular,
+            available: quantities[:regular],
+            type_label: 'Regular'
+          )
+        end
+
+        if quantities[:foil] > 0
+          results << base_result.merge(
+            card_type: :foil,
+            available: quantities[:foil],
+            type_label: 'Foil'
+          )
+        end
+
+        if quantities[:proxy] > 0
+          results << base_result.merge(
+            card_type: :proxy,
+            available: quantities[:proxy],
+            type_label: 'Proxy'
+          )
+        end
+
+        if quantities[:proxy_foil] > 0
+          results << base_result.merge(
+            card_type: :proxy_foil,
+            available: quantities[:proxy_foil],
+            type_label: 'Foil Proxy'
+          )
+        end
       end
+
+      results
     end
 
     def build_latest_results(_owned_results)
@@ -89,19 +124,19 @@ module DeckBuilder
     def calculate_available_quantities(cmc)
       staged_regular = reserved_quantity(cmc, :staged_quantity)
       staged_foil = reserved_quantity(cmc, :staged_foil_quantity)
+      staged_proxy = reserved_quantity(cmc, :staged_proxy_quantity)
+      staged_proxy_foil = reserved_quantity(cmc, :staged_proxy_foil_quantity)
 
       available_regular = cmc.quantity - staged_regular
       available_foil = cmc.foil_quantity - staged_foil
-      proxy_qty = cmc.proxy_quantity || 0
-      proxy_foil_qty = cmc.proxy_foil_quantity || 0
+      available_proxy = (cmc.proxy_quantity || 0) - staged_proxy
+      available_proxy_foil = (cmc.proxy_foil_quantity || 0) - staged_proxy_foil
 
       {
-        regular: available_regular,
-        foil: available_foil,
-        proxy: proxy_qty,
-        proxy_foil: proxy_foil_qty,
-        total_available: available_regular + proxy_qty,
-        total_foil_available: available_foil + proxy_foil_qty
+        regular: [available_regular, 0].max,
+        foil: [available_foil, 0].max,
+        proxy: [available_proxy, 0].max,
+        proxy_foil: [available_proxy_foil, 0].max
       }
     end
 

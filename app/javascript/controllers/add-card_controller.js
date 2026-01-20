@@ -15,10 +15,12 @@ export default class extends Controller {
     deckId: Number,
     cardId: Number,
     collectionId: Number,
+    cardType: String,
   };
 
   connect() {
     this.updateAvailability();
+    this.updateMaxQuantity();
   }
 
   updateAvailability() {
@@ -42,6 +44,35 @@ export default class extends Controller {
       if (parseInt(this.foilQuantityInputTarget.value) > maxFoil) {
         this.foilQuantityInputTarget.value = maxFoil;
       }
+    }
+  }
+
+  updateMaxQuantity() {
+    if (!this.hasCardTypeSelectTarget || !this.hasQuantityInputTarget) return;
+
+    const select = this.cardTypeSelectTarget;
+    const cardType = select.value;
+
+    // Get max quantity from data attributes on the select element
+    let maxQty = 99;
+    switch (cardType) {
+      case "regular":
+        maxQty = parseInt(select.dataset.addCardTargetRegularMax) || 99;
+        break;
+      case "foil":
+        maxQty = parseInt(select.dataset.addCardTargetFoilMax) || 99;
+        break;
+      case "proxy":
+        maxQty = parseInt(select.dataset.addCardTargetProxyMax) || 99;
+        break;
+      case "foil_proxy":
+        maxQty = parseInt(select.dataset.addCardTargetProxyFoilMax) || 99;
+        break;
+    }
+
+    this.quantityInputTarget.max = maxQty;
+    if (parseInt(this.quantityInputTarget.value) > maxQty) {
+      this.quantityInputTarget.value = maxQty;
     }
   }
 
@@ -95,7 +126,15 @@ export default class extends Controller {
       return;
     }
 
-    await this.submitAdd(sourceId);
+    // Get card type from data value (owned partial) or dropdown (if present)
+    let cardType = null;
+    if (this.hasCardTypeValue && this.cardTypeValue) {
+      cardType = this.cardTypeValue;
+    } else if (this.hasCardTypeSelectTarget) {
+      cardType = this.cardTypeSelectTarget.value;
+    }
+
+    await this.submitAdd(sourceId, cardType);
   }
 
   async addPlanned(event) {
@@ -144,13 +183,10 @@ export default class extends Controller {
     }
   }
 
-  async submitAdd(sourceCollectionId) {
+  async submitAdd(sourceCollectionId, cardType = null) {
     const quantity = parseInt(this.quantityInputTarget.value) || 0;
-    const foilQuantity = this.hasFoilQuantityInputTarget
-      ? parseInt(this.foilQuantityInputTarget.value) || 0
-      : 0;
 
-    if (quantity === 0 && foilQuantity === 0) {
+    if (quantity === 0) {
       this.showAlert("Quantity Required", "Please enter a quantity");
       return;
     }
@@ -158,7 +194,9 @@ export default class extends Controller {
     const formData = new FormData();
     formData.append("magic_card_id", this.cardIdValue);
     formData.append("quantity", quantity);
-    formData.append("foil_quantity", foilQuantity);
+    if (cardType) {
+      formData.append("card_type", cardType);
+    }
     if (sourceCollectionId) {
       formData.append("source_collection_id", sourceCollectionId);
     }

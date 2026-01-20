@@ -45,7 +45,73 @@ module DeckBuilderCardActions
     render_card_action_response(result, success_message: "Swapped printing for #{result[:card_name]}")
   end
 
+  def update_staged
+    card = @deck.collection_magic_cards.staged.find(params[:card_id])
+    new_quantities = {
+      regular: params[:staged_quantity].to_i,
+      foil: params[:staged_foil_quantity].to_i,
+      proxy: params[:staged_proxy_quantity].to_i,
+      proxy_foil: params[:staged_proxy_foil_quantity].to_i
+    }
+
+    total = new_quantities.values.sum
+    if total.zero?
+      # Remove the card if all quantities are 0
+      card_name = card.magic_card.name
+      card.destroy!
+      render_deck_update_response("#{card_name} removed from deck")
+    else
+      result = validate_and_update_staged(card, new_quantities)
+      if result[:success]
+        render_deck_update_response("Updated #{card.magic_card.name}")
+      else
+        render_error_toast(result[:error])
+      end
+    end
+  end
+
   private
+
+  def validate_and_update_staged(card, new_quantities)
+    return { success: false, error: 'Quantities cannot be negative' } if new_quantities.values.any?(&:negative?)
+
+    if card.source_collection_id
+      source = CollectionMagicCard.find_by(
+        collection_id: card.source_collection_id,
+        magic_card_id: card.magic_card_id,
+        staged: false,
+        needed: false
+      )
+
+      return { success: false, error: 'Source collection not found' } unless source
+
+      # Calculate available (excluding current card's staged amounts)
+      other_staged = CollectionMagicCard.staged
+        .where(source_collection_id: card.source_collection_id, magic_card_id: card.magic_card_id)
+        .where.not(id: card.id)
+
+      available = {
+        regular: source.quantity - other_staged.sum(:staged_quantity),
+        foil: source.foil_quantity - other_staged.sum(:staged_foil_quantity),
+        proxy: (source.proxy_quantity || 0) - other_staged.sum(:staged_proxy_quantity),
+        proxy_foil: (source.proxy_foil_quantity || 0) - other_staged.sum(:staged_proxy_foil_quantity)
+      }
+
+      %i[regular foil proxy proxy_foil].each do |type|
+        if new_quantities[type] > available[type]
+          return { success: false, error: "Only #{available[type]} #{type.to_s.humanize.downcase} available" }
+        end
+      end
+    end
+
+    card.update!(
+      staged_quantity: new_quantities[:regular],
+      staged_foil_quantity: new_quantities[:foil],
+      staged_proxy_quantity: new_quantities[:proxy],
+      staged_proxy_foil_quantity: new_quantities[:proxy_foil]
+    )
+    { success: true }
+  end
 
   def execute_transfer(card, to_collection)
     CollectionRecord::Transfer.call(params: {

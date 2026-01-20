@@ -37,12 +37,15 @@
                <% if is_commander %>
                data-context-menu-remove-commander-url-value="<%= remove_commander_deck_builder_path(@deck, card_id: card.id) %>"
                <% end %>
+               data-context-menu-view-card-url-value="<%= view_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
                <% if is_staged_planned %>
                data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
                data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(@deck, card_id: card.id) %>"
                <% end %>
                <% if is_staged_owned %>
+               data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
                data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(@deck, card_id: card.id) %>"
+               data-context-menu-edit-staged-url-value="<%= edit_staged_modal_deck_builder_path(@deck, card_id: card.id) %>"
                <% end %>
                <% if is_staged_owned || is_finalized %>
                data-context-menu-transfer-url-value="<%= transfer_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
@@ -87,7 +90,7 @@
                         <%= if card.staged? && card.from_owned_collection?
                               'text-blue-400'
                             elsif card.staged? && card.planned?
-                              'text-yellow-400'
+                              'text-accent-400'
                             elsif card.needed?
                               'text-orange-400'
                             else
@@ -125,50 +128,66 @@
             <% if @is_owner %>
               <!-- Context Menu -->
               <div data-context-menu-target="menu"
-                   class="hidden fixed z-50 min-w-40 py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+                   class="hidden fixed z-50 w-fit py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+                <!-- View Card - always available -->
+                <button type="button"
+                        data-action="click->context-menu#viewCard"
+                        class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  View Card
+                </button>
                 <% if can_set_commander %>
                   <button type="button"
                           data-action="click->context-menu#setCommander"
-                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
                     Set as Commander
                   </button>
                 <% end %>
                 <% if is_commander %>
                   <button type="button"
                           data-action="click->context-menu#removeCommander"
-                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
                     Remove as Commander
                   </button>
                 <% end %>
                 <% if is_staged_planned %>
                   <button type="button"
                           data-action="click->context-menu#swapPrinting"
-                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
                     Swap Printing
                   </button>
                   <button type="button"
                           data-action="click->context-menu#swapSource"
-                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
                     Source from Collection
                   </button>
                 <% end %>
                 <% if is_staged_owned %>
                   <button type="button"
+                          data-action="click->context-menu#swapPrinting"
+                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                    Swap Printing
+                  </button>
+                  <button type="button"
+                          data-action="click->context-menu#editStaged"
+                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                    Edit Quantity
+                  </button>
+                  <button type="button"
                           data-action="click->context-menu#swapSource"
-                          class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
                     Change Source
                   </button>
                 <% end %>
                 <% if is_staged_owned || is_finalized %>
                   <button type="button"
                           data-action="click->context-menu#transferCard"
-                          class="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer">
+                          class="block w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer whitespace-nowrap">
                     Remove from Deck
                   </button>
                 <% elsif is_staged_planned || is_needed %>
                   <button type="button"
                           data-action="click->context-menu#removeCard"
-                          class="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer">
+                          class="block w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer whitespace-nowrap">
                     Remove Card
                   </button>
                 <% end %>

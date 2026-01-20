@@ -62,15 +62,20 @@ module DeckBuilder
     end
 
     def validate_quantities(staged, source)
-      avail = source.quantity + (source.proxy_quantity || 0)
-      foil_avail = source.foil_quantity + (source.proxy_foil_quantity || 0)
       name = staged.magic_card.name
-      raise InsufficientCardsError, "Only #{avail} of #{name} available" if staged.staged_quantity > avail
 
-      return unless staged.staged_foil_quantity > foil_avail
+      validations = [
+        [staged.staged_quantity, source.quantity, 'regular'],
+        [staged.staged_foil_quantity, source.foil_quantity, 'foil'],
+        [staged.staged_proxy_quantity, source.proxy_quantity || 0, 'proxy'],
+        [staged.staged_proxy_foil_quantity, source.proxy_foil_quantity || 0, 'foil proxy']
+      ]
 
-      raise InsufficientCardsError,
-            "Only #{foil_avail} foil #{name} available"
+      validations.each do |needed, available, type|
+        if needed > available
+          raise InsufficientCardsError, "Only #{available} #{type} #{name} available"
+        end
+      end
     end
 
     def move_from_source(staged_card)
@@ -94,19 +99,28 @@ module DeckBuilder
     end
 
     def calculate_reductions(source, staged_card)
-      reg = [staged_card.staged_quantity, source.quantity].min
-      foil_reg = [staged_card.staged_foil_quantity, source.foil_quantity].min
-      { quantity: source.quantity - reg, foil_quantity: source.foil_quantity - foil_reg,
-        proxy_quantity: (source.proxy_quantity || 0) - (staged_card.staged_quantity - reg),
-        proxy_foil_quantity: (source.proxy_foil_quantity || 0) - (staged_card.staged_foil_quantity - foil_reg) }
+      {
+        quantity: source.quantity - staged_card.staged_quantity,
+        foil_quantity: source.foil_quantity - staged_card.staged_foil_quantity,
+        proxy_quantity: (source.proxy_quantity || 0) - staged_card.staged_proxy_quantity,
+        proxy_foil_quantity: (source.proxy_foil_quantity || 0) - staged_card.staged_proxy_foil_quantity
+      }
     end
 
     def source_empty_after_reduction?(_source, reductions) = reductions.values.all?(&:zero?)
 
     def finalize_deck_card(staged_card)
       staged_card.update!(
-        staged: false, needed: false, quantity: staged_card.staged_quantity,
-        foil_quantity: staged_card.staged_foil_quantity, staged_quantity: 0, staged_foil_quantity: 0,
+        staged: false,
+        needed: false,
+        quantity: staged_card.staged_quantity,
+        foil_quantity: staged_card.staged_foil_quantity,
+        proxy_quantity: staged_card.staged_proxy_quantity,
+        proxy_foil_quantity: staged_card.staged_proxy_foil_quantity,
+        staged_quantity: 0,
+        staged_foil_quantity: 0,
+        staged_proxy_quantity: 0,
+        staged_proxy_foil_quantity: 0,
         source_collection_id: nil
       )
     end
