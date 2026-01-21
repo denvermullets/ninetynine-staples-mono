@@ -21,6 +21,53 @@ export default class extends Controller {
   connect() {
     this.updateAvailability();
     this.updateMaxQuantity();
+    this.handlePrintingSelected = this.handlePrintingSelected.bind(this);
+    window.addEventListener("printing:selected", this.handlePrintingSelected);
+  }
+
+  disconnect() {
+    window.removeEventListener("printing:selected", this.handlePrintingSelected);
+  }
+
+  handlePrintingSelected(event) {
+    // Only update if this is the active/focused add-card element
+    if (window.activeAddCardElement !== this.element) return;
+
+    const { printingId, printingName, printingImage, printingSet } = event.detail;
+
+    // Update the card ID value
+    this.cardIdValue = parseInt(printingId);
+
+    // Update the displayed card info
+    const nameEl = this.element.querySelector("h4");
+    const setEl = this.element.querySelector("p.text-xs.text-grey-text\\/70");
+    const imgEl = this.element.querySelector("img[data-controller='card-hover']");
+
+    if (setEl) {
+      setEl.innerHTML = `${printingSet} <span class="text-accent-50/70">- Selected</span>`;
+    }
+    if (imgEl && printingImage) {
+      imgEl.src = printingImage;
+    }
+
+    // Clear the active element
+    window.activeAddCardElement = null;
+  }
+
+  openChoosePrinting(event) {
+    event.preventDefault();
+    // Mark this element as the active one for printing selection
+    window.activeAddCardElement = this.element;
+
+    // Get the URL from the clicked link
+    const url = event.currentTarget.href;
+    if (!url) return;
+
+    // Open the choose printing modal via Turbo frame
+    const frame = document.querySelector("turbo-frame#deck_modal");
+    if (frame) {
+      frame.src = url;
+    }
   }
 
   updateAvailability() {
