@@ -89,6 +89,7 @@ Rails.application.routes.draw do
       post :transfer_card
       get :swap_printing_modal
       post :swap_printing
+      get :choose_printing_modal
       get :swap_source_modal
       post :swap_source
       get :edit_staged_modal
