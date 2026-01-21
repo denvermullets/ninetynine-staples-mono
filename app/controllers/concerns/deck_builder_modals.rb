@@ -4,12 +4,8 @@ module DeckBuilderModals
   def confirm_remove_modal
     card = @deck.collection_magic_cards.find(params[:card_id])
     render partial: 'deck_builder/confirm_modal', locals: {
-      title: 'Remove Card',
-      message: "Remove #{card.magic_card.name} from deck?",
-      confirm_text: 'Remove',
-      confirm_url: remove_card_deck_builder_path(@deck, card_id: card.id),
-      confirm_method: :delete,
-      danger: true
+      title: 'Remove Card', message: "Remove #{card.magic_card.name} from deck?", confirm_text: 'Remove',
+      confirm_url: remove_card_deck_builder_path(@deck, card_id: card.id), confirm_method: :delete, danger: true
     }
   end
 
@@ -17,10 +13,8 @@ module DeckBuilderModals
     render partial: 'deck_builder/confirm_modal', locals: {
       title: 'Finalize Deck',
       message: 'This will move cards from source collections. Planned cards will remain staged. Continue?',
-      confirm_text: 'Finalize',
-      confirm_url: finalize_deck_builder_path(@deck),
-      confirm_method: :post,
-      danger: false
+      confirm_text: 'Finalize', confirm_url: finalize_deck_builder_path(@deck),
+      confirm_method: :post, danger: false
     }
   end
 
@@ -32,9 +26,7 @@ module DeckBuilderModals
     card = @deck.collection_magic_cards.find(params[:card_id])
     collections = current_user.collections.where.not(id: @deck.id).order(:name)
     render partial: 'deck_builder/transfer_card_modal', locals: {
-      card: card,
-      deck: @deck,
-      collections: collections
+      card: card, deck: @deck, collections:
     }
   end
 
@@ -57,6 +49,18 @@ module DeckBuilderModals
       card: card,
       deck: @deck,
       available_sources: available_sources
+    }
+  end
+
+  def choose_printing_modal
+    magic_card = MagicCard.find(params[:magic_card_id])
+    printings = MagicCard.where(scryfall_oracle_id: magic_card.scryfall_oracle_id)
+                         .includes(:boxset)
+                         .order('boxsets.release_date DESC')
+    render partial: 'deck_builder/choose_printing_modal', locals: {
+      magic_card: magic_card,
+      deck: @deck,
+      printings: printings
     }
   end
 

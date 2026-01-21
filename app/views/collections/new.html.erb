@@ -13,7 +13,7 @@
     <div class="mb-4">
       <%= f.label :collection_type, class: "block text-sm font-medium " %>
       <%= f.select :collection_type,
-          options_for_select([['Collection', 'collection'], ['Deck', 'deck']], params[:collection_type] || 'collection'),
+          options_for_select([['Collection', 'collection'], ['Deck', 'deck'], ['Commander Deck', 'commander_deck']], params[:collection_type] || 'collection'),
           {},
           class: "mt-1 block w-full rounded-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50" %>
     </div>
