@@ -41,10 +41,14 @@ export default class extends Controller {
 
     // Update the displayed card info
     const setEl = this.element.querySelector("p.text-xs.text-grey-text\\/70");
+    const statusEl = this.element.querySelector("p.text-xs.text-accent-50\\/70");
     const imgEl = this.element.querySelector("img[data-controller='card-hover']");
 
     if (setEl) {
-      setEl.innerHTML = `${printingSet} <span class="text-accent-50/70">- Selected</span>`;
+      setEl.textContent = printingSet;
+    }
+    if (statusEl) {
+      statusEl.textContent = "Selected printing";
     }
     if (imgEl) {
       if (printingImage) {
