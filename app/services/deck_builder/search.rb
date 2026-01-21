@@ -44,6 +44,7 @@ module DeckBuilder
         .includes(magic_card: :boxset, collection: [])
         .where(collections: { user_id: @user.id })
         .where(staged: false, needed: false)
+        .where(magic_cards: { is_token: false })
         .where('magic_cards.name ILIKE ?', "%#{@query}%")
         .order('magic_cards.name ASC')
     end
@@ -89,6 +90,7 @@ module DeckBuilder
       MagicCard
         .joins(:boxset)
         .select('DISTINCT ON (magic_cards.name) magic_cards.id')
+        .where(is_token: false)
         .where('magic_cards.name ILIKE ?', "%#{@query}%")
         .order('magic_cards.name, boxsets.release_date DESC')
     end

@@ -64,7 +64,32 @@ module DeckBuilder
         card.proxy_foil_quantity += @quantity
       end
       card.save!
+      update_collection_totals
     end
+
+    # rubocop:disable Metrics/AbcSize
+    def update_collection_totals
+      changes = { quantity: 0, foil_quantity: 0, proxy_quantity: 0, proxy_foil_quantity: 0, real_price: 0,
+                  proxy_price: 0 }
+
+      case @card_type
+      when 'regular'
+        changes[:quantity] = @quantity
+        changes[:real_price] = @quantity * @magic_card.normal_price.to_f
+      when 'foil'
+        changes[:foil_quantity] = @quantity
+        changes[:real_price] = @quantity * @magic_card.foil_price.to_f
+      when 'proxy'
+        changes[:proxy_quantity] = @quantity
+        changes[:proxy_price] = @quantity * @magic_card.normal_price.to_f
+      when 'foil_proxy'
+        changes[:proxy_foil_quantity] = @quantity
+        changes[:proxy_price] = @quantity * @magic_card.foil_price.to_f
+      end
+
+      CollectionRecord::UpdateTotals.call(collection: @deck, changes: changes)
+    end
+    # rubocop:enable Metrics/AbcSize
 
     def error_result(message)
       { success: false, error: message }
