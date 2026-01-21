@@ -42,6 +42,23 @@ class CollectionMagicCard < ApplicationRecord
     proxy_quantity.positive? || proxy_foil_quantity.positive?
   end
 
+  # Display type detection (handles staged vs finalized cards)
+  def display_foil?
+    if staged?
+      staged_foil_quantity.positive? || staged_proxy_foil_quantity.positive?
+    else
+      foil_quantity.positive? || proxy_foil_quantity.positive?
+    end
+  end
+
+  def display_proxy?
+    if staged?
+      staged_proxy_quantity.positive? || staged_proxy_foil_quantity.positive?
+    else
+      proxy_quantity.positive? || proxy_foil_quantity.positive?
+    end
+  end
+
   def real_value
     (quantity * magic_card.normal_price) + (foil_quantity * magic_card.foil_price)
   end
