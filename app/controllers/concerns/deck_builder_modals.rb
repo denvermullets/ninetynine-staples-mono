@@ -33,7 +33,7 @@ module DeckBuilderModals
   def swap_printing_modal
     card = @deck.collection_magic_cards.find(params[:card_id])
     printings = MagicCard.where(scryfall_oracle_id: card.magic_card.scryfall_oracle_id)
-                         .where.not(card_side: 'b')
+                         .where(card_side: [nil, 'a'])
                          .includes(:boxset)
                          .order('boxsets.release_date DESC')
     render partial: 'deck_builder/swap_printing_modal', locals: {
@@ -56,7 +56,7 @@ module DeckBuilderModals
   def choose_printing_modal
     magic_card = MagicCard.find(params[:magic_card_id])
     printings = MagicCard.where(scryfall_oracle_id: magic_card.scryfall_oracle_id)
-                         .where.not(card_side: 'b')
+                         .where(card_side: [nil, 'a'])
                          .includes(:boxset)
                          .order('boxsets.release_date DESC')
     render partial: 'deck_builder/choose_printing_modal', locals: {
