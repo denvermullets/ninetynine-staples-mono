@@ -1,9 +1,9 @@
 <%= turbo_frame_tag "deck_modal" do %>
   <dialog id="swap-printing-dialog"
-          class="p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 max-h-[85vh] overflow-hidden"
+          class="p-0 border-0 md:border rounded-none md:rounded-lg bg-foreground md:border-highlight backdrop:bg-black/50 fixed top-0 left-0 md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 m-0 w-full h-full md:w-auto md:h-[90vh] md:max-h-[90vh] overflow-hidden"
           data-controller="modal"
           data-action="click->modal#closeOnBackdrop keydown.esc->modal#close">
-    <div class="w-[800px] max-w-[90vw] p-6 flex flex-col max-h-[85vh]" data-modal-target="content">
+    <div class="w-full h-full md:w-fit md:max-w-[90vw] p-4 md:p-6 flex flex-col md:max-h-[90vh]" data-modal-target="content">
       <div class="flex items-center justify-between mb-4 shrink-0">
         <h3 class="text-lg font-semibold text-grey-text">Swap Printing - <%= card.magic_card.name %></h3>
         <button type="button"
@@ -16,37 +16,20 @@
       </div>
 
       <div class="overflow-y-auto flex-1">
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <% printings.each do |printing| %>
             <% is_current = printing.id == card.magic_card_id %>
             <% if is_current %>
-              <div class="relative p-2 rounded-lg border-2 border-accent-50 bg-background/50 ring-2 ring-accent-50/30">
-                <div class="absolute top-3 right-3 z-10">
-                  <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-accent-50 text-foreground">
-                    Current
-                  </span>
-                </div>
-                <% if printing.image_medium.present? %>
-                  <img src="<%= printing.image_medium %>"
-                       alt="<%= printing.name %>"
-                       class="w-full h-auto rounded mb-2" />
-                <% end %>
-                <p class="text-sm font-medium text-grey-text truncate"><%= printing.boxset&.name %></p>
-                <p class="text-xs text-grey-text/75"><%= number_to_currency(printing.normal_price) %></p>
+              <div class="relative p-3 rounded-lg border-2 border-accent-50 bg-background/50 ring-2 ring-accent-50/30">
+                <%= render 'deck_builder/printing_card', printing: printing, is_current: is_current %>
               </div>
             <% else %>
               <%= form_with url: swap_printing_deck_builder_path(deck, card_id: card.id, new_magic_card_id: printing.id),
                   method: :post,
                   class: "contents" do |f| %>
                 <button type="submit"
-                        class="relative p-2 rounded-lg border border-highlight bg-background hover:border-accent-50 hover:bg-background/75 transition cursor-pointer text-left">
-                  <% if printing.image_medium.present? %>
-                    <img src="<%= printing.image_medium %>"
-                         alt="<%= printing.name %>"
-                         class="w-full h-auto rounded mb-2" />
-                  <% end %>
-                  <p class="text-sm font-medium text-grey-text truncate"><%= printing.boxset&.name %></p>
-                  <p class="text-xs text-grey-text/75"><%= number_to_currency(printing.normal_price) %></p>
+                        class="relative p-3 rounded-lg border border-highlight bg-background hover:border-accent-50 hover:bg-background/75 transition cursor-pointer text-left">
+                  <%= render 'deck_builder/printing_card', printing: printing, is_current: is_current %>
                 </button>
               <% end %>
             <% end %>

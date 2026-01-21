@@ -36,6 +36,7 @@ export default class extends Controller {
     const {
       printingId,
       printingImage,
+      printingImageLarge,
       printingSet,
       nonFoilAvailable,
       foilAvailable,
@@ -46,13 +47,22 @@ export default class extends Controller {
 
     // Update the displayed card info
     const setEl = this.element.querySelector("p.text-xs.text-grey-text\\/70");
+    const statusEl = this.element.querySelector("p.text-xs.text-accent-50\\/70");
     const imgEl = this.element.querySelector("img[data-controller='card-hover']");
 
     if (setEl) {
-      setEl.innerHTML = `${printingSet} <span class="text-accent-50/70">- Selected</span>`;
+      setEl.textContent = printingSet;
     }
-    if (imgEl && printingImage) {
-      imgEl.src = printingImage;
+    if (statusEl) {
+      statusEl.textContent = "Selected printing";
+    }
+    if (imgEl) {
+      if (printingImage) {
+        imgEl.src = printingImage;
+      }
+      if (printingImageLarge) {
+        imgEl.dataset.cardHoverImageValue = printingImageLarge;
+      }
     }
 
     // Update the card type dropdown options (desktop)
@@ -99,9 +109,7 @@ export default class extends Controller {
 
   updateMobileButtons(nonFoilAvailable, foilAvailable) {
     // Find and update mobile button visibility
-    const regularBtn = this.element.querySelector(
-      'button[data-card-type="regular"]'
-    );
+    const regularBtn = this.element.querySelector('button[data-card-type="regular"]');
     const foilBtn = this.element.querySelector('button[data-card-type="foil"]');
 
     if (regularBtn) {
@@ -249,9 +257,7 @@ export default class extends Controller {
   async addNew(event) {
     event.preventDefault();
 
-    const cardType = this.hasCardTypeSelectTarget
-      ? this.cardTypeSelectTarget.value
-      : "regular";
+    const cardType = this.hasCardTypeSelectTarget ? this.cardTypeSelectTarget.value : "regular";
 
     await this.submitNewCard(cardType);
   }
@@ -272,18 +278,14 @@ export default class extends Controller {
     formData.append("quantity", quantity);
 
     try {
-      const response = await fetch(
-        `/deck-builder/${this.deckIdValue}/add_new_card`,
-        {
-          method: "POST",
-          headers: {
-            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')
-              .content,
-            Accept: "text/vnd.turbo-stream.html",
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch(`/deck-builder/${this.deckIdValue}/add_new_card`, {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+          Accept: "text/vnd.turbo-stream.html",
+        },
+        body: formData,
+      });
 
       const html = await response.text();
       Turbo.renderStreamMessage(html);

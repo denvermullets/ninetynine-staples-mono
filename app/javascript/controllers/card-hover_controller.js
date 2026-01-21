@@ -27,7 +27,7 @@ export default class extends Controller {
       this.previewElement.innerHTML = `
         <img src="${this.imageValue}"
              alt="${this.nameValue || "Card preview"}"
-             class="w-64 rounded-xl shadow-2xl shadow-black/50 border border-highlight" />
+             class="w-80 rounded-xl shadow-2xl shadow-black/50 border border-highlight" />
       `;
       document.body.appendChild(this.previewElement);
     }
@@ -56,8 +56,8 @@ export default class extends Controller {
     if (!this.previewElement) return;
 
     const padding = 16;
-    const previewWidth = 256; // w-64 = 16rem = 256px
-    const previewHeight = 356; // approximate height of card
+    const previewWidth = 320; // w-80 = 20rem = 320px
+    const previewHeight = 448; // approximate height of card
 
     let x = event.clientX + padding;
     let y = event.clientY - previewHeight / 2;
