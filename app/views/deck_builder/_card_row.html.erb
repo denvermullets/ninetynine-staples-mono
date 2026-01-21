@@ -19,6 +19,12 @@
     <div class="flex flex-col min-w-0">
       <div class="flex items-center gap-2">
         <span class="font-medium text-white truncate"><%= card.magic_card.name %></span>
+        <% if card.display_foil? %>
+          <span class="px-1.5 py-0.5 text-xs font-bold rounded bg-accent-50/20 text-accent-50 border border-accent-50/30">F</span>
+        <% end %>
+        <% if card.display_proxy? %>
+          <span class="px-1.5 py-0.5 text-xs font-bold rounded bg-accent-400/20 text-accent-400 border border-accent-400/30">P</span>
+        <% end %>
         <% if can_set_commander && @deck.commanders.empty? %>
           <%= button_to set_commander_deck_builder_path(@deck, card_id: card.id),
               method: :post,
