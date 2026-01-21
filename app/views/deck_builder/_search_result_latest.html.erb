@@ -53,8 +53,12 @@
           <div class="hidden md:flex items-center gap-2">
             <select data-add-card-target="cardTypeSelect"
                     class="flex-1 px-2 py-1.5 text-xs border rounded bg-background border-highlight text-grey-text cursor-pointer">
-              <option value="regular">Regular</option>
-              <option value="foil">Foil</option>
+              <% if result[:card].non_foil_available? %>
+                <option value="regular">Regular</option>
+              <% end %>
+              <% if result[:card].foil_available? %>
+                <option value="foil">Foil</option>
+              <% end %>
               <option value="proxy">Proxy</option>
               <option value="foil_proxy">Foil Proxy</option>
             </select>
@@ -67,18 +71,22 @@
 
           <!-- Mobile: button grid -->
           <div class="grid grid-cols-2 gap-2 md:hidden">
-            <button type="button"
-                    data-action="click->add-card#addNewWithType"
-                    data-card-type="regular"
-                    class="px-2 py-1.5 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
-              Add Regular
-            </button>
-            <button type="button"
-                    data-action="click->add-card#addNewWithType"
-                    data-card-type="foil"
-                    class="px-2 py-1.5 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
-              Add Foil
-            </button>
+            <% if result[:card].non_foil_available? %>
+              <button type="button"
+                      data-action="click->add-card#addNewWithType"
+                      data-card-type="regular"
+                      class="px-2 py-1.5 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                Add Regular
+              </button>
+            <% end %>
+            <% if result[:card].foil_available? %>
+              <button type="button"
+                      data-action="click->add-card#addNewWithType"
+                      data-card-type="foil"
+                      class="px-2 py-1.5 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                Add Foil
+              </button>
+            <% end %>
             <button type="button"
                     data-action="click->add-card#addNewWithType"
                     data-card-type="proxy"
