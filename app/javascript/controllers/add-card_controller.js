@@ -33,8 +33,14 @@ export default class extends Controller {
     // Only update if this is the active/focused add-card element
     if (window.activeAddCardElement !== this.element) return;
 
-    const { printingId, printingImage, printingSet, nonFoilAvailable, foilAvailable } =
-      event.detail;
+    const {
+      printingId,
+      printingImage,
+      printingImageLarge,
+      printingSet,
+      nonFoilAvailable,
+      foilAvailable,
+    } = event.detail;
 
     // Update the card ID value
     this.cardIdValue = parseInt(printingId);
