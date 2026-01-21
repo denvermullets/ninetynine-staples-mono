@@ -8,6 +8,8 @@ export default class extends Controller {
     const printingName = button.dataset.printingName;
     const printingImage = button.dataset.printingImage;
     const printingSet = button.dataset.printingSet;
+    const nonFoilAvailable = button.dataset.printingNonFoilAvailable === "true";
+    const foilAvailable = button.dataset.printingFoilAvailable === "true";
 
     // Dispatch a global event with the selected printing data
     window.dispatchEvent(
@@ -17,6 +19,8 @@ export default class extends Controller {
           printingName,
           printingImage,
           printingSet,
+          nonFoilAvailable,
+          foilAvailable,
         },
       })
     );

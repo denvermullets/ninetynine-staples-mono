@@ -33,13 +33,18 @@ export default class extends Controller {
     // Only update if this is the active/focused add-card element
     if (window.activeAddCardElement !== this.element) return;
 
-    const { printingId, printingName, printingImage, printingSet } = event.detail;
+    const {
+      printingId,
+      printingImage,
+      printingSet,
+      nonFoilAvailable,
+      foilAvailable,
+    } = event.detail;
 
     // Update the card ID value
     this.cardIdValue = parseInt(printingId);
 
     // Update the displayed card info
-    const nameEl = this.element.querySelector("h4");
     const setEl = this.element.querySelector("p.text-xs.text-grey-text\\/70");
     const imgEl = this.element.querySelector("img[data-controller='card-hover']");
 
@@ -50,8 +55,61 @@ export default class extends Controller {
       imgEl.src = printingImage;
     }
 
+    // Update the card type dropdown options (desktop)
+    if (this.hasCardTypeSelectTarget) {
+      const select = this.cardTypeSelectTarget;
+      const currentValue = select.value;
+      select.innerHTML = "";
+
+      if (nonFoilAvailable) {
+        const option = document.createElement("option");
+        option.value = "regular";
+        option.textContent = "Regular";
+        select.appendChild(option);
+      }
+      if (foilAvailable) {
+        const option = document.createElement("option");
+        option.value = "foil";
+        option.textContent = "Foil";
+        select.appendChild(option);
+      }
+      // Proxy options are always available
+      const proxyOption = document.createElement("option");
+      proxyOption.value = "proxy";
+      proxyOption.textContent = "Proxy";
+      select.appendChild(proxyOption);
+
+      const foilProxyOption = document.createElement("option");
+      foilProxyOption.value = "foil_proxy";
+      foilProxyOption.textContent = "Foil Proxy";
+      select.appendChild(foilProxyOption);
+
+      // Try to restore previous selection, or select first available
+      if ([...select.options].some((opt) => opt.value === currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
+    // Update mobile buttons visibility
+    this.updateMobileButtons(nonFoilAvailable, foilAvailable);
+
     // Clear the active element
     window.activeAddCardElement = null;
+  }
+
+  updateMobileButtons(nonFoilAvailable, foilAvailable) {
+    // Find and update mobile button visibility
+    const regularBtn = this.element.querySelector(
+      'button[data-card-type="regular"]'
+    );
+    const foilBtn = this.element.querySelector('button[data-card-type="foil"]');
+
+    if (regularBtn) {
+      regularBtn.classList.toggle("hidden", !nonFoilAvailable);
+    }
+    if (foilBtn) {
+      foilBtn.classList.toggle("hidden", !foilAvailable);
+    }
   }
 
   openChoosePrinting(event) {
@@ -59,9 +117,8 @@ export default class extends Controller {
     // Mark this element as the active one for printing selection
     window.activeAddCardElement = this.element;
 
-    // Get the URL from the clicked link
-    const url = event.currentTarget.href;
-    if (!url) return;
+    // Build URL dynamically using current cardIdValue (not the static href)
+    const url = `/deck-builder/${this.deckIdValue}/choose_printing_modal?magic_card_id=${this.cardIdValue}`;
 
     // Open the choose printing modal via Turbo frame
     const frame = document.querySelector("turbo-frame#deck_modal");

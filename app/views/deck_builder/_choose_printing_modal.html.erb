@@ -25,6 +25,8 @@
                     data-printing-name="<%= printing.name %>"
                     data-printing-image="<%= printing.image_small %>"
                     data-printing-set="<%= printing.boxset&.name %> (<%= printing.boxset&.code&.upcase %>)"
+                    data-printing-non-foil-available="<%= printing.non_foil_available? %>"
+                    data-printing-foil-available="<%= printing.foil_available? %>"
                     class="relative p-3 rounded-lg border <%= is_current ? 'border-2 border-accent-50 bg-background/50 ring-2 ring-accent-50/30' : 'border-highlight bg-background hover:border-accent-50 hover:bg-background/75' %> transition cursor-pointer text-left">
               <% if is_current %>
                 <div class="absolute top-4 right-4 z-10">
