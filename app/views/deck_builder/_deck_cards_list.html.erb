@@ -103,6 +103,9 @@
               <% if card.display_proxy? %>
                 <span class="ml-1 px-1 text-[10px] font-bold rounded bg-accent-400/20 text-accent-400 border border-accent-400/30">P</span>
               <% end %>
+              <% if card.magic_card.card_side == 'b' %>
+                <span class="ml-1 px-1 text-[10px] font-bold rounded bg-accent-100/20 text-accent-100 border border-accent-100/30">B</span>
+              <% end %>
               <% if card.staged? && card.from_owned_collection? %>
                 <span class="text-xs font-normal opacity-75">(from <%= card.source_collection.name.truncate(15) %>)</span>
               <% elsif card.staged? && card.planned? %>
