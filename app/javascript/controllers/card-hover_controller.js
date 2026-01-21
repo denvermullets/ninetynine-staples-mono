@@ -23,7 +23,7 @@ export default class extends Controller {
     if (!this.previewElement) {
       this.previewElement = document.createElement("div");
       this.previewElement.className =
-        "fixed z-50 pointer-events-none transition-opacity duration-150";
+        "fixed z-[10000] pointer-events-none transition-opacity duration-150";
       this.previewElement.innerHTML = `
         <img src="${this.imageValue}"
              alt="${this.nameValue || "Card preview"}"
