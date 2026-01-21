@@ -20,19 +20,18 @@
       <p class="text-xs text-grey-text truncate"><%= result[:card].card_type %></p>
       <p class="text-xs text-grey-text/70 truncate">
         <%= result[:card].boxset&.name %> (<%= result[:card].boxset&.code&.upcase %>)
-        <span class="text-accent-50/70">- Latest</span>
       </p>
-      <%= link_to choose_printing_modal_deck_builder_path(@deck, magic_card_id: result[:card].id),
-          data: { turbo_frame: "deck_modal", action: "click->add-card#openChoosePrinting" },
-          class: "text-xs text-accent-50 hover:text-accent-100 hover:underline" do %>
-        Change printing
-      <% end %>
-
+      <p class="text-xs text-accent-50/70">Latest printing</p>
       <% if result[:already_in_deck] %>
         <span class="inline-block px-2 py-1 mt-2 text-xs rounded bg-highlight text-grey-text">
-          Already in deck
+          <%= result[:deck_card_planned] ? 'Planned' : 'Already in deck' %>
         </span>
       <% else %>
+        <%= link_to choose_printing_modal_deck_builder_path(@deck, magic_card_id: result[:card].id),
+            data: { turbo_frame: "deck_modal", action: "click->add-card#openChoosePrinting" },
+            class: "text-xs text-accent-50 hover:text-accent-100 hover:underline" do %>
+          Change printing
+        <% end %>
         <div class="flex items-center gap-2 mt-3">
           <div class="flex items-center">
             <button type="button"

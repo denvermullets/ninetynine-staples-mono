@@ -7,6 +7,7 @@ export default class extends Controller {
     const printingId = button.dataset.printingId;
     const printingName = button.dataset.printingName;
     const printingImage = button.dataset.printingImage;
+    const printingImageLarge = button.dataset.printingImageLarge;
     const printingSet = button.dataset.printingSet;
     const nonFoilAvailable = button.dataset.printingNonFoilAvailable === "true";
     const foilAvailable = button.dataset.printingFoilAvailable === "true";
@@ -18,6 +19,7 @@ export default class extends Controller {
           printingId,
           printingName,
           printingImage,
+          printingImageLarge,
           printingSet,
           nonFoilAvailable,
           foilAvailable,

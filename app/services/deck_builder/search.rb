@@ -96,10 +96,12 @@ module DeckBuilder
     end
 
     def build_latest_result(card)
+      deck_card = @deck.collection_magic_cards.find_by(magic_card_id: card.id)
       {
         type: :latest,
         card: card,
-        already_in_deck: @deck.collection_magic_cards.exists?(magic_card_id: card.id)
+        already_in_deck: deck_card.present?,
+        deck_card_planned: deck_card&.planned?
       }
     end
 
