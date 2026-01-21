@@ -1,9 +1,9 @@
 <%= turbo_frame_tag "deck_modal" do %>
   <dialog id="swap-source-dialog"
-          class="p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 max-h-[85vh] overflow-hidden"
+          class="p-0 border-0 md:border rounded-none md:rounded-lg bg-foreground md:border-highlight backdrop:bg-black/50 fixed top-0 left-0 md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 m-0 w-full h-full md:w-auto md:h-[90vh] md:max-h-[90vh] overflow-hidden"
           data-controller="modal"
           data-action="click->modal#closeOnBackdrop keydown.esc->modal#close">
-    <div class="w-[700px] max-w-[90vw] p-6 flex flex-col max-h-[85vh]" data-modal-target="content">
+    <div class="w-full h-full md:w-fit md:max-w-[90vw] p-4 md:p-6 flex flex-col md:max-h-[90vh]" data-modal-target="content">
       <div class="flex items-center justify-between mb-4 shrink-0">
         <h3 class="text-lg font-semibold text-grey-text">
           <%= card.planned? ? 'Source from Collection' : 'Change Source' %> - <%= card.magic_card.name %>
@@ -35,67 +35,51 @@
         <% end %>
       </div>
 
-      <div class="overflow-y-auto flex-1 space-y-3">
-        <% available_sources.each do |source| %>
-          <%
-            mc = source[:magic_card]
-            parts = []
-            parts << "#{source[:regular]}" if source[:regular] > 0
-            parts << "#{source[:foil]} foil" if source[:foil] > 0
-            parts << "#{source[:proxy]} proxy" if source[:proxy] > 0
-            parts << "#{source[:proxy_foil]} foil proxy" if source[:proxy_foil] > 0
-            availability_text = parts.join(', ')
-          %>
-          <% if source[:is_current] %>
-            <div class="p-3 rounded-lg border-2 border-blue-500 bg-blue-500/10">
-              <div class="flex gap-3">
-                <% if mc.image_small.present? %>
-                  <img src="<%= mc.image_small %>"
-                       alt="<%= mc.name %>"
-                       class="w-16 h-auto rounded shrink-0 cursor-pointer"
-                       loading="lazy"
-                       data-controller="card-hover"
-                       data-card-hover-image-value="<%= mc.image_large || mc.image_medium %>"
-                       data-card-hover-name-value="<%= mc.name %>"
-                       data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
+      <div class="overflow-y-auto flex-1">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <% available_sources.each do |source| %>
+            <%
+              mc = source[:magic_card]
+              parts = []
+              parts << "#{source[:regular]}" if source[:regular] > 0
+              parts << "#{source[:foil]} foil" if source[:foil] > 0
+              parts << "#{source[:proxy]} proxy" if source[:proxy] > 0
+              parts << "#{source[:proxy_foil]} foil proxy" if source[:proxy_foil] > 0
+              availability_text = parts.join(', ')
+            %>
+            <% if source[:is_current] %>
+              <div class="relative p-3 rounded-lg border-2 border-blue-500 bg-blue-500/10">
+                <div class="absolute top-4 right-4 z-10">
+                  <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-500 text-white">Current</span>
+                </div>
+                <% if mc.image_large.present? %>
+                  <img src="<%= mc.image_large %>" alt="<%= mc.name %>" class="w-full h-auto rounded mb-2" loading="lazy" />
+                <% else %>
+                  <img src="<%= mc.image_medium %>" alt="<%= mc.name %>" class="w-full h-auto rounded mb-2" loading="lazy" />
                 <% end %>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-blue-400"><%= source[:collection_name] %></span>
-                    <span class="px-2 py-0.5 text-xs rounded-full bg-blue-500 text-white">Current</span>
-                  </div>
-                  <p class="text-xs text-grey-text mt-1"><%= mc.boxset&.name %> (<%= mc.boxset&.code&.upcase %>)</p>
-                  <p class="text-xs text-grey-text/75 mt-1"><%= availability_text %> available</p>
-                </div>
+                <p class="text-sm font-medium text-blue-400 truncate"><%= source[:collection_name] %></p>
+                <p class="text-xs text-grey-text truncate"><%= mc.boxset&.name %></p>
+                <p class="text-xs text-grey-text/75"><%= availability_text %> available</p>
               </div>
-            </div>
-          <% else %>
-            <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: source[:collection_id], magic_card_id: mc.id),
-                method: :post,
-                class: "contents" do |f| %>
-              <button type="submit"
-                      class="w-full p-3 rounded-lg border border-highlight bg-background hover:border-accent-50 hover:bg-background/75 transition cursor-pointer text-left">
-                <div class="flex gap-3">
-                  <% if mc.image_small.present? %>
-                    <img src="<%= mc.image_small %>"
-                         alt="<%= mc.name %>"
-                         class="w-16 h-auto rounded shrink-0 cursor-pointer"
-                         loading="lazy"
-                         data-controller="card-hover"
-                         data-card-hover-image-value="<%= mc.image_large || mc.image_medium %>"
-                         data-card-hover-name-value="<%= mc.name %>"
-                         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move" />
+            <% else %>
+              <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: source[:collection_id], magic_card_id: mc.id),
+                  method: :post,
+                  class: "contents" do |f| %>
+                <button type="submit"
+                        class="relative p-3 rounded-lg border border-highlight bg-background hover:border-accent-50 hover:bg-background/75 transition cursor-pointer text-left">
+                  <% if mc.image_large.present? %>
+                    <img src="<%= mc.image_large %>" alt="<%= mc.name %>" class="w-full h-auto rounded mb-2" loading="lazy" />
+                  <% else %>
+                    <img src="<%= mc.image_medium %>" alt="<%= mc.name %>" class="w-full h-auto rounded mb-2" loading="lazy" />
                   <% end %>
-                  <div class="flex-1 min-w-0">
-                    <span class="font-medium text-grey-text"><%= source[:collection_name] %></span>
-                    <p class="text-xs text-grey-text mt-1"><%= mc.boxset&.name %> (<%= mc.boxset&.code&.upcase %>)</p>
-                    <p class="text-xs text-grey-text/75 mt-1"><%= availability_text %> available</p>
-                  </div>
-                </div>
-              </button>
+                  <p class="text-sm font-medium text-grey-text truncate"><%= source[:collection_name] %></p>
+                  <p class="text-xs text-grey-text truncate"><%= mc.boxset&.name %></p>
+                  <p class="text-xs text-grey-text/75"><%= availability_text %> available</p>
+                </button>
+              <% end %>
             <% end %>
           <% end %>
-        <% end %>
+        </div>
 
         <% unless card.planned? %>
           <div class="pt-3 mt-3 border-t border-highlight">

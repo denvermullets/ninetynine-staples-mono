@@ -33,6 +33,18 @@
               </span>
             <% end %>
 
+            <!-- Type Badges (Foil/Proxy) -->
+            <% if card.display_foil? || card.display_proxy? %>
+              <div class="absolute top-2 left-2 flex gap-1">
+                <% if card.display_foil? %>
+                  <span class="px-1 text-[10px] font-bold rounded bg-accent-50/90 text-background shadow">F</span>
+                <% end %>
+                <% if card.display_proxy? %>
+                  <span class="px-1 text-[10px] font-bold rounded bg-accent-400/90 text-background shadow">P</span>
+                <% end %>
+              </div>
+            <% end %>
+
             <!-- Status Badge -->
             <% if card.staged? || card.needed? %>
               <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-xs text-center rounded-b-lg bg-black/80">

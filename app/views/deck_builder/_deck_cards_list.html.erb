@@ -97,6 +97,12 @@
                               'text-grey-text'
                             end %>">
               <%= card.magic_card.name %>
+              <% if card.display_foil? %>
+                <span class="ml-1 px-1 text-[10px] font-bold rounded bg-accent-50/20 text-accent-50 border border-accent-50/30">F</span>
+              <% end %>
+              <% if card.display_proxy? %>
+                <span class="ml-1 px-1 text-[10px] font-bold rounded bg-accent-400/20 text-accent-400 border border-accent-400/30">P</span>
+              <% end %>
               <% if card.staged? && card.from_owned_collection? %>
                 <span class="text-xs font-normal opacity-75">(from <%= card.source_collection.name.truncate(15) %>)</span>
               <% elsif card.staged? && card.planned? %>
