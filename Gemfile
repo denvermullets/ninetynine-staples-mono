@@ -1,15 +1,15 @@
 source "https://rubygems.org"
 
-gem "bcrypt", "~> 3.1"
+gem "bcrypt", "~> 3.1.21"
 gem "bootsnap", require: false
 gem 'dotenv-rails'
 gem "httparty"
 gem "importmap-rails"
 gem "mission_control-jobs"
 gem "pagy"
-gem "pg", "~> 1.6.2"
+gem "pg", "~> 1.6.3"
 gem "pry"
-gem "puma", ">= 7.1.0"
+gem "puma", ">= 7.2.0"
 gem "rails", "~> 8.1.2"
 gem "solid_queue", "~> 1.3.1"
 gem "sprockets-rails"
