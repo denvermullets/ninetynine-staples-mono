@@ -64,25 +64,30 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def proxy_value
-    (proxy_quantity * magic_card.normal_price) + (proxy_foil_quantity * magic_card.foil_price)
+    ((proxy_quantity || 0) * magic_card.normal_price.to_f) +
+      ((proxy_foil_quantity || 0) * magic_card.foil_price.to_f)
   end
 
   # Value for deck builder display (handles both staged and non-staged cards)
   # For foil-only cards, uses foil_price for all quantities
+  # For non-staged cards, includes both real and proxy values
   def display_value
     normal_price = magic_card.normal_price.to_f
     foil_price = magic_card.foil_price.to_f
 
-    # For foil-only cards (no non-foil price), treat all quantities as foil
-    if normal_price.zero? && foil_price.positive?
-      display_quantity * foil_price
-    elsif staged?
-      # Regular and proxy use normal_price, foil and proxy_foil use foil_price
-      ((staged_quantity + staged_proxy_quantity) * normal_price) +
-        ((staged_foil_quantity + staged_proxy_foil_quantity) * foil_price)
-    else
-      real_value
-    end
+    return display_quantity * foil_price if foil_only_card?(normal_price, foil_price)
+    return staged_value(normal_price, foil_price) if staged?
+
+    real_value + proxy_value
+  end
+
+  def staged_value(normal_price, foil_price)
+    ((staged_quantity + staged_proxy_quantity) * normal_price) +
+      ((staged_foil_quantity + staged_proxy_foil_quantity) * foil_price)
+  end
+
+  def foil_only_card?(normal_price, foil_price)
+    normal_price.zero? && foil_price.positive?
   end
 
   # Build mode methods

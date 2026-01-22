@@ -82,7 +82,7 @@ module DeckBuilderModals
   def view_card_modal
     card = @deck.collection_magic_cards.find(params[:card_id])
     magic_card = card.magic_card
-    user_copies = find_user_copies(magic_card)
+    user_copies = DeckBuilder::FindUserCopies.call(magic_card: magic_card, user: current_user)
 
     render partial: 'deck_builder/view_card_modal', locals: {
       card: card,
@@ -101,19 +101,5 @@ module DeckBuilderModals
       proxy: card.staged_proxy_quantity + (available[:proxy] || 0),
       proxy_foil: card.staged_proxy_foil_quantity + (available[:proxy_foil] || 0)
     }
-  end
-
-  def find_user_copies(magic_card)
-    oracle_id = magic_card.scryfall_oracle_id
-    return [] if oracle_id.blank?
-
-    printing_ids = MagicCard.where(scryfall_oracle_id: oracle_id).pluck(:id)
-
-    CollectionMagicCard
-      .joins(:collection, :magic_card)
-      .includes(:collection, magic_card: :boxset)
-      .where(collections: { user_id: current_user.id })
-      .where(magic_card_id: printing_ids, staged: false, needed: false)
-      .order('collections.name')
   end
 end
