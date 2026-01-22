@@ -32,7 +32,7 @@ class SettingsController < ApplicationController
   end
 
   def update_game_tracker_visibility
-    is_public = params[:public] == true || params[:public] == 'true'
+    is_public = [true, 'true'].include?(params[:public])
     if current_user.update(game_tracker_public: is_public)
       head :ok
     else

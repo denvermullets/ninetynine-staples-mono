@@ -25,7 +25,8 @@ module GameTracker
       @tracked_deck = current_user.tracked_decks.build(tracked_deck_params)
 
       if @tracked_deck.save
-        redirect_to game_tracker_tracked_deck_path(current_user.username, @tracked_deck), notice: 'Deck tracking started!'
+        redirect_to game_tracker_tracked_deck_path(current_user.username, @tracked_deck),
+                    notice: 'Deck tracking started!'
       else
         render :new, status: :unprocessable_entity
       end
@@ -35,7 +36,8 @@ module GameTracker
 
     def update
       if @tracked_deck.update(tracked_deck_params)
-        redirect_to game_tracker_tracked_deck_path(current_user.username, @tracked_deck), notice: 'Deck updated successfully.'
+        redirect_to game_tracker_tracked_deck_path(current_user.username, @tracked_deck),
+                    notice: 'Deck updated successfully.'
       else
         render :edit, status: :unprocessable_entity
       end
@@ -43,7 +45,8 @@ module GameTracker
 
     def destroy
       @tracked_deck.destroy
-      redirect_to game_tracker_tracked_decks_path(current_user.username), notice: 'Deck tracking removed.', status: :see_other
+      redirect_to game_tracker_tracked_decks_path(current_user.username), notice: 'Deck tracking removed.',
+                                                                          status: :see_other
     end
 
     def search_commanders
@@ -56,9 +59,9 @@ module GameTracker
     def set_tracked_deck
       @tracked_deck = TrackedDeck.find(params[:id])
       # For username-scoped routes, ensure the deck belongs to the user in the URL
-      if username_scoped_route? && @tracked_deck.user_id != tracker_owner.id
-        redirect_to root_path, alert: 'Deck not found'
-      end
+      return unless username_scoped_route? && @tracked_deck.user_id != tracker_owner.id
+
+      redirect_to root_path, alert: 'Deck not found'
     end
 
     def ensure_owner

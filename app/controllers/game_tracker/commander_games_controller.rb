@@ -41,7 +41,8 @@ module GameTracker
 
     def update
       if @commander_game.update(commander_game_params)
-        redirect_to game_tracker_commander_game_path(current_user.username, @commander_game), notice: 'Game updated successfully.'
+        redirect_to game_tracker_commander_game_path(current_user.username, @commander_game),
+                    notice: 'Game updated successfully.'
       else
         @tracked_decks = current_user.tracked_decks.includes(:commander)
         render :edit, status: :unprocessable_entity
@@ -63,9 +64,9 @@ module GameTracker
     def set_commander_game
       @commander_game = CommanderGame.find(params[:id])
       # For username-scoped routes, ensure the game belongs to the user in the URL
-      if username_scoped_route? && @commander_game.user_id != tracker_owner.id
-        redirect_to root_path, alert: 'Game not found'
-      end
+      return unless username_scoped_route? && @commander_game.user_id != tracker_owner.id
+
+      redirect_to root_path, alert: 'Game not found'
     end
 
     def ensure_owner

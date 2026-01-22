@@ -33,9 +33,9 @@ module GameTracker
     end
 
     def require_owner!
-      unless viewing_own_tracker?
-        redirect_to root_path, alert: 'Access denied'
-      end
+      return if viewing_own_tracker?
+
+      redirect_to root_path, alert: 'Access denied'
     end
   end
 end
