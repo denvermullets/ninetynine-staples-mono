@@ -20,15 +20,17 @@
       </div>
       <p class="text-grey-text mb-4"><%= @tracked_deck.commander_display_name %></p>
 
-      <div class="flex flex-wrap gap-3">
-        <%= link_to edit_tracked_deck_path(@tracked_deck), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
-          Edit Deck
-        <% end %>
-        <%= link_to new_commander_game_path(tracked_deck_id: @tracked_deck.id), class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
-          + Record Game
-        <% end %>
-        <%= link_to 'Delete', tracked_deck_path(@tracked_deck), method: :delete, data: { turbo_method: :delete, turbo_confirm: 'Are you sure you want to delete this deck and all its games?' }, class: 'px-4 py-2 text-accent-100 hover:text-accent-100/80 cursor-pointer' %>
-      </div>
+      <% if @is_owner %>
+        <div class="flex flex-wrap gap-3">
+          <%= link_to edit_tracked_deck_path(@tracked_deck), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
+            Edit Deck
+          <% end %>
+          <%= link_to new_commander_game_path(tracked_deck_id: @tracked_deck.id), class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
+            + Record Game
+          <% end %>
+          <%= link_to 'Delete', tracked_deck_path(@tracked_deck), method: :delete, data: { turbo_method: :delete, turbo_confirm: 'Are you sure you want to delete this deck and all its games?' }, class: 'px-4 py-2 text-accent-100 hover:text-accent-100/80 cursor-pointer' %>
+        </div>
+      <% end %>
     </div>
   </div>
 
@@ -97,7 +99,7 @@
   <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
     <div class="flex justify-between items-center px-6 py-4 border-b border-highlight">
       <h2 class="text-xl font-bold text-grey-text">Recent Games</h2>
-      <%= link_to 'View All Games', commander_games_path, class: 'text-accent-50 hover:text-accent-100' %>
+      <%= link_to 'View All Games', game_tracker_commander_games_path(tracker_owner.username), class: 'text-accent-50 hover:text-accent-100' %>
     </div>
 
     <% if @recent_games.any? %>
@@ -113,7 +115,7 @@
         </thead>
         <tbody class="divide-y divide-highlight">
           <% @recent_games.each do |game| %>
-            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= commander_game_path(game) %>'">
+            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= game_tracker_commander_game_path(tracker_owner.username, game) %>'">
               <td class="px-6 py-4 text-grey-text"><%= game.played_on.strftime('%b %d, %Y') %></td>
               <td class="px-6 py-4">
                 <span class="px-2 py-1 rounded-full text-xs <%= game.result_badge_class %>">
@@ -132,7 +134,9 @@
     <% else %>
       <div class="p-8 text-center">
         <p class="text-grey-text mb-4">No games recorded yet</p>
-        <%= link_to '+ Record First Game', new_commander_game_path(tracked_deck_id: @tracked_deck.id), class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+        <% if @is_owner %>
+          <%= link_to '+ Record First Game', new_commander_game_path(tracked_deck_id: @tracked_deck.id), class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+        <% end %>
       </div>
     <% end %>
   </div>

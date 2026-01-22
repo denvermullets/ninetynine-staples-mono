@@ -2,6 +2,26 @@
   <div class='w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl text-grey-text'>
     <h1 class='mb-6 text-xl font-bold text-center'>Settings</h1>
     <div class='space-y-8'>
+      <!-- Game Tracker Visibility Section -->
+      <section>
+        <h2 class='mb-4 text-lg font-semibold'>Game Tracker Privacy</h2>
+        <p class='mb-4 text-sm'>Control whether other users can view your game tracker statistics.</p>
+        <div data-controller="game-tracker-visibility"
+             data-game-tracker-visibility-url-value="<%= update_game_tracker_visibility_path %>">
+          <label class='flex items-center gap-3 p-3 border rounded-lg cursor-pointer border-highlight bg-background hover:border-accent-50 transition'>
+            <input type="checkbox"
+                   data-game-tracker-visibility-target="toggle"
+                   data-action="change->game-tracker-visibility#toggle"
+                   <%= 'checked' if current_user.game_tracker_public? %>
+                   class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+            <div>
+              <span class="font-medium">Make my Game Tracker public</span>
+              <p class="text-sm text-grey-text/70">When enabled, anyone can view your game statistics at <code class="text-accent-50">/game-tracker/<%= current_user.username %></code></p>
+            </div>
+          </label>
+        </div>
+      </section>
+      <hr class='border-highlight'>
       <!-- Collection Order Section -->
       <section>
         <h2 class='mb-4 text-lg font-semibold'>Collection Order</h2>

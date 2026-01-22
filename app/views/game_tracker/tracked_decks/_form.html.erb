@@ -1,4 +1,4 @@
-<%= form_with model: tracked_deck, class: 'space-y-6' do |f| %>
+<%= form_with model: tracked_deck, url: tracked_deck.new_record? ? tracked_decks_path : tracked_deck_path(tracked_deck), class: 'space-y-6' do |f| %>
   <% if tracked_deck.errors.any? %>
     <div class="p-4 border border-accent-100 rounded-lg bg-accent-100/10">
       <h3 class="text-accent-100 font-medium mb-2">Please fix the following errors:</h3>
@@ -137,6 +137,6 @@
   <div class="flex gap-4">
     <%= f.submit tracked_deck.new_record? ? 'Create Deck' : 'Update Deck',
         class: 'px-6 py-3 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' %>
-    <%= link_to 'Cancel', tracked_decks_path, class: 'px-6 py-3 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-100 hover:text-accent-100 cursor-pointer' %>
+    <%= link_to 'Cancel', game_tracker_tracked_decks_path(current_user.username), class: 'px-6 py-3 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-100 hover:text-accent-100 cursor-pointer' %>
   </div>
 <% end %>

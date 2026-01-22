@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   get 'settings', to: 'settings#show', as: :settings
   post 'settings/move_collection', to: 'settings#move_collection', as: :move_collection
   post 'settings/update_column_visibility', to: 'settings#update_column_visibility', as: :update_column_visibility
+  post 'settings/update_game_tracker_visibility', to: 'settings#update_game_tracker_visibility', as: :update_game_tracker_visibility
 
   mount MissionControl::Jobs::Engine, at: '/jobs'
 
@@ -98,18 +99,26 @@ Rails.application.routes.draw do
     end
   end
 
-  # Game tracking routes
-  resources :tracked_decks, path: 'tracked-decks' do
-    collection do
-      get :search_commanders
+  # Game tracker routes (username-scoped for public viewing)
+  scope 'game-tracker' do
+    # Modification routes (always authenticated, no username)
+    resources :tracked_decks, path: 'decks', only: %i[new create edit update destroy], controller: 'game_tracker/tracked_decks' do
+      collection do
+        get :search_commanders
+      end
+    end
+
+    resources :commander_games, path: 'games', only: %i[new create edit update destroy], controller: 'game_tracker/commander_games' do
+      collection do
+        get :search_opponents
+      end
     end
   end
 
-  resources :commander_games, path: 'games' do
-    collection do
-      get :search_opponents
-    end
+  # Username-scoped routes for viewing (public if enabled)
+  scope 'game-tracker/:username', as: 'game_tracker' do
+    get '/', to: 'game_tracker#show', as: ''
+    resources :decks, only: %i[index show], controller: 'game_tracker/tracked_decks', as: 'tracked_decks'
+    resources :games, only: %i[index show], controller: 'game_tracker/commander_games', as: 'commander_games'
   end
-
-  get 'game-dashboard', to: 'game_dashboard#index', as: :game_dashboard
 end

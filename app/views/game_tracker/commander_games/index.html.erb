@@ -1,14 +1,16 @@
 <div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
   <%= render partial: 'shared/page_header',
-    locals: { header: 'Game History',
-              subtext: 'View all your recorded Commander games.' }
+    locals: { header: @is_owner ? 'Game History' : "#{tracker_owner.username}'s Games",
+              subtext: @is_owner ? 'View all your recorded Commander games.' : 'Commander game history.' }
   %>
 
   <div class="flex justify-between items-center">
-    <%= link_to new_commander_game_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' do %>
-      + Record Game
+    <% if @is_owner %>
+      <%= link_to new_commander_game_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' do %>
+        + Record Game
+      <% end %>
     <% end %>
-    <%= link_to 'View Dashboard', game_dashboard_path, class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+    <%= link_to 'View Dashboard', game_tracker_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
   </div>
 
   <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
@@ -27,7 +29,7 @@
         </thead>
         <tbody class="divide-y divide-highlight">
           <% @games.each do |game| %>
-            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= commander_game_path(game) %>'">
+            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= game_tracker_commander_game_path(tracker_owner.username, game) %>'">
               <td class="px-6 py-4 text-grey-text"><%= game.played_on.strftime('%b %d, %Y') %></td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
@@ -71,8 +73,12 @@
     <% else %>
       <div class="p-8 text-center">
         <p class="text-lg text-grey-text mb-4">No games recorded yet</p>
-        <p class="text-grey-text mb-6">Start recording games to track your performance.</p>
-        <%= link_to '+ Record First Game', new_commander_game_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+        <% if @is_owner %>
+          <p class="text-grey-text mb-6">Start recording games to track your performance.</p>
+          <%= link_to '+ Record First Game', new_commander_game_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+        <% else %>
+          <p class="text-grey-text">This user hasn't recorded any games yet.</p>
+        <% end %>
       </div>
     <% end %>
   </div>
