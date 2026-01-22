@@ -43,6 +43,7 @@ module DeckBuilder
         .joins(:collection, :magic_card)
         .includes(magic_card: :boxset, collection: [])
         .where(collections: { user_id: @user.id })
+        .where.not(collection_id: @deck.id)
         .where(staged: false, needed: false)
         .where(magic_cards: { is_token: false })
         .where('magic_cards.name ILIKE ?', "%#{@query}%")
