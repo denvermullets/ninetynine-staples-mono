@@ -21,7 +21,7 @@
         </span>
       </div>
       <p class="text-grey-text mb-1">
-        <%= link_to @commander_game.deck_name, tracked_deck_path(@commander_game.tracked_deck), class: 'hover:text-accent-50' %>
+        <%= link_to @commander_game.deck_name, game_tracker_tracked_deck_path(tracker_owner.username, @commander_game.tracked_deck), class: 'hover:text-accent-50' %>
         <span class="text-grey-text/50">with</span>
         <%= @commander_game.commander_name %>
       </p>
@@ -35,12 +35,14 @@
         <% end %>
       </p>
 
-      <div class="flex flex-wrap gap-3 mt-4">
-        <%= link_to edit_commander_game_path(@commander_game), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
-          Edit Game
-        <% end %>
-        <%= link_to 'Delete', commander_game_path(@commander_game), method: :delete, data: { turbo_method: :delete, turbo_confirm: 'Are you sure you want to delete this game?' }, class: 'px-4 py-2 text-accent-100 hover:text-accent-100/80 cursor-pointer' %>
-      </div>
+      <% if @is_owner %>
+        <div class="flex flex-wrap gap-3 mt-4">
+          <%= link_to edit_commander_game_path(@commander_game), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' do %>
+            Edit Game
+          <% end %>
+          <%= link_to 'Delete', commander_game_path(@commander_game), method: :delete, data: { turbo_method: :delete, turbo_confirm: 'Are you sure you want to delete this game?' }, class: 'px-4 py-2 text-accent-100 hover:text-accent-100/80 cursor-pointer' %>
+        </div>
+      <% end %>
     </div>
   </div>
 
@@ -115,7 +117,7 @@
 
   <!-- Navigation -->
   <div class="flex justify-between">
-    <%= link_to '&larr; All Games'.html_safe, commander_games_path, class: 'text-accent-50 hover:text-accent-100' %>
-    <%= link_to "View #{@commander_game.deck_name}", tracked_deck_path(@commander_game.tracked_deck), class: 'text-accent-50 hover:text-accent-100' %>
+    <%= link_to '&larr; All Games'.html_safe, game_tracker_commander_games_path(tracker_owner.username), class: 'text-accent-50 hover:text-accent-100' %>
+    <%= link_to "View #{@commander_game.deck_name}", game_tracker_tracked_deck_path(tracker_owner.username, @commander_game.tracked_deck), class: 'text-accent-50 hover:text-accent-100' %>
   </div>
 </div>

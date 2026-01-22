@@ -31,6 +31,15 @@ class SettingsController < ApplicationController
     current_user.save ? head(:ok) : head(:unprocessable_entity)
   end
 
+  def update_game_tracker_visibility
+    is_public = [true, 'true'].include?(params[:public])
+    if current_user.update(game_tracker_public: is_public)
+      head :ok
+    else
+      head :unprocessable_entity
+    end
+  end
+
   private
 
   def valid_view?(view)
