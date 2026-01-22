@@ -74,6 +74,11 @@ class User < ApplicationRecord
     end
   end
 
+  # Game tracker visibility
+  def game_tracker_public?
+    game_tracker_public
+  end
+
   def ordered_collections
     order = collection_order
     if order.present?

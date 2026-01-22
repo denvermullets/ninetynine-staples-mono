@@ -1,14 +1,16 @@
 <div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
   <%= render partial: 'shared/page_header',
-    locals: { header: 'Tracked Decks',
-              subtext: 'Track your Commander decks and record games to see your performance statistics.' }
+    locals: { header: @is_owner ? 'Tracked Decks' : "#{tracker_owner.username}'s Decks",
+              subtext: @is_owner ? 'Track your Commander decks and record games to see your performance statistics.' : 'Commander decks and performance statistics.' }
   %>
 
   <div class="flex justify-between items-center">
-    <%= link_to new_tracked_deck_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' do %>
-      + New Tracked Deck
+    <% if @is_owner %>
+      <%= link_to new_tracked_deck_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' do %>
+        + New Tracked Deck
+      <% end %>
     <% end %>
-    <%= link_to 'View Dashboard', game_dashboard_path, class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+    <%= link_to 'View Dashboard', game_tracker_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
   </div>
 
   <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
@@ -26,7 +28,7 @@
         </thead>
         <tbody class="divide-y divide-highlight">
           <% @tracked_decks.each do |deck| %>
-            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= tracked_deck_path(deck) %>'">
+            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= game_tracker_tracked_deck_path(tracker_owner.username, deck) %>'">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <% if deck.commander.image_small.present? %>
@@ -70,8 +72,12 @@
     <% else %>
       <div class="p-8 text-center">
         <p class="text-lg text-grey-text mb-4">No tracked decks yet</p>
-        <p class="text-grey-text mb-6">Start tracking a deck to record your games and see performance statistics.</p>
-        <%= link_to '+ Add Your First Deck', new_tracked_deck_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+        <% if @is_owner %>
+          <p class="text-grey-text mb-6">Start tracking a deck to record your games and see performance statistics.</p>
+          <%= link_to '+ Add Your First Deck', new_tracked_deck_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+        <% else %>
+          <p class="text-grey-text">This user hasn't tracked any decks yet.</p>
+        <% end %>
       </div>
     <% end %>
   </div>
