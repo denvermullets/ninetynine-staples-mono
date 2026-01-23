@@ -86,6 +86,14 @@ class CollectionMagicCard < ApplicationRecord
       ((staged_foil_quantity + staged_proxy_foil_quantity) * foil_price)
   end
 
+  def staged_real_value
+    (staged_quantity * magic_card.normal_price) + (staged_foil_quantity * magic_card.foil_price)
+  end
+
+  def staged_proxy_value
+    (staged_proxy_quantity * magic_card.normal_price) + (staged_proxy_foil_quantity * magic_card.foil_price)
+  end
+
   def foil_only_card?(normal_price, foil_price)
     normal_price.zero? && foil_price.positive?
   end

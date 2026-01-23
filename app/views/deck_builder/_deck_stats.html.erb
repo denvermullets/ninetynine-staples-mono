@@ -6,7 +6,12 @@
 
   <div class="flex items-center gap-1.5">
     <span class="text-grey-text">Value:</span>
-    <span class="font-semibold text-white"><%= number_to_currency(@stats[:value]) %></span>
+    <span class="font-semibold text-white"><%= number_to_currency(@stats[:real_value]) %></span>
+    <% if @stats[:proxy_value].to_f > 0 %>
+      <span class="text-grey-text">//</span>
+      <span class="font-semibold text-white"><%= number_to_currency(@stats[:proxy_value]) %></span>
+      <span class="px-1.5 py-0.5 text-xs font-bold rounded bg-accent-400/20 text-accent-400 border border-accent-400/30" title="Proxy Value">P</span>
+    <% end %>
   </div>
 
   <% if @stats[:staged] > 0 %>
