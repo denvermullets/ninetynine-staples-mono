@@ -12,7 +12,7 @@ export default class extends Controller {
     "selectedImage",
   ];
   static values = {
-    url: { type: String, default: "/tracked-decks/search_commanders" },
+    url: { type: String, default: "/game-tracker/decks/search_commanders" },
     minChars: { type: Number, default: 2 },
   };
 

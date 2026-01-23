@@ -5,7 +5,7 @@ export default class extends Controller {
   static targets = ["container", "template", "addButton"];
   static values = {
     maxOpponents: { type: Number, default: 7 },
-    searchUrl: { type: String, default: "/games/search_opponents" },
+    searchUrl: { type: String, default: "/game-tracker/games/search_opponents" },
   };
 
   connect() {
