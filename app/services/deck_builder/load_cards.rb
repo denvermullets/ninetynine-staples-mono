@@ -32,12 +32,22 @@ module DeckBuilder
         staged: staged.sum(&:total_staged),
         needed: needed.sum(&:display_quantity),
         owned: owned.sum(&:display_quantity),
-        value: calculate_deck_value(cards)
+        value: calculate_deck_value(cards),
+        real_value: calculate_real_value(cards),
+        proxy_value: calculate_proxy_value(cards)
       }
     end
 
     def calculate_deck_value(cards)
       cards.sum(&:display_value)
+    end
+
+    def calculate_real_value(cards)
+      cards.sum { |card| card.staged? ? card.staged_real_value : card.real_value }
+    end
+
+    def calculate_proxy_value(cards)
+      cards.sum { |card| card.staged? ? card.staged_proxy_value : card.proxy_value }
     end
   end
 end
