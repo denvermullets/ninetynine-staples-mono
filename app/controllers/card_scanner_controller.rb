@@ -118,7 +118,7 @@ class CardScannerController < ApplicationController
   def render_add_success
     flash.now[:type] = 'success'
     render turbo_stream: [
-      turbo_stream.append('scan_history', partial: 'card_scanner/history_item', locals: history_locals),
+      turbo_stream.prepend('scan_history', partial: 'card_scanner/history_item', locals: history_locals),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: toast_locals)
     ]
   end

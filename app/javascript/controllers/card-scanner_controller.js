@@ -282,8 +282,8 @@ export default class extends Controller {
     const btnClass = "px-3 py-0.5 text-xs border border-grey-text/50 text-grey-text rounded hover:border-accent-50 hover:text-accent-50 transition cursor-pointer";
 
     return `
-      <div class="flex gap-3 p-3 bg-background/50 rounded-lg">
-        <div class="shrink-0 w-16">
+      <div class="flex gap-4 p-4 bg-background/50 rounded-lg">
+        <div class="shrink-0 w-24">
           <img src="${card.image_small}"
                alt="${card.name}"
                class="w-full rounded shadow-sm cursor-pointer"
@@ -293,11 +293,11 @@ export default class extends Controller {
                data-preview-name="${card.name}">
         </div>
         <div class="grow min-w-0">
-          <h3 class="font-medium text-white truncate">${card.name}</h3>
-          <p class="text-xs text-grey-text/70">${card.boxset_name} (${card.boxset_code})</p>
-          <p class="text-xs text-grey-text/70">#${card.card_number}</p>
-          ${hasOwned ? `<p class="text-xs text-accent-50 mt-1">Owned: ${ownedParts.join(', ')}</p>` : ''}
-          <div class="flex gap-3 mt-1 text-xs text-grey-text/70">
+          <h3 class="font-semibold text-white text-base truncate">${card.name}</h3>
+          <p class="text-sm text-grey-text/70">${card.boxset_name} (${card.boxset_code})</p>
+          <p class="text-sm text-grey-text/70">#${card.card_number}</p>
+          ${hasOwned ? `<p class="text-sm text-accent-50 mt-1">Owned: ${ownedParts.join(', ')}</p>` : ''}
+          <div class="flex gap-3 mt-1 text-sm text-grey-text/70">
             ${card.normal_price > 0 ? `<span>Regular: $${card.normal_price.toFixed(2)}</span>` : ''}
             ${card.foil_price > 0 ? `<span>Foil: $${card.foil_price.toFixed(2)}</span>` : ''}
           </div>
