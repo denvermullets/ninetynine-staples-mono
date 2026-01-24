@@ -1,6 +1,6 @@
 module CardScanner
   class Search < Service
-    MAX_RESULTS = 10
+    MAX_RESULTS = 1
     GARBAGE_WORDS = %w[the and for with from into onto upon that this].freeze
 
     def initialize(set_code: nil, card_number: nil, query: nil, user: nil)
