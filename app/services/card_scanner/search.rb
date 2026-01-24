@@ -1,6 +1,5 @@
 module CardScanner
   class Search < Service
-    MAX_RESULTS = 1
     GARBAGE_WORDS = %w[the and for with from into onto upon that this].freeze
 
     def initialize(set_code: nil, card_number: nil, query: nil, user: nil)
@@ -13,9 +12,10 @@ module CardScanner
     def call
       return [] if no_search_criteria?
 
-      cards = search_cards
-      return [] if cards.empty?
+      best_match = find_best_match
+      return [] unless best_match
 
+      cards = all_printings_for(best_match)
       enrich_with_ownership(cards)
     end
 
@@ -25,14 +25,14 @@ module CardScanner
       @set_code.blank? && @card_number.blank? && @query.blank?
     end
 
-    def search_cards
+    def find_best_match
       if @set_code.present? && @card_number.present?
         exact_match = find_by_set_and_number
-        return [exact_match] if exact_match
+        return exact_match if exact_match
       end
-      return [] if @query.blank?
+      return nil if @query.blank?
 
-      find_by_name
+      find_best_by_name
     end
 
     def find_by_set_and_number
@@ -43,14 +43,14 @@ module CardScanner
                .first
     end
 
-    def find_by_name
+    def find_best_by_name
       cleaned_query = clean_ocr_text(@query)
-      return [] if cleaned_query.blank?
+      return nil if cleaned_query.blank?
 
       words = extract_significant_words(cleaned_query)
-      return [] if words.empty?
+      return nil if words.empty?
 
-      search_with_words(words)
+      find_best_match_for_words(words)
     end
 
     def extract_significant_words(text)
@@ -61,7 +61,7 @@ module CardScanner
           .first(5)
     end
 
-    def search_with_words(words)
+    def find_best_match_for_words(words)
       conditions = words.map { 'magic_cards.name ILIKE ?' }
       values = words.map { |w| "%#{w}%" }
 
@@ -72,8 +72,7 @@ module CardScanner
                        .limit(100)
 
       scored = cards.map { |card| [card, count_word_matches(card, words)] }
-      sorted = scored.sort_by { |_, count| -count }.map(&:first)
-      dedupe_by_name(sorted)
+      scored.max_by { |_, count| count }&.first
     end
 
     def count_word_matches(card, words)
@@ -86,15 +85,13 @@ module CardScanner
       text.gsub(/[^a-zA-Z0-9\s,'-]/, '').gsub(/\s+/, ' ').strip
     end
 
-    def dedupe_by_name(cards)
-      seen_names = Set.new
-      cards.each_with_object([]) do |card, unique|
-        next if seen_names.include?(card.name)
+    def all_printings_for(card)
+      return [card] if card.scryfall_oracle_id.blank?
 
-        seen_names.add(card.name)
-        unique << card
-        break unique if unique.size >= MAX_RESULTS
-      end
+      MagicCard.joins(:boxset)
+               .where(scryfall_oracle_id: card.scryfall_oracle_id)
+               .where(card_side: [nil, 'a'])
+               .order('boxsets.release_date DESC')
     end
 
     def enrich_with_ownership(cards)
