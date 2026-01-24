@@ -1,4 +1,6 @@
 class CardScannerController < ApplicationController
+  include CardScannerSerialization
+
   before_action :authenticate_user!
   before_action :load_collections, only: [:show]
 
@@ -42,34 +44,6 @@ class CardScannerController < ApplicationController
                                .order(:name)
   end
 
-  def serialize_results(results)
-    results.map { |result| serialize_card_result(result) }
-  end
-
-  def serialize_card_result(result)
-    card = result[:card]
-    {
-      card: card_json(card),
-      owned_quantity: result[:owned_quantity]
-    }
-  end
-
-  def card_json(card)
-    {
-      id: card.id,
-      name: card.name,
-      card_uuid: card.card_uuid,
-      card_number: card.card_number,
-      boxset_name: card.boxset&.name,
-      boxset_code: card.boxset&.code,
-      image_small: card.image_small,
-      normal_price: card.normal_price.to_f,
-      foil_price: card.foil_price.to_f,
-      has_foil: card.foil_available?,
-      has_non_foil: card.non_foil_available?
-    }
-  end
-
   def render_turbo_stream_results
     render turbo_stream: turbo_stream.replace(
       'scan_results',
@@ -79,30 +53,56 @@ class CardScannerController < ApplicationController
   end
 
   def perform_add_to_collection
-    @result = CollectionRecord::CreateOrUpdate.call(
-      params: {
-        collection_id: params[:collection_id],
-        magic_card_id: params[:magic_card_id],
-        quantity: params[:quantity] || 1,
-        foil_quantity: params[:foil_quantity] || 0,
-        proxy_quantity: 0,
-        proxy_foil_quantity: 0,
-        card_uuid: params[:card_uuid]
-      }
+    @result = CollectionRecord::CreateOrUpdate.call(params: add_to_collection_params)
+  end
+
+  def add_to_collection_params
+    {
+      collection_id: params[:collection_id],
+      magic_card_id: params[:magic_card_id],
+      card_uuid: params[:card_uuid]
+    }.merge(merged_quantities)
+  end
+
+  def merged_quantities
+    current = current_quantities
+    quantity_keys.index_with { |key| current[key] + params[key].to_i }
+  end
+
+  def current_quantities
+    record = CollectionMagicCard.find_by(
+      collection_id: params[:collection_id],
+      magic_card_id: params[:magic_card_id]
     )
+    quantity_keys.index_with { |key| record&.send(key).to_i }
+  end
+
+  def quantity_keys
+    %i[quantity foil_quantity proxy_quantity proxy_foil_quantity]
   end
 
   def render_add_success
     flash.now[:type] = 'success'
     render turbo_stream: [
-      turbo_stream.append('scan_history', partial: 'card_scanner/history_item', locals: history_locals),
+      turbo_stream.prepend('scan_history', partial: 'card_scanner/history_item', locals: history_locals),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: toast_locals)
     ]
   end
 
   def history_locals
-    { card: @card, collection: @collection, quantity: params[:quantity].to_i,
-      foil: params[:foil_quantity].to_i.positive? }
+    {
+      card: @card,
+      collection: @collection,
+      quantity: total_quantity_added,
+      foil: params[:foil_quantity].to_i.positive?,
+      proxy: params[:proxy_quantity].to_i.positive?,
+      proxy_foil: params[:proxy_foil_quantity].to_i.positive?
+    }
+  end
+
+  def total_quantity_added
+    params[:quantity].to_i + params[:foil_quantity].to_i +
+      params[:proxy_quantity].to_i + params[:proxy_foil_quantity].to_i
   end
 
   def toast_locals

@@ -44,6 +44,7 @@ export default class extends Controller {
     this.continuousScanInterval = null;
     this.isPaused = false;
     this.logCounter = 0;
+    this.isRotated = false;
   }
 
   disconnect() {
@@ -84,6 +85,12 @@ export default class extends Controller {
       this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
     }
+  }
+
+  rotateCamera() {
+    this.isRotated = !this.isRotated;
+    this.videoTarget.style.transform = this.isRotated ? "rotate(180deg)" : "";
+    this.log("system", `Camera rotated ${this.isRotated ? "180°" : "back to normal"}`);
   }
 
   toggleScanning() {
@@ -208,17 +215,24 @@ export default class extends Controller {
 
       const response = await fetch(`${this.searchPathValue}?${params.toString()}`, {
         headers: {
-          Accept: "application/json",
+          Accept: "text/html",
+          "Turbo-Frame": "scan_results",
           "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
         },
       });
 
-      const data = await response.json();
+      const html = await response.text();
 
-      if (data.results && data.results.length > 0) {
+      // Check if we got results (look for the result card class in the response)
+      if (html.includes('bg-background/50')) {
         // Found a match! Pause and show results
-        this.log("success", `Found ${data.results.length} matching card(s)!`);
-        this.pauseAndShowResults(data);
+        const resultsFrame = document.getElementById("scan_results");
+        resultsFrame.innerHTML = html;
+
+        // Count results for logging
+        const resultCount = (html.match(/bg-background\/50/g) || []).length;
+        this.log("success", `Found ${resultCount} matching card(s)!`);
+        this.pauseAndShowResults();
       } else {
         this.log("warning", "No matching cards found in database");
       }
@@ -230,7 +244,7 @@ export default class extends Controller {
     }
   }
 
-  pauseAndShowResults(data) {
+  pauseAndShowResults() {
     // Stop continuous scanning
     this.stopContinuousScan();
     this.isPaused = true;
@@ -239,62 +253,8 @@ export default class extends Controller {
     this.previewImageTarget.src = this.canvasTarget.toDataURL("image/png");
     this.showPreviewView();
 
-    // Render results
-    this.renderResults(data.results);
-
     this.log("system", "Scanning paused - card found! Click 'Scan Next' to continue.");
     this.updateStatus("Card found! Add to collection or click 'Scan Next' to continue.");
-  }
-
-  renderResults(results) {
-    if (!results || results.length === 0) {
-      this.resultsTarget.innerHTML = '<p class="text-grey-text/70 text-sm">No cards found.</p>';
-      return;
-    }
-
-    const html = results.map(result => this.renderResultCard(result)).join('');
-    this.resultsTarget.innerHTML = `<div class="space-y-3">${html}</div>`;
-  }
-
-  renderResultCard(result) {
-    const card = result.card;
-    const owned = result.owned_quantity || 0;
-
-    return `
-      <div class="flex gap-3 p-3 bg-background/50 rounded-lg">
-        <div class="shrink-0 w-16">
-          <img src="${card.image_small}" alt="${card.name}" class="w-full rounded shadow-sm" loading="lazy">
-        </div>
-        <div class="flex-grow min-w-0">
-          <h3 class="font-medium text-white truncate">${card.name}</h3>
-          <p class="text-xs text-grey-text/70">${card.boxset_name} (${card.boxset_code})</p>
-          <p class="text-xs text-grey-text/70">#${card.card_number}</p>
-          ${owned > 0 ? `<p class="text-xs text-accent-50 mt-1">Owned: ${owned}</p>` : ''}
-          <div class="flex gap-2 mt-1 text-xs">
-            ${card.normal_price > 0 ? `<span class="text-grey-text/70">$${card.normal_price.toFixed(2)}</span>` : ''}
-            ${card.foil_price > 0 ? `<span class="text-grey-text/50">Foil: $${card.foil_price.toFixed(2)}</span>` : ''}
-          </div>
-        </div>
-        <div class="shrink-0 flex flex-col gap-1">
-          ${card.has_non_foil ? `
-            <button data-action="click->card-scanner#addToCollection"
-                    data-card-id="${card.id}"
-                    data-card-uuid="${card.card_uuid}"
-                    class="px-3 py-1 text-xs bg-accent-50 text-menu rounded hover:bg-accent-50/80 transition cursor-pointer">
-              Add
-            </button>
-          ` : ''}
-          ${card.has_foil ? `
-            <button data-action="click->card-scanner#addFoilToCollection"
-                    data-card-id="${card.id}"
-                    data-card-uuid="${card.card_uuid}"
-                    class="px-3 py-1 text-xs border border-accent-50 text-accent-50 rounded hover:bg-accent-50/10 transition cursor-pointer">
-              Foil
-            </button>
-          ` : ''}
-        </div>
-      </div>
-    `;
   }
 
   scanNext() {
@@ -311,7 +271,17 @@ export default class extends Controller {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
+
+    if (this.isRotated) {
+      // Rotate the canvas 180 degrees to match the visual display
+      ctx.save();
+      ctx.translate(canvas.width, canvas.height);
+      ctx.rotate(Math.PI);
+      ctx.drawImage(video, 0, 0);
+      ctx.restore();
+    } else {
+      ctx.drawImage(video, 0, 0);
+    }
   }
 
   extractRegions() {
@@ -520,16 +490,28 @@ export default class extends Controller {
   async addToCollection(event) {
     event.preventDefault();
     const button = event.currentTarget;
-    await this.addCard(button, false);
+    await this.addCard(button, "regular");
   }
 
   async addFoilToCollection(event) {
     event.preventDefault();
     const button = event.currentTarget;
-    await this.addCard(button, true);
+    await this.addCard(button, "foil");
   }
 
-  async addCard(button, isFoil) {
+  async addProxyToCollection(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    await this.addCard(button, "proxy");
+  }
+
+  async addProxyFoilToCollection(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    await this.addCard(button, "proxy_foil");
+  }
+
+  async addCard(button, cardType) {
     const cardId = button.dataset.cardId;
     const cardUuid = button.dataset.cardUuid;
     const collectionId = this.collectionSelectTarget.value;
@@ -543,8 +525,10 @@ export default class extends Controller {
     formData.append("magic_card_id", cardId);
     formData.append("card_uuid", cardUuid);
     formData.append("collection_id", collectionId);
-    formData.append("quantity", isFoil ? 0 : 1);
-    formData.append("foil_quantity", isFoil ? 1 : 0);
+    formData.append("quantity", cardType === "regular" ? 1 : 0);
+    formData.append("foil_quantity", cardType === "foil" ? 1 : 0);
+    formData.append("proxy_quantity", cardType === "proxy" ? 1 : 0);
+    formData.append("proxy_foil_quantity", cardType === "proxy_foil" ? 1 : 0);
 
     try {
       button.disabled = true;
@@ -563,16 +547,19 @@ export default class extends Controller {
       const html = await response.text();
       Turbo.renderStreamMessage(html);
 
-      this.log("success", `Added card to collection${isFoil ? ' (foil)' : ''}`);
+      const typeLabel = cardType === "regular" ? "" : ` (${cardType})`;
+      this.log("success", `Added card to collection${typeLabel}`);
 
       button.textContent = "Added!";
       setTimeout(() => {
         button.textContent = originalText;
         button.disabled = false;
-      }, 1500);
+        // Auto-resume scanning after adding a card
+        this.scanNext();
+      }, 1000);
     } catch (error) {
       this.log("error", `Failed to add card: ${error.message}`);
-      button.textContent = isFoil ? "Foil" : "Add";
+      button.textContent = originalText;
       button.disabled = false;
     }
   }
@@ -725,4 +712,5 @@ export default class extends Controller {
 
     this.showError(message);
   }
+
 }

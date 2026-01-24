@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module CardScanner
   class Search < Service
-    MAX_RESULTS = 10
     GARBAGE_WORDS = %w[the and for with from into onto upon that this].freeze
+    DEFAULT_OWNED = { quantity: 0, foil_quantity: 0, proxy_quantity: 0, proxy_foil_quantity: 0 }.freeze
 
     def initialize(set_code: nil, card_number: nil, query: nil, user: nil)
       @set_code = set_code&.strip&.upcase
@@ -13,9 +15,10 @@ module CardScanner
     def call
       return [] if no_search_criteria?
 
-      cards = search_cards
-      return [] if cards.empty?
+      best_match = find_best_match
+      return [] unless best_match
 
+      cards = all_printings_for(best_match)
       enrich_with_ownership(cards)
     end
 
@@ -25,35 +28,32 @@ module CardScanner
       @set_code.blank? && @card_number.blank? && @query.blank?
     end
 
-    def search_cards
-      if @set_code.present? && @card_number.present?
-        exact_match = find_by_set_and_number
-        return [exact_match] if exact_match
-      end
-      return [] if @query.blank?
-
-      find_by_name
+    def find_best_match
+      find_by_set_and_number || find_best_by_name
     end
 
     def find_by_set_and_number
-      MagicCard.joins(:boxset)
-               .where(boxsets: { code: @set_code })
-               .where(card_number: @card_number)
-               .where(card_side: [nil, 'a'])
-               .first
+      return nil unless @set_code.present? && @card_number.present?
+
+      base_card_scope.where(boxsets: { code: @set_code }, card_number: @card_number).first
     end
 
-    def find_by_name
-      cleaned_query = clean_ocr_text(@query)
-      return [] if cleaned_query.blank?
+    def find_best_by_name
+      return nil if @query.blank?
 
-      words = extract_significant_words(cleaned_query)
-      return [] if words.empty?
+      words = extract_significant_words(clean_ocr_text(@query))
+      return nil if words.empty?
 
-      search_with_words(words)
+      find_best_match_for_words(words)
+    end
+
+    def base_card_scope
+      MagicCard.joins(:boxset).where(card_side: [nil, 'a'], is_token: false)
     end
 
     def extract_significant_words(text)
+      return [] if text.blank?
+
       text.split(/[\s,]+/)
           .map { |w| w.gsub(/[^a-zA-Z'-]/, '') }
           .select { |w| w.length >= 3 }
@@ -61,23 +61,19 @@ module CardScanner
           .first(5)
     end
 
-    def search_with_words(words)
+    def find_best_match_for_words(words)
       conditions = words.map { 'magic_cards.name ILIKE ?' }
       values = words.map { |w| "%#{w}%" }
 
-      cards = MagicCard.joins(:boxset)
-                       .where(conditions.join(' OR '), *values)
-                       .where(card_side: [nil, 'a'])
-                       .order('boxsets.release_date DESC')
-                       .limit(100)
+      cards = base_card_scope.where(conditions.join(' OR '), *values)
+                             .order('boxsets.release_date DESC')
+                             .limit(100)
 
-      scored = cards.map { |card| [card, count_word_matches(card, words)] }
-      sorted = scored.sort_by { |_, count| -count }.map(&:first)
-      dedupe_by_name(sorted)
+      score_and_select_best(cards, words)
     end
 
-    def count_word_matches(card, words)
-      words.count { |w| card.name.downcase.include?(w.downcase) }
+    def score_and_select_best(cards, words)
+      cards.max_by { |card| words.count { |w| card.name.downcase.include?(w.downcase) } }
     end
 
     def clean_ocr_text(text)
@@ -86,34 +82,16 @@ module CardScanner
       text.gsub(/[^a-zA-Z0-9\s,'-]/, '').gsub(/\s+/, ' ').strip
     end
 
-    def dedupe_by_name(cards)
-      seen_names = Set.new
-      cards.each_with_object([]) do |card, unique|
-        next if seen_names.include?(card.name)
+    def all_printings_for(card)
+      return [card] if card.scryfall_oracle_id.blank?
 
-        seen_names.add(card.name)
-        unique << card
-        break unique if unique.size >= MAX_RESULTS
-      end
+      base_card_scope.where(scryfall_oracle_id: card.scryfall_oracle_id)
+                     .order('boxsets.release_date DESC')
     end
 
     def enrich_with_ownership(cards)
-      return cards unless @user
-
-      owned = fetch_owned_quantities(cards.map(&:id))
-      cards.map { |card| { card: card, owned_quantity: owned[card.id] || 0 } }
-    end
-
-    def fetch_owned_quantities(card_ids)
-      CollectionMagicCard.joins(:collection)
-                         .where(magic_card_id: card_ids)
-                         .where(collections: { user_id: @user.id })
-                         .where.not(
-                           'collections.collection_type = ? OR collections.collection_type LIKE ?',
-                           'deck', '%_deck'
-                         )
-                         .group(:magic_card_id)
-                         .sum('collection_magic_cards.quantity + collection_magic_cards.foil_quantity')
+      owned = OwnershipLoader.call(card_ids: cards.map(&:id), user: @user)
+      cards.map { |card| { card: card, owned: owned[card.id] || DEFAULT_OWNED } }
     end
   end
 end
