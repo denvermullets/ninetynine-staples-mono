@@ -108,5 +108,4 @@ Rails.application.configure do
 
   # add tailscale url to local dev
   config.hosts << /.*\.ts\.net/
-
 end
