@@ -6,9 +6,6 @@ export default class extends Controller {
     "canvas",
     "nameCanvas",
     "setCanvas",
-    "captureButton",
-    "scanButton",
-    "retakeButton",
     "results",
     "loading",
     "preview",
@@ -18,80 +15,51 @@ export default class extends Controller {
     "scanHistory",
     "cameraError",
     "cameraContainer",
-    "progress",
-    "progressBar",
-    "progressText",
     "cardGuide",
-    "stabilityIndicator",
-    "autoModeToggle",
-    "debugPanel",
-    "debugNameText",
-    "debugSetText",
-    "debugParsedSet",
-    "debugParsedNumber",
+    "processingLog",
+    "logEntries",
+    "scanToggle",
+    "scanToggleText",
+    "debugNamePreview",
+    "debugSetPreview",
+    "debugNamePlaceholder",
+    "debugSetPlaceholder",
   ];
 
   static values = {
     searchPath: String,
     addPath: String,
-    autoMode: { type: Boolean, default: true },
   };
 
   // Magic card aspect ratio: 63mm x 88mm ≈ 0.716
   static CARD_ASPECT_RATIO = 63 / 88;
-  // Stability detection settings
-  static STABILITY_THRESHOLD = 15; // Pixel difference threshold
-  static STABILITY_FRAMES = 20; // Frames to consider stable (~0.7 seconds at 30fps)
-  static CHECK_INTERVAL = 50; // ms between stability checks
+  // Continuous scan interval (ms) - how often to try OCR
+  static SCAN_INTERVAL = 2000;
 
   connect() {
     this.stream = null;
-    this.tesseract = null;
     this.worker = null;
     this.isScanning = false;
-    this.stabilityCheckInterval = null;
-    this.previousFrameData = null;
-    this.stableFrameCount = 0;
-    this.isAutoCapturing = false;
+    this.isInitializing = false;
+    this.continuousScanInterval = null;
+    this.isPaused = false;
+    this.logCounter = 0;
   }
 
   disconnect() {
     this.stopCamera();
-    this.stopStabilityDetection();
+    this.stopContinuousScan();
     this.terminateWorker();
-  }
-
-  toggleAutoMode() {
-    this.autoModeValue = !this.autoModeValue;
-    this.updateAutoModeUI();
-
-    if (this.autoModeValue && this.stream) {
-      this.startStabilityDetection();
-    } else {
-      this.stopStabilityDetection();
-    }
-  }
-
-  updateAutoModeUI() {
-    if (this.hasAutoModeToggleTarget) {
-      this.autoModeToggleTarget.classList.toggle("bg-accent-50", this.autoModeValue);
-      this.autoModeToggleTarget.classList.toggle("bg-gray-600", !this.autoModeValue);
-    }
-
-    // Show/hide manual buttons based on mode
-    if (this.hasCaptureButtonTarget) {
-      this.captureButtonTarget.classList.toggle("hidden", this.autoModeValue && this.stream);
-    }
   }
 
   async startCamera() {
     try {
       this.hideError();
-      this.updateStatus("Requesting camera access...");
+      this.log("system", "Requesting camera access...");
 
       const constraints = {
         video: {
-          facingMode: { ideal: "environment" }, // Prefer back camera on mobile
+          facingMode: { ideal: "environment" },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -101,330 +69,410 @@ export default class extends Controller {
       this.videoTarget.srcObject = this.stream;
       await this.videoTarget.play();
 
+      this.log("success", "Camera started successfully");
       this.showCameraView();
       this.updateCardGuide();
-      this.updateAutoModeUI();
-
-      if (this.autoModeValue) {
-        this.updateStatus("Position card in the guide. Hold still to auto-capture.");
-        this.startStabilityDetection();
-      } else {
-        this.updateStatus("Camera ready. Position your card and capture.");
-      }
+      this.updateStatus("Camera ready. Click 'Start Scanning' to begin continuous scan.");
     } catch (error) {
       this.handleCameraError(error);
     }
   }
 
   stopCamera() {
+    this.stopContinuousScan();
     if (this.stream) {
       this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
     }
-    this.stopStabilityDetection();
   }
 
-  updateCardGuide() {
-    if (!this.hasCardGuideTarget || !this.hasVideoTarget) return;
-
-    // Calculate card guide dimensions based on video container
-    const container = this.cameraContainerTarget;
-    const containerRect = container.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    const containerHeight = containerRect.height;
-
-    // Card should fill ~70% of the smaller dimension
-    const padding = 0.15; // 15% padding on each side
-    const availableWidth = containerWidth * (1 - padding * 2);
-    const availableHeight = containerHeight * (1 - padding * 2);
-
-    let cardWidth, cardHeight;
-    const aspectRatio = this.constructor.CARD_ASPECT_RATIO;
-
-    // Fit card within available space maintaining aspect ratio
-    if (availableWidth / availableHeight > aspectRatio) {
-      // Height constrained
-      cardHeight = availableHeight;
-      cardWidth = cardHeight * aspectRatio;
+  toggleScanning() {
+    if (this.continuousScanInterval) {
+      this.stopContinuousScan();
+      this.log("system", "Scanning paused by user");
     } else {
-      // Width constrained
-      cardWidth = availableWidth;
-      cardHeight = cardWidth / aspectRatio;
+      this.startContinuousScan();
+    }
+  }
+
+  async startContinuousScan() {
+    if (this.continuousScanInterval || !this.stream || this.isInitializing) {
+      this.log("warning", "Cannot start scanning - already running or initializing");
+      return;
     }
 
-    const guide = this.cardGuideTarget;
-    guide.style.width = `${cardWidth}px`;
-    guide.style.height = `${cardHeight}px`;
-    guide.style.left = `${(containerWidth - cardWidth) / 2}px`;
-    guide.style.top = `${(containerHeight - cardHeight) / 2}px`;
-  }
+    this.isPaused = false;
+    this.updateScanToggleUI(true);
+    this.log("system", "Starting continuous scan mode...");
+    this.updateStatus("Scanning... Point camera at a Magic card");
 
-  // Stability detection for auto-capture
-  startStabilityDetection() {
-    if (this.stabilityCheckInterval) return;
-
-    this.previousFrameData = null;
-    this.stableFrameCount = 0;
-
-    this.stabilityCheckInterval = setInterval(() => {
-      this.checkStability();
-    }, this.constructor.CHECK_INTERVAL);
-  }
-
-  stopStabilityDetection() {
-    if (this.stabilityCheckInterval) {
-      clearInterval(this.stabilityCheckInterval);
-      this.stabilityCheckInterval = null;
+    // Initialize Tesseract if needed
+    if (!this.worker) {
+      this.isInitializing = true;
+      try {
+        await this.initializeTesseract();
+      } catch (error) {
+        this.isInitializing = false;
+        this.updateScanToggleUI(false);
+        this.updateStatus("Failed to initialize OCR. Please refresh and try again.");
+        return;
+      }
+      this.isInitializing = false;
     }
-    this.previousFrameData = null;
-    this.stableFrameCount = 0;
-    this.updateStabilityIndicator(0);
+
+    // Start continuous scanning
+    this.continuousScanInterval = setInterval(() => {
+      this.performScan();
+    }, this.constructor.SCAN_INTERVAL);
+
+    // Do first scan immediately
+    this.performScan();
   }
 
-  checkStability() {
-    if (!this.stream || this.isScanning || this.isAutoCapturing) return;
+  stopContinuousScan() {
+    if (this.continuousScanInterval) {
+      clearInterval(this.continuousScanInterval);
+      this.continuousScanInterval = null;
+    }
+    this.updateScanToggleUI(false);
+  }
 
-    const video = this.videoTarget;
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    // Use smaller sample for performance
-    const sampleWidth = 160;
-    const sampleHeight = 120;
-    canvas.width = sampleWidth;
-    canvas.height = sampleHeight;
-
-    ctx.drawImage(video, 0, 0, sampleWidth, sampleHeight);
-    const currentFrameData = ctx.getImageData(0, 0, sampleWidth, sampleHeight).data;
-
-    if (this.previousFrameData) {
-      const diff = this.calculateFrameDifference(currentFrameData, this.previousFrameData);
-
-      if (diff < this.constructor.STABILITY_THRESHOLD) {
-        this.stableFrameCount++;
-        this.updateStabilityIndicator(this.stableFrameCount / this.constructor.STABILITY_FRAMES);
-
-        if (this.stableFrameCount >= this.constructor.STABILITY_FRAMES) {
-          this.autoCapture();
-        }
+  updateScanToggleUI(isScanning) {
+    if (this.hasScanToggleTarget) {
+      if (isScanning) {
+        this.scanToggleTarget.classList.remove("bg-accent-50");
+        this.scanToggleTarget.classList.add("bg-red-500");
       } else {
-        this.stableFrameCount = 0;
-        this.updateStabilityIndicator(0);
+        this.scanToggleTarget.classList.remove("bg-red-500");
+        this.scanToggleTarget.classList.add("bg-accent-50");
       }
     }
-
-    this.previousFrameData = currentFrameData;
-  }
-
-  calculateFrameDifference(current, previous) {
-    let totalDiff = 0;
-    const pixelCount = current.length / 4;
-
-    // Sample every 10th pixel for performance
-    for (let i = 0; i < current.length; i += 40) {
-      const rDiff = Math.abs(current[i] - previous[i]);
-      const gDiff = Math.abs(current[i + 1] - previous[i + 1]);
-      const bDiff = Math.abs(current[i + 2] - previous[i + 2]);
-      totalDiff += (rDiff + gDiff + bDiff) / 3;
-    }
-
-    return totalDiff / (pixelCount / 10);
-  }
-
-  updateStabilityIndicator(progress) {
-    if (this.hasStabilityIndicatorTarget) {
-      const percent = Math.min(100, Math.round(progress * 100));
-      this.stabilityIndicatorTarget.style.width = `${percent}%`;
-
-      // Change color as it gets closer to capture
-      if (percent > 80) {
-        this.stabilityIndicatorTarget.classList.remove("bg-yellow-500", "bg-accent-50");
-        this.stabilityIndicatorTarget.classList.add("bg-green-500");
-      } else if (percent > 40) {
-        this.stabilityIndicatorTarget.classList.remove("bg-accent-50", "bg-green-500");
-        this.stabilityIndicatorTarget.classList.add("bg-yellow-500");
-      } else {
-        this.stabilityIndicatorTarget.classList.remove("bg-yellow-500", "bg-green-500");
-        this.stabilityIndicatorTarget.classList.add("bg-accent-50");
-      }
+    if (this.hasScanToggleTextTarget) {
+      this.scanToggleTextTarget.textContent = isScanning ? "Stop Scanning" : "Start Scanning";
     }
   }
 
-  async autoCapture() {
-    if (this.isAutoCapturing || this.isScanning) return;
-
-    this.isAutoCapturing = true;
-    this.stopStabilityDetection();
-
-    this.updateStatus("Card detected! Capturing...");
-
-    // Brief delay for visual feedback
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    this.capture();
-
-    // Auto-scan after capture
-    await this.scan();
-
-    this.isAutoCapturing = false;
-  }
-
-  capture() {
-    if (!this.stream) return;
-
-    const video = this.videoTarget;
-    const canvas = this.canvasTarget;
-    const ctx = canvas.getContext("2d");
-
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Draw video frame to canvas
-    ctx.drawImage(video, 0, 0);
-
-    // Show preview
-    this.previewImageTarget.src = canvas.toDataURL("image/png");
-    this.showPreviewView();
-    this.updateStatus("Image captured. Click 'Scan Text' to process.");
-  }
-
-  retake() {
-    this.showCameraView();
-    this.clearResults();
-    this.clearDebugPanel();
-
-    if (this.autoModeValue) {
-      this.updateStatus("Position card in the guide. Hold still to auto-capture.");
-      this.startStabilityDetection();
-    } else {
-      this.updateStatus("Position your card and capture.");
-    }
-  }
-
-  updateDebugPanel(nameText, setText, setCode, cardNumber) {
-    if (this.hasDebugPanelTarget) {
-      this.debugPanelTarget.classList.remove("hidden");
-    }
-    if (this.hasDebugNameTextTarget) {
-      this.debugNameTextTarget.textContent = nameText || "(empty)";
-    }
-    if (this.hasDebugSetTextTarget) {
-      this.debugSetTextTarget.textContent = setText || "(empty)";
-    }
-    if (this.hasDebugParsedSetTarget) {
-      this.debugParsedSetTarget.textContent = setCode || "(not found)";
-    }
-    if (this.hasDebugParsedNumberTarget) {
-      this.debugParsedNumberTarget.textContent = cardNumber || "(not found)";
-    }
-  }
-
-  clearDebugPanel() {
-    if (this.hasDebugPanelTarget) {
-      this.debugPanelTarget.classList.add("hidden");
-    }
-  }
-
-  async scan() {
-    if (this.isScanning) return;
+  async performScan() {
+    if (this.isScanning || this.isPaused || !this.stream) return;
     this.isScanning = true;
 
+    const scanId = ++this.logCounter;
+    this.log("scan", `--- Scan #${scanId} started ---`);
+
     try {
-      this.showLoading();
-      this.updateStatus("Loading OCR engine...");
+      // Capture current frame
+      this.log("capture", "Capturing video frame...");
+      this.captureFrame();
 
-      await this.initializeTesseract();
-
-      this.updateStatus("Extracting text regions...");
+      // Extract regions
+      this.log("ocr", "Extracting name and set regions...");
       const { nameImageData, setImageData } = this.extractRegions();
 
-      // Run OCR on both regions in parallel
-      this.updateStatus("Scanning card name...");
-      const [nameResult, setResult] = await Promise.all([
-        this.recognizeText(nameImageData, "name"),
-        this.recognizeText(setImageData, "set"),
-      ]);
-
+      // Run OCR on both regions
+      this.log("ocr", "Running OCR on name region (top 15%)...");
+      const nameResult = await this.recognizeText(nameImageData, "name");
       const nameText = nameResult?.data?.text?.trim() || "";
-      const setText = setResult?.data?.text?.trim() || "";
+      this.log("data", `Name OCR result: "${nameText.substring(0, 100)}${nameText.length > 100 ? '...' : ''}"`);
 
-      console.log("OCR Results - Name:", nameText, "Set:", setText);
+      this.log("ocr", "Running OCR on set region (bottom-left)...");
+      const setResult = await this.recognizeText(setImageData, "set");
+      const setText = setResult?.data?.text?.trim() || "";
+      this.log("data", `Set OCR result: "${setText}"`);
 
       // Parse set code and collector number
       const { setCode, cardNumber } = this.parseSetAndNumber(setText);
+      this.log("parse", `Parsed: Set="${setCode || 'none'}", Number="${cardNumber || 'none'}"`);
 
-      // Update debug panel
-      this.updateDebugPanel(nameText, setText, setCode, cardNumber);
+      // Clean name for search
+      const cleanedName = this.cleanNameForSearch(nameText);
+      this.log("parse", `Cleaned name for search: "${cleanedName || 'none'}"`);
 
-      this.updateStatus("Searching database...");
-      await this.searchCard(setCode, cardNumber, nameText);
+      // Check if we have enough data to search
+      if (!setCode && !cardNumber && !cleanedName) {
+        this.log("warning", "No usable text found - skipping search");
+        return;
+      }
+
+      // Search database
+      this.log("search", `Querying database...`);
+      const params = new URLSearchParams();
+      if (setCode && cardNumber) {
+        params.append("set_code", setCode);
+        params.append("card_number", cardNumber);
+        this.log("query", `Exact search: set_code=${setCode}, card_number=${cardNumber}`);
+      }
+      if (cleanedName) {
+        params.append("q", cleanedName);
+        this.log("query", `Name search: q=${cleanedName}`);
+      }
+
+      const response = await fetch(`${this.searchPathValue}?${params.toString()}`, {
+        headers: {
+          Accept: "application/json",
+          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.results && data.results.length > 0) {
+        // Found a match! Pause and show results
+        this.log("success", `Found ${data.results.length} matching card(s)!`);
+        this.pauseAndShowResults(data);
+      } else {
+        this.log("warning", "No matching cards found in database");
+      }
     } catch (error) {
+      this.log("error", `Scan error: ${error.message}`);
       console.error("Scan error:", error);
-      this.showError("Scan failed. Please try again with better lighting.");
     } finally {
       this.isScanning = false;
-      this.hideLoading();
     }
   }
 
-  extractRegions() {
+  pauseAndShowResults(data) {
+    // Stop continuous scanning
+    this.stopContinuousScan();
+    this.isPaused = true;
+
+    // Show the captured frame as preview
+    this.previewImageTarget.src = this.canvasTarget.toDataURL("image/png");
+    this.showPreviewView();
+
+    // Render results
+    this.renderResults(data.results);
+
+    this.log("system", "Scanning paused - card found! Click 'Scan Next' to continue.");
+    this.updateStatus("Card found! Add to collection or click 'Scan Next' to continue.");
+  }
+
+  renderResults(results) {
+    if (!results || results.length === 0) {
+      this.resultsTarget.innerHTML = '<p class="text-grey-text/70 text-sm">No cards found.</p>';
+      return;
+    }
+
+    const html = results.map(result => this.renderResultCard(result)).join('');
+    this.resultsTarget.innerHTML = `<div class="space-y-3">${html}</div>`;
+  }
+
+  renderResultCard(result) {
+    const card = result.card;
+    const owned = result.owned_quantity || 0;
+
+    return `
+      <div class="flex gap-3 p-3 bg-background/50 rounded-lg">
+        <div class="shrink-0 w-16">
+          <img src="${card.image_small}" alt="${card.name}" class="w-full rounded shadow-sm" loading="lazy">
+        </div>
+        <div class="flex-grow min-w-0">
+          <h3 class="font-medium text-white truncate">${card.name}</h3>
+          <p class="text-xs text-grey-text/70">${card.boxset_name} (${card.boxset_code})</p>
+          <p class="text-xs text-grey-text/70">#${card.card_number}</p>
+          ${owned > 0 ? `<p class="text-xs text-accent-50 mt-1">Owned: ${owned}</p>` : ''}
+          <div class="flex gap-2 mt-1 text-xs">
+            ${card.normal_price > 0 ? `<span class="text-grey-text/70">$${card.normal_price.toFixed(2)}</span>` : ''}
+            ${card.foil_price > 0 ? `<span class="text-grey-text/50">Foil: $${card.foil_price.toFixed(2)}</span>` : ''}
+          </div>
+        </div>
+        <div class="shrink-0 flex flex-col gap-1">
+          ${card.has_non_foil ? `
+            <button data-action="click->card-scanner#addToCollection"
+                    data-card-id="${card.id}"
+                    data-card-uuid="${card.card_uuid}"
+                    class="px-3 py-1 text-xs bg-accent-50 text-menu rounded hover:bg-accent-50/80 transition cursor-pointer">
+              Add
+            </button>
+          ` : ''}
+          ${card.has_foil ? `
+            <button data-action="click->card-scanner#addFoilToCollection"
+                    data-card-id="${card.id}"
+                    data-card-uuid="${card.card_uuid}"
+                    class="px-3 py-1 text-xs border border-accent-50 text-accent-50 rounded hover:bg-accent-50/10 transition cursor-pointer">
+              Foil
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  scanNext() {
+    this.isPaused = false;
+    this.showCameraView();
+    this.clearResults();
+    this.startContinuousScan();
+  }
+
+  captureFrame() {
+    const video = this.videoTarget;
     const canvas = this.canvasTarget;
     const ctx = canvas.getContext("2d");
-    const { width, height } = canvas;
 
-    // Name region: top 15% of card
-    const nameHeight = Math.floor(height * 0.15);
-    const nameImageData = ctx.getImageData(0, 0, width, nameHeight);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+  }
 
-    // Create canvas for name region
+  extractRegions() {
+    const video = this.videoTarget;
+    const canvas = this.canvasTarget;
+    const ctx = canvas.getContext("2d");
+
+    // Get card guide position (it's positioned relative to the container)
+    const guide = this.cardGuideTarget;
+    const container = this.cameraContainerTarget;
+    const containerRect = container.getBoundingClientRect();
+
+    // Guide dimensions in CSS pixels
+    const guideLeft = parseFloat(guide.style.left) || 0;
+    const guideTop = parseFloat(guide.style.top) || 0;
+    const guideWidth = parseFloat(guide.style.width) || containerRect.width * 0.7;
+    const guideHeight = parseFloat(guide.style.height) || containerRect.height * 0.7;
+
+    // Scale from CSS pixels to video pixels
+    const scaleX = video.videoWidth / containerRect.width;
+    const scaleY = video.videoHeight / containerRect.height;
+
+    const cardX = Math.floor(guideLeft * scaleX);
+    const cardY = Math.floor(guideTop * scaleY);
+    const cardWidth = Math.floor(guideWidth * scaleX);
+    const cardHeight = Math.floor(guideHeight * scaleY);
+
+    this.log("capture", `Card region: x=${cardX}, y=${cardY}, w=${cardWidth}, h=${cardHeight}`);
+
+    // Extract the card region first
+    const cardImageData = ctx.getImageData(cardX, cardY, cardWidth, cardHeight);
+
+    // Create a temporary canvas for the card area
+    const cardCanvas = document.createElement("canvas");
+    cardCanvas.width = cardWidth;
+    cardCanvas.height = cardHeight;
+    const cardCtx = cardCanvas.getContext("2d");
+    cardCtx.putImageData(cardImageData, 0, 0);
+
+    // Name region: top 12% of CARD, skip left 5%, skip right 25% (avoid mana symbols)
+    const nameHeight = Math.floor(cardHeight * 0.12);
+    const nameLeft = Math.floor(cardWidth * 0.05);
+    const nameWidth = Math.floor(cardWidth * 0.70); // 5% to 75%, skipping right 25%
+    const nameImageData = cardCtx.getImageData(nameLeft, 0, nameWidth, nameHeight);
+
     const nameCanvas = this.nameCanvasTarget;
-    nameCanvas.width = width;
+    nameCanvas.width = nameWidth;
     nameCanvas.height = nameHeight;
-    nameCanvas.getContext("2d").putImageData(nameImageData, 0, 0);
+    const nameCtx = nameCanvas.getContext("2d");
+    nameCtx.putImageData(nameImageData, 0, 0);
 
-    // Set/number region: bottom 10%, left 40%
-    const setHeight = Math.floor(height * 0.10);
-    const setWidth = Math.floor(width * 0.40);
-    const setY = Math.floor(height * 0.90);
-    const setImageData = ctx.getImageData(0, setY, setWidth, setHeight);
+    // Preprocess name region for better OCR
+    this.preprocessForOCR(nameCanvas);
 
-    // Create canvas for set region
+    // Set/number region: bottom 6% of CARD (the actual collector info line), left 60%
+    const setHeight = Math.floor(cardHeight * 0.06);
+    const setWidth = Math.floor(cardWidth * 0.60);
+    const setY = Math.floor(cardHeight * 0.94); // Very bottom
+    const setImageData = cardCtx.getImageData(0, setY, setWidth, setHeight);
+
     const setCanvas = this.setCanvasTarget;
     setCanvas.width = setWidth;
     setCanvas.height = setHeight;
-    setCanvas.getContext("2d").putImageData(setImageData, 0, 0);
+    const setCtx = setCanvas.getContext("2d");
+    setCtx.putImageData(setImageData, 0, 0);
+
+    // Preprocess set region for better OCR
+    this.preprocessForOCR(setCanvas);
+
+    const nameDataUrl = nameCanvas.toDataURL("image/png");
+    const setDataUrl = setCanvas.toDataURL("image/png");
+
+    // Update debug previews so we can see what's being OCR'd
+    if (this.hasDebugNamePreviewTarget) {
+      this.debugNamePreviewTarget.src = nameDataUrl;
+      this.debugNamePreviewTarget.classList.remove("hidden");
+      if (this.hasDebugNamePlaceholderTarget) {
+        this.debugNamePlaceholderTarget.classList.add("hidden");
+      }
+    }
+    if (this.hasDebugSetPreviewTarget) {
+      this.debugSetPreviewTarget.src = setDataUrl;
+      this.debugSetPreviewTarget.classList.remove("hidden");
+      if (this.hasDebugSetPlaceholderTarget) {
+        this.debugSetPlaceholderTarget.classList.add("hidden");
+      }
+    }
 
     return {
-      nameImageData: nameCanvas.toDataURL("image/png"),
-      setImageData: setCanvas.toDataURL("image/png"),
+      nameImageData: nameDataUrl,
+      setImageData: setDataUrl,
     };
+  }
+
+  // Preprocess image for better OCR results
+  preprocessForOCR(canvas) {
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // Convert to grayscale and increase contrast
+    for (let i = 0; i < data.length; i += 4) {
+      // Grayscale using luminance formula
+      const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+
+      // Increase contrast (stretch histogram)
+      const contrast = 1.5; // Contrast multiplier
+      const factor = (259 * (contrast * 100 + 255)) / (255 * (259 - contrast * 100));
+      const newGray = Math.min(255, Math.max(0, factor * (gray - 128) + 128));
+
+      data[i] = newGray;     // R
+      data[i + 1] = newGray; // G
+      data[i + 2] = newGray; // B
+      // Alpha unchanged
+    }
+
+    ctx.putImageData(imageData, 0, 0);
   }
 
   async initializeTesseract() {
     if (this.worker) return;
 
-    // Dynamic import of Tesseract.js
-    const Tesseract = await import("tesseract.js");
-    this.tesseract = Tesseract;
+    // Check if Tesseract is loaded globally (via script tag)
+    if (typeof Tesseract === "undefined") {
+      this.log("error", "Tesseract.js not loaded! Make sure the script tag is present.");
+      throw new Error("Tesseract.js not loaded");
+    }
 
-    this.worker = await Tesseract.createWorker("eng", 1, {
-      logger: (m) => {
-        if (m.status === "recognizing text") {
-          this.updateProgress(Math.round(m.progress * 100));
-        }
-      },
-    });
+    this.log("ocr", "Creating Tesseract worker...");
+
+    try {
+      this.worker = await Tesseract.createWorker("eng", 1, {
+        logger: (m) => {
+          this.log("ocr", `${m.status}${m.progress ? ` (${Math.round(m.progress * 100)}%)` : ''}`);
+        },
+      });
+      this.log("success", "Tesseract worker created successfully");
+    } catch (error) {
+      this.log("error", `Failed to create Tesseract worker: ${error.message}`);
+      throw error;
+    }
   }
 
   async recognizeText(imageData, region) {
     if (!this.worker) return null;
 
     try {
+      // Use PSM 7 (single text line) for name, PSM 6 (block) for set
+      // PSM modes: https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html
+      const psm = region === "name" ? "7" : "6";
+
+      await this.worker.setParameters({
+        tessedit_pageseg_mode: psm,
+        // Only allow alphanumeric and common punctuation
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-',. ",
+      });
+
       const result = await this.worker.recognize(imageData);
       return result;
     } catch (error) {
-      console.error(`OCR error for ${region}:`, error);
+      this.log("error", `OCR error for ${region}: ${error.message}`);
       return null;
     }
   }
@@ -439,139 +487,49 @@ export default class extends Controller {
   parseSetAndNumber(text) {
     if (!text) return { setCode: null, cardNumber: null };
 
-    // Clean up OCR artifacts
     const cleaned = text
       .toUpperCase()
       .replace(/[^A-Z0-9\s/·.-]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
 
-    console.log("Parsing set text:", cleaned);
-
-    // Common formats:
-    // "MKM · 123/287"
-    // "MKM 123/287"
-    // "MKM-123"
-    // "123/287 MKM"
-    // "MKM · EN · 123"
-
-    // Try to find set code (2-4 uppercase letters)
+    // Try to find set code (2-5 uppercase letters)
     const setCodeMatch = cleaned.match(/\b([A-Z]{2,5})\b/);
     const setCode = setCodeMatch ? setCodeMatch[1] : null;
 
-    // Try to find collector number (digits, possibly with /total)
+    // Try to find collector number
     const numberMatch = cleaned.match(/\b(\d{1,4})(?:\/\d+)?\b/);
     const cardNumber = numberMatch ? numberMatch[1] : null;
 
-    console.log("Parsed - Set:", setCode, "Number:", cardNumber);
-
     return { setCode, cardNumber };
-  }
-
-  async searchCard(setCode, cardNumber, nameText) {
-    const params = new URLSearchParams();
-
-    if (setCode && cardNumber) {
-      params.append("set_code", setCode);
-      params.append("card_number", cardNumber);
-    }
-
-    if (nameText) {
-      // Clean name text for search
-      const cleanedName = this.cleanNameForSearch(nameText);
-      if (cleanedName) {
-        params.append("q", cleanedName);
-      }
-    }
-
-    if (!params.toString()) {
-      this.showError("Could not extract card information. Try better lighting or angle.");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${this.searchPathValue}?${params.toString()}`, {
-        headers: {
-          Accept: "text/vnd.turbo-stream.html",
-          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
-        },
-      });
-
-      const html = await response.text();
-      Turbo.renderStreamMessage(html);
-      this.updateStatus("Search complete.");
-    } catch (error) {
-      console.error("Search error:", error);
-      this.showError("Search failed. Please try again.");
-    }
   }
 
   cleanNameForSearch(text) {
     if (!text) return null;
 
-    // Take only the first line (card name is usually on one line)
     const firstLine = text.split("\n")[0];
-
-    // Remove common OCR artifacts and clean up
-    return firstLine
+    const cleaned = firstLine
       .replace(/[^a-zA-Z0-9\s,'-]/g, "")
       .replace(/\s+/g, " ")
       .trim();
+
+    // Only return if we have something meaningful (at least 3 chars)
+    return cleaned.length >= 3 ? cleaned : null;
   }
 
   async addToCollection(event) {
     event.preventDefault();
-
     const button = event.currentTarget;
-    const cardId = button.dataset.cardId;
-    const cardUuid = button.dataset.cardUuid;
-    const collectionId = this.collectionSelectTarget.value;
-
-    if (!collectionId) {
-      alert("Please select a collection first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("magic_card_id", cardId);
-    formData.append("card_uuid", cardUuid);
-    formData.append("collection_id", collectionId);
-    formData.append("quantity", 1);
-    formData.append("foil_quantity", 0);
-
-    try {
-      button.disabled = true;
-      button.textContent = "Adding...";
-
-      const response = await fetch(this.addPathValue, {
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
-          Accept: "text/vnd.turbo-stream.html",
-        },
-        body: formData,
-      });
-
-      const html = await response.text();
-      Turbo.renderStreamMessage(html);
-
-      button.textContent = "Added!";
-      setTimeout(() => {
-        button.textContent = "Add";
-        button.disabled = false;
-      }, 1500);
-    } catch (error) {
-      console.error("Add error:", error);
-      button.textContent = "Add";
-      button.disabled = false;
-      alert("Failed to add card. Please try again.");
-    }
+    await this.addCard(button, false);
   }
 
   async addFoilToCollection(event) {
     event.preventDefault();
-
     const button = event.currentTarget;
+    await this.addCard(button, true);
+  }
+
+  async addCard(button, isFoil) {
     const cardId = button.dataset.cardId;
     const cardUuid = button.dataset.cardUuid;
     const collectionId = this.collectionSelectTarget.value;
@@ -585,11 +543,12 @@ export default class extends Controller {
     formData.append("magic_card_id", cardId);
     formData.append("card_uuid", cardUuid);
     formData.append("collection_id", collectionId);
-    formData.append("quantity", 0);
-    formData.append("foil_quantity", 1);
+    formData.append("quantity", isFoil ? 0 : 1);
+    formData.append("foil_quantity", isFoil ? 1 : 0);
 
     try {
       button.disabled = true;
+      const originalText = button.textContent;
       button.textContent = "Adding...";
 
       const response = await fetch(this.addPathValue, {
@@ -604,60 +563,116 @@ export default class extends Controller {
       const html = await response.text();
       Turbo.renderStreamMessage(html);
 
+      this.log("success", `Added card to collection${isFoil ? ' (foil)' : ''}`);
+
       button.textContent = "Added!";
       setTimeout(() => {
-        button.textContent = "Foil";
+        button.textContent = originalText;
         button.disabled = false;
       }, 1500);
     } catch (error) {
-      console.error("Add error:", error);
-      button.textContent = "Foil";
+      this.log("error", `Failed to add card: ${error.message}`);
+      button.textContent = isFoil ? "Foil" : "Add";
       button.disabled = false;
-      alert("Failed to add card. Please try again.");
     }
   }
 
-  // UI Helper Methods
+  // Logging
+  log(type, message) {
+    if (!this.hasLogEntriesTarget) return;
+
+    const timestamp = new Date().toLocaleTimeString();
+    const typeColors = {
+      system: "text-blue-400",
+      success: "text-green-400",
+      error: "text-red-400",
+      warning: "text-yellow-400",
+      ocr: "text-purple-400",
+      scan: "text-cyan-400",
+      capture: "text-gray-400",
+      data: "text-orange-400",
+      parse: "text-pink-400",
+      search: "text-indigo-400",
+      query: "text-teal-400",
+    };
+
+    const colorClass = typeColors[type] || "text-grey-text";
+    const typeLabel = type.toUpperCase().padEnd(7);
+
+    const entry = document.createElement("div");
+    entry.className = "font-mono text-xs leading-relaxed";
+    entry.innerHTML = `
+      <span class="text-grey-text/50">${timestamp}</span>
+      <span class="${colorClass} font-semibold">[${typeLabel}]</span>
+      <span class="text-grey-text">${this.escapeHtml(message)}</span>
+    `;
+
+    this.logEntriesTarget.appendChild(entry);
+
+    // Auto-scroll to bottom
+    this.logEntriesTarget.scrollTop = this.logEntriesTarget.scrollHeight;
+
+    // Keep only last 100 entries
+    while (this.logEntriesTarget.children.length > 100) {
+      this.logEntriesTarget.removeChild(this.logEntriesTarget.firstChild);
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  clearLog() {
+    if (this.hasLogEntriesTarget) {
+      this.logEntriesTarget.innerHTML = "";
+    }
+    this.log("system", "Log cleared");
+  }
+
+  // UI Helpers
+  updateCardGuide() {
+    if (!this.hasCardGuideTarget || !this.hasVideoTarget) return;
+
+    const container = this.cameraContainerTarget;
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+
+    const padding = 0.15;
+    const availableWidth = containerWidth * (1 - padding * 2);
+    const availableHeight = containerHeight * (1 - padding * 2);
+
+    let cardWidth, cardHeight;
+    const aspectRatio = this.constructor.CARD_ASPECT_RATIO;
+
+    if (availableWidth / availableHeight > aspectRatio) {
+      cardHeight = availableHeight;
+      cardWidth = cardHeight * aspectRatio;
+    } else {
+      cardWidth = availableWidth;
+      cardHeight = cardWidth / aspectRatio;
+    }
+
+    const guide = this.cardGuideTarget;
+    guide.style.width = `${cardWidth}px`;
+    guide.style.height = `${cardHeight}px`;
+    guide.style.left = `${(containerWidth - cardWidth) / 2}px`;
+    guide.style.top = `${(containerHeight - cardHeight) / 2}px`;
+  }
+
   showCameraView() {
     this.cameraContainerTarget.classList.remove("hidden");
-    this.previewTarget.classList.add("hidden");
-    this.captureButtonTarget.classList.remove("hidden");
-    this.scanButtonTarget.classList.add("hidden");
-    this.retakeButtonTarget.classList.add("hidden");
+    if (this.hasPreviewTarget) {
+      this.previewTarget.classList.add("hidden");
+    }
   }
 
   showPreviewView() {
     this.cameraContainerTarget.classList.add("hidden");
-    this.previewTarget.classList.remove("hidden");
-    this.captureButtonTarget.classList.add("hidden");
-    this.scanButtonTarget.classList.remove("hidden");
-    this.retakeButtonTarget.classList.remove("hidden");
-  }
-
-  showLoading() {
-    if (this.hasLoadingTarget) {
-      this.loadingTarget.classList.remove("hidden");
-    }
-    if (this.hasProgressTarget) {
-      this.progressTarget.classList.remove("hidden");
-    }
-  }
-
-  hideLoading() {
-    if (this.hasLoadingTarget) {
-      this.loadingTarget.classList.add("hidden");
-    }
-    if (this.hasProgressTarget) {
-      this.progressTarget.classList.add("hidden");
-    }
-  }
-
-  updateProgress(percent) {
-    if (this.hasProgressBarTarget) {
-      this.progressBarTarget.style.width = `${percent}%`;
-    }
-    if (this.hasProgressTextTarget) {
-      this.progressTextTarget.textContent = `${percent}%`;
+    if (this.hasPreviewTarget) {
+      this.previewTarget.classList.remove("hidden");
     }
   }
 
@@ -672,7 +687,7 @@ export default class extends Controller {
       this.cameraErrorTarget.textContent = message;
       this.cameraErrorTarget.classList.remove("hidden");
     }
-    this.updateStatus(message);
+    this.log("error", message);
   }
 
   hideError() {
@@ -683,7 +698,7 @@ export default class extends Controller {
 
   clearResults() {
     if (this.hasResultsTarget) {
-      this.resultsTarget.innerHTML = "";
+      this.resultsTarget.innerHTML = '<p class="text-grey-text/70 text-sm">Scanning for cards...</p>';
     }
   }
 
@@ -693,16 +708,13 @@ export default class extends Controller {
     let message;
     switch (error.name) {
       case "NotAllowedError":
-        message = "Camera access was denied. Please allow camera access in your browser settings and refresh the page.";
+        message = "Camera access was denied. Please allow camera access in your browser settings.";
         break;
       case "NotFoundError":
         message = "No camera found on this device.";
         break;
       case "NotReadableError":
         message = "Camera is already in use by another application.";
-        break;
-      case "OverconstrainedError":
-        message = "Camera does not meet the required constraints.";
         break;
       case "SecurityError":
         message = "Camera access requires a secure connection (HTTPS).";

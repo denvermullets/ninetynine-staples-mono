@@ -12,5 +12,5 @@ pin 'chart.js', to: 'https://ga.jspm.io/npm:chart.js@4.4.3/dist/chart.js'
 # @0.3.2
 pin '@kurkle/color', to: 'https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js'
 
-# Tesseract.js for client-side OCR (card scanning)
-pin 'tesseract.js', to: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js'
+# NOTE: Tesseract.js is loaded via script tag in card_scanner/show.html.erb
+# because it needs to load worker files that don't work well with importmaps

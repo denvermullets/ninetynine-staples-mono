@@ -50,16 +50,49 @@ module CardScanner
       cleaned_query = clean_ocr_text(@query)
       return [] if cleaned_query.blank?
 
-      # Search for cards matching the name
+      # Extract significant words from OCR result
+      words = extract_significant_words(cleaned_query)
+      return [] if words.empty?
+
+      # Search for cards matching ANY of the words, then rank by matches
+      search_with_words(words)
+    end
+
+    def extract_significant_words(text)
+      text
+        .split(/[\s,]+/)
+        .map { |w| w.gsub(/[^a-zA-Z'-]/, '') } # Keep only letters, hyphens, apostrophes
+        .select { |w| w.length >= 3 }            # At least 3 chars
+        .reject { |w| common_ocr_garbage?(w) }   # Filter common garbage
+        .first(5) # Max 5 words to avoid slow queries
+    end
+
+    def common_ocr_garbage?(word)
+      garbage = %w[the and for with from into onto upon that this]
+      garbage.include?(word.downcase)
+    end
+
+    def search_with_words(words)
+      # Build OR conditions for each word
+      conditions = words.map { 'magic_cards.name ILIKE ?' }
+      values = words.map { |w| "%#{w}%" }
+
       cards = MagicCard
               .joins(:boxset)
-              .where('magic_cards.name ILIKE ?', "%#{cleaned_query}%")
-              .where(card_side: [nil, 'a']) # Prefer front face
+              .where(conditions.join(' OR '), *values)
+              .where(card_side: [nil, 'a'])
               .order('boxsets.release_date DESC')
               .limit(100)
 
-      # Group by card name and return newest printing of each
-      dedupe_by_name(cards)
+      # Score cards by how many words match, prioritize more matches
+      scored = cards.map do |card|
+        match_count = words.count { |w| card.name.downcase.include?(w.downcase) }
+        [card, match_count]
+      end
+
+      # Sort by match count descending, then dedupe
+      sorted = scored.sort_by { |_, count| -count }.map(&:first)
+      dedupe_by_name(sorted)
     end
 
     def clean_ocr_text(text)
