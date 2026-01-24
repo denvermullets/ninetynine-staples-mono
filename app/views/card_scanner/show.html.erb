@@ -108,6 +108,15 @@
                 class="px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-background transition cursor-pointer">
           Scan Next
         </button>
+
+        <button data-action="click->card-scanner#rotateCamera"
+                class="px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-background transition cursor-pointer"
+                title="Rotate camera 180°">
+          <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Rotate
+        </button>
       </div>
 
       <!-- Tips -->
@@ -115,10 +124,11 @@
         <h3 class="text-sm font-medium mb-2 text-white">How it works:</h3>
         <ul class="text-xs text-grey-text/70 space-y-1">
           <li>1. Click "Start Camera" to enable the camera</li>
-          <li>2. Click "Start Scanning" to begin continuous scanning</li>
-          <li>3. Hold a Magic card in the guide - scanner runs every 2 seconds</li>
-          <li>4. When a card is found in the database, scanning pauses</li>
-          <li>5. Add the card to your collection, then click "Scan Next"</li>
+          <li>2. If the image is upside down, click "Rotate" to flip it 180°</li>
+          <li>3. Click "Start Scanning" to begin continuous scanning</li>
+          <li>4. Hold a Magic card in the guide - scanner runs every 2 seconds</li>
+          <li>5. When a card is found in the database, scanning pauses</li>
+          <li>6. Add the card to your collection, then click "Scan Next"</li>
         </ul>
       </div>
     </div>

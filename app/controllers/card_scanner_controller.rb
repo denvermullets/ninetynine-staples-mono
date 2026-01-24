@@ -48,9 +48,15 @@ class CardScannerController < ApplicationController
 
   def serialize_card_result(result)
     card = result[:card]
+    owned = result[:owned] || {}
     {
       card: card_json(card),
-      owned_quantity: result[:owned_quantity]
+      owned: {
+        quantity: owned[:quantity] || 0,
+        foil_quantity: owned[:foil_quantity] || 0,
+        proxy_quantity: owned[:proxy_quantity] || 0,
+        proxy_foil_quantity: owned[:proxy_foil_quantity] || 0
+      }
     }
   end
 
@@ -79,17 +85,33 @@ class CardScannerController < ApplicationController
   end
 
   def perform_add_to_collection
+    current = current_quantities
     @result = CollectionRecord::CreateOrUpdate.call(
       params: {
         collection_id: params[:collection_id],
         magic_card_id: params[:magic_card_id],
-        quantity: params[:quantity] || 1,
-        foil_quantity: params[:foil_quantity] || 0,
-        proxy_quantity: 0,
-        proxy_foil_quantity: 0,
+        quantity: current[:quantity] + params[:quantity].to_i,
+        foil_quantity: current[:foil_quantity] + params[:foil_quantity].to_i,
+        proxy_quantity: current[:proxy_quantity] + params[:proxy_quantity].to_i,
+        proxy_foil_quantity: current[:proxy_foil_quantity] + params[:proxy_foil_quantity].to_i,
         card_uuid: params[:card_uuid]
       }
     )
+  end
+
+  def current_quantities
+    record = CollectionMagicCard.find_by(
+      collection_id: params[:collection_id],
+      magic_card_id: params[:magic_card_id]
+    )
+    return { quantity: 0, foil_quantity: 0, proxy_quantity: 0, proxy_foil_quantity: 0 } unless record
+
+    {
+      quantity: record.quantity,
+      foil_quantity: record.foil_quantity,
+      proxy_quantity: record.proxy_quantity,
+      proxy_foil_quantity: record.proxy_foil_quantity
+    }
   end
 
   def render_add_success
@@ -101,8 +123,14 @@ class CardScannerController < ApplicationController
   end
 
   def history_locals
-    { card: @card, collection: @collection, quantity: params[:quantity].to_i,
-      foil: params[:foil_quantity].to_i.positive? }
+    {
+      card: @card,
+      collection: @collection,
+      quantity: params[:quantity].to_i,
+      foil: params[:foil_quantity].to_i.positive?,
+      proxy: params[:proxy_quantity].to_i.positive?,
+      proxy_foil: params[:proxy_foil_quantity].to_i.positive?
+    }
   end
 
   def toast_locals

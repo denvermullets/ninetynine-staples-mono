@@ -44,6 +44,7 @@ export default class extends Controller {
     this.continuousScanInterval = null;
     this.isPaused = false;
     this.logCounter = 0;
+    this.isRotated = false;
   }
 
   disconnect() {
@@ -84,6 +85,12 @@ export default class extends Controller {
       this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
     }
+  }
+
+  rotateCamera() {
+    this.isRotated = !this.isRotated;
+    this.videoTarget.style.transform = this.isRotated ? "rotate(180deg)" : "";
+    this.log("system", `Camera rotated ${this.isRotated ? "180°" : "back to normal"}`);
   }
 
   toggleScanning() {
@@ -258,40 +265,61 @@ export default class extends Controller {
 
   renderResultCard(result) {
     const card = result.card;
-    const owned = result.owned_quantity || 0;
+    const owned = result.owned || {};
+    const hasOwned = (owned.quantity || 0) + (owned.foil_quantity || 0) + (owned.proxy_quantity || 0) + (owned.proxy_foil_quantity || 0) > 0;
+
+    const ownedParts = [];
+    if (owned.quantity > 0) ownedParts.push(`${owned.quantity} regular`);
+    if (owned.foil_quantity > 0) ownedParts.push(`${owned.foil_quantity} foil`);
+    if (owned.proxy_quantity > 0) ownedParts.push(`${owned.proxy_quantity} proxy`);
+    if (owned.proxy_foil_quantity > 0) ownedParts.push(`${owned.proxy_foil_quantity} foil proxy`);
+
+    const btnClass = "px-3 py-0.5 text-xs border border-grey-text/50 text-grey-text rounded hover:border-accent-50 hover:text-accent-50 transition cursor-pointer";
 
     return `
       <div class="flex gap-3 p-3 bg-background/50 rounded-lg">
         <div class="shrink-0 w-16">
           <img src="${card.image_small}" alt="${card.name}" class="w-full rounded shadow-sm" loading="lazy">
         </div>
-        <div class="flex-grow min-w-0">
+        <div class="grow min-w-0">
           <h3 class="font-medium text-white truncate">${card.name}</h3>
           <p class="text-xs text-grey-text/70">${card.boxset_name} (${card.boxset_code})</p>
           <p class="text-xs text-grey-text/70">#${card.card_number}</p>
-          ${owned > 0 ? `<p class="text-xs text-accent-50 mt-1">Owned: ${owned}</p>` : ''}
-          <div class="flex gap-2 mt-1 text-xs">
-            ${card.normal_price > 0 ? `<span class="text-grey-text/70">$${card.normal_price.toFixed(2)}</span>` : ''}
-            ${card.foil_price > 0 ? `<span class="text-grey-text/50">Foil: $${card.foil_price.toFixed(2)}</span>` : ''}
+          ${hasOwned ? `<p class="text-xs text-accent-50 mt-1">Owned: ${ownedParts.join(', ')}</p>` : ''}
+          <div class="flex gap-3 mt-1 text-xs text-grey-text/70">
+            ${card.normal_price > 0 ? `<span>Regular: $${card.normal_price.toFixed(2)}</span>` : ''}
+            ${card.foil_price > 0 ? `<span>Foil: $${card.foil_price.toFixed(2)}</span>` : ''}
           </div>
         </div>
-        <div class="shrink-0 flex flex-col gap-1">
+        <div class="shrink-0 grid grid-cols-2 gap-2">
           ${card.has_non_foil ? `
             <button data-action="click->card-scanner#addToCollection"
                     data-card-id="${card.id}"
                     data-card-uuid="${card.card_uuid}"
-                    class="px-3 py-1 text-xs bg-accent-50 text-menu rounded hover:bg-accent-50/80 transition cursor-pointer">
-              Add
+                    class="${btnClass}">
+              Add Regular
             </button>
-          ` : ''}
+          ` : '<div></div>'}
+          <button data-action="click->card-scanner#addProxyToCollection"
+                  data-card-id="${card.id}"
+                  data-card-uuid="${card.card_uuid}"
+                  class="${btnClass}">
+            Add Proxy
+          </button>
           ${card.has_foil ? `
             <button data-action="click->card-scanner#addFoilToCollection"
                     data-card-id="${card.id}"
                     data-card-uuid="${card.card_uuid}"
-                    class="px-3 py-1 text-xs border border-accent-50 text-accent-50 rounded hover:bg-accent-50/10 transition cursor-pointer">
-              Foil
+                    class="${btnClass}">
+              Add Foil
             </button>
-          ` : ''}
+          ` : '<div></div>'}
+          <button data-action="click->card-scanner#addProxyFoilToCollection"
+                  data-card-id="${card.id}"
+                  data-card-uuid="${card.card_uuid}"
+                  class="${btnClass}">
+            Add Foil Proxy
+          </button>
         </div>
       </div>
     `;
@@ -311,7 +339,17 @@ export default class extends Controller {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
+
+    if (this.isRotated) {
+      // Rotate the canvas 180 degrees to match the visual display
+      ctx.save();
+      ctx.translate(canvas.width, canvas.height);
+      ctx.rotate(Math.PI);
+      ctx.drawImage(video, 0, 0);
+      ctx.restore();
+    } else {
+      ctx.drawImage(video, 0, 0);
+    }
   }
 
   extractRegions() {
@@ -520,16 +558,28 @@ export default class extends Controller {
   async addToCollection(event) {
     event.preventDefault();
     const button = event.currentTarget;
-    await this.addCard(button, false);
+    await this.addCard(button, "regular");
   }
 
   async addFoilToCollection(event) {
     event.preventDefault();
     const button = event.currentTarget;
-    await this.addCard(button, true);
+    await this.addCard(button, "foil");
   }
 
-  async addCard(button, isFoil) {
+  async addProxyToCollection(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    await this.addCard(button, "proxy");
+  }
+
+  async addProxyFoilToCollection(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    await this.addCard(button, "proxy_foil");
+  }
+
+  async addCard(button, cardType) {
     const cardId = button.dataset.cardId;
     const cardUuid = button.dataset.cardUuid;
     const collectionId = this.collectionSelectTarget.value;
@@ -543,8 +593,10 @@ export default class extends Controller {
     formData.append("magic_card_id", cardId);
     formData.append("card_uuid", cardUuid);
     formData.append("collection_id", collectionId);
-    formData.append("quantity", isFoil ? 0 : 1);
-    formData.append("foil_quantity", isFoil ? 1 : 0);
+    formData.append("quantity", cardType === "regular" ? 1 : 0);
+    formData.append("foil_quantity", cardType === "foil" ? 1 : 0);
+    formData.append("proxy_quantity", cardType === "proxy" ? 1 : 0);
+    formData.append("proxy_foil_quantity", cardType === "proxy_foil" ? 1 : 0);
 
     try {
       button.disabled = true;
@@ -563,16 +615,19 @@ export default class extends Controller {
       const html = await response.text();
       Turbo.renderStreamMessage(html);
 
-      this.log("success", `Added card to collection${isFoil ? ' (foil)' : ''}`);
+      const typeLabel = cardType === "regular" ? "" : ` (${cardType})`;
+      this.log("success", `Added card to collection${typeLabel}`);
 
       button.textContent = "Added!";
       setTimeout(() => {
         button.textContent = originalText;
         button.disabled = false;
-      }, 1500);
+        // Auto-resume scanning after adding a card
+        this.scanNext();
+      }, 1000);
     } catch (error) {
       this.log("error", `Failed to add card: ${error.message}`);
-      button.textContent = isFoil ? "Foil" : "Add";
+      button.textContent = originalText;
       button.disabled = false;
     }
   }

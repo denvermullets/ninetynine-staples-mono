@@ -101,19 +101,38 @@ module CardScanner
       return cards unless @user
 
       owned = fetch_owned_quantities(cards.map(&:id))
-      cards.map { |card| { card: card, owned_quantity: owned[card.id] || 0 } }
+      cards.map { |card| { card: card, owned: owned[card.id] || default_owned } }
+    end
+
+    def default_owned
+      { quantity: 0, foil_quantity: 0, proxy_quantity: 0, proxy_foil_quantity: 0 }
     end
 
     def fetch_owned_quantities(card_ids)
-      CollectionMagicCard.joins(:collection)
-                         .where(magic_card_id: card_ids)
-                         .where(collections: { user_id: @user.id })
-                         .where.not(
-                           'collections.collection_type = ? OR collections.collection_type LIKE ?',
-                           'deck', '%_deck'
-                         )
-                         .group(:magic_card_id)
-                         .sum('collection_magic_cards.quantity + collection_magic_cards.foil_quantity')
+      records = CollectionMagicCard.joins(:collection)
+                                   .where(magic_card_id: card_ids)
+                                   .where(collections: { user_id: @user.id })
+                                   .where.not(
+                                     'collections.collection_type = ? OR collections.collection_type LIKE ?',
+                                     'deck', '%_deck'
+                                   )
+                                   .group(:magic_card_id)
+                                   .select(
+                                     :magic_card_id,
+                                     'SUM(quantity) as quantity',
+                                     'SUM(foil_quantity) as foil_quantity',
+                                     'SUM(proxy_quantity) as proxy_quantity',
+                                     'SUM(proxy_foil_quantity) as proxy_foil_quantity'
+                                   )
+
+      records.index_by(&:magic_card_id).transform_values do |r|
+        {
+          quantity: r.quantity.to_i,
+          foil_quantity: r.foil_quantity.to_i,
+          proxy_quantity: r.proxy_quantity.to_i,
+          proxy_foil_quantity: r.proxy_foil_quantity.to_i
+        }
+      end
     end
   end
 end
