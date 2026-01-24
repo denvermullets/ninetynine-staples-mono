@@ -8,10 +8,10 @@
   owned_parts << "#{owned[:proxy_foil_quantity]} foil proxy" if owned[:proxy_foil_quantity].to_i > 0
 %>
 
-<div class="flex flex-col sm:flex-row gap-4 p-4 bg-background/50 rounded-lg">
-  <div class="flex gap-4">
+<div class="flex flex-col gap-3 p-3 sm:p-4 bg-background/50 rounded-lg">
+  <div class="flex gap-3">
     <!-- Card Image with Hover Preview -->
-    <div class="shrink-0 w-24"
+    <div class="shrink-0 w-16 sm:w-24"
          data-controller="card-hover"
          data-card-hover-image-value="<%= card.image_large %>"
          data-card-hover-name-value="<%= card.name %>"
@@ -24,36 +24,37 @@
 
     <!-- Card Info -->
     <div class="grow min-w-0">
-      <h3 class="font-semibold text-white text-base truncate"><%= card.name %></h3>
-      <p class="text-sm text-grey-text/70"><%= card.boxset&.name %> (<%= card.boxset&.code %>)</p>
-      <p class="text-sm text-grey-text/70">#<%= card.card_number %></p>
+      <h3 class="font-semibold text-white text-sm sm:text-base truncate"><%= card.name %></h3>
+      <p class="text-xs sm:text-sm text-grey-text/70 truncate"><%= card.boxset&.name %> (<%= card.boxset&.code %>)</p>
+      <p class="text-xs sm:text-sm text-grey-text/70">#<%= card.card_number %></p>
 
       <% if owned_parts.any? %>
-        <p class="text-sm text-accent-50 mt-1">Owned: <%= owned_parts.join(', ') %></p>
+        <p class="text-xs sm:text-sm text-accent-50 mt-0.5 sm:mt-1">Owned: <%= owned_parts.join(', ') %></p>
       <% end %>
 
       <!-- Price Info -->
-      <div class="flex gap-3 mt-1 text-sm text-grey-text/70">
+      <div class="flex flex-wrap gap-2 sm:gap-3 mt-0.5 sm:mt-1 text-xs sm:text-sm text-grey-text/70">
         <% if card.normal_price.to_f > 0 %>
-          <span>Regular: $<%= number_with_precision(card.normal_price, precision: 2) %></span>
+          <span>$<%= number_with_precision(card.normal_price, precision: 2) %></span>
         <% end %>
         <% if card.foil_price.to_f > 0 %>
-          <span>Foil: $<%= number_with_precision(card.foil_price, precision: 2) %></span>
+          <span class="text-accent-50/70">Foil: $<%= number_with_precision(card.foil_price, precision: 2) %></span>
         <% end %>
       </div>
     </div>
   </div>
 
-  <!-- Add Buttons - 2x2 Grid -->
-  <div class="shrink-0 grid grid-cols-4 sm:grid-cols-2 gap-2 sm:ml-auto">
-    <% btn_class = "px-3 py-0.5 text-xs border border-grey-text/50 text-grey-text rounded hover:border-accent-50 hover:text-accent-50 transition cursor-pointer" %>
+  <!-- Add Buttons - horizontal scroll on mobile, 2x2 grid on desktop -->
+  <div class="grid grid-cols-4 sm:grid-cols-2 gap-1.5 sm:gap-2">
+    <% btn_class = "px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs border border-grey-text/50 text-grey-text rounded hover:border-accent-50 hover:text-accent-50 transition cursor-pointer text-center" %>
 
     <% if card.non_foil_available? %>
       <button data-action="click->card-scanner#addToCollection"
               data-card-id="<%= card.id %>"
               data-card-uuid="<%= card.card_uuid %>"
               class="<%= btn_class %>">
-        Add Regular
+        <span class="sm:hidden">+Reg</span>
+        <span class="hidden sm:inline">Add Regular</span>
       </button>
     <% else %>
       <div></div>
@@ -63,7 +64,8 @@
             data-card-id="<%= card.id %>"
             data-card-uuid="<%= card.card_uuid %>"
             class="<%= btn_class %>">
-      Add Proxy
+      <span class="sm:hidden">+Proxy</span>
+      <span class="hidden sm:inline">Add Proxy</span>
     </button>
 
     <% if card.foil_available? %>
@@ -71,7 +73,8 @@
               data-card-id="<%= card.id %>"
               data-card-uuid="<%= card.card_uuid %>"
               class="<%= btn_class %>">
-        Add Foil
+        <span class="sm:hidden">+Foil</span>
+        <span class="hidden sm:inline">Add Foil</span>
       </button>
     <% else %>
       <div></div>
@@ -81,7 +84,8 @@
             data-card-id="<%= card.id %>"
             data-card-uuid="<%= card.card_uuid %>"
             class="<%= btn_class %>">
-      Add Foil Proxy
+      <span class="sm:hidden">+F.Prx</span>
+      <span class="hidden sm:inline">Add Foil Proxy</span>
     </button>
   </div>
 </div>

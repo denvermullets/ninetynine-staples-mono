@@ -24,6 +24,8 @@ export default class extends Controller {
     "debugSetPreview",
     "debugNamePlaceholder",
     "debugSetPlaceholder",
+    "zoomSlider",
+    "zoomValue",
   ];
 
   static values = {
@@ -45,6 +47,9 @@ export default class extends Controller {
     this.isPaused = false;
     this.logCounter = 0;
     this.isRotated = false;
+    this.zoomLevel = 1.0;
+    this.supportsNativeZoom = false;
+    this.nativeZoomRange = { min: 1, max: 1 };
   }
 
   disconnect() {
@@ -58,6 +63,21 @@ export default class extends Controller {
       this.hideError();
       this.log("system", "Requesting camera access...");
 
+      // Check if mediaDevices API is available (requires HTTPS or localhost)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const isSecure = window.location.protocol === "https:" || window.location.hostname === "localhost";
+        if (!isSecure) {
+          throw {
+            name: "InsecureContextError",
+            message: "Camera requires HTTPS. You're accessing via HTTP which blocks camera access.",
+          };
+        }
+        throw {
+          name: "NotSupportedError",
+          message: "Camera API not supported in this browser.",
+        };
+      }
+
       const constraints = {
         video: {
           facingMode: { ideal: "environment" },
@@ -69,6 +89,9 @@ export default class extends Controller {
       this.stream = await navigator.mediaDevices.getUserMedia(constraints);
       this.videoTarget.srcObject = this.stream;
       await this.videoTarget.play();
+
+      // Check for native zoom support
+      this.detectZoomCapabilities();
 
       this.log("success", "Camera started successfully");
       this.showCameraView();
@@ -89,8 +112,102 @@ export default class extends Controller {
 
   rotateCamera() {
     this.isRotated = !this.isRotated;
-    this.videoTarget.style.transform = this.isRotated ? "rotate(180deg)" : "";
+    this.applyVideoTransform();
     this.log("system", `Camera rotated ${this.isRotated ? "180°" : "back to normal"}`);
+  }
+
+  detectZoomCapabilities() {
+    try {
+      const track = this.stream?.getVideoTracks()[0];
+      if (!track) return;
+
+      const capabilities = track.getCapabilities?.();
+      if (capabilities?.zoom) {
+        this.supportsNativeZoom = true;
+        this.nativeZoomRange = {
+          min: capabilities.zoom.min || 1,
+          max: capabilities.zoom.max || 1,
+        };
+        this.log("system", `Native zoom supported: ${this.nativeZoomRange.min}x - ${this.nativeZoomRange.max}x`);
+      } else {
+        this.log("system", "Native zoom not supported, using CSS zoom");
+      }
+    } catch (e) {
+      this.log("warning", "Could not detect zoom capabilities");
+    }
+
+    // Initialize zoom slider if present
+    if (this.hasZoomSliderTarget) {
+      this.zoomSliderTarget.value = 1;
+      this.updateZoomDisplay();
+    }
+  }
+
+  async setZoom(level) {
+    this.zoomLevel = Math.max(1, Math.min(3, parseFloat(level)));
+
+    if (this.supportsNativeZoom && this.stream) {
+      // Use native camera zoom
+      try {
+        const track = this.stream.getVideoTracks()[0];
+        const nativeZoom = this.mapToNativeZoom(this.zoomLevel);
+        await track.applyConstraints({ advanced: [{ zoom: nativeZoom }] });
+        this.log("system", `Native zoom set to ${nativeZoom.toFixed(1)}x`);
+      } catch (e) {
+        // Fall back to CSS zoom
+        this.log("warning", "Native zoom failed, using CSS zoom");
+        this.supportsNativeZoom = false;
+      }
+    }
+
+    // Always apply CSS transform (for rotation and/or CSS zoom fallback)
+    this.applyVideoTransform();
+    this.updateZoomDisplay();
+  }
+
+  mapToNativeZoom(cssZoom) {
+    // Map our 1-3 range to the camera's native range
+    const { min, max } = this.nativeZoomRange;
+    return min + (cssZoom - 1) * (max - min) / 2;
+  }
+
+  applyVideoTransform() {
+    const transforms = [];
+
+    if (this.isRotated) {
+      transforms.push("rotate(180deg)");
+    }
+
+    // Apply CSS zoom if native zoom isn't supported or as enhancement
+    if (!this.supportsNativeZoom && this.zoomLevel > 1) {
+      transforms.push(`scale(${this.zoomLevel})`);
+    }
+
+    this.videoTarget.style.transform = transforms.join(" ") || "";
+  }
+
+  updateZoomDisplay() {
+    if (this.hasZoomValueTarget) {
+      this.zoomValueTarget.textContent = `${this.zoomLevel.toFixed(1)}x`;
+    }
+  }
+
+  handleZoomChange(event) {
+    this.setZoom(event.target.value);
+  }
+
+  zoomIn() {
+    this.setZoom(this.zoomLevel + 0.05);
+    if (this.hasZoomSliderTarget) {
+      this.zoomSliderTarget.value = this.zoomLevel;
+    }
+  }
+
+  zoomOut() {
+    this.setZoom(this.zoomLevel - 0.05);
+    if (this.hasZoomSliderTarget) {
+      this.zoomSliderTarget.value = this.zoomLevel;
+    }
   }
 
   toggleScanning() {
@@ -269,23 +386,33 @@ export default class extends Controller {
     const canvas = this.canvasTarget;
     const ctx = canvas.getContext("2d");
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // When using CSS zoom (not native), we need to crop to the center
+    // to match what the user actually sees
+    const effectiveZoom = (!this.supportsNativeZoom && this.zoomLevel > 1) ? this.zoomLevel : 1;
+
+    // Calculate the visible portion when zoomed
+    const srcWidth = video.videoWidth / effectiveZoom;
+    const srcHeight = video.videoHeight / effectiveZoom;
+    const srcX = (video.videoWidth - srcWidth) / 2;
+    const srcY = (video.videoHeight - srcHeight) / 2;
+
+    // Canvas matches the cropped size
+    canvas.width = srcWidth;
+    canvas.height = srcHeight;
 
     if (this.isRotated) {
       // Rotate the canvas 180 degrees to match the visual display
       ctx.save();
       ctx.translate(canvas.width, canvas.height);
       ctx.rotate(Math.PI);
-      ctx.drawImage(video, 0, 0);
+      ctx.drawImage(video, srcX, srcY, srcWidth, srcHeight, 0, 0, srcWidth, srcHeight);
       ctx.restore();
     } else {
-      ctx.drawImage(video, 0, 0);
+      ctx.drawImage(video, srcX, srcY, srcWidth, srcHeight, 0, 0, srcWidth, srcHeight);
     }
   }
 
   extractRegions() {
-    const video = this.videoTarget;
     const canvas = this.canvasTarget;
     const ctx = canvas.getContext("2d");
 
@@ -300,9 +427,9 @@ export default class extends Controller {
     const guideWidth = parseFloat(guide.style.width) || containerRect.width * 0.7;
     const guideHeight = parseFloat(guide.style.height) || containerRect.height * 0.7;
 
-    // Scale from CSS pixels to video pixels
-    const scaleX = video.videoWidth / containerRect.width;
-    const scaleY = video.videoHeight / containerRect.height;
+    // Scale from CSS pixels to canvas pixels (canvas may be cropped if CSS zoom is active)
+    const scaleX = canvas.width / containerRect.width;
+    const scaleY = canvas.height / containerRect.height;
 
     const cardX = Math.floor(guideLeft * scaleX);
     const cardY = Math.floor(guideTop * scaleY);
@@ -704,7 +831,11 @@ export default class extends Controller {
         message = "Camera is already in use by another application.";
         break;
       case "SecurityError":
-        message = "Camera access requires a secure connection (HTTPS).";
+      case "InsecureContextError":
+        message = "Camera requires HTTPS. If testing locally via Tailscale or IP address, you need to use HTTPS or access via localhost.";
+        break;
+      case "NotSupportedError":
+        message = "Camera API not supported in this browser.";
         break;
       default:
         message = `Camera error: ${error.message}`;
