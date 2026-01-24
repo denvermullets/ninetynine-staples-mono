@@ -45,12 +45,17 @@ export default class extends Controller {
     this.isPaused = false;
     this.logCounter = 0;
     this.isRotated = false;
+    this.cardPreviewElement = null;
   }
 
   disconnect() {
     this.stopCamera();
     this.stopContinuousScan();
     this.terminateWorker();
+    if (this.cardPreviewElement) {
+      this.cardPreviewElement.remove();
+      this.cardPreviewElement = null;
+    }
   }
 
   async startCamera() {
@@ -279,7 +284,13 @@ export default class extends Controller {
     return `
       <div class="flex gap-3 p-3 bg-background/50 rounded-lg">
         <div class="shrink-0 w-16">
-          <img src="${card.image_small}" alt="${card.name}" class="w-full rounded shadow-sm" loading="lazy">
+          <img src="${card.image_small}"
+               alt="${card.name}"
+               class="w-full rounded shadow-sm cursor-pointer"
+               loading="lazy"
+               data-action="mouseenter->card-scanner#showCardPreview mouseleave->card-scanner#hideCardPreview mousemove->card-scanner#moveCardPreview"
+               data-preview-image="${card.image_large}"
+               data-preview-name="${card.name}">
         </div>
         <div class="grow min-w-0">
           <h3 class="font-medium text-white truncate">${card.name}</h3>
@@ -779,5 +790,68 @@ export default class extends Controller {
     }
 
     this.showError(message);
+  }
+
+  // Card preview on hover
+  showCardPreview(event) {
+    const img = event.currentTarget;
+    const imageUrl = img.dataset.previewImage;
+    const name = img.dataset.previewName;
+
+    if (!imageUrl) return;
+
+    if (!this.cardPreviewElement) {
+      this.cardPreviewElement = document.createElement("div");
+      this.cardPreviewElement.className = "fixed z-[10000] pointer-events-none transition-opacity duration-150";
+      document.body.appendChild(this.cardPreviewElement);
+    }
+
+    this.cardPreviewElement.innerHTML = `
+      <img src="${imageUrl}"
+           alt="${name || 'Card preview'}"
+           class="w-80 rounded-xl shadow-2xl shadow-black/50 border border-highlight" />
+    `;
+    this.cardPreviewElement.style.opacity = "1";
+    this.updateCardPreviewPosition(event);
+  }
+
+  hideCardPreview() {
+    if (this.cardPreviewElement) {
+      this.cardPreviewElement.style.opacity = "0";
+      setTimeout(() => {
+        if (this.cardPreviewElement) {
+          this.cardPreviewElement.remove();
+          this.cardPreviewElement = null;
+        }
+      }, 150);
+    }
+  }
+
+  moveCardPreview(event) {
+    this.updateCardPreviewPosition(event);
+  }
+
+  updateCardPreviewPosition(event) {
+    if (!this.cardPreviewElement) return;
+
+    const padding = 16;
+    const previewWidth = 320;
+    const previewHeight = 448;
+
+    let x = event.clientX + padding;
+    let y = event.clientY - previewHeight / 2;
+
+    if (x + previewWidth > window.innerWidth) {
+      x = event.clientX - previewWidth - padding;
+    }
+
+    if (y < padding) {
+      y = padding;
+    } else if (y + previewHeight > window.innerHeight - padding) {
+      y = window.innerHeight - previewHeight - padding;
+    }
+
+    this.cardPreviewElement.style.left = `${x}px`;
+    this.cardPreviewElement.style.top = `${y}px`;
   }
 }

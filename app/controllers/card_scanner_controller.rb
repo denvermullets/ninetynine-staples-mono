@@ -69,6 +69,7 @@ class CardScannerController < ApplicationController
       boxset_name: card.boxset&.name,
       boxset_code: card.boxset&.code,
       image_small: card.image_small,
+      image_large: card.image_large,
       normal_price: card.normal_price.to_f,
       foil_price: card.foil_price.to_f,
       has_foil: card.foil_available?,
