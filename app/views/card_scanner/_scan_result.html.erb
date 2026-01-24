@@ -8,42 +8,44 @@
   owned_parts << "#{owned[:proxy_foil_quantity]} foil proxy" if owned[:proxy_foil_quantity].to_i > 0
 %>
 
-<div class="flex gap-4 p-4 bg-background/50 rounded-lg">
-  <!-- Card Image with Hover Preview -->
-  <div class="shrink-0 w-24"
-       data-controller="card-hover"
-       data-card-hover-image-value="<%= card.image_large %>"
-       data-card-hover-name-value="<%= card.name %>"
-       data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
-    <img src="<%= card.image_small %>"
-         alt="<%= card.name %>"
-         class="w-full rounded shadow-sm cursor-pointer"
-         loading="lazy">
-  </div>
+<div class="flex flex-col sm:flex-row gap-4 p-4 bg-background/50 rounded-lg">
+  <div class="flex gap-4">
+    <!-- Card Image with Hover Preview -->
+    <div class="shrink-0 w-24"
+         data-controller="card-hover"
+         data-card-hover-image-value="<%= card.image_large %>"
+         data-card-hover-name-value="<%= card.name %>"
+         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+      <img src="<%= card.image_small %>"
+           alt="<%= card.name %>"
+           class="w-full rounded shadow-sm cursor-pointer"
+           loading="lazy">
+    </div>
 
-  <!-- Card Info -->
-  <div class="grow min-w-0">
-    <h3 class="font-semibold text-white text-base truncate"><%= card.name %></h3>
-    <p class="text-sm text-grey-text/70"><%= card.boxset&.name %> (<%= card.boxset&.code %>)</p>
-    <p class="text-sm text-grey-text/70">#<%= card.card_number %></p>
+    <!-- Card Info -->
+    <div class="grow min-w-0">
+      <h3 class="font-semibold text-white text-base truncate"><%= card.name %></h3>
+      <p class="text-sm text-grey-text/70"><%= card.boxset&.name %> (<%= card.boxset&.code %>)</p>
+      <p class="text-sm text-grey-text/70">#<%= card.card_number %></p>
 
-    <% if owned_parts.any? %>
-      <p class="text-sm text-accent-50 mt-1">Owned: <%= owned_parts.join(', ') %></p>
-    <% end %>
-
-    <!-- Price Info -->
-    <div class="flex gap-3 mt-1 text-sm text-grey-text/70">
-      <% if card.normal_price.to_f > 0 %>
-        <span>Regular: $<%= number_with_precision(card.normal_price, precision: 2) %></span>
+      <% if owned_parts.any? %>
+        <p class="text-sm text-accent-50 mt-1">Owned: <%= owned_parts.join(', ') %></p>
       <% end %>
-      <% if card.foil_price.to_f > 0 %>
-        <span>Foil: $<%= number_with_precision(card.foil_price, precision: 2) %></span>
-      <% end %>
+
+      <!-- Price Info -->
+      <div class="flex gap-3 mt-1 text-sm text-grey-text/70">
+        <% if card.normal_price.to_f > 0 %>
+          <span>Regular: $<%= number_with_precision(card.normal_price, precision: 2) %></span>
+        <% end %>
+        <% if card.foil_price.to_f > 0 %>
+          <span>Foil: $<%= number_with_precision(card.foil_price, precision: 2) %></span>
+        <% end %>
+      </div>
     </div>
   </div>
 
   <!-- Add Buttons - 2x2 Grid -->
-  <div class="shrink-0 grid grid-cols-2 gap-2">
+  <div class="shrink-0 grid grid-cols-4 sm:grid-cols-2 gap-2 sm:ml-auto">
     <% btn_class = "px-3 py-0.5 text-xs border border-grey-text/50 text-grey-text rounded hover:border-accent-50 hover:text-accent-50 transition cursor-pointer" %>
 
     <% if card.non_foil_available? %>
