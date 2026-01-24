@@ -1,0 +1,6 @@
+<% deck.tags.each do |tag| %>
+  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
+        style="background-color: <%= tag.color %>;">
+    <%= tag.name %>
+  </span>
+<% end %>

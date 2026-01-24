@@ -18,6 +18,7 @@
           <% end %>
         </div>
         <p id="deck-description" class="text-sm text-grey-text"><%= @deck.description %></p>
+        <%= render partial: 'deck_tags_wrapper', locals: { deck: @deck } %>
       </div>
 
       <%= turbo_frame_tag 'header_actions' do %>

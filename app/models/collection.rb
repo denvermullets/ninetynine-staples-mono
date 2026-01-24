@@ -6,6 +6,8 @@ class Collection < ApplicationRecord
   has_many :collection_magic_cards
   has_many :magic_cards, through: :collection_magic_cards
   has_many :sourced_deck_cards, class_name: 'CollectionMagicCard', foreign_key: :source_collection_id
+  has_many :collection_tags, dependent: :destroy
+  has_many :tags, through: :collection_tags
 
   scope :by_user, ->(id) { where(user_id: id) }
   scope :by_type, ->(type) { where(collection_type: type) }

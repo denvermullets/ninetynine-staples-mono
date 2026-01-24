@@ -23,16 +23,18 @@ class DecksController < ApplicationController
     @user = User.find_by!(username: params[:username])
     @sort = params[:sort].presence_in(SORT_OPTIONS.keys) || 'updated_desc'
     @sort_options = SORT_OPTIONS
-
-    @decks = @user.collections.decks
-    @decks = if @sort == 'building'
-               @decks.left_joins(:collection_magic_cards)
-                     .select(BUILDING_SELECT_SQL)
-                     .group('collections.id')
-                     .order(Arel.sql('is_building DESC, collections.updated_at DESC'))
-             else
-               @decks.order(SORT_OPTIONS[@sort][:order])
-             end
+    @decks = sorted_decks(@user.collections.decks.includes(:tags))
     @is_owner = current_user&.id == @user.id
+  end
+
+  private
+
+  def sorted_decks(decks)
+    return decks.order(SORT_OPTIONS[@sort][:order]) unless @sort == 'building'
+
+    decks.left_joins(:collection_magic_cards)
+         .select(BUILDING_SELECT_SQL)
+         .group('collections.id')
+         .order(Arel.sql('is_building DESC, collections.updated_at DESC'))
   end
 end

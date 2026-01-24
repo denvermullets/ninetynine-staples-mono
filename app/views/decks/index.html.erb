@@ -86,6 +86,17 @@
                 <p class="text-grey-text text-sm truncate"><%= deck.description %></p>
               <% end %>
 
+              <% if deck.tags.any? %>
+                <div class="flex flex-wrap gap-1">
+                  <% deck.tags.each do |tag| %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
+                          style="background-color: <%= tag.color %>;">
+                      <%= tag.name %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+
               <div class="flex items-center justify-between text-sm text-grey-text mt-2">
                 <span><%= deck.total_cards %> cards</span>
                 <div class="flex items-center gap-1.5">

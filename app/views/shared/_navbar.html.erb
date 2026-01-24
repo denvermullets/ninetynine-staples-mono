@@ -49,6 +49,7 @@
               <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
+              <%= link_to 'Manage Tags', admin_tags_path, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap' %>
               <%= link_to 'Mission Control', '/jobs', class: 'cursor-pointer text-left whitespace-nowrap' %>
@@ -105,6 +106,7 @@
           <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
+          <%= link_to 'Manage Tags', admin_tags_path, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left block py-1' %>
           <%= link_to 'Mission Control', '/jobs', class: 'cursor-pointer text-left block py-1' %>
