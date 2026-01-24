@@ -40,6 +40,7 @@ module CardScanner
                .where(boxsets: { code: @set_code })
                .where(card_number: @card_number)
                .where(card_side: [nil, 'a'])
+               .where(is_token: false)
                .first
     end
 
@@ -68,6 +69,7 @@ module CardScanner
       cards = MagicCard.joins(:boxset)
                        .where(conditions.join(' OR '), *values)
                        .where(card_side: [nil, 'a'])
+                       .where(is_token: false)
                        .order('boxsets.release_date DESC')
                        .limit(100)
 
@@ -91,6 +93,7 @@ module CardScanner
       MagicCard.joins(:boxset)
                .where(scryfall_oracle_id: card.scryfall_oracle_id)
                .where(card_side: [nil, 'a'])
+               .where(is_token: false)
                .order('boxsets.release_date DESC')
     end
 
