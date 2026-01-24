@@ -1,14 +1,14 @@
 <% label = [foil ? 'Foil' : nil, proxy ? 'Proxy' : nil, proxy_foil ? 'Proxy Foil' : nil].compact.join(' ') %>
-<div class="flex items-center gap-2 p-2 bg-background/30 rounded text-sm">
+<div class="flex items-center gap-2 p-1.5 sm:p-2 bg-background/30 rounded text-xs sm:text-sm">
   <img src="<%= card.image_small %>"
        alt="<%= card.name %>"
-       class="w-8 h-auto rounded shadow-sm"
+       class="w-6 sm:w-8 h-auto rounded shadow-sm"
        loading="lazy">
   <div class="grow min-w-0">
-    <p class="truncate text-white"><%= card.name %></p>
-    <p class="text-xs text-grey-text/70">
-      <%= quantity %>x<%= label.present? ? " (#{label})" : '' %> added to <%= collection.name %>
+    <p class="truncate text-white text-xs sm:text-sm"><%= card.name %></p>
+    <p class="text-[10px] sm:text-xs text-grey-text/70 truncate">
+      <%= quantity %>x<%= label.present? ? " (#{label})" : '' %> → <%= collection.name %>
     </p>
   </div>
-  <span class="text-xs text-accent-50">+<%= quantity %></span>
+  <span class="text-xs text-accent-50 shrink-0">+<%= quantity %></span>
 </div>
