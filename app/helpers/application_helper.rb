@@ -67,6 +67,29 @@ module ApplicationHelper
     current_user&.role.to_i == 9001
   end
 
+  # Returns 'text-foreground' for light backgrounds, 'text-white' for dark backgrounds
+  def tag_text_color_class(hex_color)
+    color_is_light?(hex_color) ? 'text-foreground' : 'text-white'
+  end
+
+  # Calculate relative luminance to determine if color is light or dark
+  def color_is_light?(hex_color)
+    return false if hex_color.blank?
+
+    # Remove # if present
+    hex = hex_color.delete('#')
+    return false unless hex.match?(/\A[0-9A-Fa-f]{6}\z/)
+
+    r, g, b = hex.scan(/../).map { |c| c.to_i(16) / 255.0 }
+
+    # Calculate relative luminance using sRGB formula
+    [r, g, b].map! { |c| c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055)**2.4 }
+    luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b)
+
+    # Return true if luminance is above threshold (light color)
+    luminance > 0.5
+  end
+
   def column_visible?(column_key, view = nil)
     return true unless current_user
 
