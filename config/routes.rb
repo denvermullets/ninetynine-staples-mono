@@ -125,4 +125,9 @@ Rails.application.routes.draw do
     resources :decks, only: %i[index show], controller: 'game_tracker/tracked_decks', as: 'tracked_decks'
     resources :games, only: %i[index show], controller: 'game_tracker/commander_games', as: 'commander_games'
   end
+
+  # Card scanner routes
+  get 'scan-cards', to: 'card_scanner#show', as: :card_scanner
+  get 'scan-cards/search', to: 'card_scanner#search', as: :card_scanner_search
+  post 'scan-cards/add_to_collection', to: 'card_scanner#add_to_collection', as: :card_scanner_add
 end

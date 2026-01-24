@@ -1,0 +1,11 @@
+<div id="scan_results">
+  <% if results.blank? %>
+    <p class="text-grey-text/70 text-sm">No cards found. Try scanning again with better lighting or angle.</p>
+  <% else %>
+    <div class="space-y-3">
+      <% results.each do |result| %>
+        <%= render partial: 'card_scanner/scan_result', locals: { result: result } %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
