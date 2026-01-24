@@ -124,13 +124,18 @@ class CardScannerController < ApplicationController
   end
 
   def history_locals
+    qty = params[:quantity].to_i
+    foil_qty = params[:foil_quantity].to_i
+    proxy_qty = params[:proxy_quantity].to_i
+    proxy_foil_qty = params[:proxy_foil_quantity].to_i
+
     {
       card: @card,
       collection: @collection,
-      quantity: params[:quantity].to_i,
-      foil: params[:foil_quantity].to_i.positive?,
-      proxy: params[:proxy_quantity].to_i.positive?,
-      proxy_foil: params[:proxy_foil_quantity].to_i.positive?
+      quantity: qty + foil_qty + proxy_qty + proxy_foil_qty,
+      foil: foil_qty.positive?,
+      proxy: proxy_qty.positive?,
+      proxy_foil: proxy_foil_qty.positive?
     }
   end
 
