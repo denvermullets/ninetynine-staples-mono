@@ -45,17 +45,12 @@ export default class extends Controller {
     this.isPaused = false;
     this.logCounter = 0;
     this.isRotated = false;
-    this.cardPreviewElement = null;
   }
 
   disconnect() {
     this.stopCamera();
     this.stopContinuousScan();
     this.terminateWorker();
-    if (this.cardPreviewElement) {
-      this.cardPreviewElement.remove();
-      this.cardPreviewElement = null;
-    }
   }
 
   async startCamera() {
@@ -220,17 +215,24 @@ export default class extends Controller {
 
       const response = await fetch(`${this.searchPathValue}?${params.toString()}`, {
         headers: {
-          Accept: "application/json",
+          Accept: "text/html",
+          "Turbo-Frame": "scan_results",
           "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
         },
       });
 
-      const data = await response.json();
+      const html = await response.text();
 
-      if (data.results && data.results.length > 0) {
+      // Check if we got results (look for the result card class in the response)
+      if (html.includes('bg-background/50')) {
         // Found a match! Pause and show results
-        this.log("success", `Found ${data.results.length} matching card(s)!`);
-        this.pauseAndShowResults(data);
+        const resultsFrame = document.getElementById("scan_results");
+        resultsFrame.innerHTML = html;
+
+        // Count results for logging
+        const resultCount = (html.match(/bg-background\/50/g) || []).length;
+        this.log("success", `Found ${resultCount} matching card(s)!`);
+        this.pauseAndShowResults();
       } else {
         this.log("warning", "No matching cards found in database");
       }
@@ -242,7 +244,7 @@ export default class extends Controller {
     }
   }
 
-  pauseAndShowResults(data) {
+  pauseAndShowResults() {
     // Stop continuous scanning
     this.stopContinuousScan();
     this.isPaused = true;
@@ -251,89 +253,8 @@ export default class extends Controller {
     this.previewImageTarget.src = this.canvasTarget.toDataURL("image/png");
     this.showPreviewView();
 
-    // Render results
-    this.renderResults(data.results);
-
     this.log("system", "Scanning paused - card found! Click 'Scan Next' to continue.");
     this.updateStatus("Card found! Add to collection or click 'Scan Next' to continue.");
-  }
-
-  renderResults(results) {
-    if (!results || results.length === 0) {
-      this.resultsTarget.innerHTML = '<p class="text-grey-text/70 text-sm">No cards found.</p>';
-      return;
-    }
-
-    const html = results.map(result => this.renderResultCard(result)).join('');
-    this.resultsTarget.innerHTML = `<div class="space-y-3">${html}</div>`;
-  }
-
-  renderResultCard(result) {
-    const card = result.card;
-    const owned = result.owned || {};
-    const hasOwned = (owned.quantity || 0) + (owned.foil_quantity || 0) + (owned.proxy_quantity || 0) + (owned.proxy_foil_quantity || 0) > 0;
-
-    const ownedParts = [];
-    if (owned.quantity > 0) ownedParts.push(`${owned.quantity} regular`);
-    if (owned.foil_quantity > 0) ownedParts.push(`${owned.foil_quantity} foil`);
-    if (owned.proxy_quantity > 0) ownedParts.push(`${owned.proxy_quantity} proxy`);
-    if (owned.proxy_foil_quantity > 0) ownedParts.push(`${owned.proxy_foil_quantity} foil proxy`);
-
-    const btnClass = "px-3 py-0.5 text-xs border border-grey-text/50 text-grey-text rounded hover:border-accent-50 hover:text-accent-50 transition cursor-pointer";
-
-    return `
-      <div class="flex gap-4 p-4 bg-background/50 rounded-lg">
-        <div class="shrink-0 w-24">
-          <img src="${card.image_small}"
-               alt="${card.name}"
-               class="w-full rounded shadow-sm cursor-pointer"
-               loading="lazy"
-               data-action="mouseenter->card-scanner#showCardPreview mouseleave->card-scanner#hideCardPreview mousemove->card-scanner#moveCardPreview"
-               data-preview-image="${card.image_large}"
-               data-preview-name="${card.name}">
-        </div>
-        <div class="grow min-w-0">
-          <h3 class="font-semibold text-white text-base truncate">${card.name}</h3>
-          <p class="text-sm text-grey-text/70">${card.boxset_name} (${card.boxset_code})</p>
-          <p class="text-sm text-grey-text/70">#${card.card_number}</p>
-          ${hasOwned ? `<p class="text-sm text-accent-50 mt-1">Owned: ${ownedParts.join(', ')}</p>` : ''}
-          <div class="flex gap-3 mt-1 text-sm text-grey-text/70">
-            ${card.normal_price > 0 ? `<span>Regular: $${card.normal_price.toFixed(2)}</span>` : ''}
-            ${card.foil_price > 0 ? `<span>Foil: $${card.foil_price.toFixed(2)}</span>` : ''}
-          </div>
-        </div>
-        <div class="shrink-0 grid grid-cols-2 gap-2">
-          ${card.has_non_foil ? `
-            <button data-action="click->card-scanner#addToCollection"
-                    data-card-id="${card.id}"
-                    data-card-uuid="${card.card_uuid}"
-                    class="${btnClass}">
-              Add Regular
-            </button>
-          ` : '<div></div>'}
-          <button data-action="click->card-scanner#addProxyToCollection"
-                  data-card-id="${card.id}"
-                  data-card-uuid="${card.card_uuid}"
-                  class="${btnClass}">
-            Add Proxy
-          </button>
-          ${card.has_foil ? `
-            <button data-action="click->card-scanner#addFoilToCollection"
-                    data-card-id="${card.id}"
-                    data-card-uuid="${card.card_uuid}"
-                    class="${btnClass}">
-              Add Foil
-            </button>
-          ` : '<div></div>'}
-          <button data-action="click->card-scanner#addProxyFoilToCollection"
-                  data-card-id="${card.id}"
-                  data-card-uuid="${card.card_uuid}"
-                  class="${btnClass}">
-            Add Foil Proxy
-          </button>
-        </div>
-      </div>
-    `;
   }
 
   scanNext() {
@@ -792,66 +713,4 @@ export default class extends Controller {
     this.showError(message);
   }
 
-  // Card preview on hover
-  showCardPreview(event) {
-    const img = event.currentTarget;
-    const imageUrl = img.dataset.previewImage;
-    const name = img.dataset.previewName;
-
-    if (!imageUrl) return;
-
-    if (!this.cardPreviewElement) {
-      this.cardPreviewElement = document.createElement("div");
-      this.cardPreviewElement.className = "fixed z-[10000] pointer-events-none transition-opacity duration-150";
-      document.body.appendChild(this.cardPreviewElement);
-    }
-
-    this.cardPreviewElement.innerHTML = `
-      <img src="${imageUrl}"
-           alt="${name || 'Card preview'}"
-           class="w-80 rounded-xl shadow-2xl shadow-black/50 border border-highlight" />
-    `;
-    this.cardPreviewElement.style.opacity = "1";
-    this.updateCardPreviewPosition(event);
-  }
-
-  hideCardPreview() {
-    if (this.cardPreviewElement) {
-      this.cardPreviewElement.style.opacity = "0";
-      setTimeout(() => {
-        if (this.cardPreviewElement) {
-          this.cardPreviewElement.remove();
-          this.cardPreviewElement = null;
-        }
-      }, 150);
-    }
-  }
-
-  moveCardPreview(event) {
-    this.updateCardPreviewPosition(event);
-  }
-
-  updateCardPreviewPosition(event) {
-    if (!this.cardPreviewElement) return;
-
-    const padding = 16;
-    const previewWidth = 320;
-    const previewHeight = 448;
-
-    let x = event.clientX + padding;
-    let y = event.clientY - previewHeight / 2;
-
-    if (x + previewWidth > window.innerWidth) {
-      x = event.clientX - previewWidth - padding;
-    }
-
-    if (y < padding) {
-      y = padding;
-    } else if (y + previewHeight > window.innerHeight - padding) {
-      y = window.innerHeight - previewHeight - padding;
-    }
-
-    this.cardPreviewElement.style.left = `${x}px`;
-    this.cardPreviewElement.style.top = `${y}px`;
-  }
 }

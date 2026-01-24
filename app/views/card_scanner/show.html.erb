@@ -139,9 +139,9 @@
     <!-- Search Results -->
     <div class="px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text">
       <h2 class="text-lg font-semibold mb-4 text-white">Search Results</h2>
-      <div id="scan_results" data-card-scanner-target="results" class="max-h-[500px] overflow-y-auto">
+      <%= turbo_frame_tag "scan_results", data: { card_scanner_target: "results" }, class: "block max-h-[500px] overflow-y-auto" do %>
         <p class="text-grey-text/70 text-sm">Start scanning to find cards.</p>
-      </div>
+      <% end %>
     </div>
 
     <!-- Scan History -->
