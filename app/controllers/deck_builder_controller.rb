@@ -62,7 +62,9 @@ class DeckBuilderController < ApplicationController
   end
 
   def update_deck
-    @deck.update(deck_params) ? render_update_deck_success : render_error_toast('Failed to update deck')
+    update_params = deck_params.to_h
+    update_params[:tag_ids] = update_params[:tag_ids]&.reject(&:blank?) || []
+    @deck.update(update_params) ? render_update_deck_success : render_error_toast('Failed to update deck')
   end
 
   def swap_source
@@ -76,7 +78,7 @@ class DeckBuilderController < ApplicationController
   private
 
   def set_deck
-    @deck = Collection.find(params[:id])
+    @deck = Collection.includes(:tags).find(params[:id])
     @is_owner = current_user&.id == @deck.user_id
   end
 
@@ -113,14 +115,16 @@ class DeckBuilderController < ApplicationController
 
   def render_update_deck_success
     flash.now[:type] = 'success'
+    @deck.reload
     render turbo_stream: [
       turbo_stream.update('deck-name', @deck.name),
       turbo_stream.update('deck-description', @deck.description),
+      turbo_stream.replace('deck-tags', partial: 'deck_tags_wrapper', locals: { deck: @deck }),
       turbo_stream.update('deck_modal', ''),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: 'Deck updated successfully' })
     ]
   end
 
-  def deck_params = params.permit(:name, :description, :collection_type)
+  def deck_params = params.permit(:name, :description, :collection_type, tag_ids: [])
 end
 # rubocop:enable Metrics/ClassLength

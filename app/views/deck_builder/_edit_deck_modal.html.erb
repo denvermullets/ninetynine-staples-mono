@@ -44,6 +44,33 @@
               class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
         </div>
 
+        <% if local_assigns[:available_tags]&.any? %>
+          <div>
+            <label class="block text-sm font-medium text-grey-text mb-2">Tags</label>
+            <!-- Hidden field ensures tag_ids is sent even when no tags are selected -->
+            <input type="hidden" name="tag_ids[]" value="">
+            <div class="flex flex-wrap gap-2">
+              <% available_tags.each do |tag| %>
+                <% is_selected = deck.tag_ids.include?(tag.id) %>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox"
+                         name="tag_ids[]"
+                         value="<%= tag.id %>"
+                         <%= 'checked' if is_selected %>
+                         class="hidden peer">
+                  <span class="px-3 py-1 rounded-full text-sm font-medium transition-all border-2 <%= is_selected ? tag_text_color_class(tag.color) : 'text-grey-text' %> <%= is_selected ? '' : 'border-highlight hover:border-accent-50' %>"
+                        style="<%= is_selected ? "background-color: #{tag.color}; border-color: #{tag.color};" : '' %>"
+                        data-color="<%= tag.color %>"
+                        data-light-text="<%= color_is_light?(tag.color) %>"
+                        data-controller="tag-toggle">
+                    <%= tag.name %>
+                  </span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
         <div class="flex justify-end gap-3 pt-2">
           <button type="button"
                   data-action="click->modal#close"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_22_122703) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_24_012715) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -77,6 +77,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_22_122703) do
     t.index ["needed"], name: "index_collection_magic_cards_on_needed"
     t.index ["source_collection_id"], name: "index_collection_magic_cards_on_source_collection_id"
     t.index ["staged"], name: "index_collection_magic_cards_on_staged"
+  end
+
+  create_table "collection_tags", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "tag_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collection_id", "tag_id"], name: "index_collection_tags_on_collection_id_and_tag_id", unique: true
+    t.index ["collection_id"], name: "index_collection_tags_on_collection_id"
+    t.index ["tag_id"], name: "index_collection_tags_on_tag_id"
   end
 
   create_table "collections", force: :cascade do |t|
@@ -422,6 +432,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_22_122703) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "tags", force: :cascade do |t|
+    t.string "color", default: "#6366f1"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_tags_on_name", unique: true
+  end
+
   create_table "tracked_decks", force: :cascade do |t|
     t.bigint "commander_id", null: false
     t.datetime "created_at", null: false
@@ -460,6 +479,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_22_122703) do
   add_foreign_key "collection_magic_cards", "collections"
   add_foreign_key "collection_magic_cards", "collections", column: "source_collection_id"
   add_foreign_key "collection_magic_cards", "magic_cards"
+  add_foreign_key "collection_tags", "collections"
+  add_foreign_key "collection_tags", "tags"
   add_foreign_key "collections", "users"
   add_foreign_key "commander_games", "tracked_decks"
   add_foreign_key "commander_games", "users"
