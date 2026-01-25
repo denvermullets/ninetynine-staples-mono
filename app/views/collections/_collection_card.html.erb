@@ -1,0 +1,93 @@
+<% card = collection.magic_cards.any? ? collection.magic_cards.last : nil %>
+<% is_deck = Collection.deck_type?(collection.collection_type) %>
+<% collection_path = is_deck ? deck_show_path(username: @user.username, collection_id: collection.id) : collection_show_path(username: @user.username, collection_id: collection.id) %>
+
+<div class="relative"
+     <% if @is_owner %>
+     data-controller="context-menu"
+     data-context-menu-edit-url-value="<%= edit_collection_modal_collection_path(collection) %>"
+     data-context-menu-frame-id-value="collection_modal"
+     data-action="contextmenu->context-menu#open"
+     <% end %>>
+  <%= link_to collection_path, class: 'group' do %>
+    <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-accent-50 transition-all duration-200 hover:shadow-lg hover:shadow-accent-50/20">
+      <!-- Card Image -->
+      <div class="relative h-48 bg-background overflow-hidden">
+        <% if is_deck && collection.commanders.any? %>
+          <% commander = collection.commanders.first.magic_card %>
+          <img
+            src="<%= commander.art_crop.presence || commander.image_large %>"
+            alt="<%= commander.name %>"
+            class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
+          />
+        <% elsif card %>
+          <img
+            src="<%= card.art_crop.presence || card.image_large %>"
+            alt="<%= card.name %>"
+            class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
+          />
+        <% else %>
+          <div class="w-full h-full flex items-center justify-center">
+            <span class="text-grey-text text-4xl">?</span>
+          </div>
+        <% end %>
+
+        <% if is_deck && collection.in_build_mode? %>
+          <!-- Staged Cards Badge -->
+          <div class="absolute top-2 left-2 px-2 py-1 bg-accent-400 text-foreground text-xs font-medium rounded">
+            <%= collection.staged_cards_count %> staged
+          </div>
+
+          <!-- Build Mode Badge -->
+          <div class="absolute top-2 right-2 px-2 py-1 bg-accent-400 text-foreground text-xs font-medium rounded">
+            Building
+          </div>
+        <% end %>
+
+        <!-- Collection Type Badge -->
+        <div class="absolute bottom-2 left-2 px-2 py-1 bg-background/80 text-grey-text text-xs rounded">
+          <%= collection.collection_type&.titleize&.gsub('_', ' ') || 'Collection' %>
+        </div>
+      </div>
+
+      <!-- Collection Info -->
+      <div class="p-4 flex flex-col gap-2">
+        <h3 class="text-grey-text font-medium truncate"><%= collection.name %></h3>
+
+        <% if is_deck && collection.commanders.any? %>
+          <p class="text-grey-text text-sm truncate"><%= collection.commanders.first.magic_card.name %></p>
+        <% elsif collection.description.present? %>
+          <p class="text-grey-text text-sm truncate"><%= collection.description %></p>
+        <% end %>
+
+        <% if collection.tags.any? %>
+          <div class="flex flex-wrap gap-1">
+            <% collection.tags.each do |tag| %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
+                    style="background-color: <%= tag.color %>;">
+                <%= tag.name %>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="flex items-center justify-between text-sm text-grey-text mt-2">
+          <span><%= collection.total_cards %> cards</span>
+          <span>$<%= number_with_precision(collection.total_value || 0, precision: 2, delimiter: ',') %></span>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @is_owner %>
+    <!-- Context Menu -->
+    <div data-context-menu-target="menu"
+         class="hidden fixed z-50 min-w-[120px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+      <button type="button"
+              data-action="click->context-menu#edit"
+              class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
+        Edit
+      </button>
+    </div>
+  <% end %>
+</div>

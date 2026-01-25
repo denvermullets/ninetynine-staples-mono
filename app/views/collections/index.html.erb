@@ -33,24 +33,7 @@
     <%= render partial: 'grouping_dropdown' %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
-    <div class='flex flex-col space-y-2'>
-      <div>
-        <%= @collection_type&.capitalize&.pluralize || 'Collections' %>
-      </div>
-      <% @collections.each do |col| %>
-        <% show_path = @collection_type == 'deck' ? deck_show_path(username: params[:username], collection_id: col.id) : collection_show_path(username: params[:username], collection_id: col.id) %>
-        <%= render partial: 'binder',
-                 locals: {
-                   name: col.name,
-                   description: col.description,
-                   card: col.magic_cards.count.zero? ? MagicCard.last : col.magic_cards.last,
-                   link: show_path,
-                   active: col.id == params[:collection_id].to_i,
-                   collection: col,
-                   is_owner: is_own_collection
-                 }
-        %>
-      <% end %>
+    <div class='flex flex-col space-y-4'>
       <% if current_user %>
         <%= render partial: 'binder',
                  locals: {
@@ -61,6 +44,63 @@
                    active: false
                  }
         %>
+      <% end %>
+
+      <% regular_collections = @collections.reject { |c| Collection.deck_type?(c.collection_type) } %>
+      <% deck_collections = @collections.select { |c| Collection.deck_type?(c.collection_type) } %>
+
+      <% if regular_collections.any? %>
+        <div data-controller="collapsible" data-collapsible-expanded-value="true">
+          <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full text-left cursor-pointer group">
+            <span class="text-sm font-semibold">Collections</span>
+            <svg data-collapsible-target="icon" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div data-collapsible-target="content" class="flex flex-col space-y-2 mt-2">
+            <% regular_collections.each do |col| %>
+              <% show_path = collection_show_path(username: params[:username], collection_id: col.id) %>
+              <%= render partial: 'binder',
+                       locals: {
+                         name: col.name,
+                         description: col.description,
+                         card: col.magic_cards.count.zero? ? MagicCard.last : col.magic_cards.last,
+                         link: show_path,
+                         active: col.id == params[:collection_id].to_i,
+                         collection: col,
+                         is_owner: is_own_collection
+                       }
+              %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if deck_collections.any? %>
+        <div data-controller="collapsible" data-collapsible-expanded-value="true">
+          <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full text-left cursor-pointer group">
+            <span class="text-sm font-semibold">Decks</span>
+            <svg data-collapsible-target="icon" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div data-collapsible-target="content" class="flex flex-col space-y-2 mt-2">
+            <% deck_collections.each do |col| %>
+              <% show_path = @collection_type == 'deck' ? deck_show_path(username: params[:username], collection_id: col.id) : collection_show_path(username: params[:username], collection_id: col.id) %>
+              <%= render partial: 'binder',
+                       locals: {
+                         name: col.name,
+                         description: col.description,
+                         card: col.magic_cards.count.zero? ? MagicCard.last : col.magic_cards.last,
+                         link: show_path,
+                         active: col.id == params[:collection_id].to_i,
+                         collection: col,
+                         is_owner: is_own_collection
+                       }
+              %>
+            <% end %>
+          </div>
+        </div>
       <% end %>
     </div>
   </div>

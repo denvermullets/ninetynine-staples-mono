@@ -28,6 +28,14 @@ class CollectionsController < ApplicationController
     end
   end
 
+  def overview
+    @user = User.find_by!(username: params[:username])
+    @is_owner = current_user&.id == @user.id
+    @collections = @is_owner ? current_user.ordered_collections : @user.collections.order(:id)
+    @regular_collections = @collections.reject { |c| Collection.deck_type?(c.collection_type) }
+    @deck_collections = @collections.select { |c| Collection.deck_type?(c.collection_type) }
+  end
+
   def show
     @user = User.find_by!(username: params[:username])
 

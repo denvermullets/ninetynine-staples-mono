@@ -69,6 +69,7 @@ Rails.application.routes.draw do
       get :edit_collection_modal
     end
   end
+  get 'collections/:username/overview', to: 'collections#overview', as: :collections_overview
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index
