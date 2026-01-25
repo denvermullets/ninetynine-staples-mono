@@ -31,13 +31,22 @@ class CollectionsController < ApplicationController
   def overview
     @user = User.find_by!(username: params[:username])
     @is_owner = current_user&.id == @user.id
-    @collections = @is_owner ? current_user.ordered_collections : @user.collections.order(:id)
+    @collections = @is_owner ? current_user.ordered_collections : @user.collections.visible_to_public.order(:id)
     @regular_collections = @collections.reject { |c| Collection.deck_type?(c.collection_type) }
     @deck_collections = @collections.select { |c| Collection.deck_type?(c.collection_type) }
   end
 
   def show
     @user = User.find_by!(username: params[:username])
+    @is_owner = current_user&.id == @user.id
+
+    if params[:collection_id].present?
+      collection = Collection.find_by(id: params[:collection_id])
+      if collection&.hidden? && !@is_owner
+        redirect_to root_path, alert: 'This collection is private'
+        return
+      end
+    end
 
     @collection_type = nil
     setup_collections(@collection_type)
@@ -49,6 +58,15 @@ class CollectionsController < ApplicationController
 
   def show_decks
     @user = User.find_by!(username: params[:username])
+    @is_owner = current_user&.id == @user.id
+
+    if params[:collection_id].present?
+      collection = Collection.find_by(id: params[:collection_id])
+      if collection&.hidden? && !@is_owner
+        redirect_to root_path, alert: 'This deck is private'
+        return
+      end
+    end
 
     @collection_type = 'deck'
     setup_collections(nil, use_deck_scope: true)
@@ -108,9 +126,9 @@ class CollectionsController < ApplicationController
 
   def collection_params
     if params[:collection].present?
-      params.require(:collection).permit(:description, :name, :collection_type, :user_id)
+      params.require(:collection).permit(:description, :name, :collection_type, :user_id, :is_public)
     else
-      params.permit(:description, :name, :collection_type)
+      params.permit(:description, :name, :collection_type, :is_public)
     end
   end
 

@@ -28,13 +28,17 @@ module Collections
     end
 
     def fetch_user_collections
-      return @user.collections.decks if @use_deck_scope
+      base = owner? ? @user.collections : @user.collections.visible_to_public
+      return base.decks if @use_deck_scope
 
-      @collection_type ? @user.collections.by_type(@collection_type) : @user.collections
+      @collection_type ? base.by_type(@collection_type) : base
     end
 
     def ordered_collections
-      return user_collections.order(:id).to_a unless owner?
+      unless owner?
+        collections = user_collections.order(:id).to_a
+        return collections.select(&:is_public)
+      end
 
       filter_ordered(@current_user.ordered_collections)
     end
