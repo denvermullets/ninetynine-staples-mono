@@ -8,6 +8,11 @@ class DeckBuilderController < ApplicationController
   before_action :ensure_owner, except: [:show]
 
   def show
+    if @deck.hidden? && !@is_owner
+      redirect_to root_path, alert: 'This deck is private'
+      return
+    end
+
     @view_mode = params[:view_mode] || 'list'
     @grouping = params[:grouping] || 'type'
     @sort_by = params[:sort_by] || 'mana_value'
@@ -125,6 +130,6 @@ class DeckBuilderController < ApplicationController
     ]
   end
 
-  def deck_params = params.permit(:name, :description, :collection_type, tag_ids: [])
+  def deck_params = params.permit(:name, :description, :collection_type, :is_public, tag_ids: [])
 end
 # rubocop:enable Metrics/ClassLength

@@ -40,16 +40,16 @@ module ApplicationHelper
     result.html_safe
   end
 
-  def nav_item_classes(route)
+  def nav_item_classes(*routes)
     base_classes = 'px-4 py-2 rounded-3xl text-grey-text'
     active_classes = 'border-grey-text border'
 
-    # add the active classes if the current request path matches the provided route
-    if (request.path == '/' && route == '/boxsets') || request.path.include?(route)
-      "#{base_classes} #{active_classes}"
-    else
-      "#{base_classes} border-transparent"
+    # add the active classes if the current request path matches any of the provided routes
+    is_active = routes.any? do |route|
+      (request.path == '/' && route == '/boxsets') || request.path.include?(route)
     end
+
+    is_active ? "#{base_classes} #{active_classes}" : "#{base_classes} border-transparent"
   end
 
   def price_trend_class(trend)

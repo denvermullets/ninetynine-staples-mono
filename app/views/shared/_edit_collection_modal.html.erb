@@ -45,6 +45,18 @@
               class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
         </div>
 
+        <div>
+          <%= f.label :is_public, "Visibility", class: "block text-sm font-medium text-grey-text" %>
+          <p class="text-xs text-grey-text mt-0.5 mb-2">Private collections are only visible to you</p>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <%= f.check_box :is_public,
+                checked: collection.is_public,
+                class: "sr-only peer focus:ring-accent-50 accent-accent-50" %>
+            <div class="w-11 h-6 bg-highlight rounded-full peer peer-checked:bg-accent-50 peer-focus:ring-2 peer-focus:ring-accent-50/50 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+            <span class="ml-2 text-sm text-grey-text peer-checked:text-accent-50"><%= collection.is_public ? 'Public' : 'Private' %></span>
+          </label>
+        </div>
+
         <% if local_assigns[:available_tags]&.any? %>
           <div>
             <label class="block text-sm font-medium text-grey-text mb-2">Tags</label>

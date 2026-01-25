@@ -25,105 +25,14 @@
   <% if @decks.any? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <% @decks.each do |deck| %>
-        <% commander = deck.commanders.first&.magic_card %>
-        <% deck_path = deck_builder_path(deck) %>
-        <div class="relative"
-             <% if @is_owner %>
-             data-controller="context-menu"
-             data-context-menu-edit-url-value="<%= edit_deck_modal_deck_builder_path(deck) %>"
-             data-action="contextmenu->context-menu#open"
-             <% end %>>
-        <%= link_to deck_path, class: 'group' do %>
-          <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-accent-50 transition-all duration-200 hover:shadow-lg hover:shadow-accent-50/20">
-            <!-- Card Image -->
-            <div class="relative h-48 bg-background overflow-hidden">
-              <% if commander %>
-                <%# Commander deck - use art_crop if available %>
-                <img
-                  src="<%= commander.art_crop.presence || commander.image_large %>"
-                  alt="<%= commander.name %>"
-                  class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
-                />
-              <% elsif deck.magic_cards.any? %>
-                <%# Non-commander deck - use art_crop of first card %>
-                <% first_card = deck.magic_cards.first %>
-                <img
-                  src="<%= first_card.art_crop.presence || first_card.image_large %>"
-                  alt="<%= first_card.name %>"
-                  class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
-                />
-              <% else %>
-                <div class="w-full h-full flex items-center justify-center">
-                  <span class="text-grey-text text-4xl">?</span>
-                </div>
-              <% end %>
-
-              <% if deck.in_build_mode? %>
-                <!-- Staged Cards Badge -->
-                <div class="absolute top-2 left-2 px-2 py-1 bg-accent-400 text-foreground text-xs font-medium rounded">
-                  <%= deck.staged_cards_count %> staged
-                </div>
-
-                <!-- Build Mode Badge -->
-                <div class="absolute top-2 right-2 px-2 py-1 bg-accent-400 text-foreground text-xs font-medium rounded">
-                  Building
-                </div>
-              <% end %>
-
-              <!-- Deck Type Badge -->
-              <div class="absolute bottom-2 left-2 px-2 py-1 bg-background/80 text-grey-text text-xs rounded">
-                <%= deck.collection_type&.titleize&.gsub('_', ' ') || 'Deck' %>
-              </div>
-            </div>
-
-            <!-- Deck Info -->
-            <div class="p-4 flex flex-col gap-2">
-              <h3 class="text-grey-text font-medium truncate"><%= deck.name %></h3>
-
-              <% if commander %>
-                <p class="text-grey-text text-sm truncate"><%= commander.name %></p>
-              <% elsif deck.description.present? %>
-                <p class="text-grey-text text-sm truncate"><%= deck.description %></p>
-              <% end %>
-
-              <% if deck.tags.any? %>
-                <div class="flex flex-wrap gap-1">
-                  <% deck.tags.each do |tag| %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
-                          style="background-color: <%= tag.color %>;">
-                      <%= tag.name %>
-                    </span>
-                  <% end %>
-                </div>
-              <% end %>
-
-              <div class="flex items-center justify-between text-sm text-grey-text mt-2">
-                <span><%= deck.total_cards %> cards</span>
-                <div class="flex items-center gap-1.5">
-                  <span>$<%= number_with_precision(deck.total_value || 0, precision: 2, delimiter: ',') %></span>
-                  <% if deck.proxy_total_value.to_f > 0 %>
-                    <span class="text-grey-text/70">//</span>
-                    <span>$<%= number_with_precision(deck.proxy_total_value, precision: 2, delimiter: ',') %></span>
-                    <span class="px-1 py-0.5 text-xs font-bold rounded bg-accent-400/20 text-accent-400 border border-accent-400/30" title="Proxy Value">P</span>
-                  <% end %>
-                </div>
-              </div>
-            </div>
-          </div>
-        <% end %>
-
-        <% if @is_owner %>
-          <!-- Context Menu -->
-          <div data-context-menu-target="menu"
-               class="hidden fixed z-50 min-w-[120px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
-            <button type="button"
-                    data-action="click->context-menu#edit"
-                    class="w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer">
-              Edit
-            </button>
-          </div>
-        <% end %>
-        </div>
+        <%= render partial: 'shared/collection_card', locals: {
+          collection: deck,
+          link_path: deck_builder_path(deck),
+          is_owner: @is_owner,
+          edit_url: edit_deck_modal_deck_builder_path(deck),
+          frame_id: 'deck_modal',
+          show_proxy_value: true
+        } %>
       <% end %>
     </div>
   <% else %>
