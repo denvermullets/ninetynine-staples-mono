@@ -23,8 +23,10 @@ class DecksController < ApplicationController
     @user = User.find_by!(username: params[:username])
     @sort = params[:sort].presence_in(SORT_OPTIONS.keys) || 'updated_desc'
     @sort_options = SORT_OPTIONS
-    @decks = sorted_decks(@user.collections.decks.includes(:tags))
     @is_owner = current_user&.id == @user.id
+    base_decks = @user.collections.decks.includes(:tags)
+    base_decks = base_decks.visible_to_public unless @is_owner
+    @decks = sorted_decks(base_decks)
   end
 
   private

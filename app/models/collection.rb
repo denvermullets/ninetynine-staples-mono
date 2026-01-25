@@ -12,6 +12,7 @@ class Collection < ApplicationRecord
   scope :by_user, ->(id) { where(user_id: id) }
   scope :by_type, ->(type) { where(collection_type: type) }
   scope :decks, -> { where('collection_type = ? OR collection_type LIKE ?', 'deck', '%_deck') }
+  scope :visible_to_public, -> { where(is_public: true) }
 
   def self.deck_type?(type)
     type == 'deck' || type&.end_with?('_deck')
@@ -63,6 +64,10 @@ class Collection < ApplicationRecord
 
   def commander_deck?
     collection_type == 'commander_deck'
+  end
+
+  def hidden?
+    !is_public
   end
 
   # Aggregate collection history across multiple collections
