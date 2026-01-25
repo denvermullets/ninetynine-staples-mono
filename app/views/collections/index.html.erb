@@ -66,17 +66,37 @@
   </div>
   <!-- Main Content -->
   <div class="flex flex-col grow gap-8 min-w-0">
+    <!-- Collection Info Header -->
+    <% if @collection.present? %>
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-semibold text-grey-text"><%= @collection.name %></h1>
+          <% if current_user&.id == @user.id %>
+            <%= link_to 'Edit', edit_collection_modal_collection_path(@collection),
+                class: 'px-2 py-0.5 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white cursor-pointer',
+                data: { turbo_frame: 'collection_modal' } %>
+          <% end %>
+          <% if @collection_type == 'deck' && current_user&.id == @user.id %>
+            <%= link_to deck_builder_path(@collection),
+                class: 'px-2 py-0.5 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white' do %>
+              Build Mode
+            <% end %>
+          <% end %>
+        </div>
+        <% if @collection.description.present? %>
+          <p class="text-sm text-grey-text"><%= @collection.description %></p>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-semibold text-grey-text">Viewing All Cards</h1>
+        <p class="text-sm text-grey-text">Select one of your specific collections to view in isolation</p>
+      </div>
+    <% end %>
+
     <!-- Top Bar / Stats -->
     <div data-collection-view-target="statsBar" class="shrink-0 px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text overflow-hidden <%= 'hidden' if @view_mode == 'visual' %>">
       <% if @collection.present? %>
-        <% if @collection_type == 'deck' && current_user&.id == @user.id %>
-          <div class="flex items-center justify-end mb-4">
-            <%= link_to deck_builder_path(@collection),
-                class: 'px-3 py-1 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white' do %>
-              Build Mode
-            <% end %>
-          </div>
-        <% end %>
         <div class='flex flex-col md:flex-row gap-4 min-w-0 items-start'>
           <%= render partial: 'stats',
                    locals: {

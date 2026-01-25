@@ -40,7 +40,7 @@ class CardScannerController < ApplicationController
 
   def load_collections
     @collections = current_user.collections
-                               .where.not('collection_type = ? OR collection_type LIKE ?', 'deck', '%_deck')
+                               .where(collection_type: 'collection')
                                .order(:name)
   end
 
