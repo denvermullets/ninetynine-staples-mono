@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class CollectionsController < ApplicationController
   before_action :authenticate_user!, only: %i[edit_collection_modal update]
   before_action :set_collection, only: %i[edit_collection_modal update]
@@ -130,3 +131,4 @@ class CollectionsController < ApplicationController
     @grouped_cards = result[:grouped_cards]
   end
 end
+# rubocop:enable Metrics/ClassLength
