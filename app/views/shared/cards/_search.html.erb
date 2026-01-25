@@ -26,6 +26,7 @@
         <%= form.hidden_field :direction, value: params[:direction] %>
         <%= form.hidden_field :view_mode, value: params[:view_mode] %>
         <%= form.hidden_field :grouping, value: params[:grouping] %>
+        <%= form.hidden_field :exact_color_match, value: params[:exact_color_match] %>
         <%= form.submit 'Search',
               class: 'p-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700'
           %>
@@ -37,19 +38,29 @@
   <div class="w-auto">
     <div class='flex flex-col'>
       <h3 class="mb-2 text-grey-text">Mana</h3>
-      <div class="flex flex-row flex-wrap">
-        <% ['b', 'u', 'w', 'r', 'g', 'c'].each do |mana| %>
-          <button
-              type="button"
-              data-action="click->multiselect#toggle"
-            data-multiselect-target="item"
-            data-multiselect-group="mana"
-            data-value="<%= mana.upcase %>"
-            class="cursor-pointer rounded-full p-1 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
-            >
-            <i class="no-tailwind ms ms-cost ml-0 <%= "ms-#{mana}" %>"></i>
-          </button>
-        <% end %>
+      <div class="flex flex-row flex-wrap items-center gap-2">
+        <div class="flex flex-row flex-wrap">
+          <% ['b', 'u', 'w', 'r', 'g', 'c'].each do |mana| %>
+            <button
+                type="button"
+                data-action="click->multiselect#toggle"
+              data-multiselect-target="item"
+              data-multiselect-group="mana"
+              data-value="<%= mana.upcase %>"
+              class="cursor-pointer rounded-full p-1 transition border-2 border-transparent data-selected:border-accent-50 data-selected:bg-accent-50/20"
+              >
+              <i class="no-tailwind ms ms-cost ml-0 <%= "ms-#{mana}" %>"></i>
+            </button>
+          <% end %>
+        </div>
+        <button
+          type="button"
+          data-action="click->search-filter#toggleExactColor"
+          data-search-filter-target="exactColorButton"
+          class="cursor-pointer px-3 py-1 text-xs rounded-lg transition border-2 border-transparent <%= params[:exact_color_match] == 'true' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+        >
+          Exact
+        </button>
       </div>
       <p class='mt-2 text-xs text-grey-text'>Select color to filter by</p>
     </div>

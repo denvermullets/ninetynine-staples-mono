@@ -37,6 +37,7 @@ module CollectionQuery
       @rarities = params[:rarity]&.flat_map { |r| r.split(',') }&.compact_blank
       @colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
       @price_change_min, @price_change_max = parse_price_change_range(params[:price_change_range])
+      @exact_color_match = params[:exact_color_match] == 'true'
     end
 
     def parse_price_change_range(range)

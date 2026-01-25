@@ -29,7 +29,9 @@ module CollectionQuery
                      end
 
       # DISTINCT ON is PostgreSQL-specific; column validated against ALLOWED_COLUMNS
+      # Remove any existing distinct to avoid "DISTINCT DISTINCT ON" syntax error
       subquery = @cards
+                 .except(:distinct)
                  .select("DISTINCT ON (magic_cards.#{@column}) magic_cards.id")
                  .order(column_order, prefer_order)
 

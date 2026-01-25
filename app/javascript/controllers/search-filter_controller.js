@@ -2,7 +2,36 @@ import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="search-filter"
 export default class extends Controller {
-  static targets = ["form"];
+  static targets = ["form", "exactColorButton"];
+
+  toggleExactColor(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+
+    // Get current value and toggle it
+    let hiddenField = this.formTarget.querySelector('input[name="exact_color_match"]');
+    if (!hiddenField) {
+      hiddenField = document.createElement("input");
+      hiddenField.type = "hidden";
+      hiddenField.name = "exact_color_match";
+      this.formTarget.appendChild(hiddenField);
+    }
+
+    const newValue = hiddenField.value === "true" ? "false" : "true";
+    hiddenField.value = newValue;
+
+    // Update button style
+    if (newValue === "true") {
+      button.classList.remove("bg-background", "text-grey-text", "hover:bg-menu");
+      button.classList.add("bg-highlight", "text-nine-white");
+    } else {
+      button.classList.remove("bg-highlight", "text-nine-white");
+      button.classList.add("bg-background", "text-grey-text", "hover:bg-menu");
+    }
+
+    // Submit the form
+    this.formTarget.requestSubmit();
+  }
 
   setPriceFilter(event) {
     event.preventDefault();
@@ -91,6 +120,9 @@ export default class extends Controller {
           }),
           ...(currentParams.get("owned_only") && {
             owned_only: currentParams.get("owned_only"),
+          }),
+          ...(currentParams.get("exact_color_match") === "true" && {
+            exact_color_match: "true",
           }),
           ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
           ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
