@@ -110,7 +110,10 @@ class CollectionsController < ApplicationController
     @grouping = params[:grouping] || 'none'
     @grouping_allowed = params[:code].present?
 
-    return unless @filtered_cards.present?
+    unless @filtered_cards.present?
+      @magic_cards = []
+      return
+    end
 
     paginate_cards
     load_visual_mode_data if @view_mode == 'visual'
