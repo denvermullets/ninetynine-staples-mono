@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class CollectionsController < ApplicationController
   before_action :authenticate_user!, only: %i[edit_collection_modal update]
   before_action :set_collection, only: %i[edit_collection_modal update]
@@ -110,7 +111,10 @@ class CollectionsController < ApplicationController
     @grouping = params[:grouping] || 'none'
     @grouping_allowed = params[:code].present?
 
-    return unless @filtered_cards.present?
+    unless @filtered_cards.present?
+      @magic_cards = []
+      return
+    end
 
     paginate_cards
     load_visual_mode_data if @view_mode == 'visual'
@@ -127,3 +131,4 @@ class CollectionsController < ApplicationController
     @grouped_cards = result[:grouped_cards]
   end
 end
+# rubocop:enable Metrics/ClassLength
