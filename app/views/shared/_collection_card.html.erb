@@ -1,20 +1,30 @@
+<%# Shared card component for collections and decks
+    Required locals:
+      - collection: The collection/deck object
+      - link_path: Path the card links to
+      - is_owner: Boolean for edit permissions
+    Optional locals:
+      - edit_url: URL for edit modal (required if is_owner)
+      - frame_id: Turbo frame ID for modal (default: 'collection_modal')
+      - show_proxy_value: Boolean to show proxy value (default: false)
+%>
+<% frame_id = local_assigns[:frame_id] || 'collection_modal' %>
+<% show_proxy_value = local_assigns[:show_proxy_value] || false %>
+<% commander = collection.commanders.first&.magic_card %>
 <% card = collection.magic_cards.any? ? collection.magic_cards.last : nil %>
-<% is_deck = Collection.deck_type?(collection.collection_type) %>
-<% collection_path = is_deck ? deck_show_path(username: @user.username, collection_id: collection.id) : collection_show_path(username: @user.username, collection_id: collection.id) %>
 
 <div class="relative"
-     <% if @is_owner %>
+     <% if is_owner && local_assigns[:edit_url] %>
      data-controller="context-menu"
-     data-context-menu-edit-url-value="<%= edit_collection_modal_collection_path(collection) %>"
-     data-context-menu-frame-id-value="collection_modal"
+     data-context-menu-edit-url-value="<%= edit_url %>"
+     data-context-menu-frame-id-value="<%= frame_id %>"
      data-action="contextmenu->context-menu#open"
      <% end %>>
-  <%= link_to collection_path, class: 'group' do %>
+  <%= link_to link_path, class: 'group' do %>
     <div class="relative flex flex-col border rounded-2xl bg-foreground border-highlight overflow-hidden hover:border-accent-50 transition-all duration-200 hover:shadow-lg hover:shadow-accent-50/20">
       <!-- Card Image -->
       <div class="relative h-48 bg-background overflow-hidden">
-        <% if is_deck && collection.commanders.any? %>
-          <% commander = collection.commanders.first.magic_card %>
+        <% if commander %>
           <img
             src="<%= commander.art_crop.presence || commander.image_large %>"
             alt="<%= commander.name %>"
@@ -32,7 +42,7 @@
           </div>
         <% end %>
 
-        <% if is_deck && collection.in_build_mode? %>
+        <% if collection.in_build_mode? %>
           <!-- Staged Cards Badge -->
           <div class="absolute top-2 left-2 px-2 py-1 bg-accent-400 text-foreground text-xs font-medium rounded">
             <%= collection.staged_cards_count %> staged
@@ -44,42 +54,49 @@
           </div>
         <% end %>
 
-        <!-- Collection Type Badge -->
+        <!-- Type Badge -->
         <div class="absolute bottom-2 left-2 px-2 py-1 bg-background/80 text-grey-text text-xs rounded">
           <%= collection.collection_type&.titleize&.gsub('_', ' ') || 'Collection' %>
         </div>
       </div>
 
-      <!-- Collection Info -->
-      <div class="p-4 flex flex-col gap-2">
+      <!-- Info -->
+      <div class="p-4 flex flex-col h-36">
         <h3 class="text-grey-text font-medium truncate"><%= collection.name %></h3>
 
-        <% if is_deck && collection.commanders.any? %>
-          <p class="text-grey-text text-sm truncate"><%= collection.commanders.first.magic_card.name %></p>
+        <% if commander %>
+          <p class="text-grey-text text-sm truncate mt-1"><%= commander.name %></p>
         <% elsif collection.description.present? %>
-          <p class="text-grey-text text-sm truncate"><%= collection.description %></p>
+          <p class="text-grey-text text-sm truncate mt-1"><%= collection.description %></p>
+        <% else %>
+          <p class="text-grey-text text-sm mt-1">&nbsp;</p>
         <% end %>
 
-        <% if collection.tags.any? %>
-          <div class="flex flex-wrap gap-1">
-            <% collection.tags.each do |tag| %>
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
-                    style="background-color: <%= tag.color %>;">
-                <%= tag.name %>
-              </span>
+        <div class="flex flex-wrap gap-1 min-h-6 mt-2">
+          <% collection.tags.each do |tag| %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
+                  style="background-color: <%= tag.color %>;">
+              <%= tag.name %>
+            </span>
+          <% end %>
+        </div>
+
+        <div class="flex items-center justify-between text-sm text-grey-text mt-auto">
+          <span><%= collection.total_cards %> cards</span>
+          <div class="flex items-center gap-1.5">
+            <span>$<%= number_with_precision(collection.total_value || 0, precision: 2, delimiter: ',') %></span>
+            <% if show_proxy_value && collection.proxy_total_value.to_f > 0 %>
+              <span class="text-grey-text/70">//</span>
+              <span>$<%= number_with_precision(collection.proxy_total_value, precision: 2, delimiter: ',') %></span>
+              <span class="px-1 py-0.5 text-xs font-bold rounded bg-accent-400/20 text-accent-400 border border-accent-400/30" title="Proxy Value">P</span>
             <% end %>
           </div>
-        <% end %>
-
-        <div class="flex items-center justify-between text-sm text-grey-text mt-2">
-          <span><%= collection.total_cards %> cards</span>
-          <span>$<%= number_with_precision(collection.total_value || 0, precision: 2, delimiter: ',') %></span>
         </div>
       </div>
     </div>
   <% end %>
 
-  <% if @is_owner %>
+  <% if is_owner && local_assigns[:edit_url] %>
     <!-- Context Menu -->
     <div data-context-menu-target="menu"
          class="hidden fixed z-50 min-w-[120px] py-1 bg-foreground border border-highlight rounded-lg shadow-lg">

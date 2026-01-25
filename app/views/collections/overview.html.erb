@@ -26,7 +26,13 @@
 
       <div data-collapsible-target="content" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @regular_collections.each do |collection| %>
-          <%= render partial: 'collection_card', locals: { collection: collection } %>
+          <%= render partial: 'shared/collection_card', locals: {
+            collection: collection,
+            link_path: collection_show_path(username: @user.username, collection_id: collection.id),
+            is_owner: @is_owner,
+            edit_url: edit_collection_modal_collection_path(collection),
+            frame_id: 'collection_modal'
+          } %>
         <% end %>
       </div>
     </div>
@@ -43,7 +49,14 @@
 
       <div data-collapsible-target="content" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @deck_collections.each do |collection| %>
-          <%= render partial: 'collection_card', locals: { collection: collection } %>
+          <%= render partial: 'shared/collection_card', locals: {
+            collection: collection,
+            link_path: deck_show_path(username: @user.username, collection_id: collection.id),
+            is_owner: @is_owner,
+            edit_url: edit_collection_modal_collection_path(collection),
+            frame_id: 'collection_modal',
+            show_proxy_value: true
+          } %>
         <% end %>
       </div>
     </div>
