@@ -5,18 +5,19 @@ class IngestPreconDeckCards < ApplicationJob
 
   def perform(precon_deck_id)
     precon_deck = PreconDeck.find(precon_deck_id)
-    return if precon_deck.cards_ingested?
+    return unless precon_deck.needs_card_sync?
 
     puts "Loading deck cards for: #{precon_deck.name}"
     deck_data = fetch_deck_data(precon_deck.file_name)
     return unless deck_data
 
+    # Clear existing cards and re-ingest to catch any updates
+    precon_deck.precon_deck_cards.delete_all
+
     # Process all board types from MTGJson deck structure
     PreconDeckCard::BOARD_TYPES.each do |board_type|
       process_board(precon_deck, deck_data[board_type], board_type)
     end
-
-    precon_deck.update!(cards_ingested: true)
   end
 
   private

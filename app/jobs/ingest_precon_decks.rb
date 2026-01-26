@@ -12,8 +12,8 @@ class IngestPreconDecks < ApplicationJob
       puts "Processing deck: #{deck['name']}"
       precon_deck = find_or_create_deck(deck)
 
-      # Queue card ingestion if not already done
-      IngestPreconDeckCards.perform_later(precon_deck.id) unless precon_deck.cards_ingested?
+      # Queue card ingestion for decks within the 2-week sync window
+      IngestPreconDeckCards.perform_later(precon_deck.id) if precon_deck.needs_card_sync?
     end
   end
 
