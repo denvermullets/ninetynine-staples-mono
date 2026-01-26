@@ -47,7 +47,7 @@ production:
   record_collection_history:
     queue: background
     class: RecordCollectionHistory
-    schedule: at 10pm every day
+    schedule: at 8am every day
   record_boxset_value_history:
     queue: background
     class: RecordBoxsetValueHistory

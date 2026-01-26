@@ -5,6 +5,20 @@ class PreconDeck < ApplicationRecord
   validates :code, :file_name, :name, presence: true
   validates :file_name, uniqueness: true
 
-  scope :ingested, -> { where(cards_ingested: true) }
+  scope :with_cards, -> { joins(:precon_deck_cards).distinct }
   scope :by_type, ->(type) { where(deck_type: type) if type.present? }
+
+  def released?
+    release_date.present? && release_date <= Date.current
+  end
+
+  def within_sync_window?
+    return false unless released?
+
+    release_date > 2.weeks.ago.to_date
+  end
+
+  def needs_card_sync?
+    released? && within_sync_window?
+  end
 end
