@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   get 'password_resets/:token/edit', to: 'users/password_resets#edit', as: :edit_password_reset
   patch 'password_resets/:token', to: 'users/password_resets#update', as: :password_reset
 
+  # Features page
+  get 'features', to: 'features#show', as: :features
+
   # Settings routes
   get 'settings', to: 'settings#show', as: :settings
   post 'settings/move_collection', to: 'settings#move_collection', as: :move_collection

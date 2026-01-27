@@ -6,6 +6,11 @@
       <%= link_to '99 Staples', root_path, class: 'font-semibold pr-4 md:pr-6 text-grey-text hover:text-white' %>
       <!-- Desktop Navigation -->
       <div class='hidden md:flex flex-row items-center space-x-2 lg:space-x-4'>
+        <!-- Features Link -->
+        <div class="<%= nav_item_classes('/features') %>">
+          <%= link_to 'Features', features_path %>
+        </div>
+
         <!-- Browse Dropdown -->
         <div data-controller="dropdown" class="relative">
           <button data-action="click->dropdown#toggle" class="<%= nav_item_classes('/boxsets', '/precon-decks', '/commanders') %> cursor-pointer flex items-center gap-1">
@@ -94,6 +99,11 @@
     data-mobile-menu-target="menu"
     class="hidden md:hidden flex-col space-y-2 pb-4 text-grey-text border-t border-gray-700"
   >
+    <!-- Features Link -->
+    <div class="<%= nav_item_classes('/features') %> px-4 pt-2">
+      <%= link_to 'Features', features_path %>
+    </div>
+
     <!-- Browse Section -->
     <div data-controller="collapsible" data-collapsible-expanded-value="false" class="pt-2">
       <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full px-4 py-2 text-left cursor-pointer">
