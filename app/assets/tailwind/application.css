@@ -59,6 +59,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   --drop-shadow-nine: 0 0px 1px rgba(254, 254, 254, 0.5);
 
+  /* Border Radius */
+  --radius-4xl: 2rem;
+
   /* Fonts */
   --font-display: "Inter var", system-ui, sans-serif;
 }
