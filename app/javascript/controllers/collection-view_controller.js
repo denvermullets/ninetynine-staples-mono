@@ -8,6 +8,7 @@ export default class extends Controller {
     groupingAllowed: { type: Boolean, default: false },
     loadPath: String,
     username: String,
+    collectionId: String,
   };
 
   connect() {
@@ -84,7 +85,7 @@ export default class extends Controller {
       ...(this.usernameValue && { username: this.usernameValue }),
       ...(currentParams.get("search") && { search: currentParams.get("search") }),
       ...(currentParams.get("code") && { code: currentParams.get("code") }),
-      ...(currentParams.get("collection_id") && { collection_id: currentParams.get("collection_id") }),
+      ...(this.collectionIdValue && { collection_id: this.collectionIdValue }),
       ...(currentParams.get("valuable_only") && { valuable_only: currentParams.get("valuable_only") }),
       ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
       ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
