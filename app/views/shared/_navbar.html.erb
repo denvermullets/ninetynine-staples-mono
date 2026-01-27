@@ -45,6 +45,11 @@
         <% else %>
           <p class="<%= nav_item_classes('/collections/') %> text-gray-500">My Cards</p>
         <% end %>
+
+        <!-- Features Link -->
+        <div class="<%= nav_item_classes('/features') %>">
+          <%= link_to 'Features', features_path %>
+        </div>
       </div>
     </div>
     <!-- Desktop User Actions -->
@@ -144,6 +149,11 @@
         <%= link_to 'Game Tracker', game_tracker_path(current_user.username) %>
       </div>
 
+      <!-- Features Link -->
+      <div class="<%= nav_item_classes('/features') %> px-4">
+        <%= link_to 'Features', features_path %>
+      </div>
+
       <% if current_user.role.to_i == 9001 %>
         <!-- Admin Section -->
         <div data-controller="collapsible" data-collapsible-expanded-value="false">
@@ -208,6 +218,10 @@
     <% else %>
       <div class="<%= nav_item_classes('/collections/') %> px-4 text-gray-500">
         My Cards
+      </div>
+      <!-- Features Link -->
+      <div class="<%= nav_item_classes('/features') %> px-4">
+        <%= link_to 'Features', features_path %>
       </div>
       <div class="<%= nav_item_classes('/login') %> px-4">
         <%= link_to 'Log In', login_path %>
