@@ -4,7 +4,8 @@
      data-collection-view-grouping-value="<%= @grouping || 'none' %>"
      data-collection-view-grouping-allowed-value="<%= @grouping_allowed || false %>"
      data-collection-view-load-path-value="<%= load_collection_path(collection_type: @collection_type) %>"
-     data-collection-view-username-value="<%= params[:username] %>">
+     data-collection-view-username-value="<%= params[:username] %>"
+     data-collection-view-collection-id-value="<%= params[:collection_id] %>">
   <!-- Mobile Filter Button -->
   <button
     data-action="click->collection-sidebar#toggle"
