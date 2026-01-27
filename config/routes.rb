@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  # Error pages
+  match '/404', to: 'errors#not_found', via: :all
+  match '/422', to: 'errors#unprocessable_entity', via: :all
+  match '/500', to: 'errors#internal_server_error', via: :all
+
   # Authentication routes
   get 'sign_up', to: 'users/registrations#new', as: :sign_up
   post 'sign_up', to: 'users/registrations#create', as: :user_registration
