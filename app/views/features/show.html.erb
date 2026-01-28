@@ -3,7 +3,7 @@
   <!-- Rotated plane container (grid lines + cards together) -->
   <div class="absolute inset-0 flex items-center justify-end pointer-events-none" style="perspective: 1500px;">
     <div class="relative mr-[-10%] lg:mr-[25%]"
-         style="transform: translateY(25%) scale(1.2) rotate(-40deg) rotateY(45deg) rotateX(25deg); transform-style: preserve-3d;">
+         style="transform: translateY(25%) scale(1.2) rotate(-35deg) rotateY(50deg) rotateX(25deg); transform-style: preserve-3d;">
       <!-- White grid lines background -->
       <div class="absolute -inset-96 opacity-[0.12]"
            style="background-image: linear-gradient(to right, rgba(255,255,255,0.6) 2px, transparent 2px), linear-gradient(to bottom, rgba(255,255,255,0.6) 2px, transparent 2px); background-size: 60px 60px;">
@@ -11,11 +11,13 @@
       <!-- Left edge gradient fade -->
       <div class="absolute -inset-96 bg-linear-to-r from-background from-10% via-background/70 via-35% to-transparent to-60%"></div>
       <!-- Card grid -->
-      <div class="relative grid grid-cols-3 gap-5">
+      <div class="relative grid grid-cols-3 gap-5 pointer-events-auto" style="transform-style: preserve-3d;">
         <% @hero_cards.each do |card| %>
-          <img src="<%= card.image_medium %>"
-               alt="<%= card.name %>"
-               class="w-32 rounded-lg shadow-2xl" />
+          <div class="group relative rounded-lg border-3 border-transparent hover:border-accent-50 transition-all duration-300 ease-out hover:-translate-y-4 hover:scale-110 hover:z-10 cursor-pointer">
+            <img src="<%= card.image_medium %>"
+                 alt="<%= card.name %>"
+                 class="w-32 rounded-lg shadow-2xl transition-shadow duration-300 group-hover:shadow-accent-50/30" />
+          </div>
         <% end %>
       </div>
     </div>
@@ -25,9 +27,9 @@
   <div class="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-background via-background/80 to-transparent pointer-events-none z-10"></div>
 
   <!-- Content -->
-  <div class="relative z-20 px-4 md:px-12 2xl:px-64 py-16 md:py-24">
+  <div class="relative z-20 px-4 md:px-12 2xl:px-64 py-16 md:py-24 pointer-events-none">
     <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-      <div class="flex-1 text-center lg:text-left">
+      <div class="flex-1 text-center lg:text-left pointer-events-auto">
         <p class="text-accent-50 font-medium mb-4">Manage your collection</p>
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
           Your Magic collection,<br class="hidden md:block"> organized
