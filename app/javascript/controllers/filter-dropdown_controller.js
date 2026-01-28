@@ -22,10 +22,71 @@ export default class extends Controller {
 
     this.filterOptions(urlCode);
     this.boundHandleClickOutside = this.handleClickOutside.bind(this);
+    this.highlightedIndex = -1;
+  }
+
+  handleKeydown(event) {
+    // Open dropdown and populate options if not already open
+    if (this.dropdownTarget.classList.contains("hidden")) {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        this.filterOptions();
+        this.openDropdown();
+        // Set initial highlight on first option for ArrowDown
+        if (event.key === "ArrowDown") {
+          this.highlightedIndex = 0;
+        } else {
+          // ArrowUp starts from the last option
+          const options = this.dropdownTarget.querySelectorAll("[data-action='click->filter-dropdown#select']");
+          this.highlightedIndex = options.length - 1;
+        }
+        const options = this.dropdownTarget.querySelectorAll("[data-action='click->filter-dropdown#select']");
+        this.updateHighlight(options);
+        return;
+      }
+    }
+
+    const options = this.dropdownTarget.querySelectorAll("[data-action='click->filter-dropdown#select']");
+    if (options.length === 0) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        this.highlightedIndex = (this.highlightedIndex + 1) % options.length;
+        this.updateHighlight(options);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        this.highlightedIndex = this.highlightedIndex <= 0 ? options.length - 1 : this.highlightedIndex - 1;
+        this.updateHighlight(options);
+        break;
+      case "Enter":
+        event.preventDefault();
+        if (this.highlightedIndex >= 0 && options[this.highlightedIndex]) {
+          options[this.highlightedIndex].click();
+        }
+        break;
+      case "Escape":
+        event.preventDefault();
+        this.closeDropdown();
+        break;
+    }
+  }
+
+  updateHighlight(options) {
+    options.forEach((option, index) => {
+      if (index === this.highlightedIndex) {
+        option.classList.add("bg-highlight");
+        option.scrollIntoView({ block: "nearest" });
+      } else {
+        option.classList.remove("bg-highlight");
+      }
+    });
   }
 
   openDropdown() {
     this.dropdownTarget.classList.remove("hidden");
+    this.highlightedIndex = -1;
     // Add click event listener to the document
     document.addEventListener("click", this.boundHandleClickOutside);
   }
@@ -52,6 +113,7 @@ export default class extends Controller {
 
   search() {
     this.filterOptions();
+    this.highlightedIndex = -1;
     this.dropdownTarget.classList.remove("hidden");
   }
 
