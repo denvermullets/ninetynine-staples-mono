@@ -8,5 +8,7 @@ class FeaturesController < ApplicationController
                   .where.not(image_medium: [nil, ''])
                   .where(id: ids, is_token: false)
                   .limit(9)
+
+    @featured_card = MagicCard.where(name: 'Counterspell').sample
   end
 end

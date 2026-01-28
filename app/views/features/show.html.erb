@@ -20,8 +20,18 @@
           </div>
         <% end %>
       </div>
-    </div>
+          </div>
   </div>
+
+  <!-- Featured card (Counterspell) -->
+  <% if @featured_card %>
+    <div class="absolute top-1/4 left-[58%] z-15 hidden lg:block"
+         style="transform: rotate(-8deg);">
+      <img src="<%= @featured_card.image_medium %>"
+           alt="<%= @featured_card.name %>"
+           class="w-56 rounded-xl shadow-2xl" />
+    </div>
+  <% end %>
 
   <!-- Bottom gradient fade -->
   <div class="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-background via-background/80 to-transparent pointer-events-none z-10"></div>
