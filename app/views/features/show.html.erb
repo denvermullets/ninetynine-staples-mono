@@ -1,28 +1,147 @@
 <!-- Hero Section -->
-<div class="px-4 md:px-12 2xl:px-64 py-16 md:py-24">
-  <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-    <div class="flex-1 text-center lg:text-left">
-      <p class="text-accent-50 font-medium mb-4">Manage your collection</p>
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-        Your Magic collection,<br class="hidden md:block"> organized
-      </h1>
-      <p class="text-grey-text text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
-        99 Staples helps you track every card you own, build decks from your collection, and never lose track of your Magic: The Gathering investment.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-        <%= link_to 'Get started', sign_up_path, class: 'inline-flex items-center justify-center px-6 py-3 bg-accent-50 hover:bg-transparent border border-accent-50 hover:text-accent-50 text-foreground font-medium rounded-lg transition-colors' %>
-        <%= link_to 'Browse cards', boxsets_path, class: 'inline-flex items-center justify-center px-6 py-3 border border-gray-600 hover:border-accent-50 text-grey-text hover:text-accent-50 font-medium rounded-lg transition-colors' %>
+<div class="relative overflow-hidden">
+  <!-- Rotated plane container (grid lines + cards together) -->
+  <div class="absolute inset-0 flex items-center justify-end pointer-events-none" style="perspective: 1500px;">
+    <div class="relative mr-[-10%] lg:mr-[27%]"
+         style="transform: translateY(25%) scale(1.2) rotate(-35deg) rotateY(50deg) rotateX(25deg); transform-style: preserve-3d;">
+      <!-- White grid lines background -->
+      <div class="absolute -inset-96 opacity-[0.12]"
+           style="background-image: linear-gradient(to right, rgba(255,255,255,0.6) 2px, transparent 2px), linear-gradient(to bottom, rgba(255,255,255,0.6) 2px, transparent 2px); background-size: 60px 60px;">
+      </div>
+      <!-- Left edge gradient fade -->
+      <div class="absolute -inset-96 bg-linear-to-r from-background from-10% via-background/70 via-35% to-transparent to-60%"></div>
+      <!-- Card grid (hidden on mobile) -->
+      <div class="relative grid-cols-3 gap-5 pointer-events-auto hidden lg:grid" style="transform-style: preserve-3d;">
+        <% @hero_cards.each do |card| %>
+          <div class="group relative rounded-lg border-3 border-transparent hover:border-accent-50 transition-all duration-300 ease-out hover:-translate-y-4 hover:scale-110 hover:z-10 cursor-pointer">
+            <img src="<%= card.image_medium %>"
+                 alt="<%= card.name %>"
+                 class="w-32 rounded-lg shadow-2xl transition-shadow duration-300 group-hover:shadow-accent-50/30" />
+          </div>
+        <% end %>
+      </div>
+          </div>
+  </div>
+
+  <!-- Featured card with faux details panel -->
+  <% if @featured_card %>
+    <!-- Faux card details panel (to the right of card) -->
+    <div class="absolute top-[18%] left-[70%] z-10 hidden lg:block origin-top-left"
+         style="transform: scale(0.85);">
+      <div class="w-[400px]">
+        <!-- Card name header -->
+        <div class="mb-3">
+          <h3 class="text-xl font-bold text-white">Counterspell</h3>
+          <p class="text-grey-text text-sm">Owned: <span class="text-white">1 / 0</span></p>
+        </div>
+
+        <!-- Collection table -->
+        <div class="bg-background rounded-lg border border-gray-700 mb-3 overflow-hidden">
+          <!-- Table header -->
+          <div class="grid grid-cols-4 gap-2 px-4 py-2 border-b border-gray-700 text-xs text-grey-text">
+            <span>Location</span>
+            <span class="text-center">Regular</span>
+            <span class="text-center">Foil</span>
+            <span class="text-right">Quick actions</span>
+          </div>
+          <!-- Table row -->
+          <div class="grid grid-cols-4 gap-2 px-4 py-3 text-sm items-center">
+            <span class="text-white">Default</span>
+            <span class="text-center text-white">1</span>
+            <span class="text-center text-white">0</span>
+            <div class="flex justify-end gap-2">
+              <span class="px-2 py-1 text-xs bg-gray-700 rounded text-grey-text">Transfer</span>
+              <span class="px-2 py-1 text-xs bg-gray-700 rounded text-grey-text">Adjust</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price chart -->
+        <div class="bg-background rounded-lg border border-gray-700 p-4">
+          <!-- Chart legend -->
+          <div class="flex justify-end gap-4 text-xs text-grey-text mb-3">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-accent-50"></span>
+              Foil Price
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+              Regular Price
+            </span>
+          </div>
+          <!-- Chart area -->
+          <div class="relative h-32">
+            <!-- Y-axis labels -->
+            <div class="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[10px] text-grey-text w-12 text-right pr-2">
+              <span>$2.00</span>
+              <span>$1.50</span>
+              <span>$1.00</span>
+              <span>$0.50</span>
+            </div>
+            <!-- Chart SVG -->
+            <svg class="ml-14 w-[calc(100%-3.5rem)] h-full" viewBox="0 0 280 120" preserveAspectRatio="none">
+              <!-- Grid lines -->
+              <g stroke="rgba(255,255,255,0.1)" stroke-width="1">
+                <line x1="0" y1="0" x2="280" y2="0" />
+                <line x1="0" y1="40" x2="280" y2="40" />
+                <line x1="0" y1="80" x2="280" y2="80" />
+                <line x1="0" y1="120" x2="280" y2="120" />
+              </g>
+              <!-- Foil price line (green) - trending up with steps -->
+              <polyline
+                fill="none"
+                stroke="#4ade80"
+                stroke-width="2"
+                points="0,60 20,60 40,55 60,55 80,50 100,50 120,45 140,40 160,40 180,35 200,30 220,25 240,20 260,15 280,10" />
+              <!-- Regular price line (yellow) - more volatile -->
+              <polyline
+                fill="none"
+                stroke="#facc15"
+                stroke-width="2"
+                points="0,80 20,85 40,80 60,90 80,85 100,95 120,90 140,85 160,90 180,85 200,80 220,85 240,80 260,75 280,70" />
+            </svg>
+          </div>
+          <!-- X-axis labels -->
+          <div class="ml-14 flex justify-between text-[10px] text-grey-text mt-2">
+            <span>10/13</span>
+            <span>11/1</span>
+            <span>12/1</span>
+            <span>1/1</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="flex-1 w-full max-w-2xl">
-      <!-- Placeholder for hero image/screenshot -->
-      <div class="bg-menu rounded-2xl border border-gray-700 aspect-[4/3] flex items-center justify-center">
-        <div class="text-center p-8">
-          <svg class="w-16 h-16 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-          <p class="text-gray-500">App screenshot placeholder</p>
+
+    <!-- Featured card (in front) -->
+    <div class="absolute top-1/4 left-[58%] z-15 hidden lg:block"
+         style="transform: rotate(-8deg);">
+      <img src="<%= @featured_card.image_medium %>"
+           alt="<%= @featured_card.name %>"
+           class="w-56 rounded-xl shadow-2xl" />
+    </div>
+  <% end %>
+
+  <!-- Bottom gradient fade -->
+  <div class="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-background via-background/80 to-transparent pointer-events-none z-10"></div>
+
+  <!-- Content -->
+  <div class="relative z-20 px-4 md:px-12 2xl:px-64 py-16 md:py-24 pointer-events-none">
+    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+      <div class="flex-1 text-center lg:text-left pointer-events-auto">
+        <p class="text-accent-50 font-medium mb-4">Manage your collection</p>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+          Your Magic collection,<br class="hidden md:block"> organized
+        </h1>
+        <p class="text-grey-text text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
+          99 Staples helps you track every card you own, build decks from your collection, and never lose track of your Magic: The Gathering investment.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+          <%= link_to 'Get started', sign_up_path, class: 'inline-flex items-center justify-center px-6 py-3 bg-accent-50 hover:bg-transparent border border-accent-50 hover:text-accent-50 text-foreground font-medium rounded-lg transition-colors' %>
+          <%= link_to 'Browse cards', boxsets_path, class: 'inline-flex items-center justify-center px-6 py-3 border border-gray-600 hover:border-accent-50 text-grey-text hover:text-accent-50 font-medium rounded-lg transition-colors' %>
         </div>
+      </div>
+      <div class="flex-1 w-full max-w-2xl lg:min-h-[400px]">
+        <!-- Spacer for card grid area on desktop -->
       </div>
     </div>
   </div>
