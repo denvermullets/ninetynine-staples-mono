@@ -1,5 +1,5 @@
 <% visible_column_count = %w[card_number name type mana regular_price foil_price salt].count { |k| column_visible?(k, 'boxsets') } %>
-<div class='mb-24 overflow-hidden border rounded-3xl border-highlight'>
+<div class='mb-24 overflow-x-auto border rounded-3xl border-highlight'>
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
