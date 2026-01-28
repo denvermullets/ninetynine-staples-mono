@@ -10,8 +10,8 @@
       </div>
       <!-- Left edge gradient fade -->
       <div class="absolute -inset-96 bg-linear-to-r from-background from-10% via-background/70 via-35% to-transparent to-60%"></div>
-      <!-- Card grid -->
-      <div class="relative grid grid-cols-3 gap-5 pointer-events-auto" style="transform-style: preserve-3d;">
+      <!-- Card grid (hidden on mobile) -->
+      <div class="relative grid-cols-3 gap-5 pointer-events-auto hidden lg:grid" style="transform-style: preserve-3d;">
         <% @hero_cards.each do |card| %>
           <div class="group relative rounded-lg border-3 border-transparent hover:border-accent-50 transition-all duration-300 ease-out hover:-translate-y-4 hover:scale-110 hover:z-10 cursor-pointer">
             <img src="<%= card.image_medium %>"
