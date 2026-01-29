@@ -16,17 +16,26 @@
   %>
 
   <!-- Total Summary -->
-  <div class="flex flex-col gap-1 pb-4 text-sm">
-    <div class="flex items-center gap-2">
-      <span class="font-semibold text-grey-text">Owned:</span>
-      <span class="text-nine-white"><%= total_regular %> / <%= total_foil %></span>
-    </div>
-    <% if has_proxies %>
-      <div class="flex items-center gap-2">
-        <span class="font-semibold text-grey-text">Proxy:</span>
-        <span class="text-nine-white"><%= total_proxy %> / <%= total_proxy_foil %></span>
+  <div class="pb-4">
+    <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">Ownership</h4>
+    <div class="grid grid-cols-4 gap-3">
+      <div class="flex flex-col">
+        <span class="text-xs text-grey-text">Regular</span>
+        <span class="text-lg font-medium <%= total_regular > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_regular %></span>
       </div>
-    <% end %>
+      <div class="flex flex-col">
+        <span class="text-xs text-grey-text">Foil</span>
+        <span class="text-lg font-medium <%= total_foil > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_foil %></span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs text-grey-text">Proxy</span>
+        <span class="text-lg font-medium <%= total_proxy > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_proxy %></span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs text-grey-text">Proxy Foil</span>
+        <span class="text-lg font-medium <%= total_proxy_foil > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_proxy_foil %></span>
+      </div>
+    </div>
   </div>
 
   <!-- Locations Table -->
@@ -39,6 +48,7 @@
           <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Foil</th>
           <% if has_proxies %>
             <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Proxy</th>
+            <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Proxy Foil</th>
           <% end %>
           <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Quick actions</th>
         </tr>
@@ -51,13 +61,8 @@
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.quantity %></td>
               <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.foil_quantity %></td>
               <% if has_proxies %>
-                <td class="px-4 py-3 text-sm whitespace-nowrap">
-                  <% if location.proxies? %>
-                    <%= location.proxy_quantity %>/<%= location.proxy_foil_quantity %>
-                  <% else %>
-                    <span class="text-grey-text">—</span>
-                  <% end %>
-                </td>
+                <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.proxy_quantity || 0 %></td>
+                <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.proxy_foil_quantity || 0 %></td>
               <% end %>
               <td class="px-4 py-3 text-sm whitespace-nowrap">
                 <% if editable %>
@@ -93,7 +98,7 @@
           <% end %>
         <% else %>
           <tr>
-            <td colspan="<%= has_proxies ? 5 : 4 %>" class="px-4 py-6 text-sm text-center text-grey-text">
+            <td colspan="<%= has_proxies ? 6 : 4 %>" class="px-4 py-6 text-sm text-center text-grey-text">
               <% if editable %>
                 No cards in any collection yet. Select a collection below to add this card.
               <% else %>
@@ -106,7 +111,7 @@
         <!-- Add to New Collection Row -->
         <% if collections.present? && editable %>
           <tr class="border-t-2 bg-background border-highlight">
-            <td colspan="<%= has_proxies ? 5 : 4 %>" class="px-4 py-3">
+            <td colspan="<%= has_proxies ? 6 : 4 %>" class="px-4 py-3">
               <div class="flex items-center gap-3">
                 <span class="text-sm text-grey-text">Add to collection:</span>
                 <select
