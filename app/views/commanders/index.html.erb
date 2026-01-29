@@ -1,15 +1,28 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100' data-controller="commander-filter">
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+  data-controller="commander-filter"
+>
   <%= render partial: 'shared/page_header',
     locals: { header: 'Commanders',
-              subtext: 'Browse valid commander cards. Filter by boxset or show only commanders you own.' }
-  %>
-  <div class="flex flex-col md:flex-row md:flex-wrap px-8 py-4 gap-4 border rounded-3xl bg-foreground border-highlight">
+              subtext: 'Browse valid commander cards. Filter by boxset or show only commanders you own.' } %>
+
+  <div
+    class="
+      flex flex-col md:flex-row md:flex-wrap px-8 py-4 gap-4 border
+      rounded-3xl bg-foreground border-highlight
+    "
+  >
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_commanders_path, default_code: @default_code } %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_commanders_path, show_price_filter: false } %>
+
     <% if current_user %>
       <div class="w-auto">
-        <div class='flex flex-col'>
-          <h3 class='mb-2 text-grey-text'>Owned</h3>
+        <div class="flex flex-col">
+          <h3 class="mb-2 text-grey-text">Owned</h3>
+
           <div class="flex flex-row flex-wrap">
             <button
               type="button"
@@ -20,20 +33,28 @@
               Owned Only
             </button>
           </div>
-          <p class='mt-2 text-xs text-grey-text'>Show commanders you own</p>
+
+          <p class="mt-2 text-xs text-grey-text">Show commanders you own</p>
         </div>
       </div>
     <% end %>
   </div>
+
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">
       <% if @magic_cards.present? %>
         <%= render partial: 'table' %>
       <% else %>
-        <div class="p-8 mt-6 text-center border rounded-3xl border-highlight bg-background">
+        <div
+          class="
+            p-8 mt-6 text-center border rounded-3xl border-highlight
+            bg-background
+          "
+        >
           <p class="text-lg text-grey-text">
             Loading commanders...
           </p>
+
           <p class="mt-2 text-sm text-grey-text">
             Use the filters above to narrow down your search
           </p>

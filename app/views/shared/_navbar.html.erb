@@ -1,49 +1,91 @@
-<div class='bg-menu px-4 md:px-12 2xl:px-64' data-controller="mobile-menu">
+<div class="bg-nav px-4 md:px-12 2xl:px-64" data-controller="mobile-menu">
   <!-- Desktop/Mobile Header -->
-  <div class='flex flex-row items-center justify-between h-[72px] text-white'>
+  <div class="flex flex-row items-center justify-between h-[72px] text-white">
     <!-- Logo and Desktop Navigation -->
-    <div class='flex flex-row items-center space-x-2 lg:space-x-4'>
-      <%= link_to '99 Staples', root_path, class: 'font-semibold pr-4 md:pr-6 text-grey-text hover:text-white' %>
+    <div class="flex flex-row items-center space-x-2 lg:space-x-4">
+      <%= link_to '99 Staples', root_path, class: 'font-semibold pr-4 md:pr-6 text-nav-text hover:text-white' %>
+
       <!-- Desktop Navigation -->
-      <div class='hidden md:flex flex-row items-center space-x-2 lg:space-x-4'>
+      <div class="hidden md:flex flex-row items-center space-x-2 lg:space-x-4">
         <!-- Browse Dropdown -->
         <div data-controller="dropdown" class="relative">
-          <button data-action="click->dropdown#toggle" class="<%= nav_item_classes('/boxsets', '/precon-decks', '/commanders') %> cursor-pointer flex items-center gap-1">
+          <button
+            data-action="click->dropdown#toggle"
+            class="<%= nav_item_classes('/boxsets', '/precon-decks', '/commanders') %> cursor-pointer flex items-center gap-1"
+          >
             Browse
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
-          <div data-dropdown-target="menu" class="hidden absolute left-0 mt-2 py-2 bg-menu border border-gray-700 rounded-lg shadow-lg z-50 min-w-max">
-            <%= link_to 'Boxsets', boxsets_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-            <%= link_to 'Precons', precon_decks_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-            <%= link_to 'Commanders', commanders_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
+
+          <div
+            data-dropdown-target="menu"
+            class="
+              hidden absolute left-0 mt-2 py-2 bg-nav border
+              border-gray-700 rounded-lg shadow-lg z-50 min-w-max
+            "
+          >
+            <%= link_to 'Boxsets', boxsets_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+            <%= link_to 'Precons', precon_decks_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+            <%= link_to 'Commanders', commanders_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
           </div>
         </div>
 
         <% if current_user %>
           <!-- My Cards Dropdown -->
           <div data-controller="dropdown" class="relative">
-            <button data-action="click->dropdown#toggle" class="<%= nav_item_classes('/collections/' + current_user.username, '/decks/' + current_user.username, '/scan-cards') %> cursor-pointer flex items-center gap-1">
+            <button
+              data-action="click->dropdown#toggle"
+              class="<%= nav_item_classes('/collections/' + current_user.username, '/decks/' + current_user.username, '/scan-cards') %> cursor-pointer flex items-center gap-1"
+            >
               My Cards
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
-            <div data-dropdown-target="menu" class="hidden absolute left-0 mt-2 py-2 bg-menu border border-gray-700 rounded-lg shadow-lg z-50 min-w-max">
-              <%= link_to 'Collection Overview', collections_overview_path(current_user.username), class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-              <%= link_to 'All Cards', collection_show_path(current_user.username), class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-              <%= link_to 'Decks', decks_index_path(current_user.username), class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-              <%= link_to 'Scan Cards', card_scanner_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
+
+            <div
+              data-dropdown-target="menu"
+              class="
+                hidden absolute left-0 mt-2 py-2 bg-nav border
+                border-gray-700 rounded-lg shadow-lg z-50 min-w-max
+              "
+            >
+              <%= link_to 'Collection Overview', collections_overview_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'All Cards', collection_show_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Decks', decks_index_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Scan Cards', card_scanner_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
             </div>
           </div>
-
           <!-- Game Tracker Link -->
           <div class="<%= nav_item_classes('/game-tracker/' + current_user.username) %>">
             <%= link_to 'Game Tracker', game_tracker_path(current_user.username) %>
           </div>
         <% else %>
-          <p class="<%= nav_item_classes('/collections/') %> text-gray-500">My Cards</p>
+          <p class="<%= nav_item_classes('/collections/') %> text-gray-500">
+            My Cards
+          </p>
         <% end %>
 
         <!-- Features Link -->
@@ -52,17 +94,25 @@
         </div>
       </div>
     </div>
+
     <!-- Desktop User Actions -->
-    <div class='hidden md:flex flex-row space-x-6 items-center text-grey-text'>
+    <div class="hidden md:flex flex-row space-x-6 items-center text-nav-text">
       <% if current_user %>
         <% if current_user.role.to_i == 9001 %>
           <div data-controller="admin-menu" class="relative">
-            <button data-action="click->admin-menu#toggle" class="cursor-pointer focus:outline-none hover:text-white">
+            <button
+              data-action="click->admin-menu#toggle"
+              class="cursor-pointer focus:outline-none hover:text-white"
+            >
               Admin
             </button>
+
             <div
               data-admin-menu-target="menu"
-              class="absolute right-0 mt-2 hidden flex-col bg-menu border border-gray-700 py-2 rounded-lg shadow-lg z-50 min-w-max"
+              class="
+                absolute right-0 mt-2 hidden flex-col bg-nav border
+                border-gray-700 py-2 rounded-lg shadow-lg z-50 min-w-max
+              "
             >
               <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
@@ -83,37 +133,72 @@
         <%= link_to 'Log In', login_path, class: 'hover:text-white' %>
       <% end %>
     </div>
+
     <!-- Mobile Hamburger Button -->
     <button
       data-action="click->mobile-menu#toggle"
-      class="md:hidden flex flex-col justify-center items-center w-8 h-8 cursor-pointer focus:outline-none"
+      class="
+        md:hidden flex flex-col justify-center items-center w-8 h-8
+        cursor-pointer focus:outline-none
+      "
       aria-label="Toggle menu"
-      >
+    >
       <span class="block w-6 h-0.5 bg-white mb-1"></span>
       <span class="block w-6 h-0.5 bg-white mb-1"></span>
       <span class="block w-6 h-0.5 bg-white"></span>
     </button>
   </div>
+
   <!-- Mobile Menu -->
   <div
     data-mobile-menu-target="menu"
-    class="hidden md:hidden flex-col space-y-2 pb-4 text-grey-text border-t border-gray-700"
+    class="
+      hidden md:hidden flex-col space-y-2 pb-4 text-nav-text border-t
+      border-gray-700
+    "
   >
     <!-- Browse Section -->
-    <div data-controller="collapsible" data-collapsible-expanded-value="false" class="pt-2">
-      <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full px-4 py-2 text-left cursor-pointer">
-        <span class="font-semibold text-grey-text">Browse</span>
-        <svg data-collapsible-target="icon" class="w-4 h-4 text-grey-text transition-transform duration-200" style="transform: rotate(-90deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+    <div
+      data-controller="collapsible"
+      data-collapsible-expanded-value="false"
+      class="pt-2"
+    >
+      <button
+        type="button"
+        data-action="click->collapsible#toggle"
+        class="
+          flex items-center justify-between w-full px-4 py-2 text-left
+          cursor-pointer
+        "
+      >
+        <span class="font-semibold text-nav-text">Browse</span>
+
+        <svg
+          data-collapsible-target="icon"
+          class="w-4 h-4 text-nav-text transition-transform duration-200"
+          style="transform: rotate(-90deg)"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
+
       <div data-collapsible-target="content" class="hidden pl-4 space-y-1">
         <div class="<%= nav_item_classes('/boxsets') %>">
           <%= link_to 'Boxsets', boxsets_path %>
         </div>
+
         <div class="<%= nav_item_classes('/precon-decks') %>">
           <%= link_to 'Precons', precon_decks_path %>
         </div>
+
         <div class="<%= nav_item_classes('/commanders') %>">
           <%= link_to 'Commanders', commanders_path %>
         </div>
@@ -122,95 +207,176 @@
 
     <% if current_user %>
       <!-- My Cards Section -->
-      <div data-controller="collapsible" data-collapsible-expanded-value="false">
-        <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full px-4 py-2 text-left cursor-pointer">
-          <span class="font-semibold text-grey-text">My Cards</span>
-          <svg data-collapsible-target="icon" class="w-4 h-4 text-grey-text transition-transform duration-200" style="transform: rotate(-90deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      <div
+        data-controller="collapsible"
+        data-collapsible-expanded-value="false"
+      >
+        <button
+          type="button"
+          data-action="click->collapsible#toggle"
+          class="
+            flex items-center justify-between w-full px-4 py-2 text-left
+            cursor-pointer
+          "
+        >
+          <span class="font-semibold text-nav-text">My Cards</span>
+
+          <svg
+            data-collapsible-target="icon"
+            class="w-4 h-4 text-nav-text transition-transform duration-200"
+            style="transform: rotate(-90deg)"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
+
         <div data-collapsible-target="content" class="hidden pl-4 space-y-1">
           <div class="<%= nav_item_classes('/collections/' + current_user.username + '/overview') %>">
             <%= link_to 'Collection Overview', collections_overview_path(current_user.username) %>
           </div>
+
           <div class="<%= nav_item_classes('/collections/' + current_user.username) %>">
             <%= link_to 'All Cards', collection_show_path(current_user.username) %>
           </div>
+
           <div class="<%= nav_item_classes('/decks/' + current_user.username) %>">
             <%= link_to 'Decks', decks_index_path(current_user.username) %>
           </div>
+
           <div class="<%= nav_item_classes('/scan-cards') %>">
             <%= link_to 'Scan Cards', card_scanner_path %>
           </div>
         </div>
       </div>
-
       <div class="<%= nav_item_classes('/game-tracker/' + current_user.username) %> px-4">
         <%= link_to 'Game Tracker', game_tracker_path(current_user.username) %>
       </div>
-
       <!-- Features Link -->
       <div class="<%= nav_item_classes('/features') %> px-4">
         <%= link_to 'Features', features_path %>
       </div>
-
       <% if current_user.role.to_i == 9001 %>
         <!-- Admin Section -->
-        <div data-controller="collapsible" data-collapsible-expanded-value="false">
-          <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full px-4 py-2 text-left cursor-pointer">
-            <span class="font-semibold text-grey-text">Admin</span>
-            <svg data-collapsible-target="icon" class="w-4 h-4 text-grey-text transition-transform duration-200" style="transform: rotate(-90deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        <div
+          data-controller="collapsible"
+          data-collapsible-expanded-value="false"
+        >
+          <button
+            type="button"
+            data-action="click->collapsible#toggle"
+            class="
+              flex items-center justify-between w-full px-4 py-2 text-left
+              cursor-pointer
+            "
+          >
+            <span class="font-semibold text-nav-text">Admin</span>
+
+            <svg
+              data-collapsible-target="icon"
+              class="w-4 h-4 text-nav-text transition-transform duration-200"
+              style="transform: rotate(-90deg)"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
+
           <div data-collapsible-target="content" class="hidden pl-4 space-y-1">
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Manage Tags', admin_tags_path %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Mission Control', '/jobs' %>
             </div>
           </div>
         </div>
       <% end %>
-
       <!-- Account Section -->
-      <div data-controller="collapsible" data-collapsible-expanded-value="false">
-        <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full px-4 py-2 text-left cursor-pointer">
-          <span class="font-semibold text-grey-text">Account</span>
-          <svg data-collapsible-target="icon" class="w-4 h-4 text-grey-text transition-transform duration-200" style="transform: rotate(-90deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      <div
+        data-controller="collapsible"
+        data-collapsible-expanded-value="false"
+      >
+        <button
+          type="button"
+          data-action="click->collapsible#toggle"
+          class="
+            flex items-center justify-between w-full px-4 py-2 text-left
+            cursor-pointer
+          "
+        >
+          <span class="font-semibold text-nav-text">Account</span>
+
+          <svg
+            data-collapsible-target="icon"
+            class="w-4 h-4 text-nav-text transition-transform duration-200"
+            style="transform: rotate(-90deg)"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
+
         <div data-collapsible-target="content" class="hidden pl-4 space-y-1">
           <div class="<%= nav_item_classes('/settings') %>">
             <%= link_to 'Settings', settings_path %>
           </div>
-          <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+
+          <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
             <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete } %>
           </div>
         </div>

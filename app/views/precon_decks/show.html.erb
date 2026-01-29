@@ -1,32 +1,47 @@
-<div class="flex flex-col min-h-screen"
-     data-controller="precon-deck"
-     data-precon-deck-precon-id-value="<%= @precon_deck.id %>"
-     data-precon-deck-view-mode-value="<%= @view_mode %>"
-     data-precon-deck-grouping-value="<%= @grouping %>"
-     data-precon-deck-sort-by-value="<%= @sort_by %>">
-
+<div
+  class="flex flex-col min-h-screen"
+  data-controller="precon-deck"
+  data-precon-deck-precon-id-value="<%= @precon_deck.id %>"
+  data-precon-deck-view-mode-value="<%= @view_mode %>"
+  data-precon-deck-grouping-value="<%= @grouping %>"
+  data-precon-deck-sort-by-value="<%= @sort_by %>"
+>
   <!-- Header -->
   <div class="px-4 py-4 border-b md:px-12 border-highlight bg-foreground">
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-semibold text-white"><%= @precon_deck.name %></h1>
-          <span class="px-2 py-1 text-xs font-medium rounded bg-accent-50/20 text-accent-50"><%= @precon_deck.deck_type %></span>
+          <h1 class="text-2xl font-semibold text-white">
+            <%= @precon_deck.name %>
+          </h1>
+
+          <span
+            class="
+              px-2 py-1 text-xs font-medium rounded bg-accent-50/20
+              text-accent-50
+            "
+          >
+            <%= @precon_deck.deck_type %>
+          </span>
         </div>
+
         <p class="text-sm text-grey-text">
           <%= @precon_deck.release_date&.strftime('%B %d, %Y') %>
-          <span class="mx-2">|</span>
-          Code: <%= @precon_deck.code %>
+          <span class="mx-2">|</span> Code: <%= @precon_deck.code %>
         </p>
       </div>
 
       <div class="flex gap-2">
         <%= link_to 'Back to Precons', precon_decks_path, class: 'px-4 py-2 border border-highlight rounded-md text-grey-text hover:text-white hover:border-white transition duration-300' %>
+
         <% if current_user %>
           <button
             type="button"
             onclick="document.getElementById('import-modal').classList.remove('hidden')"
-            class="px-4 py-2 bg-accent-50 text-background rounded-md cursor-pointer transition duration-300 hover:bg-white"
+            class="
+              px-4 py-2 bg-accent-50 text-background rounded-md
+              cursor-pointer transition duration-300 hover:bg-white
+            "
           >
             Import to Collection
           </button>
@@ -50,19 +65,25 @@
                          @grouped_cards.values.flatten.first&.magic_card
                        end
       %>
+
       <div class="hidden md:block">
         <div class="overflow-hidden border rounded-xl bg-foreground border-highlight">
-          <img data-precon-deck-target="cardPreview"
-               src="<%= preview_card&.image_large || preview_card&.image_medium || '' %>"
-               alt="Card preview"
-               class="w-full rounded-3xl <%= 'hidden' unless preview_card %>" />
+          <%= image_tag (preview_card&.image_large || preview_card&.image_medium || ''),
+            alt: "Card preview",
+            class: "w-full rounded-3xl #{preview_card ? '' : 'hidden'}",
+            data: { precon_deck_target: "cardPreview" } %>
+
           <% unless preview_card %>
             <div class="flex items-center justify-center h-64 text-grey-text">
               <span>No cards to preview</span>
             </div>
           <% end %>
+
           <div class="px-3 py-2 text-center">
-            <span data-precon-deck-target="cardPreviewName" class="text-sm font-medium text-grey-text">
+            <span
+              data-precon-deck-target="cardPreviewName"
+              class="text-sm font-medium text-grey-text"
+            >
               <%= preview_card&.name || '' %>
             </span>
           </div>
@@ -71,15 +92,22 @@
 
       <!-- Deck Stats -->
       <div class="p-4 border rounded-xl bg-foreground border-highlight">
-        <h3 class="mb-3 text-sm font-semibold text-grey-text">Deck Statistics</h3>
+        <h3 class="mb-3 text-sm font-semibold text-grey-text">
+          Deck Statistics
+        </h3>
+
         <div class="space-y-2 text-sm">
           <div class="flex justify-between">
             <span class="text-grey-text">Total Cards:</span>
             <span class="text-white font-medium"><%= @stats[:total] %></span>
           </div>
+
           <div class="flex justify-between">
             <span class="text-grey-text">Total Value:</span>
-            <span class="text-white font-medium"><%= number_to_currency(@stats[:value]) %></span>
+
+            <span class="text-white font-medium">
+              <%= number_to_currency(@stats[:value]) %>
+            </span>
           </div>
         </div>
       </div>
@@ -88,25 +116,56 @@
     <!-- Main Content -->
     <div class="flex-1 min-w-0">
       <!-- Controls Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-4 p-4 mb-4 border rounded-xl bg-foreground border-highlight">
+      <div
+        class="
+          flex flex-wrap items-center justify-between gap-4 p-4 mb-4 border
+          rounded-xl bg-foreground border-highlight
+        "
+      >
         <!-- View Mode Toggle -->
         <div class="flex items-center gap-2">
           <span class="text-sm text-grey-text">View:</span>
-          <button data-precon-deck-target="viewModeList"
-                  data-action="click->precon-deck#setViewMode"
-                  data-mode="list"
-                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:text-white transition flex items-center gap-1 cursor-pointer <%= 'bg-accent-50/20 text-accent-50 border-accent-50' if @view_mode == 'list' %>">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+
+          <button
+            data-precon-deck-target="viewModeList"
+            data-action="click->precon-deck#setViewMode"
+            data-mode="list"
+            class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:text-white transition flex items-center gap-1 cursor-pointer <%= 'bg-accent-50/20 text-accent-50 border-accent-50' if @view_mode == 'list' %>"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
             List
           </button>
-          <button data-precon-deck-target="viewModeCard"
-                  data-action="click->precon-deck#setViewMode"
-                  data-mode="card"
-                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:text-white transition flex items-center gap-1 cursor-pointer <%= 'bg-accent-50/20 text-accent-50 border-accent-50' if @view_mode == 'card' %>">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"/>
+
+          <button
+            data-precon-deck-target="viewModeCard"
+            data-action="click->precon-deck#setViewMode"
+            data-mode="card"
+            class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:text-white transition flex items-center gap-1 cursor-pointer <%= 'bg-accent-50/20 text-accent-50 border-accent-50' if @view_mode == 'card' %>"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"
+              />
             </svg>
             Cards
           </button>
@@ -115,13 +174,34 @@
         <!-- Grouping Selector -->
         <div class="flex items-center gap-2">
           <span class="text-sm text-grey-text">Group:</span>
-          <select data-precon-deck-target="groupingSelect"
-                  data-action="change->precon-deck#changeGrouping"
-                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none">
+
+          <select
+            data-precon-deck-target="groupingSelect"
+            data-action="change->precon-deck#changeGrouping"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg bg-background
+              border-highlight text-grey-text focus:border-accent-50
+              focus:outline-none
+            "
+          >
             <option value="type" <%= 'selected' if @grouping == 'type' %>>Type</option>
-            <option value="mana_value" <%= 'selected' if @grouping == 'mana_value' %>>Mana Value</option>
+
+            <option
+              value="mana_value"
+              <%= 'selected' if @grouping == 'mana_value' %>
+            >
+              Mana Value
+            </option>
+
             <option value="color" <%= 'selected' if @grouping == 'color' %>>Color</option>
-            <option value="color_identity" <%= 'selected' if @grouping == 'color_identity' %>>Color Identity</option>
+
+            <option
+              value="color_identity"
+              <%= 'selected' if @grouping == 'color_identity' %>
+            >
+              Color Identity
+            </option>
+
             <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>Rarity</option>
             <option value="set" <%= 'selected' if @grouping == 'set' %>>Set</option>
             <option value="zone" <%= 'selected' if @grouping == 'zone' %>>Zone</option>
@@ -132,11 +212,25 @@
         <!-- Sort Selector -->
         <div class="flex items-center gap-2">
           <span class="text-sm text-grey-text">Sort:</span>
-          <select data-precon-deck-target="sortBySelect"
-                  data-action="change->precon-deck#changeSortBy"
-                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none">
+
+          <select
+            data-precon-deck-target="sortBySelect"
+            data-action="change->precon-deck#changeSortBy"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg bg-background
+              border-highlight text-grey-text focus:border-accent-50
+              focus:outline-none
+            "
+          >
             <option value="name" <%= 'selected' if @sort_by == 'name' %>>Name</option>
-            <option value="mana_value" <%= 'selected' if @sort_by == 'mana_value' %>>Mana Value</option>
+
+            <option
+              value="mana_value"
+              <%= 'selected' if @sort_by == 'mana_value' %>
+            >
+              Mana Value
+            </option>
+
             <option value="price" <%= 'selected' if @sort_by == 'price' %>>Price</option>
             <option value="rarity" <%= 'selected' if @sort_by == 'rarity' %>>Rarity</option>
             <option value="edhrec" <%= 'selected' if @sort_by == 'edhrec' %>>EDHREC</option>

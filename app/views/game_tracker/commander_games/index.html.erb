@@ -1,8 +1,12 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
   <%= render partial: 'shared/page_header',
     locals: { header: @is_owner ? 'Game History' : "#{tracker_owner.username}'s Games",
-              subtext: @is_owner ? 'View all your recorded Commander games.' : 'Commander game history.' }
-  %>
+              subtext: @is_owner ? 'View all your recorded Commander games.' : 'Commander game history.' } %>
 
   <div class="flex justify-between items-center">
     <% if @is_owner %>
@@ -10,6 +14,7 @@
         + Record Game
       <% end %>
     <% end %>
+
     <%= link_to 'View Dashboard', game_tracker_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
   </div>
 
@@ -18,54 +23,139 @@
       <table class="min-w-full">
         <thead class="bg-background">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Date</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Deck</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Result</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden md:table-cell">Win Condition</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden lg:table-cell">Bracket</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden lg:table-cell">Pod Size</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden lg:table-cell">Fun</th>
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider
+              "
+            >
+              Date
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider
+              "
+            >
+              Deck
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider
+              "
+            >
+              Result
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider hidden md:table-cell
+              "
+            >
+              Win Condition
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider hidden lg:table-cell
+              "
+            >
+              Bracket
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider hidden lg:table-cell
+              "
+            >
+              Pod Size
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider hidden lg:table-cell
+              "
+            >
+              Fun
+            </th>
           </tr>
         </thead>
+
         <tbody class="divide-y divide-highlight">
           <% @games.each do |game| %>
-            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= game_tracker_commander_game_path(tracker_owner.username, game) %>'">
-              <td class="px-6 py-4 text-grey-text"><%= game.played_on.strftime('%b %d, %Y') %></td>
+            <tr
+              class="hover:bg-background/50 cursor-pointer"
+              onclick="window.location='<%= game_tracker_commander_game_path(tracker_owner.username, game) %>'"
+            >
+              <td class="px-6 py-4 text-grey-text">
+                <%= game.played_on.strftime('%b %d, %Y') %>
+              </td>
+
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
                   <% if game.tracked_deck.commander.image_small.present? %>
-                    <img src="<%= game.tracked_deck.commander.image_small %>"
-                         alt="<%= game.tracked_deck.commander.name %>"
-                         class="w-8 h-11 rounded object-cover hidden sm:block cursor-pointer"
-                         data-controller="card-hover"
-                         data-card-hover-image-value="<%= game.tracked_deck.commander.image_large %>"
-                         data-card-hover-name-value="<%= game.tracked_deck.commander.name %>"
-                         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+                    <%= image_tag game.tracked_deck.commander.image_small,
+                      alt: game.tracked_deck.commander.name,
+                      class: "w-8 h-11 rounded object-cover hidden sm:block cursor-pointer",
+                      data: {
+                        controller: "card-hover",
+                        card_hover_image_value: game.tracked_deck.commander.image_large,
+                        card_hover_name_value: game.tracked_deck.commander.name,
+                        action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+                      } %>
                   <% end %>
+
                   <div class="flex flex-col">
-                    <span class="text-grey-text font-medium"><%= game.deck_name %></span>
-                    <span class="text-grey-text/70 text-sm hidden md:block"><%= game.commander_name.truncate(25) %></span>
+                    <span class="text-grey-text font-medium">
+                      <%= game.deck_name %>
+                    </span>
+
+                    <span class="text-grey-text/70 text-sm hidden md:block">
+                      <%= game.commander_name.truncate(25) %>
+                    </span>
                   </div>
                 </div>
               </td>
+
               <td class="px-6 py-4">
                 <span class="px-2 py-1 rounded-full text-xs <%= game.result_badge_class %>">
                   <%= game.result_text %>
                 </span>
               </td>
+
               <td class="px-6 py-4 text-grey-text hidden md:table-cell">
                 <%= game.won? ? game.win_condition : (game.winning_opponent&.win_condition || '-') %>
               </td>
-              <td class="px-6 py-4 text-grey-text hidden lg:table-cell"><%= game.bracket_level || '-' %></td>
-              <td class="px-6 py-4 text-grey-text hidden lg:table-cell"><%= game.pod_size %> players</td>
-              <td class="px-6 py-4 text-accent-300 hidden lg:table-cell"><%= game.fun_rating || '-' %>/10</td>
+
+              <td class="px-6 py-4 text-grey-text hidden lg:table-cell">
+                <%= game.bracket_level || '-' %>
+              </td>
+
+              <td class="px-6 py-4 text-grey-text hidden lg:table-cell">
+                <%= game.pod_size %> players
+              </td>
+
+              <td class="px-6 py-4 text-accent-300 hidden lg:table-cell">
+                <%= game.fun_rating || '-' %>/10
+              </td>
             </tr>
           <% end %>
         </tbody>
       </table>
-
       <% if @pagy && @pagy.pages > 1 %>
-        <div class="flex flex-col md:flex-row justify-between items-center px-6 py-4 border-t border-highlight gap-4">
+        <div
+          class="
+            flex flex-col md:flex-row justify-between items-center px-6 py-4
+            border-t border-highlight gap-4
+          "
+        >
           <%== @pagy.info_tag %>
           <%== @pagy.series_nav %>
         </div>
@@ -73,8 +163,11 @@
     <% else %>
       <div class="p-8 text-center">
         <p class="text-lg text-grey-text mb-4">No games recorded yet</p>
+
         <% if @is_owner %>
-          <p class="text-grey-text mb-6">Start recording games to track your performance.</p>
+          <p class="text-grey-text mb-6">
+            Start recording games to track your performance.
+          </p>
           <%= link_to '+ Record First Game', new_commander_game_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
         <% else %>
           <p class="text-grey-text">This user hasn't recorded any games yet.</p>

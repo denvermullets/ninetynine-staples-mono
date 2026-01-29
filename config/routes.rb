@@ -25,6 +25,7 @@ Rails.application.routes.draw do
   post 'settings/move_collection', to: 'settings#move_collection', as: :move_collection
   post 'settings/update_column_visibility', to: 'settings#update_column_visibility', as: :update_column_visibility
   post 'settings/update_game_tracker_visibility', to: 'settings#update_game_tracker_visibility', as: :update_game_tracker_visibility
+  post 'settings/update_theme', to: 'settings#update_theme', as: :update_theme
 
   mount MissionControl::Jobs::Engine, at: '/jobs'
 
