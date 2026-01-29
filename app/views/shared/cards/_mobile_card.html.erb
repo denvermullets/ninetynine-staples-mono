@@ -111,7 +111,7 @@
         <!-- Primary Price with Trend -->
         <div class="flex items-center gap-1.5 flex-shrink-0 ml-auto">
           <% if primary_price_change.present? && primary_price_change.abs >= 0.5 %>
-            <span class="px-1.5 py-0.5 text-xs rounded-full <%= primary_price_change >= 0 ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400' %>">
+            <span class="px-1.5 py-0.5 text-xs rounded-full <%= primary_price_change >= 0 ? 'bg-accent-50 text-badge-text' : 'bg-accent-100 text-badge-text' %>">
               <%= primary_price_change >= 0 ? '↑' : '↓' %>
               <%= number_to_percentage(primary_price_change.abs, precision: 0) %>
             </span>
@@ -288,7 +288,7 @@
               </span>
 
               <% if card.price_change_weekly_normal.present? && card.price_change_weekly_normal.abs >= 0.5 %>
-                <span class="text-xs <%= card.price_change_weekly_normal >= 0 ? 'text-green-400' : 'text-red-400' %>">
+                <span class="text-xs <%= card.price_change_weekly_normal >= 0 ? 'text-accent-50' : 'text-accent-100' %>">
                   <%= card.price_change_weekly_normal >= 0 ? '↑' : '↓' %>
                   <%= number_to_percentage(card.price_change_weekly_normal.abs, precision: 0) %>
                 </span>
@@ -307,7 +307,7 @@
               </span>
 
               <% if card.price_change_weekly_foil.present? && card.price_change_weekly_foil.abs >= 0.5 %>
-                <span class="text-xs <%= card.price_change_weekly_foil >= 0 ? 'text-green-400' : 'text-red-400' %>">
+                <span class="text-xs <%= card.price_change_weekly_foil >= 0 ? 'text-accent-50' : 'text-accent-100' %>">
                   <%= card.price_change_weekly_foil >= 0 ? '↑' : '↓' %>
                   <%= number_to_percentage(card.price_change_weekly_foil.abs, precision: 0) %>
                 </span>

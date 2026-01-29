@@ -178,7 +178,7 @@
                   <%= number_to_currency(card.normal_price) %>
 
                   <% if card.price_change_weekly_normal.present? && card.price_change_weekly_normal.abs >= 0.5 %>
-                    <span class="px-2 py-1 text-xs rounded-full <%= card.price_change_weekly_normal >= 0 ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400' %>">
+                    <span class="px-2 py-1 text-xs rounded-full <%= card.price_change_weekly_normal >= 0 ? 'bg-accent-50 text-badge-text' : 'bg-accent-100 text-badge-text' %>">
                       <%= card.price_change_weekly_normal >= 0 ? '↑' : '↓' %>
                       <%= number_to_percentage(card.price_change_weekly_normal.abs, precision: 0) %>
                     </span>
@@ -195,7 +195,7 @@
                   <%= number_to_currency(card.foil_price) %>
 
                   <% if card.price_change_weekly_foil.present? && card.price_change_weekly_foil.abs >= 0.5 %>
-                    <span class="px-2 py-1 text-xs rounded-full <%= card.price_change_weekly_foil >= 0 ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400' %>">
+                    <span class="px-2 py-1 text-xs rounded-full <%= card.price_change_weekly_foil >= 0 ? 'bg-accent-50 text-badge-text' : 'bg-accent-100 text-badge-text' %>">
                       <%= card.price_change_weekly_foil >= 0 ? '↑' : '↓' %>
                       <%= number_to_percentage(card.price_change_weekly_foil.abs, precision: 0) %>
                     </span>
