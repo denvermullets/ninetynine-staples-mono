@@ -7,11 +7,11 @@ class PreconDecksController < ApplicationController
   helper_method :sort_config
 
   def index
-    @deck_types = PreconDeck.ingested.distinct.pluck(:deck_type).compact.sort
+    @deck_types = PreconDeck.pluck(:deck_type).compact.sort
     @selected_type = params[:deck_type]
     @card_search = params[:card_search]
 
-    decks = PreconDeck.ingested.by_type(@selected_type)
+    decks = PreconDeck.by_type(@selected_type)
     decks = search_by_card(decks) if @card_search.present?
     decks = CollectionQuery::ColumnSort.call(records: decks, column: sort_config.column,
                                              direction: sort_config.direction)
