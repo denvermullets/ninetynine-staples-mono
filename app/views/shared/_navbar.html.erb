@@ -1,9 +1,9 @@
-<div class="bg-menu px-4 md:px-12 2xl:px-64" data-controller="mobile-menu">
+<div class="bg-nav px-4 md:px-12 2xl:px-64" data-controller="mobile-menu">
   <!-- Desktop/Mobile Header -->
   <div class="flex flex-row items-center justify-between h-[72px] text-white">
     <!-- Logo and Desktop Navigation -->
     <div class="flex flex-row items-center space-x-2 lg:space-x-4">
-      <%= link_to '99 Staples', root_path, class: 'font-semibold pr-4 md:pr-6 text-grey-text hover:text-white' %>
+      <%= link_to '99 Staples', root_path, class: 'font-semibold pr-4 md:pr-6 text-nav-text hover:text-white' %>
 
       <!-- Desktop Navigation -->
       <div class="hidden md:flex flex-row items-center space-x-2 lg:space-x-4">
@@ -32,13 +32,13 @@
           <div
             data-dropdown-target="menu"
             class="
-              hidden absolute left-0 mt-2 py-2 bg-menu border
+              hidden absolute left-0 mt-2 py-2 bg-nav border
               border-gray-700 rounded-lg shadow-lg z-50 min-w-max
             "
           >
-            <%= link_to 'Boxsets', boxsets_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-            <%= link_to 'Precons', precon_decks_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-            <%= link_to 'Commanders', commanders_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
+            <%= link_to 'Boxsets', boxsets_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+            <%= link_to 'Precons', precon_decks_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+            <%= link_to 'Commanders', commanders_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
           </div>
         </div>
 
@@ -68,14 +68,14 @@
             <div
               data-dropdown-target="menu"
               class="
-                hidden absolute left-0 mt-2 py-2 bg-menu border
+                hidden absolute left-0 mt-2 py-2 bg-nav border
                 border-gray-700 rounded-lg shadow-lg z-50 min-w-max
               "
             >
-              <%= link_to 'Collection Overview', collections_overview_path(current_user.username), class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-              <%= link_to 'All Cards', collection_show_path(current_user.username), class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-              <%= link_to 'Decks', decks_index_path(current_user.username), class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
-              <%= link_to 'Scan Cards', card_scanner_path, class: 'block px-4 py-2 text-grey-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Collection Overview', collections_overview_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'All Cards', collection_show_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Decks', decks_index_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Scan Cards', card_scanner_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
             </div>
           </div>
           <!-- Game Tracker Link -->
@@ -96,7 +96,7 @@
     </div>
 
     <!-- Desktop User Actions -->
-    <div class="hidden md:flex flex-row space-x-6 items-center text-grey-text">
+    <div class="hidden md:flex flex-row space-x-6 items-center text-nav-text">
       <% if current_user %>
         <% if current_user.role.to_i == 9001 %>
           <div data-controller="admin-menu" class="relative">
@@ -110,7 +110,7 @@
             <div
               data-admin-menu-target="menu"
               class="
-                absolute right-0 mt-2 hidden flex-col bg-menu border
+                absolute right-0 mt-2 hidden flex-col bg-nav border
                 border-gray-700 py-2 rounded-lg shadow-lg z-50 min-w-max
               "
             >
@@ -153,7 +153,7 @@
   <div
     data-mobile-menu-target="menu"
     class="
-      hidden md:hidden flex-col space-y-2 pb-4 text-grey-text border-t
+      hidden md:hidden flex-col space-y-2 pb-4 text-nav-text border-t
       border-gray-700
     "
   >
@@ -171,11 +171,11 @@
           cursor-pointer
         "
       >
-        <span class="font-semibold text-grey-text">Browse</span>
+        <span class="font-semibold text-nav-text">Browse</span>
 
         <svg
           data-collapsible-target="icon"
-          class="w-4 h-4 text-grey-text transition-transform duration-200"
+          class="w-4 h-4 text-nav-text transition-transform duration-200"
           style="transform: rotate(-90deg)"
           fill="none"
           stroke="currentColor"
@@ -219,11 +219,11 @@
             cursor-pointer
           "
         >
-          <span class="font-semibold text-grey-text">My Cards</span>
+          <span class="font-semibold text-nav-text">My Cards</span>
 
           <svg
             data-collapsible-target="icon"
-            class="w-4 h-4 text-grey-text transition-transform duration-200"
+            class="w-4 h-4 text-nav-text transition-transform duration-200"
             style="transform: rotate(-90deg)"
             fill="none"
             stroke="currentColor"
@@ -277,11 +277,11 @@
               cursor-pointer
             "
           >
-            <span class="font-semibold text-grey-text">Admin</span>
+            <span class="font-semibold text-nav-text">Admin</span>
 
             <svg
               data-collapsible-target="icon"
-              class="w-4 h-4 text-grey-text transition-transform duration-200"
+              class="w-4 h-4 text-nav-text transition-transform duration-200"
               style="transform: rotate(-90deg)"
               fill="none"
               stroke="currentColor"
@@ -297,43 +297,43 @@
           </button>
 
           <div data-collapsible-target="content" class="hidden pl-4 space-y-1">
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Manage Tags', admin_tags_path %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
-            <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Mission Control', '/jobs' %>
             </div>
           </div>
@@ -352,11 +352,11 @@
             cursor-pointer
           "
         >
-          <span class="font-semibold text-grey-text">Account</span>
+          <span class="font-semibold text-nav-text">Account</span>
 
           <svg
             data-collapsible-target="icon"
-            class="w-4 h-4 text-grey-text transition-transform duration-200"
+            class="w-4 h-4 text-nav-text transition-transform duration-200"
             style="transform: rotate(-90deg)"
             fill="none"
             stroke="currentColor"
@@ -376,7 +376,7 @@
             <%= link_to 'Settings', settings_path %>
           </div>
 
-          <div class="px-4 py-2 rounded-3xl text-grey-text border-transparent">
+          <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
             <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete } %>
           </div>
         </div>

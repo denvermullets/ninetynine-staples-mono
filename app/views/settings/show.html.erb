@@ -8,6 +8,70 @@
     <h1 class="mb-6 text-xl font-bold text-center">Settings</h1>
 
     <div class="space-y-8">
+      <!-- Theme Section -->
+      <section>
+        <h2 class="mb-4 text-lg font-semibold">Appearance</h2>
+
+        <p class="mb-4 text-sm">
+          Choose your preferred color theme for the app.
+        </p>
+
+        <div
+          data-controller="theme"
+          data-theme-url-value="<%= update_theme_path %>"
+        >
+          <div class="grid grid-cols-2 gap-3">
+            <label
+              class="
+                flex items-center gap-3 p-3 border rounded-lg cursor-pointer
+                border-highlight bg-background hover:border-accent-50 transition
+              "
+            >
+              <input
+                type="radio"
+                name="theme"
+                value="dark"
+                data-theme-target="radio"
+                data-action="change->theme#toggle"
+                <%= 'checked' if current_user.theme == 'dark' %>
+                class="
+                  w-4 h-4 border-highlight bg-background
+                  accent-accent-50 focus:ring-accent-50
+                  focus:ring-offset-background
+                "
+              >
+
+              <span>99s Dark Mode</span>
+            </label>
+
+            <label
+              class="
+                flex items-center gap-3 p-3 border rounded-lg cursor-pointer
+                border-highlight bg-background hover:border-accent-50 transition
+              "
+            >
+              <input
+                type="radio"
+                name="theme"
+                value="light"
+                data-theme-target="radio"
+                data-action="change->theme#toggle"
+                <%= 'checked' if current_user.theme == 'light' %>
+                class="
+                  w-4 h-4 border-highlight bg-background
+                  accent-accent-50 focus:ring-accent-50
+                  focus:ring-offset-background
+                "
+              >
+
+              <span>99s E-ink Mode</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <hr class="border-highlight">
+
       <!-- Game Tracker Visibility Section -->
       <section>
         <h2 class="mb-4 text-lg font-semibold">Game Tracker Privacy</h2>
