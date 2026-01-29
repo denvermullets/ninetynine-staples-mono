@@ -40,6 +40,18 @@ class SettingsController < ApplicationController
     end
   end
 
+  def update_theme
+    theme = params[:theme]
+    return head :unprocessable_entity unless %w[dark light].include?(theme)
+
+    current_user.theme = theme
+    if current_user.save
+      head :ok
+    else
+      head :unprocessable_entity
+    end
+  end
+
   private
 
   def valid_view?(view)

@@ -29,7 +29,8 @@ class User < ApplicationRecord
   DEFAULT_PREFERENCES = {
     'collection_order' => [],
     'visible_columns_collections' => DEFAULT_COLUMN_VISIBILITY,
-    'visible_columns_boxsets' => DEFAULT_COLUMN_VISIBILITY
+    'visible_columns_boxsets' => DEFAULT_COLUMN_VISIBILITY,
+    'theme' => 'dark'
   }.freeze
 
   COLUMN_KEYS = %w[card_number name type mana regular_price foil_price salt].freeze
@@ -63,6 +64,14 @@ class User < ApplicationRecord
 
   def column_visible?(column_key, view = nil)
     visible_columns(view)[column_key] != false
+  end
+
+  def theme
+    effective_preferences['theme'] || 'dark'
+  end
+
+  def theme=(value)
+    self.preferences = (preferences || {}).merge('theme' => value)
   end
 
   def view_key(view)

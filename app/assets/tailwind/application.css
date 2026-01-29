@@ -36,11 +36,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
 @custom-variant nine-hover (&:hover);
 
 @theme {
   /* Custom 99s Colors */
+  --color-nav: #283943;
+  --color-nav-text: #859296;
+  --color-badge-text: #1a262d;
   --color-menu: #283943;
+  --color-card-details: #283943;
   --color-foreground: #1a262d;
   --color-highlight: #2e3f49;
   --color-grey-text: #859296;
@@ -63,8 +71,80 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   --color-ink-nav: #000;
   --color-ink-light-purple: #0013e424;
 
+  --color-ink-black: #000000;
+  --color-ink-white: #ffffff;
+  --color-ink-gray-900: #2d2d2d;
+  --color-ink-gray-800: #5d5d5d;
+  --color-ink-gray-700: #6e7781;
+  --color-ink-gray-600: #808080;
+  --color-ink-gray-500: #90909080;
+  --color-ink-gray-450: #808080aa;
+  --color-ink-gray-400: #a8a8a8;
+  --color-ink-gray-350: #c0c0c0;
+  --color-ink-gray-300: #cdcdcd;
+  --color-ink-gray-250: #c9c8c8;
+  --color-ink-gray-225: #c7c7c7;
+  --color-ink-gray-200: #d0d0d0;
+  --color-ink-gray-150: #d8d8d8;
+  --color-ink-gray-100: #dfdfdf;
+  --color-ink-gray-75: #e0e6ed;
+  --color-ink-gray-50: #e4e4e4;
+  --color-ink-gray-25: #f0f4f8;
+
+  /* Blues */
+  --color-ink-blue-primary: #0078d4;
+  --color-ink-blue-primary-hover: #006cc1;
+  --color-ink-blue-deep: #0b0080;
+  --color-ink-blue-muted: #284b63;
+  --color-ink-blue-soft: #61afef;
+  --color-ink-blue-ink-20: #0b008020;
+  --color-ink-blue-ink-36: #0013e424;
+
+  /* Teals & Cyans */
+  --color-ink-cyan-dark: #005555;
+  --color-ink-teal-light: #90a4ae20;
+  --color-ink-teal-muted: #b3d9f2;
+
+  /* Greens */
+  --color-ink-green-dark: #006600;
+
+  /* Yellows & Golds */
+  --color-ink-yellow-warning: #9e5f00;
+  --color-ink-yellow-bright-50: #f8e71c80;
+  --color-ink-gold-accent: #e6b450;
+  --color-ink-slate-30: #b0bec570;
+
+  /* Reds */
+  --color-ink-red-error: #a31515;
+  --color-ink-red-dark: #800000;
+  --color-ink-red-alert: #b70000;
+
+  /* Magenta / Purple */
+  --color-ink-purple-dark: #560090;
+
   /* Fonts */
   --font-display: "Inter var", system-ui, sans-serif;
+}
+
+/* Light theme overrides */
+[data-theme="light"] {
+  --color-nav: #000;
+  --color-nav-text: #e0e6ed;
+  --color-menu: #0013e424;
+  --color-card-details: #d0d0d0;
+  --color-foreground: #efefef;
+  --color-highlight: #d5d5d5;
+  --color-grey-text: #2d2d2d;
+  --color-background: #dfdfdf;
+  --color-nine-white: #5d5d5d;
+  --color-dark-200: #e8e8e8;
+
+  /* Accent colors */
+  --color-accent-50: #0078d4;
+  --color-accent-100: #a31515;
+  --color-accent-200: #e6b450;
+  --color-accent-300: #f8e71c80;
+  --color-accent-400: #006600;
 }
 
 .pagy {
