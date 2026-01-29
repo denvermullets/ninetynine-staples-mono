@@ -1,23 +1,45 @@
-<div class="flex flex-col min-h-screen"
-     data-controller="deck-builder"
-     data-deck-builder-deck-id-value="<%= @deck.id %>"
-     data-deck-builder-view-mode-value="<%= @view_mode %>"
-     data-deck-builder-grouping-value="<%= @grouping %>"
-     data-deck-builder-sort-by-value="<%= @sort_by %>">
-
+<div
+  class="flex flex-col min-h-screen"
+  data-controller="deck-builder"
+  data-deck-builder-deck-id-value="<%= @deck.id %>"
+  data-deck-builder-view-mode-value="<%= @view_mode %>"
+  data-deck-builder-grouping-value="<%= @grouping %>"
+  data-deck-builder-sort-by-value="<%= @sort_by %>"
+>
   <!-- Header -->
   <div class="px-4 py-4 border-b md:px-12 border-highlight bg-foreground">
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <div class="flex items-center gap-3">
-          <h1 id="deck-name" class="text-2xl font-semibold text-white"><%= @deck.name %></h1>
+          <h1 id="deck-name" class="text-2xl font-semibold text-white">
+            <%= @deck.name %>
+          </h1>
+
           <% if @is_owner %>
-            <span class="px-2 py-1 text-xs font-medium rounded bg-accent-400/20 text-accent-400">Build Mode</span>
+            <span
+              class="
+                px-2 py-1 text-xs font-medium rounded bg-accent-400/20
+                text-accent-400
+              "
+            >
+              Build Mode
+            </span>
           <% else %>
-            <span class="px-2 py-1 text-xs font-medium rounded bg-grey-text/20 text-grey-text">Viewing</span>
+            <span
+              class="
+                px-2 py-1 text-xs font-medium rounded bg-grey-text/20
+                text-grey-text
+              "
+            >
+              Viewing
+            </span>
           <% end %>
         </div>
-        <p id="deck-description" class="text-sm text-grey-text"><%= @deck.description %></p>
+
+        <p id="deck-description" class="text-sm text-grey-text">
+          <%= @deck.description %>
+        </p>
+
         <%= render partial: 'deck_tags_wrapper', locals: { deck: @deck } %>
       </div>
 
@@ -39,19 +61,25 @@
                          @grouped_cards.values.flatten.first&.magic_card
                        end
       %>
+
       <div class="hidden lg:block">
         <div class="overflow-hidden border rounded-xl bg-foreground border-highlight">
-          <img data-deck-builder-target="cardPreview"
-               src="<%= preview_card&.image_large || preview_card&.image_medium || '' %>"
-               alt="Card preview"
-               class="w-full rounded-3xl <%= 'hidden' unless preview_card %>" />
+          <%= image_tag (preview_card&.image_large || preview_card&.image_medium || ''),
+            alt: "Card preview",
+            class: "w-full rounded-3xl #{preview_card ? '' : 'hidden'}",
+            data: { deck_builder_target: "cardPreview" } %>
+
           <% unless preview_card %>
             <div class="flex items-center justify-center h-64 text-grey-text">
               <span>Add cards to preview</span>
             </div>
           <% end %>
+
           <div class="px-3 py-2 text-center">
-            <span data-deck-builder-target="cardPreviewName" class="text-sm font-medium text-grey-text">
+            <span
+              data-deck-builder-target="cardPreviewName"
+              class="text-sm font-medium text-grey-text"
+            >
               <%= preview_card&.name || '' %>
             </span>
           </div>
@@ -64,25 +92,66 @@
     <!-- Main Content -->
     <div class="flex-1 min-w-0">
       <!-- Controls Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-4 p-4 mb-4 border rounded-xl bg-foreground border-highlight">
+      <div
+        class="
+          flex flex-wrap items-center justify-between gap-4 p-4 mb-4 border
+          rounded-xl bg-foreground border-highlight
+        "
+      >
         <!-- View Mode Toggle -->
         <div class="flex items-center gap-2">
           <span class="text-sm text-grey-text">View:</span>
-          <button data-deck-builder-target="viewModeList"
-                  data-action="click->deck-builder#setViewMode"
-                  data-mode="list"
-                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition flex items-center gap-1 cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+
+          <button
+            data-deck-builder-target="viewModeList"
+            data-action="click->deck-builder#setViewMode"
+            data-mode="list"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg border-highlight
+              text-grey-text hover:bg-foreground hover:text-accent-50
+              hover:border-accent-50 transition flex items-center gap-1
+              cursor-pointer
+            "
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
             List
           </button>
-          <button data-deck-builder-target="viewModeCard"
-                  data-action="click->deck-builder#setViewMode"
-                  data-mode="card"
-                  class="px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition flex items-center gap-1 cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"/>
+
+          <button
+            data-deck-builder-target="viewModeCard"
+            data-action="click->deck-builder#setViewMode"
+            data-mode="card"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg border-highlight
+              text-grey-text hover:bg-foreground hover:text-accent-50
+              hover:border-accent-50 transition flex items-center gap-1
+              cursor-pointer
+            "
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"
+              />
             </svg>
             Cards
           </button>
@@ -91,13 +160,34 @@
         <!-- Grouping Selector -->
         <div class="flex items-center gap-2">
           <span class="text-sm text-grey-text">Group:</span>
-          <select data-deck-builder-target="groupingSelect"
-                  data-action="change->deck-builder#changeGrouping"
-                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none cursor-pointer">
+
+          <select
+            data-deck-builder-target="groupingSelect"
+            data-action="change->deck-builder#changeGrouping"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg bg-background
+              border-highlight text-grey-text focus:border-accent-50
+              focus:outline-none cursor-pointer
+            "
+          >
             <option value="type" <%= 'selected' if @grouping == 'type' %>>Type</option>
-            <option value="mana_value" <%= 'selected' if @grouping == 'mana_value' %>>Mana Value</option>
+
+            <option
+              value="mana_value"
+              <%= 'selected' if @grouping == 'mana_value' %>
+            >
+              Mana Value
+            </option>
+
             <option value="color" <%= 'selected' if @grouping == 'color' %>>Color</option>
-            <option value="color_identity" <%= 'selected' if @grouping == 'color_identity' %>>Color Identity</option>
+
+            <option
+              value="color_identity"
+              <%= 'selected' if @grouping == 'color_identity' %>
+            >
+              Color Identity
+            </option>
+
             <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>Rarity</option>
             <option value="set" <%= 'selected' if @grouping == 'set' %>>Set</option>
             <option value="none" <%= 'selected' if @grouping == 'none' %>>None</option>
@@ -107,11 +197,25 @@
         <!-- Sort Selector -->
         <div class="flex items-center gap-2">
           <span class="text-sm text-grey-text">Sort:</span>
-          <select data-deck-builder-target="sortBySelect"
-                  data-action="change->deck-builder#changeSortBy"
-                  class="px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none cursor-pointer">
+
+          <select
+            data-deck-builder-target="sortBySelect"
+            data-action="change->deck-builder#changeSortBy"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg bg-background
+              border-highlight text-grey-text focus:border-accent-50
+              focus:outline-none cursor-pointer
+            "
+          >
             <option value="name" <%= 'selected' if @sort_by == 'name' %>>Name</option>
-            <option value="mana_value" <%= 'selected' if @sort_by == 'mana_value' %>>Mana Value</option>
+
+            <option
+              value="mana_value"
+              <%= 'selected' if @sort_by == 'mana_value' %>
+            >
+              Mana Value
+            </option>
+
             <option value="price" <%= 'selected' if @sort_by == 'price' %>>Price</option>
             <option value="rarity" <%= 'selected' if @sort_by == 'rarity' %>>Rarity</option>
             <option value="edhrec" <%= 'selected' if @sort_by == 'edhrec' %>>EDHREC</option>
@@ -140,25 +244,56 @@
 
 <!-- Static alert modal -->
 <div data-controller="alert-modal">
-  <dialog data-alert-modal-target="dialog"
-          class="p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50"
-          data-action="click->alert-modal#closeOnBackdrop keydown.esc->alert-modal#close">
+  <dialog
+    data-alert-modal-target="dialog"
+    class="
+      p-0 border rounded-lg bg-foreground border-highlight
+      backdrop:bg-black/50
+    "
+    data-action="click->alert-modal#closeOnBackdrop keydown.esc->alert-modal#close"
+  >
     <div class="w-80 p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 data-alert-modal-target="title" class="text-lg font-semibold text-nine-white">Alert</h3>
-        <button type="button"
-                data-action="click->alert-modal#close"
-                class="text-grey-text hover:text-nine-white cursor-pointer">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        <h3
+          data-alert-modal-target="title"
+          class="text-lg font-semibold text-nine-white"
+        >
+          Alert
+        </h3>
+
+        <button
+          type="button"
+          data-action="click->alert-modal#close"
+          class="text-grey-text hover:text-nine-white cursor-pointer"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
+
       <p data-alert-modal-target="message" class="mb-6 text-grey-text"></p>
+
       <div class="flex justify-end">
-        <button type="button"
-                data-action="click->alert-modal#close"
-                class="px-4 py-2 text-sm transition rounded-md bg-accent-50 text-grey-text border border-accent-50 hover:bg-foreground hover:text-accent-50 cursor-pointer">
+        <button
+          type="button"
+          data-action="click->alert-modal#close"
+          class="
+            px-4 py-2 text-sm transition rounded-md bg-accent-50
+            text-grey-text border border-accent-50 hover:bg-foreground
+            hover:text-accent-50 cursor-pointer
+          "
+        >
           OK
         </button>
       </div>

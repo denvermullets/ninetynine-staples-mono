@@ -1,6 +1,7 @@
 <%= turbo_stream.replace "search-form" do %>
   <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path } %>
 <% end %>
+
 <%= turbo_stream.update 'table-container' do %>
   <% if @view_mode == 'visual' %>
     <%= render partial: 'visual' %>

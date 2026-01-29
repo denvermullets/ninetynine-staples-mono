@@ -1,10 +1,21 @@
-<div class='flex items-start justify-center w-full min-h-screen pt-[160px]'>
-  <div class='w-full max-w-md p-6 border border-foreground bg-foreground rounded-xl text-grey-text'>
-    <h1 class='mb-2 text-xl font-bold text-center'>Reset Password</h1>
-    <h1 class='mb-6 text-sm text-center'>Choose your new password</h1>
+<div class="flex items-start justify-center w-full min-h-screen pt-[160px]">
+  <div
+    class="
+      w-full max-w-md p-6 border border-foreground bg-foreground rounded-xl
+      text-grey-text
+    "
+  >
+    <h1 class="mb-2 text-xl font-bold text-center">Reset Password</h1>
+    <h1 class="mb-6 text-sm text-center">Choose your new password</h1>
+
     <%= form_with model: @user, url: password_reset_path(params[:token]), class: 'space-y-4', data: { turbo: false } do |form| %>
       <% if form.object.errors.any? %>
-        <div class="p-4 mb-4 text-sm text-red-400 bg-red-900/50 border border-red-700 rounded-lg">
+        <div
+          class="
+            p-4 mb-4 text-sm text-red-400 bg-red-900/50 border
+            border-red-700 rounded-lg
+          "
+        >
           <ul class="list-disc pl-5 space-y-1">
             <% form.object.errors.full_messages.each do |message| %>
               <li><%= message %></li>
@@ -12,28 +23,40 @@
           </ul>
         </div>
       <% end %>
+
       <% if flash[:alert] %>
-        <div class="p-4 mb-4 text-sm text-red-400 bg-red-900/50 border border-red-700 rounded-lg">
+        <div
+          class="
+            p-4 mb-4 text-sm text-red-400 bg-red-900/50 border
+            border-red-700 rounded-lg
+          "
+        >
           <%= flash[:alert] %>
         </div>
       <% end %>
-      <div class='space-y-2'>
+
+      <div class="space-y-2">
         <%= form.label :password, class: 'block text-sm font-medium' %>
+
         <%= form.password_field :password,
           placeholder: 'New password (minimum 10 characters)',
           required: true,
           class: input_styles %>
       </div>
-      <div class='space-y-2'>
+
+      <div class="space-y-2">
         <%= form.label :password_confirmation, class: 'block text-sm font-medium' %>
+
         <%= form.password_field :password_confirmation,
           placeholder: 'Confirm password',
           required: true,
           class: input_styles %>
       </div>
-      <div class='flex flex-col items-center w-full'>
+
+      <div class="flex flex-col items-center w-full">
         <%= form.submit 'Reset Password',
             class: 'w-full py-2 px-4 mt-2 bg-accent-50 text-background rounded-md cursor-pointer transition duration-300' %>
+
         <%= link_to 'Log in', login_path, class: 'mt-4' %>
       </div>
     <% end %>

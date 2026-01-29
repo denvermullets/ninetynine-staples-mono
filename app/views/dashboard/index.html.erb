@@ -1,6 +1,6 @@
-<div class='flex flex-col flex-auto h-auto px-16 space-y-8 bg-dark-100'>
+<div class="flex flex-col flex-auto h-auto px-16 space-y-8 bg-dark-100">
   <div
-    class='w-full p-4'
+    class="w-full p-4"
     data-controller="filter-dropdown"
     data-filter-dropdown-options-value="<%= @options.to_json %>"
     data-filter-dropdown-url-value="<%= load_boxset_path %>"
@@ -8,6 +8,7 @@
     <div class="relative">
       <input
       type="text"
+      autocomplete="off"
       data-filter-dropdown-target="input"
       data-action="input->filter-dropdown#search click->filter-dropdown#toggle"
         class="w-full p-2 border rounded-md"
@@ -23,8 +24,7 @@
         <!-- Dropdown options will be injected here -->
       </div>
     </div>
-  </div>
-  <div data-filter-dropdown-target="tableContainer" id="table-container" class='min-w-full px-16 mt-8 bg-dark-50'>
+  <div data-filter-dropdown-target="tableContainer" id="table-container" class="min-w-full px-16 mt-8 bg-dark-50">
     <!-- Table will be loaded here -->
   </div>
 </div>

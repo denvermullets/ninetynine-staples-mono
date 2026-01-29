@@ -1,19 +1,36 @@
-<div class="flex items-start gap-4 md:gap-8 px-4 md:px-24 py-4 md:py-8"
-     data-controller="collection-sidebar collection-view"
-     data-collection-view-view-mode-value="<%= @view_mode || 'table' %>"
-     data-collection-view-grouping-value="<%= @grouping || 'none' %>"
-     data-collection-view-grouping-allowed-value="<%= @grouping_allowed || false %>"
-     data-collection-view-load-path-value="<%= load_collection_path(collection_type: @collection_type) %>"
-     data-collection-view-username-value="<%= params[:username] %>"
-     data-collection-view-collection-id-value="<%= params[:collection_id] %>">
+<div
+  class="flex items-start gap-4 md:gap-8 px-4 md:px-24 py-4 md:py-8"
+  data-controller="collection-sidebar collection-view"
+  data-collection-view-view-mode-value="<%= @view_mode || 'table' %>"
+  data-collection-view-grouping-value="<%= @grouping || 'none' %>"
+  data-collection-view-grouping-allowed-value="<%= @grouping_allowed || false %>"
+  data-collection-view-load-path-value="<%= load_collection_path(collection_type: @collection_type) %>"
+  data-collection-view-username-value="<%= params[:username] %>"
+  data-collection-view-collection-id-value="<%= params[:collection_id] %>"
+>
   <!-- Mobile Filter Button -->
   <button
     data-action="click->collection-sidebar#toggle"
-    class="md:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-highlight text-white rounded-full shadow-lg cursor-pointer focus:outline-none"
+    class="
+      md:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center
+      w-14 h-14 bg-highlight text-white rounded-full shadow-lg
+      cursor-pointer focus:outline-none
+    "
     aria-label="Toggle filters"
   >
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+      />
     </svg>
   </button>
 
@@ -26,6 +43,7 @@
 
   <!-- Sidebar -->
   <% is_own_collection = current_user && @user && current_user.id == @user.id %>
+
   <div
     data-collection-sidebar-target="sidebar"
     class="hidden md:flex flex-col shrink-0 h-auto px-4 md:px-8 py-3 md:py-4 gap-3 md:gap-8 border w-[85vw] md:w-72 max-w-sm md:max-w-none rounded-3xl md:rounded-3xl border-highlight bg-foreground text-grey-text fixed md:relative inset-y-0 left-0 z-40 md:z-auto <%= 'overflow-y-auto max-h-screen' if is_own_collection %>"
@@ -34,7 +52,8 @@
     <%= render partial: 'grouping_dropdown' %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
-    <div class='flex flex-col space-y-4'>
+
+    <div class="flex flex-col space-y-4">
       <% if current_user %>
         <%= render partial: 'binder',
                  locals: {
@@ -43,24 +62,50 @@
                    card: MagicCard.first,
                    link: new_collection_path,
                    active: false
-                 }
-        %>
+                 } %>
       <% end %>
 
       <% regular_collections = @collections.reject { |c| Collection.deck_type?(c.collection_type) } %>
       <% deck_collections = @collections.select { |c| Collection.deck_type?(c.collection_type) } %>
 
       <% if regular_collections.any? %>
-        <div data-controller="collapsible" data-collapsible-expanded-value="true">
-          <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full text-left cursor-pointer group">
+        <div
+          data-controller="collapsible"
+          data-collapsible-expanded-value="true"
+        >
+          <button
+            type="button"
+            data-action="click->collapsible#toggle"
+            class="
+              flex items-center justify-between w-full text-left
+              cursor-pointer group
+            "
+          >
             <span class="text-sm font-semibold">Collections</span>
-            <svg data-collapsible-target="icon" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+
+            <svg
+              data-collapsible-target="icon"
+              class="w-4 h-4 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
-          <div data-collapsible-target="content" class="flex flex-col space-y-2 mt-2">
+
+          <div
+            data-collapsible-target="content"
+            class="flex flex-col space-y-2 mt-2"
+          >
             <% regular_collections.each do |col| %>
               <% show_path = collection_show_path(username: params[:username], collection_id: col.id) %>
+
               <%= render partial: 'binder',
                        locals: {
                          name: col.name,
@@ -70,24 +115,50 @@
                          active: col.id == params[:collection_id].to_i,
                          collection: col,
                          is_owner: is_own_collection
-                       }
-              %>
+                       } %>
             <% end %>
           </div>
         </div>
       <% end %>
 
       <% if deck_collections.any? %>
-        <div data-controller="collapsible" data-collapsible-expanded-value="true">
-          <button type="button" data-action="click->collapsible#toggle" class="flex items-center justify-between w-full text-left cursor-pointer group">
+        <div
+          data-controller="collapsible"
+          data-collapsible-expanded-value="true"
+        >
+          <button
+            type="button"
+            data-action="click->collapsible#toggle"
+            class="
+              flex items-center justify-between w-full text-left
+              cursor-pointer group
+            "
+          >
             <span class="text-sm font-semibold">Decks</span>
-            <svg data-collapsible-target="icon" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+
+            <svg
+              data-collapsible-target="icon"
+              class="w-4 h-4 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
-          <div data-collapsible-target="content" class="flex flex-col space-y-2 mt-2">
+
+          <div
+            data-collapsible-target="content"
+            class="flex flex-col space-y-2 mt-2"
+          >
             <% deck_collections.each do |col| %>
               <% show_path = @collection_type == 'deck' ? deck_show_path(username: params[:username], collection_id: col.id) : collection_show_path(username: params[:username], collection_id: col.id) %>
+
               <%= render partial: 'binder',
                        locals: {
                          name: col.name,
@@ -97,26 +168,30 @@
                          active: col.id == params[:collection_id].to_i,
                          collection: col,
                          is_owner: is_own_collection
-                       }
-              %>
+                       } %>
             <% end %>
           </div>
         </div>
       <% end %>
     </div>
   </div>
+
   <!-- Main Content -->
   <div class="flex flex-col grow gap-8 min-w-0">
     <!-- Collection Info Header -->
     <% if @collection.present? %>
       <div class="flex flex-col gap-1">
         <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-semibold text-grey-text"><%= @collection.name %></h1>
+          <h1 class="text-2xl font-semibold text-grey-text">
+            <%= @collection.name %>
+          </h1>
+
           <% if current_user&.id == @user.id %>
             <%= link_to 'Edit', edit_collection_modal_collection_path(@collection),
                 class: 'px-2 py-0.5 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white cursor-pointer',
                 data: { turbo_frame: 'collection_modal' } %>
           <% end %>
+
           <% if @collection_type == 'deck' && current_user&.id == @user.id %>
             <%= link_to deck_builder_path(@collection),
                 class: 'px-2 py-0.5 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white' do %>
@@ -124,6 +199,7 @@
             <% end %>
           <% end %>
         </div>
+
         <% if @collection.description.present? %>
           <p class="text-sm text-grey-text"><%= @collection.description %></p>
         <% end %>
@@ -131,71 +207,76 @@
     <% else %>
       <div class="flex flex-col gap-1">
         <h1 class="text-2xl font-semibold text-grey-text">Viewing All Cards</h1>
-        <p class="text-sm text-grey-text">Select one of your specific collections to view in isolation</p>
+
+        <p class="text-sm text-grey-text">
+          Select one of your specific collections to view in isolation
+        </p>
       </div>
     <% end %>
 
     <!-- Top Bar / Stats -->
-    <div data-collection-view-target="statsBar" class="shrink-0 px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text overflow-hidden <%= 'hidden' if @view_mode == 'visual' %>">
+    <div
+      data-collection-view-target="statsBar"
+      class="shrink-0 px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text overflow-hidden <%= 'hidden' if @view_mode == 'visual' %>"
+    >
       <% if @collection.present? %>
-        <div class='flex flex-col md:flex-row gap-4 min-w-0 items-start'>
+        <div class="flex flex-col md:flex-row gap-4 min-w-0 items-start">
           <%= render partial: 'stats',
                    locals: {
                      message: "Total cards in #{@collection.name} #{@collection_type}",
                      count: @collection.total_foil_quantity + @collection.total_quantity,
                      value: nil
-                   }
-          %>
+                   } %>
+
           <%= render partial: 'stats',
                    locals: {
                      message: "Total value in #{@collection.name} #{@collection_type}",
                      count: nil,
                      value: @collection.total_value
-                   }
-          %>
+                   } %>
+
           <%= render partial: 'stats',
                    locals: {
                      message: "Total value in all collections",
                      count: nil,
                      value: @collections_value
-                   }
-          %>
+                   } %>
+
           <% if @collection_history.present? && @collection_history.any? %>
             <%= render partial: 'collection_history_chart',
                      locals: {
                        title: "#{@collection.name} value history",
                        history: @collection_history
-                     }
-            %>
+                     } %>
           <% end %>
         </div>
       <% else %>
-        <div class='flex flex-col md:flex-row gap-4 min-w-0'>
+        <div class="flex flex-col md:flex-row gap-4 min-w-0">
           <%= render partial: 'stats',
                    locals: {
                      message: "Total value in #{@collections.first.name} #{@collection_type}",
                      count: nil,
                      value: @collections.first.total_value
-                   }
-          %>
+                   } %>
+
           <%= render partial: 'stats',
                    locals: {
                      message: "Total value in all collections",
                      count: nil,
                      value: @collections_value
-                   }
-          %>
+                   } %>
+
           <% if @collection_history.present? && @collection_history.any? %>
             <%= render partial: 'collection_history_chart',
                      locals: {
                        title: "All collections value history",
                        history: @collection_history
-                     }
-            %>
+                     } %>
           <% end %>
         </div>
       <% end %>
     </div>
+
     <!-- Table/Visual Content -->
     <div class="grow">
       <%= turbo_frame_tag 'boxset_content' do %>

@@ -1,6 +1,8 @@
 <%= turbo_frame_tag "scan_results", class: "block max-h-[500px] overflow-y-auto" do %>
   <% if results.blank? %>
-    <p class="text-grey-text/70 text-sm">No cards found. Try scanning again with better lighting or angle.</p>
+    <p class="text-grey-text/70 text-sm">
+      No cards found. Try scanning again with better lighting or angle.
+    </p>
   <% else %>
     <div class="space-y-3">
       <% results.each do |result| %>

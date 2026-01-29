@@ -1,8 +1,12 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
   <%= render partial: 'shared/page_header',
     locals: { header: @is_owner ? 'Game Dashboard' : "#{tracker_owner.username}'s Game Tracker",
-              subtext: @is_owner ? 'Your Commander game statistics and performance overview.' : 'Commander game statistics and performance overview.' }
-  %>
+              subtext: @is_owner ? 'Your Commander game statistics and performance overview.' : 'Commander game statistics and performance overview.' } %>
 
   <!-- Quick Actions (only for owner) -->
   <% if @is_owner %>
@@ -10,9 +14,11 @@
       <%= link_to new_commander_game_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' do %>
         + Record Game
       <% end %>
+
       <%= link_to new_tracked_deck_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' do %>
         + Track Deck
       <% end %>
+
       <%= link_to 'All Games', game_tracker_commander_games_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
       <%= link_to 'My Decks', game_tracker_tracked_decks_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
     </div>
@@ -26,27 +32,51 @@
   <!-- Overall Stats Cards -->
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
     <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
-      <p class="text-3xl font-bold text-grey-text"><%= @overall_stats[:total_games] %></p>
+      <p class="text-3xl font-bold text-grey-text">
+        <%= @overall_stats[:total_games] %>
+      </p>
+
       <p class="text-sm text-grey-text/70">Total Games</p>
     </div>
+
     <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
       <p class="text-3xl font-bold <%= @overall_stats[:win_rate] >= 50 ? 'text-accent-50' : 'text-accent-100' %>">
         <%= @overall_stats[:win_rate] %>%
       </p>
+
       <p class="text-sm text-grey-text/70">Win Rate</p>
-      <p class="text-xs text-grey-text/50"><%= @overall_stats[:total_wins] %>W / <%= @overall_stats[:total_losses] %>L</p>
+
+      <p class="text-xs text-grey-text/50">
+        <%= @overall_stats[:total_wins] %>W /
+        <%= @overall_stats[:total_losses] %>L
+      </p>
     </div>
+
     <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
-      <p class="text-3xl font-bold text-accent-50"><%= @overall_stats[:total_decks] %></p>
+      <p class="text-3xl font-bold text-accent-50">
+        <%= @overall_stats[:total_decks] %>
+      </p>
+
       <p class="text-sm text-grey-text/70">Decks Tracked</p>
-      <p class="text-xs text-grey-text/50"><%= @overall_stats[:active_decks] %> active</p>
+
+      <p class="text-xs text-grey-text/50">
+        <%= @overall_stats[:active_decks] %> active
+      </p>
     </div>
+
     <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
-      <p class="text-3xl font-bold text-accent-300"><%= @overall_stats[:avg_fun_rating] || '-' %></p>
+      <p class="text-3xl font-bold text-accent-300">
+        <%= @overall_stats[:avg_fun_rating] || '-' %>
+      </p>
+
       <p class="text-sm text-grey-text/70">Avg Fun Rating</p>
     </div>
+
     <div class="border rounded-xl bg-foreground border-highlight p-4 text-center">
-      <p class="text-3xl font-bold text-accent-200"><%= @overall_stats[:avg_performance_rating] || '-' %></p>
+      <p class="text-3xl font-bold text-accent-200">
+        <%= @overall_stats[:avg_performance_rating] || '-' %>
+      </p>
+
       <p class="text-sm text-grey-text/70">Avg Performance</p>
     </div>
   </div>
@@ -55,17 +85,25 @@
     <!-- Win Rate by Bracket -->
     <div class="border rounded-3xl bg-foreground border-highlight p-6">
       <h2 class="text-xl font-bold text-grey-text mb-4">Win Rate by Bracket</h2>
+
       <div class="space-y-3">
         <% @bracket_stats.each do |bracket| %>
           <div class="flex items-center gap-4">
-            <span class="w-20 text-grey-text">Bracket <%= bracket[:bracket] %></span>
+            <span class="w-20 text-grey-text">
+              Bracket <%= bracket[:bracket] %>
+            </span>
+
             <div class="flex-1 h-6 bg-background rounded-full overflow-hidden">
-              <div class="h-full <%= bracket[:win_rate] >= 50 ? 'bg-accent-50' : 'bg-accent-100' %> rounded-full transition-all"
-                   style="width: <%= bracket[:win_rate] %>%"></div>
+              <div
+                class="h-full <%= bracket[:win_rate] >= 50 ? 'bg-accent-50' : 'bg-accent-100' %> rounded-full transition-all"
+                style="width: <%= bracket[:win_rate] %>%"
+              ></div>
             </div>
+
             <span class="w-16 text-right <%= bracket[:win_rate] >= 50 ? 'text-accent-50' : 'text-accent-100' %>">
               <%= bracket[:win_rate] %>%
             </span>
+
             <span class="w-16 text-right text-grey-text/50 text-sm">
               <%= bracket[:total_games] %> games
             </span>
@@ -76,7 +114,12 @@
 
     <!-- Recent Games -->
     <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
-      <div class="flex justify-between items-center px-6 py-4 border-b border-highlight">
+      <div
+        class="
+          flex justify-between items-center px-6 py-4 border-b
+          border-highlight
+        "
+      >
         <h2 class="text-xl font-bold text-grey-text">Recent Games</h2>
         <%= link_to 'View All', game_tracker_commander_games_path(tracker_owner.username), class: 'text-accent-50 hover:text-accent-100 text-sm' %>
       </div>
@@ -88,12 +131,21 @@
               <span class="px-2 py-1 rounded text-xs <%= game.result_badge_class %>">
                 <%= game.won? ? 'W' : 'L' %>
               </span>
+
               <div class="flex-1 min-w-0">
-                <p class="text-grey-text font-medium truncate"><%= game.deck_name %></p>
-                <p class="text-grey-text/50 text-sm"><%= game.played_on.strftime('%b %d') %></p>
+                <p class="text-grey-text font-medium truncate">
+                  <%= game.deck_name %>
+                </p>
+
+                <p class="text-grey-text/50 text-sm">
+                  <%= game.played_on.strftime('%b %d') %>
+                </p>
               </div>
+
               <% if game.fun_rating %>
-                <span class="text-accent-300 text-sm"><%= game.fun_rating %>/10</span>
+                <span class="text-accent-300 text-sm">
+                  <%= game.fun_rating %>/10
+                </span>
               <% end %>
             <% end %>
           <% end %>
@@ -109,7 +161,12 @@
   <!-- Deck Performance Table -->
   <% if @deck_stats.any? %>
     <div class="border rounded-3xl bg-foreground border-highlight overflow-hidden">
-      <div class="flex justify-between items-center px-6 py-4 border-b border-highlight">
+      <div
+        class="
+          flex justify-between items-center px-6 py-4 border-b
+          border-highlight
+        "
+      >
         <h2 class="text-xl font-bold text-grey-text">Deck Performance</h2>
         <%= link_to 'Manage Decks', game_tracker_tracked_decks_path(tracker_owner.username), class: 'text-accent-50 hover:text-accent-100 text-sm' %>
       </div>
@@ -117,46 +174,98 @@
       <table class="min-w-full">
         <thead class="bg-background">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Deck</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Games</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">Win Rate</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden md:table-cell">Fun</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden lg:table-cell">Last Played</th>
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider
+              "
+            >
+              Deck
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider
+              "
+            >
+              Games
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider
+              "
+            >
+              Win Rate
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider hidden md:table-cell
+              "
+            >
+              Fun
+            </th>
+
+            <th
+              class="
+                px-6 py-3 text-left text-xs font-medium text-grey-text
+                uppercase tracking-wider hidden lg:table-cell
+              "
+            >
+              Last Played
+            </th>
           </tr>
         </thead>
+
         <tbody class="divide-y divide-highlight">
           <% @deck_stats.each do |deck| %>
-            <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= game_tracker_tracked_deck_path(tracker_owner.username, deck[:id]) %>'">
+            <tr
+              class="hover:bg-background/50 cursor-pointer"
+              onclick="window.location='<%= game_tracker_tracked_deck_path(tracker_owner.username, deck[:id]) %>'"
+            >
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <% if deck[:commander_image].present? %>
-                    <img src="<%= deck[:commander_image] %>"
-                         alt="<%= deck[:commander_name] %>"
-                         class="w-8 h-11 rounded object-cover hidden sm:block cursor-pointer"
-                         data-controller="card-hover"
-                         data-card-hover-image-value="<%= deck[:commander_image_large] %>"
-                         data-card-hover-name-value="<%= deck[:commander_name] %>"
-                         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+                    <%= image_tag deck[:commander_image],
+                      alt: deck[:commander_name],
+                      class: "w-8 h-11 rounded object-cover hidden sm:block cursor-pointer",
+                      data: {
+                        controller: "card-hover",
+                        card_hover_image_value: deck[:commander_image_large],
+                        card_hover_name_value: deck[:commander_name],
+                        action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+                      } %>
                   <% end %>
+
                   <div>
                     <p class="text-grey-text font-medium"><%= deck[:name] %></p>
-                    <p class="text-grey-text/50 text-sm hidden md:block"><%= deck[:commander_name].truncate(30) %></p>
+
+                    <p class="text-grey-text/50 text-sm hidden md:block">
+                      <%= deck[:commander_name].truncate(30) %>
+                    </p>
                   </div>
                 </div>
               </td>
+
               <td class="px-6 py-4 text-grey-text">
-                <span class="text-accent-50"><%= deck[:wins] %>W</span>
-                /
+                <span class="text-accent-50"><%= deck[:wins] %>W</span> /
                 <span class="text-accent-100"><%= deck[:losses] %>L</span>
               </td>
+
               <td class="px-6 py-4">
                 <span class="<%= deck[:win_rate] >= 50 ? 'text-accent-50' : 'text-accent-100' %>">
                   <%= deck[:win_rate] %>%
                 </span>
               </td>
+
               <td class="px-6 py-4 text-accent-300 hidden md:table-cell">
                 <%= deck[:avg_fun_rating] || '-' %>
               </td>
+
               <td class="px-6 py-4 text-grey-text hidden lg:table-cell">
                 <%= deck[:last_played]&.strftime('%b %d, %Y') || 'Never' %>
               </td>
@@ -173,8 +282,15 @@
       <!-- Commanders that beat you -->
       <% if @opponent_stats[:commanders_that_beat_you].any? %>
         <div class="border rounded-3xl bg-foreground border-highlight p-6">
-          <h2 class="text-xl font-bold text-grey-text mb-4">Commanders That Beat <%= @is_owner ? 'You' : tracker_owner.username %></h2>
-          <p class="text-grey-text/50 text-sm mb-4">Consider adding counterplay for these</p>
+          <h2 class="text-xl font-bold text-grey-text mb-4">
+            Commanders That Beat
+            <%= @is_owner ? 'You' : tracker_owner.username %>
+          </h2>
+
+          <p class="text-grey-text/50 text-sm mb-4">
+            Consider adding counterplay for these
+          </p>
+
           <div class="space-y-3">
             <% @opponent_stats[:commanders_that_beat_you].first(5).each do |data| %>
               <div class="flex justify-between items-center">
@@ -189,8 +305,16 @@
       <!-- Win conditions used against you -->
       <% if @opponent_stats[:win_conditions_against_you].any? %>
         <div class="border rounded-3xl bg-foreground border-highlight p-6">
-          <h2 class="text-xl font-bold text-grey-text mb-4">How <%= @is_owner ? 'You Lose' : "#{tracker_owner.username} Loses" %></h2>
-          <p class="text-grey-text/50 text-sm mb-4">Common win conditions used against <%= @is_owner ? 'you' : 'them' %></p>
+          <h2 class="text-xl font-bold text-grey-text mb-4">
+            How
+            <%= @is_owner ? 'You Lose' : "#{tracker_owner.username} Loses" %>
+          </h2>
+
+          <p class="text-grey-text/50 text-sm mb-4">
+            Common win conditions used against
+            <%= @is_owner ? 'you' : 'them' %>
+          </p>
+
           <div class="space-y-3">
             <% @opponent_stats[:win_conditions_against_you].each do |data| %>
               <div class="flex justify-between items-center">

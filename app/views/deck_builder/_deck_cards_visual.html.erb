@@ -7,28 +7,44 @@
 
       <div class="relative" data-controller="card-stack">
         <% cards.each_with_index do |card, index| %>
-          <div data-card-stack-target="card"
-               data-action="mouseenter->card-stack#expand mouseleave->card-stack#collapse"
-               class="relative cursor-pointer rounded-2xl overflow-hidden
-                      <%= 'ring-2 ring-blue-400' if card.staged? && card.from_owned_collection? %>
-                      <%= 'ring-2 ring-accent-400' if card.staged? && card.planned? %>
-                      <%= 'ring-2 ring-orange-400' if card.needed? %>">
-
+          <div
+            data-card-stack-target="card"
+            data-action="mouseenter->card-stack#expand mouseleave->card-stack#collapse"
+            class="
+              relative cursor-pointer rounded-2xl overflow-hidden
+              <%= 'ring-2 ring-blue-400' if card.staged? && card.from_owned_collection? %>
+              <%= 'ring-2 ring-accent-400' if card.staged? && card.planned? %>
+              <%= 'ring-2 ring-orange-400' if card.needed? %>
+            "
+          >
             <% if card.magic_card.image_medium.present? %>
-              <img src="<%= card.magic_card.image_medium %>"
-                   alt="<%= card.magic_card.name %>"
-                   class="w-full rounded-2xl shadow-lg"
-                   loading="lazy" />
+              <%= image_tag card.magic_card.image_medium,
+                alt: card.magic_card.name,
+                class: "w-full rounded-2xl shadow-lg",
+                loading: "lazy" %>
             <% else %>
-              <div class="flex items-center justify-center w-full h-48 rounded-2xl bg-background">
-                <span class="text-sm text-grey-text"><%= card.magic_card.name %></span>
+              <div
+                class="
+                  flex items-center justify-center w-full h-48 rounded-2xl
+                  bg-background
+                "
+              >
+                <span class="text-sm text-grey-text">
+                  <%= card.magic_card.name %>
+                </span>
               </div>
             <% end %>
 
             <!-- Quantity Badge -->
             <% qty = card.display_quantity %>
+
             <% if qty > 1 %>
-              <span class="absolute px-2 py-1 text-xs font-bold rounded-full top-2 right-2 bg-background text-white shadow">
+              <span
+                class="
+                  absolute px-2 py-1 text-xs font-bold rounded-full top-2
+                  right-2 bg-background text-white shadow
+                "
+              >
                 x<%= qty %>
               </span>
             <% end %>
@@ -37,19 +53,41 @@
             <% if card.display_foil? || card.display_proxy? %>
               <div class="absolute top-2 left-2 flex gap-1">
                 <% if card.display_foil? %>
-                  <span class="px-1 text-[10px] font-bold rounded bg-accent-50/90 text-background shadow">F</span>
+                  <span
+                    class="
+                      px-1 text-[10px] font-bold rounded bg-accent-50/90
+                      text-background shadow
+                    "
+                  >
+                    F
+                  </span>
                 <% end %>
+
                 <% if card.display_proxy? %>
-                  <span class="px-1 text-[10px] font-bold rounded bg-accent-400/90 text-background shadow">P</span>
+                  <span
+                    class="
+                      px-1 text-[10px] font-bold rounded bg-accent-400/90
+                      text-background shadow
+                    "
+                  >
+                    P
+                  </span>
                 <% end %>
               </div>
             <% end %>
 
             <!-- Status Badge -->
             <% if card.staged? || card.needed? %>
-              <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-xs text-center rounded-b-lg bg-black/80">
+              <div
+                class="
+                  absolute bottom-0 left-0 right-0 px-2 py-1 text-xs
+                  text-center rounded-b-lg bg-black/80
+                "
+              >
                 <% if card.from_owned_collection? %>
-                  <span class="text-blue-400">from <%= card.source_collection.name.truncate(20) %></span>
+                  <span class="text-blue-400">
+                    from <%= card.source_collection.name.truncate(20) %>
+                  </span>
                 <% elsif card.planned? %>
                   <span class="text-accent-400">Planned</span>
                 <% elsif card.needed? %>
@@ -60,7 +98,6 @@
                 <% end %>
               </div>
             <% end %>
-
           </div>
         <% end %>
       </div>

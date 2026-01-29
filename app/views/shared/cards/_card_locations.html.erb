@@ -17,23 +17,41 @@
 
   <!-- Total Summary -->
   <div class="pb-4">
-    <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">Ownership</h4>
+    <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">
+      Ownership
+    </h4>
+
     <div class="grid grid-cols-4 gap-3">
       <div class="flex flex-col">
         <span class="text-xs text-grey-text">Regular</span>
-        <span class="text-lg font-medium <%= total_regular > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_regular %></span>
+
+        <span class="text-lg font-medium <%= total_regular > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+          <%= total_regular %>
+        </span>
       </div>
+
       <div class="flex flex-col">
         <span class="text-xs text-grey-text">Foil</span>
-        <span class="text-lg font-medium <%= total_foil > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_foil %></span>
+
+        <span class="text-lg font-medium <%= total_foil > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+          <%= total_foil %>
+        </span>
       </div>
+
       <div class="flex flex-col">
         <span class="text-xs text-grey-text">Proxy</span>
-        <span class="text-lg font-medium <%= total_proxy > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_proxy %></span>
+
+        <span class="text-lg font-medium <%= total_proxy > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+          <%= total_proxy %>
+        </span>
       </div>
+
       <div class="flex flex-col">
         <span class="text-xs text-grey-text">Proxy Foil</span>
-        <span class="text-lg font-medium <%= total_proxy_foil > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= total_proxy_foil %></span>
+
+        <span class="text-lg font-medium <%= total_proxy_foil > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+          <%= total_proxy_foil %>
+        </span>
       </div>
     </div>
   </div>
@@ -43,27 +61,88 @@
     <table class="min-w-full divide-y divide-highlight">
       <thead class="bg-background">
         <tr>
-          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Location</th>
-          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Regular</th>
-          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Foil</th>
+          <th
+            class="
+              px-4 py-3 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Location
+          </th>
+
+          <th
+            class="
+              px-4 py-3 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Regular
+          </th>
+
+          <th
+            class="
+              px-4 py-3 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Foil
+          </th>
+
           <% if has_proxies %>
-            <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Proxy</th>
-            <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Proxy Foil</th>
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Proxy
+            </th>
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Proxy Foil
+            </th>
           <% end %>
-          <th class="px-4 py-3 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Quick actions</th>
+
+          <th
+            class="
+              px-4 py-3 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Quick actions
+          </th>
         </tr>
       </thead>
+
       <tbody class="divide-y bg-foreground divide-highlight">
         <% if visible_locations.any? %>
           <% visible_locations.each do |location| %>
             <tr class="text-grey-text hover:bg-menu">
-              <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.collection.name %></td>
-              <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.quantity %></td>
-              <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.foil_quantity %></td>
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= location.collection.name %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= location.quantity %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= location.foil_quantity %>
+              </td>
+
               <% if has_proxies %>
-                <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.proxy_quantity || 0 %></td>
-                <td class="px-4 py-3 text-sm whitespace-nowrap"><%= location.proxy_foil_quantity || 0 %></td>
+                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <%= location.proxy_quantity || 0 %>
+                </td>
+                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <%= location.proxy_foil_quantity || 0 %>
+                </td>
               <% end %>
+
               <td class="px-4 py-3 text-sm whitespace-nowrap">
                 <% if editable %>
                   <div class="flex gap-2">
@@ -75,9 +154,15 @@
                       data-foil-qty="<%= location.foil_quantity %>"
                       data-proxy-qty="<%= location.proxy_quantity %>"
                       data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
-                      class="px-3 py-1 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white">
+                      class="
+                        px-3 py-1 text-xs transition border rounded-md
+                        border-highlight text-grey-text hover:bg-background
+                        hover:text-nine-white
+                      "
+                    >
                       Transfer
                     </button>
+
                     <button
                       data-action="click->card-locations#openAdjustModal"
                       data-collection-id="<%= location.collection_id %>"
@@ -86,7 +171,12 @@
                       data-foil-qty="<%= location.foil_quantity %>"
                       data-proxy-qty="<%= location.proxy_quantity %>"
                       data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
-                      class="px-3 py-1 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white">
+                      class="
+                        px-3 py-1 text-xs transition border rounded-md
+                        border-highlight text-grey-text hover:bg-background
+                        hover:text-nine-white
+                      "
+                    >
                       Adjust
                     </button>
                   </div>
@@ -98,9 +188,13 @@
           <% end %>
         <% else %>
           <tr>
-            <td colspan="<%= has_proxies ? 6 : 4 %>" class="px-4 py-6 text-sm text-center text-grey-text">
+            <td
+              colspan="<%= has_proxies ? 6 : 4 %>"
+              class="px-4 py-6 text-sm text-center text-grey-text"
+            >
               <% if editable %>
-                No cards in any collection yet. Select a collection below to add this card.
+                No cards in any collection yet. Select a collection below to add
+                this card.
               <% else %>
                 This card is not in any collections.
               <% end %>
@@ -114,24 +208,39 @@
             <td colspan="<%= has_proxies ? 6 : 4 %>" class="px-4 py-3">
               <div class="flex items-center gap-3">
                 <span class="text-sm text-grey-text">Add to collection:</span>
+
                 <select
                   data-card-locations-target="newCollectionSelect"
-                  class="flex-1 max-w-xs px-3 py-1 text-sm border rounded-md border-highlight bg-foreground text-grey-text focus:border-accent-50 focus:ring-accent-50">
+                  class="
+                    flex-1 max-w-xs px-3 py-1 text-sm border rounded-md
+                    border-highlight bg-foreground text-grey-text
+                    focus:border-accent-50 focus:ring-accent-50
+                  "
+                >
                   <option value="">Select collection...</option>
+
                   <% collections.each do |collection| %>
-                    <option value="<%= collection.id %>"><%= collection.name %></option>
+                    <option value="<%= collection.id %>">
+                      <%= collection.name %>
+                    </option>
                   <% end %>
                 </select>
+
                 <button
                   data-action="click->card-locations#openAdjustModal"
-                  data-collection-id=""
-                  data-collection-name=""
+                  data-collection-id
+                  data-collection-name
                   data-regular-qty="0"
                   data-foil-qty="0"
                   data-proxy-qty="0"
                   data-proxy-foil-qty="0"
                   data-is-new="true"
-                  class="px-4 py-1 text-sm transition rounded-md bg-accent-50 text-background hover:bg-nine-white disabled:opacity-50 disabled:cursor-not-allowed">
+                  class="
+                    px-4 py-1 text-sm transition rounded-md bg-accent-50
+                    text-background hover:bg-nine-white disabled:opacity-50
+                    disabled:cursor-not-allowed
+                  "
+                >
                   Add
                 </button>
               </div>

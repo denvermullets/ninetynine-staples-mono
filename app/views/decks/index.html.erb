@@ -1,10 +1,19 @@
-<div class="flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100">
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
   <%= render partial: 'shared/page_header',
     locals: { header: "#{@user.username}'s Decks",
-              subtext: @is_owner ? 'Manage your decks. Click on a deck to enter build mode.' : "Browse #{@user.username}'s deck collection." }
-  %>
+              subtext: @is_owner ? 'Manage your decks. Click on a deck to enter build mode.' : "Browse #{@user.username}'s deck collection." } %>
 
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div
+    class="
+      flex flex-col sm:flex-row justify-between items-start sm:items-center
+      gap-4
+    "
+  >
     <% if @is_owner %>
       <%= link_to new_collection_path(collection_type: 'commander_deck'),
           class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' do %>
@@ -13,8 +22,10 @@
     <% else %>
       <div></div>
     <% end %>
+
     <div class="flex items-center gap-2">
       <label for="sort" class="text-grey-text text-sm">Sort by:</label>
+
       <%= select_tag :sort,
           options_for_select(@sort_options.map { |k, v| [v[:label], k] }, @sort),
           class: 'border text-grey-text text-sm rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-3 py-2 cursor-pointer',
@@ -41,9 +52,11 @@
         <% if @is_owner %>
           You don't have any decks yet.
         <% else %>
-          <%= @user.username %> doesn't have any decks yet.
+          <%= @user.username %>
+          doesn't have any decks yet.
         <% end %>
       </p>
+
       <% if @is_owner %>
         <%= link_to 'Create Your First Deck', new_collection_path(collection_type: 'deck'),
             class: 'inline-block px-6 py-3 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' %>

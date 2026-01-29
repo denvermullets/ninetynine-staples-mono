@@ -3,21 +3,31 @@
 
 <% if is_current %>
   <div class="absolute top-4 right-4 z-10">
-    <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-accent-50 text-foreground">
+    <span
+      class="
+        px-2 py-0.5 text-xs font-medium rounded-full bg-accent-50
+        text-foreground
+      "
+    >
       Current
     </span>
   </div>
 <% end %>
 
 <% if printing.image_large.present? %>
-  <img src="<%= printing.image_large %>"
-       alt="<%= printing.name %>"
-       class="w-full h-auto rounded mb-2" />
+  <%= image_tag printing.image_large,
+    alt: printing.name,
+    class: "w-full h-auto rounded mb-2" %>
 <% else %>
-  <img src="<%= printing.image_medium %>"
-       alt="<%= printing.name %>"
-       class="w-full h-auto rounded mb-2" />
+  <%= image_tag printing.image_medium,
+    alt: printing.name,
+    class: "w-full h-auto rounded mb-2" %>
 <% end %>
 
-<p class="text-sm font-medium text-grey-text truncate"><%= printing.boxset&.name %></p>
-<p class="text-xs text-grey-text/75"><%= number_to_currency(printing.normal_price) %></p>
+<p class="text-sm font-medium text-grey-text truncate">
+  <%= printing.boxset&.name %>
+</p>
+
+<p class="text-xs text-grey-text/75">
+  <%= number_to_currency(printing.normal_price) %>
+</p>
