@@ -24,6 +24,7 @@ class BoxsetsController < ApplicationController
     @view_mode = params[:view_mode] || 'table'
     @grouping = params[:grouping] || 'none'
     @grouping_allowed = false
+    @collections = current_user&.ordered_collections || []
   end
 
   def load_boxset_for_index
