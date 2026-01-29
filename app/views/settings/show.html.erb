@@ -1,45 +1,90 @@
-<div class='flex items-start justify-center w-full min-h-screen py-8 px-4'>
-  <div class='w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl text-grey-text'>
-    <h1 class='mb-6 text-xl font-bold text-center'>Settings</h1>
-    <div class='space-y-8'>
+<div class="flex items-start justify-center w-full min-h-screen py-8 px-4">
+  <div
+    class="
+      w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl
+      text-grey-text
+    "
+  >
+    <h1 class="mb-6 text-xl font-bold text-center">Settings</h1>
+
+    <div class="space-y-8">
       <!-- Game Tracker Visibility Section -->
       <section>
-        <h2 class='mb-4 text-lg font-semibold'>Game Tracker Privacy</h2>
-        <p class='mb-4 text-sm'>Control whether other users can view your game tracker statistics.</p>
-        <div data-controller="game-tracker-visibility"
-             data-game-tracker-visibility-url-value="<%= update_game_tracker_visibility_path %>">
-          <label class='flex items-center gap-3 p-3 border rounded-lg cursor-pointer border-highlight bg-background hover:border-accent-50 transition'>
-            <input type="checkbox"
-                   data-game-tracker-visibility-target="toggle"
-                   data-action="change->game-tracker-visibility#toggle"
-                   <%= 'checked' if current_user.game_tracker_public? %>
-                   class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+        <h2 class="mb-4 text-lg font-semibold">Game Tracker Privacy</h2>
+
+        <p class="mb-4 text-sm">
+          Control whether other users can view your game tracker statistics.
+        </p>
+
+        <div
+          data-controller="game-tracker-visibility"
+          data-game-tracker-visibility-url-value="<%= update_game_tracker_visibility_path %>"
+        >
+          <label
+            class="
+              flex items-center gap-3 p-3 border rounded-lg cursor-pointer
+              border-highlight bg-background hover:border-accent-50
+              transition
+            "
+          >
+            <input
+              type="checkbox"
+              data-game-tracker-visibility-target="toggle"
+              data-action="change->game-tracker-visibility#toggle"
+              <%= 'checked' if current_user.game_tracker_public? %>
+              class="
+                w-4 h-4 rounded border-highlight bg-background
+                accent-accent-50 focus:ring-accent-50
+                focus:ring-offset-background
+              "
+            >
+
             <div>
               <span class="font-medium">Make my Game Tracker public</span>
-              <p class="text-sm text-grey-text/70">When enabled, anyone can view your game statistics at <code class="text-accent-50">/game-tracker/<%= current_user.username %></code></p>
+
+              <p class="text-sm text-grey-text/70">
+                When enabled, anyone can view your game statistics at
+                <code class="text-accent-50">/game-tracker/<%= current_user.username %></code>
+              </p>
             </div>
           </label>
         </div>
       </section>
-      <hr class='border-highlight'>
+
+      <hr class="border-highlight">
+
       <!-- Collection Order Section -->
       <section>
-        <h2 class='mb-4 text-lg font-semibold'>Collection Order</h2>
-        <p class='mb-4 text-sm'>Use the arrows to reorder your collections. This order will be used in the sidebar and dropdowns.</p>
+        <h2 class="mb-4 text-lg font-semibold">Collection Order</h2>
+
+        <p class="mb-4 text-sm">
+          Use the arrows to reorder your collections. This order will be used in
+          the sidebar and dropdowns.
+        </p>
+
         <%= turbo_frame_tag "collection_list" do %>
           <%= render partial: 'collection_list', locals: { collections: @collections } %>
         <% end %>
       </section>
-      <hr class='border-highlight'>
+
+      <hr class="border-highlight">
+
       <!-- Collections Column Visibility Section -->
       <section>
-        <h2 class='mb-4 text-lg font-semibold'>Collections Table Columns</h2>
-        <p class='mb-4 text-sm'>Choose which columns to display in collection tables. At least one column must remain visible.</p>
-        <div data-controller="column-visibility"
-             data-column-visibility-url-value="<%= update_column_visibility_path %>"
-             data-column-visibility-view-value="collections"
-             data-column-visibility-min-visible-value="1">
-          <div class='grid grid-cols-2 gap-3'>
+        <h2 class="mb-4 text-lg font-semibold">Collections Table Columns</h2>
+
+        <p class="mb-4 text-sm">
+          Choose which columns to display in collection tables. At least one
+          column must remain visible.
+        </p>
+
+        <div
+          data-controller="column-visibility"
+          data-column-visibility-url-value="<%= update_column_visibility_path %>"
+          data-column-visibility-view-value="collections"
+          data-column-visibility-min-visible-value="1"
+        >
+          <div class="grid grid-cols-2 gap-3">
             <% [
               ['card_number', '#'],
               ['name', 'Name'],
@@ -49,32 +94,58 @@
               ['foil_price', 'Foil Price'],
               ['salt', 'Salt']
             ].each do |key, label| %>
-              <label class='flex items-center gap-3 p-3 border rounded-lg cursor-pointer border-highlight bg-background hover:border-accent-50 transition'
-                     data-column-visibility-target="toggle"
-                     data-column-key="<%= key %>">
-                <input type="checkbox"
-                       data-action="change->column-visibility#toggle"
-                <%= 'checked' if current_user.column_visible?(key, 'collections') %>
-                class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+              <label
+                class="
+                  flex items-center gap-3 p-3 border rounded-lg
+                  cursor-pointer border-highlight bg-background
+                  hover:border-accent-50 transition
+                "
+                data-column-visibility-target="toggle"
+                data-column-key="<%= key %>"
+              >
+                <input
+                  type="checkbox"
+                  data-action="change->column-visibility#toggle"
+                  <%= 'checked' if current_user.column_visible?(key, 'collections') %>
+                  class="
+                    w-4 h-4 rounded border-highlight bg-background
+                    accent-accent-50 focus:ring-accent-50
+                    focus:ring-offset-background
+                  "
+                >
+
                 <span><%= label %></span>
               </label>
             <% end %>
           </div>
-          <p data-column-visibility-target="error" class='hidden mt-2 text-sm text-red-500'>
+
+          <p
+            data-column-visibility-target="error"
+            class="hidden mt-2 text-sm text-red-500"
+          >
             At least one column must remain visible.
           </p>
         </div>
       </section>
-      <hr class='border-highlight'>
+
+      <hr class="border-highlight">
+
       <!-- Box Sets Column Visibility Section -->
       <section>
-        <h2 class='mb-4 text-lg font-semibold'>Boxsets Table Columns</h2>
-        <p class='mb-4 text-sm'>Choose which columns to display in box set tables. At least one column must remain visible.</p>
-        <div data-controller="column-visibility"
-             data-column-visibility-url-value="<%= update_column_visibility_path %>"
-             data-column-visibility-view-value="boxsets"
-             data-column-visibility-min-visible-value="1">
-          <div class='grid grid-cols-2 gap-3'>
+        <h2 class="mb-4 text-lg font-semibold">Boxsets Table Columns</h2>
+
+        <p class="mb-4 text-sm">
+          Choose which columns to display in box set tables. At least one column
+          must remain visible.
+        </p>
+
+        <div
+          data-controller="column-visibility"
+          data-column-visibility-url-value="<%= update_column_visibility_path %>"
+          data-column-visibility-view-value="boxsets"
+          data-column-visibility-min-visible-value="1"
+        >
+          <div class="grid grid-cols-2 gap-3">
             <% [
               ['card_number', '#'],
               ['name', 'Name'],
@@ -84,18 +155,35 @@
               ['foil_price', 'Foil Price'],
               ['salt', 'Salt']
             ].each do |key, label| %>
-              <label class='flex items-center gap-3 p-3 border rounded-lg cursor-pointer border-highlight bg-background hover:border-accent-50 transition'
-                     data-column-visibility-target="toggle"
-                     data-column-key="<%= key %>">
-                <input type="checkbox"
-                       data-action="change->column-visibility#toggle"
-                <%= 'checked' if current_user.column_visible?(key, 'boxsets') %>
-                class='w-4 h-4 rounded border-highlight bg-background accent-accent-50 focus:ring-accent-50 focus:ring-offset-background'>
+              <label
+                class="
+                  flex items-center gap-3 p-3 border rounded-lg
+                  cursor-pointer border-highlight bg-background
+                  hover:border-accent-50 transition
+                "
+                data-column-visibility-target="toggle"
+                data-column-key="<%= key %>"
+              >
+                <input
+                  type="checkbox"
+                  data-action="change->column-visibility#toggle"
+                  <%= 'checked' if current_user.column_visible?(key, 'boxsets') %>
+                  class="
+                    w-4 h-4 rounded border-highlight bg-background
+                    accent-accent-50 focus:ring-accent-50
+                    focus:ring-offset-background
+                  "
+                >
+
                 <span><%= label %></span>
               </label>
             <% end %>
           </div>
-          <p data-column-visibility-target="error" class='hidden mt-2 text-sm text-red-500'>
+
+          <p
+            data-column-visibility-target="error"
+            class="hidden mt-2 text-sm text-red-500"
+          >
             At least one column must remain visible.
           </p>
         </div>

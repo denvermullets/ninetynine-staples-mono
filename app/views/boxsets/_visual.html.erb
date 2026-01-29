@@ -6,7 +6,13 @@
           <h3 class="mb-4 text-lg font-semibold text-grey-text">
             <%= group_name %> (<%= cards.size %>)
           </h3>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+
+          <div
+            class="
+              grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3
+              lg:grid-cols-4 xl:grid-cols-5
+            "
+          >
             <% cards.each do |card| %>
               <%= render partial: 'visual_card', locals: { card: card } %>
             <% end %>
@@ -14,7 +20,12 @@
         </div>
       <% end %>
     <% else %>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div
+        class="
+          grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3
+          lg:grid-cols-4 xl:grid-cols-5
+        "
+      >
         <% @magic_cards.each do |card| %>
           <%= render partial: 'visual_card', locals: { card: card } %>
         <% end %>
@@ -23,7 +34,12 @@
   </div>
 
   <% if @pagy.present? %>
-    <div class="flex flex-row items-center justify-between w-full p-6 mt-6 space-x-4 border rounded-3xl border-highlight bg-foreground">
+    <div
+      class="
+        flex flex-row items-center justify-between w-full p-6 mt-6 space-x-4
+        border rounded-3xl border-highlight bg-foreground
+      "
+    >
       <%== @pagy.info_tag() %>
       <%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
     </div>

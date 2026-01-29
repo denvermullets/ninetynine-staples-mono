@@ -38,14 +38,19 @@
   end
 %>
 
-<div data-controller="mobile-card"
-     data-mobile-card-card-id-value="<%= card.id %>"
-     class="border rounded-xl border-highlight bg-foreground overflow-hidden mb-2">
-
+<div
+  data-controller="mobile-card"
+  data-mobile-card-card-id-value="<%= card.id %>"
+  class="border rounded-xl border-highlight bg-foreground overflow-hidden mb-2"
+>
   <!-- Collapsed State (Card Header - Always Visible) -->
-  <div data-action="click->mobile-card#toggle"
-       class="flex items-center gap-3 px-3 py-3 cursor-pointer active:bg-menu transition-colors duration-150">
-
+  <div
+    data-action="click->mobile-card#toggle"
+    class="
+      flex items-center gap-3 px-3 py-3 cursor-pointer active:bg-menu
+      transition-colors duration-150
+    "
+  >
     <!-- Rarity Icon -->
     <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x flex-shrink-0"></i>
 
@@ -62,16 +67,36 @@
             <%= card.name %>
           <% end %>
         </span>
+
         <% if card.etched_finish? %>
-          <span class="px-1.5 py-0.5 text-xs rounded bg-purple-900/30 text-purple-400 border border-purple-500/30 flex-shrink-0" title="Etched">E</span>
+          <span
+            class="
+              px-1.5 py-0.5 text-xs rounded bg-purple-900/30 text-purple-400
+              border border-purple-500/30 flex-shrink-0
+            "
+            title="Etched"
+          >
+            E
+          </span>
         <% end %>
+
         <% if card.is_token %>
-          <span class="px-1.5 py-0.5 text-xs rounded bg-amber-900/30 text-amber-400 border border-amber-500/30 flex-shrink-0" title="Token">T</span>
+          <span
+            class="
+              px-1.5 py-0.5 text-xs rounded bg-amber-900/30 text-amber-400
+              border border-amber-500/30 flex-shrink-0
+            "
+            title="Token"
+          >
+            T
+          </span>
         <% end %>
       </div>
 
       <!-- Card Type -->
-      <div class="text-xs text-grey-text truncate mt-0.5"><%= card.card_type %></div>
+      <div class="text-xs text-grey-text truncate mt-0.5">
+        <%= card.card_type %>
+      </div>
 
       <!-- Quantity & Price Row -->
       <div class="flex items-center justify-between mt-1.5">
@@ -87,37 +112,60 @@
         <div class="flex items-center gap-1.5 flex-shrink-0 ml-auto">
           <% if primary_price_change.present? && primary_price_change.abs >= 0.5 %>
             <span class="px-1.5 py-0.5 text-xs rounded-full <%= primary_price_change >= 0 ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400' %>">
-              <%= primary_price_change >= 0 ? '↑' : '↓' %><%= number_to_percentage(primary_price_change.abs, precision: 0) %>
+              <%= primary_price_change >= 0 ? '↑' : '↓' %>
+              <%= number_to_percentage(primary_price_change.abs, precision: 0) %>
             </span>
           <% end %>
-          <span class="text-sm font-medium text-nine-white"><%= number_to_currency(primary_price) %></span>
+
+          <span class="text-sm font-medium text-nine-white">
+            <%= number_to_currency(primary_price) %>
+          </span>
         </div>
       </div>
     </div>
 
     <!-- Expand/Collapse Indicator -->
-    <div data-mobile-card-target="chevron" class="text-grey-text transition-transform duration-200 flex-shrink-0">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    <div
+      data-mobile-card-target="chevron"
+      class="text-grey-text transition-transform duration-200 flex-shrink-0"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 9l-7 7-7-7"
+        />
       </svg>
     </div>
   </div>
 
   <!-- Expanded State -->
-  <div data-mobile-card-target="content"
-       class="hidden border-t border-highlight overflow-hidden"
-       style="transition: max-height 250ms ease-out;">
-
+  <div
+    data-mobile-card-target="content"
+    class="hidden border-t border-highlight overflow-hidden"
+    style="transition: max-height 250ms ease-out;"
+  >
     <!-- Card Header with Thumbnail -->
     <div class="flex items-start gap-4 p-4 bg-menu/50">
-      <button data-action="click->mobile-card#toggleImage"
-              class="flex-shrink-0 focus:outline-none">
-        <img src="<%= card.image_small.presence || card.image_medium %>"
-             alt="<%= card.name %>"
-             class="w-16 h-auto rounded-lg"
-             loading="lazy" />
+      <button
+        data-action="click->mobile-card#toggleImage"
+        class="flex-shrink-0 focus:outline-none"
+      >
+        <%= image_tag (card.image_small.presence || card.image_medium),
+          alt: card.name,
+          class: "w-16 h-auto rounded-lg",
+          loading: "lazy" %>
+
         <span class="text-xs text-accent-50 mt-1 block">Tap to enlarge</span>
       </button>
+
       <div class="flex-1 min-w-0">
         <h3 class="font-semibold text-nine-white">
           <% if card&.card_side == 'a' %>
@@ -128,11 +176,16 @@
             <%= card.name %>
           <% end %>
         </h3>
+
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-xs text-grey-text capitalize"><%= card.rarity %></span>
+          <span class="text-xs text-grey-text capitalize">
+            <%= card.rarity %>
+          </span>
+
           <span class="text-grey-text">·</span>
           <span class="text-xs text-grey-text"><%= card.card_type %></span>
         </div>
+
         <% if card.mana_cost.present? %>
           <div class="flex items-center mt-2 space-x-0.5">
             <%= mana_symbols(card.mana_cost) %>
@@ -142,81 +195,121 @@
     </div>
 
     <!-- Full Image (Hidden by default) -->
-    <div data-mobile-card-target="fullImage" class="hidden p-4 bg-menu/50 border-t border-highlight/50">
+    <div
+      data-mobile-card-target="fullImage"
+      class="hidden p-4 bg-menu/50 border-t border-highlight/50"
+    >
       <% if card.double_faced? %>
         <% other_card = card.other_face %>
         <div data-controller="card-flip" class="flex flex-col items-center">
-          <div data-action="click->card-flip#flip" class="flip-container cursor-pointer w-full max-w-xs mx-auto">
+          <div
+            data-action="click->card-flip#flip"
+            class="flip-container cursor-pointer w-full max-w-xs mx-auto"
+          >
             <div data-card-flip-target="card" class="flip-card">
               <div class="flip-card-front">
-                <img src="<%= card.image_large.presence || card.image_medium %>"
-                     class="w-full h-auto rounded-2xl"
-                     alt="<%= card.name %>" />
+                <%= image_tag (card.image_large.presence || card.image_medium),
+                  class: "w-full h-auto rounded-2xl",
+                  alt: card.name %>
               </div>
+
               <div class="flip-card-back">
-                <img src="<%= other_card&.image_large.presence || other_card&.image_medium %>"
-                     class="w-full h-auto rounded-2xl"
-                     alt="<%= other_card&.name %>" />
+                <%= image_tag (other_card&.image_large.presence || other_card&.image_medium),
+                  class: "w-full h-auto rounded-2xl",
+                  alt: other_card&.name %>
               </div>
             </div>
           </div>
+
           <p class="mt-2 text-sm text-grey-text">Tap card to flip</p>
         </div>
       <% else %>
-        <img src="<%= card.image_large.presence || card.image_medium %>"
-             class="w-full max-w-xs mx-auto h-auto rounded-2xl"
-             alt="<%= card.name %>" />
+        <%= image_tag (card.image_large.presence || card.image_medium),
+          class: "w-full max-w-xs mx-auto h-auto rounded-2xl",
+          alt: card.name %>
       <% end %>
     </div>
 
     <!-- Ownership Section -->
     <div class="p-4 border-t border-highlight/50">
-      <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">Ownership</h4>
+      <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">
+        Ownership
+      </h4>
+
       <div class="grid grid-cols-2 gap-3">
         <div class="flex flex-col">
           <span class="text-xs text-grey-text">Regular</span>
-          <span class="text-lg font-medium <%= normal_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= normal_qty %></span>
+
+          <span class="text-lg font-medium <%= normal_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+            <%= normal_qty %>
+          </span>
         </div>
+
         <div class="flex flex-col">
           <span class="text-xs text-grey-text">Foil</span>
-          <span class="text-lg font-medium <%= foil_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= foil_qty %></span>
+
+          <span class="text-lg font-medium <%= foil_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+            <%= foil_qty %>
+          </span>
         </div>
+
         <div class="flex flex-col">
           <span class="text-xs text-grey-text">Proxy</span>
-          <span class="text-lg font-medium <%= proxy_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= proxy_qty %></span>
+
+          <span class="text-lg font-medium <%= proxy_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+            <%= proxy_qty %>
+          </span>
         </div>
+
         <div class="flex flex-col">
           <span class="text-xs text-grey-text">Proxy Foil</span>
-          <span class="text-lg font-medium <%= proxy_foil_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>"><%= proxy_foil_qty %></span>
+
+          <span class="text-lg font-medium <%= proxy_foil_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
+            <%= proxy_foil_qty %>
+          </span>
         </div>
       </div>
     </div>
 
     <!-- Price Section -->
     <div class="p-4 border-t border-highlight/50">
-      <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">Prices</h4>
+      <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">
+        Prices
+      </h4>
+
       <div class="grid grid-cols-2 gap-3">
         <% if card.non_foil_available? %>
           <div class="flex flex-col">
             <span class="text-xs text-grey-text">Regular</span>
+
             <div class="flex items-center gap-1.5">
-              <span class="text-lg font-medium text-nine-white"><%= number_to_currency(card.normal_price) %></span>
+              <span class="text-lg font-medium text-nine-white">
+                <%= number_to_currency(card.normal_price) %>
+              </span>
+
               <% if card.price_change_weekly_normal.present? && card.price_change_weekly_normal.abs >= 0.5 %>
                 <span class="text-xs <%= card.price_change_weekly_normal >= 0 ? 'text-green-400' : 'text-red-400' %>">
-                  <%= card.price_change_weekly_normal >= 0 ? '↑' : '↓' %><%= number_to_percentage(card.price_change_weekly_normal.abs, precision: 0) %>
+                  <%= card.price_change_weekly_normal >= 0 ? '↑' : '↓' %>
+                  <%= number_to_percentage(card.price_change_weekly_normal.abs, precision: 0) %>
                 </span>
               <% end %>
             </div>
           </div>
         <% end %>
+
         <% if card.foil_available? %>
           <div class="flex flex-col">
             <span class="text-xs text-grey-text">Foil</span>
+
             <div class="flex items-center gap-1.5">
-              <span class="text-lg font-medium text-purple-400"><%= number_to_currency(card.foil_price) %></span>
+              <span class="text-lg font-medium text-purple-400">
+                <%= number_to_currency(card.foil_price) %>
+              </span>
+
               <% if card.price_change_weekly_foil.present? && card.price_change_weekly_foil.abs >= 0.5 %>
                 <span class="text-xs <%= card.price_change_weekly_foil >= 0 ? 'text-green-400' : 'text-red-400' %>">
-                  <%= card.price_change_weekly_foil >= 0 ? '↑' : '↓' %><%= number_to_percentage(card.price_change_weekly_foil.abs, precision: 0) %>
+                  <%= card.price_change_weekly_foil >= 0 ? '↑' : '↓' %>
+                  <%= number_to_percentage(card.price_change_weekly_foil.abs, precision: 0) %>
                 </span>
               <% end %>
             </div>
@@ -226,15 +319,37 @@
 
       <!-- Price History Toggle -->
       <% if card.price_history.present? %>
-        <button data-action="click->mobile-card#toggleChart"
-                data-mobile-card-target="chartToggle"
-                class="flex items-center gap-2 mt-4 text-sm text-accent-50 hover:text-nine-white transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+        <button
+          data-action="click->mobile-card#toggleChart"
+          data-mobile-card-target="chartToggle"
+          class="
+            flex items-center gap-2 mt-4 text-sm text-accent-50
+            hover:text-nine-white transition-colors
+          "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+            />
           </svg>
-          <span data-mobile-card-target="chartToggleText">Show price history</span>
+
+          <span data-mobile-card-target="chartToggleText">
+            Show price history
+          </span>
         </button>
-        <div data-mobile-card-target="chart" class="hidden mt-4 -mx-2 overflow-x-auto">
+        <div
+          data-mobile-card-target="chart"
+          class="hidden mt-4 -mx-2 overflow-x-auto"
+        >
           <div class="min-w-[300px] px-2">
             <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
           </div>
@@ -244,28 +359,48 @@
 
     <!-- Quick Actions -->
     <% if is_editable || current_user.present? %>
-      <div class="p-4 border-t border-highlight/50 space-y-2" data-controller="card-locations">
-        <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">Actions</h4>
+      <div
+        class="p-4 border-t border-highlight/50 space-y-2"
+        data-controller="card-locations"
+      >
+        <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">
+          Actions
+        </h4>
 
         <% if available_collections.present? %>
           <!-- Add to Collection -->
           <div class="flex items-center gap-2">
-            <select data-card-locations-target="newCollectionSelect"
-                    class="flex-1 px-3 py-2.5 text-sm border rounded-lg border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50">
+            <select
+              data-card-locations-target="newCollectionSelect"
+              class="
+                flex-1 px-3 py-2.5 text-sm border rounded-lg
+                border-highlight bg-background text-grey-text
+                focus:border-accent-50 focus:ring-accent-50
+              "
+            >
               <option value="">Select collection...</option>
+
               <% available_collections.each do |collection| %>
-                <option value="<%= collection.id %>"><%= collection.name %></option>
+                <option value="<%= collection.id %>">
+                  <%= collection.name %>
+                </option>
               <% end %>
             </select>
-            <button data-action="click->card-locations#openAdjustModal"
-                    data-collection-id=""
-                    data-collection-name=""
-                    data-regular-qty="0"
-                    data-foil-qty="0"
-                    data-proxy-qty="0"
-                    data-proxy-foil-qty="0"
-                    data-is-new="true"
-                    class="px-4 py-2.5 text-sm font-medium rounded-lg bg-accent-50 text-background hover:bg-nine-white transition-colors">
+
+            <button
+              data-action="click->card-locations#openAdjustModal"
+              data-collection-id
+              data-collection-name
+              data-regular-qty="0"
+              data-foil-qty="0"
+              data-proxy-qty="0"
+              data-proxy-foil-qty="0"
+              data-is-new="true"
+              class="
+                px-4 py-2.5 text-sm font-medium rounded-lg bg-accent-50
+                text-background hover:bg-nine-white transition-colors
+              "
+            >
               Add
             </button>
           </div>
@@ -278,24 +413,36 @@
           %>
           <% if action_collection %>
             <!-- Transfer/Adjust buttons -->
-            <button data-action="click->card-locations#openTransferModal"
-                    data-collection-id="<%= action_collection.id %>"
-                    data-collection-name="<%= action_collection.name %>"
-                    data-regular-qty="<%= normal_qty %>"
-                    data-foil-qty="<%= foil_qty %>"
-                    data-proxy-qty="<%= proxy_qty %>"
-                    data-proxy-foil-qty="<%= proxy_foil_qty %>"
-                    class="w-full px-4 py-2.5 text-sm font-medium rounded-lg border border-highlight text-grey-text hover:bg-background hover:text-nine-white transition-colors">
+            <button
+              data-action="click->card-locations#openTransferModal"
+              data-collection-id="<%= action_collection.id %>"
+              data-collection-name="<%= action_collection.name %>"
+              data-regular-qty="<%= normal_qty %>"
+              data-foil-qty="<%= foil_qty %>"
+              data-proxy-qty="<%= proxy_qty %>"
+              data-proxy-foil-qty="<%= proxy_foil_qty %>"
+              class="
+                w-full px-4 py-2.5 text-sm font-medium rounded-lg border
+                border-highlight text-grey-text hover:bg-background
+                hover:text-nine-white transition-colors
+              "
+            >
               Transfer
             </button>
-            <button data-action="click->card-locations#openAdjustModal"
-                    data-collection-id="<%= action_collection.id %>"
-                    data-collection-name="<%= action_collection.name %>"
-                    data-regular-qty="<%= normal_qty %>"
-                    data-foil-qty="<%= foil_qty %>"
-                    data-proxy-qty="<%= proxy_qty %>"
-                    data-proxy-foil-qty="<%= proxy_foil_qty %>"
-                    class="w-full px-4 py-2.5 text-sm font-medium rounded-lg border border-highlight text-grey-text hover:bg-background hover:text-nine-white transition-colors">
+            <button
+              data-action="click->card-locations#openAdjustModal"
+              data-collection-id="<%= action_collection.id %>"
+              data-collection-name="<%= action_collection.name %>"
+              data-regular-qty="<%= normal_qty %>"
+              data-foil-qty="<%= foil_qty %>"
+              data-proxy-qty="<%= proxy_qty %>"
+              data-proxy-foil-qty="<%= proxy_foil_qty %>"
+              class="
+                w-full px-4 py-2.5 text-sm font-medium rounded-lg border
+                border-highlight text-grey-text hover:bg-background
+                hover:text-nine-white transition-colors
+              "
+            >
               Adjust Quantity
             </button>
           <% end %>

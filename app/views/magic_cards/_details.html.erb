@@ -1,46 +1,63 @@
 <%= turbo_frame_tag "card_details_#{card.id}" do %>
   <div class="grid grid-cols-1 gap-6 p-2 md:grid-cols-3 md:p-8 bg-menu">
-    <div class="flex flex-row items-center justify-between w-auto mt-4 text-end md:hidden">
+    <div
+      class="
+        flex flex-row items-center justify-between w-auto mt-4 text-end
+        md:hidden
+      "
+    >
       <% if card.foil_available? %>
         <h3 class="font-normal text-md text-grey-text"><%= card.name %></h3>
-        <p class="text-md text-grey-text">(R) $<%= card.normal_price %> / (foil) $<%= card.foil_price %></p>
+        <p class="text-md text-grey-text">
+          (R) $<%= card.normal_price %> / (foil) $<%= card.foil_price %>
+        </p>
       <% else %>
         <p class="text-md text-grey-text">(R) $<%= card.normal_price %></p>
       <% end %>
     </div>
+
     <div class="flex items-start justify-center w-full md:col-span-1">
       <% if card.double_faced? %>
         <% other_card = card.other_face %>
         <div class="flex flex-col items-center">
-          <div data-controller="card-flip" data-action="click->card-flip#flip" class="flip-container cursor-pointer">
+          <div
+            data-controller="card-flip"
+            data-action="click->card-flip#flip"
+            class="flip-container cursor-pointer"
+          >
             <div data-card-flip-target="card" class="flip-card">
               <div class="flip-card-front">
-                <img src="<%= card.image_medium %>"
-                     class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
-                     alt="<%= card.name %>"
-                />
+                <%= image_tag card.image_medium,
+                  class: "object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96",
+                  alt: card.name %>
               </div>
+
               <div class="flip-card-back">
-                <img src="<%= other_card&.image_medium %>"
-                     class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
-                     alt="<%= other_card&.name %>"
-                />
+                <%= image_tag other_card&.image_medium,
+                  class: "object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96",
+                  alt: other_card&.name %>
               </div>
             </div>
           </div>
-          <p class="mt-2 text-sm text-grey-text">Click card to see other side</p>
+
+          <p class="mt-2 text-sm text-grey-text">
+            Click card to see other side
+          </p>
         </div>
       <% else %>
-        <img src="<%= card.image_medium %>"
-             class="object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96"
-             alt="<%= card.name %>"
-        />
+        <%= image_tag card.image_medium,
+          class: "object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96",
+          alt: card.name %>
       <% end %>
     </div>
+
     <div class="flex flex-col md:col-span-2">
       <div>
-        <h3 class="hidden text-lg font-semibold text-nine-white md:block"><%= card.name %></h3>
+        <h3 class="hidden text-lg font-semibold text-nine-white md:block">
+          <%= card.name %>
+        </h3>
       </div>
+
       <% if card&.card_side == 'a' || card&.card_side.nil? %>
         <%= render partial: 'shared/cards/card_locations', locals: { card_locations:, magic_card: card, collections:, editable: } %>
         <% if card.price_history.present? %>

@@ -1,71 +1,152 @@
 <!-- Load Tesseract.js from CDN (must be loaded before Stimulus controller) -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-<div class="flex flex-col lg:flex-row gap-3 lg:gap-8 px-2 sm:px-4 md:px-24 py-2 md:py-8"
-     data-controller="card-scanner"
-     data-card-scanner-search-path-value="<%= card_scanner_search_path %>"
-     data-card-scanner-add-path-value="<%= card_scanner_add_path %>">
-
+<div
+  class="
+    flex flex-col lg:flex-row gap-3 lg:gap-8 px-2 sm:px-4 md:px-24 py-2
+    md:py-8
+  "
+  data-controller="card-scanner"
+  data-card-scanner-search-path-value="<%= card_scanner_search_path %>"
+  data-card-scanner-add-path-value="<%= card_scanner_add_path %>"
+>
   <!-- Left Column: Camera & Controls -->
   <div class="flex flex-col gap-3 lg:gap-4 lg:w-1/2">
     <!-- Collection Selector -->
-    <div class="px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl bg-foreground border-highlight text-grey-text">
+    <div
+      class="
+        px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl
+        bg-foreground border-highlight text-grey-text
+      "
+    >
       <label class="block text-sm font-medium mb-2">Add cards to:</label>
+
       <% if @collections.any? %>
-        <select data-card-scanner-target="collectionSelect"
-                class="w-full px-3 py-2 bg-background border border-highlight rounded-lg text-grey-text focus:outline-none focus:ring-2 focus:ring-accent-50">
+        <select
+          data-card-scanner-target="collectionSelect"
+          class="
+            w-full px-3 py-2 bg-background border border-highlight
+            rounded-lg text-grey-text focus:outline-none focus:ring-2
+            focus:ring-accent-50
+          "
+        >
           <% @collections.each do |collection| %>
             <option value="<%= collection.id %>"><%= collection.name %></option>
           <% end %>
         </select>
       <% else %>
         <p class="text-accent-100">
-          You need to <%= link_to 'create a collection', new_collection_path, class: 'underline hover:text-white' %> first.
+          You need to
+          <%= link_to 'create a collection', new_collection_path, class: 'underline hover:text-white' %>
+          first.
         </p>
       <% end %>
     </div>
 
     <!-- Camera Section -->
-    <div class="px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl bg-foreground border-highlight text-grey-text">
-      <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-white">Card Scanner</h2>
+    <div
+      class="
+        px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl
+        bg-foreground border-highlight text-grey-text
+      "
+    >
+      <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-white">
+        Card Scanner
+      </h2>
 
       <!-- Status Message -->
-      <p data-card-scanner-target="status" class="text-xs sm:text-sm mb-2 sm:mb-4 text-grey-text/70">
+      <p
+        data-card-scanner-target="status"
+        class="text-xs sm:text-sm mb-2 sm:mb-4 text-grey-text/70"
+      >
         Click "Start Camera" to begin.
       </p>
 
       <!-- Error Message -->
-      <div data-card-scanner-target="cameraError"
-           class="hidden mb-2 sm:mb-4 p-2 sm:p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs sm:text-sm">
-      </div>
+      <div
+        data-card-scanner-target="cameraError"
+        class="
+          hidden mb-2 sm:mb-4 p-2 sm:p-3 bg-red-500/10 border
+          border-red-500/30 rounded-lg text-red-400 text-xs sm:text-sm
+        "
+      ></div>
 
       <!-- Camera Container - larger on mobile with 3:4 portrait aspect ratio -->
-      <div data-card-scanner-target="cameraContainer" class="hidden relative aspect-[3/4] sm:aspect-[4/3] bg-black rounded-lg overflow-hidden mb-2 sm:mb-4">
-        <video data-card-scanner-target="video"
-               autoplay
-               playsinline
-               muted
-               class="w-full h-full object-cover">
-        </video>
+      <div
+        data-card-scanner-target="cameraContainer"
+        class="
+          hidden relative aspect-[3/4] sm:aspect-[4/3] bg-black rounded-lg
+          overflow-hidden mb-2 sm:mb-4
+        "
+      >
+        <video
+          data-card-scanner-target="video"
+          autoplay
+          playsinline
+          muted
+          class="w-full h-full object-cover"
+        ></video>
 
         <!-- Card Guide Overlay (Magic card aspect ratio) -->
-        <div data-card-scanner-target="cardGuide"
-             class="absolute border-2 border-accent-50 rounded-lg pointer-events-none"
-             style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);">
+        <div
+          data-card-scanner-target="cardGuide"
+          class="
+            absolute border-2 border-accent-50 rounded-lg
+            pointer-events-none
+          "
+          style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);"
+        >
           <!-- Corner markers -->
-          <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white rounded-tl"></div>
-          <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white rounded-tr"></div>
-          <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white rounded-bl"></div>
-          <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white rounded-br"></div>
+          <div
+            class="
+              absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2
+              border-white rounded-tl
+            "
+          ></div>
+
+          <div
+            class="
+              absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2
+              border-white rounded-tr
+            "
+          ></div>
+
+          <div
+            class="
+              absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2
+              border-white rounded-bl
+            "
+          ></div>
+
+          <div
+            class="
+              absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2
+              border-white rounded-br
+            "
+          ></div>
 
           <!-- Name region indicator (top 15%) -->
-          <div class="absolute top-0 left-0 right-0 h-[15%] border-b border-dashed border-accent-50/50 bg-accent-50/10">
-            <span class="absolute top-1 left-2 text-[10px] text-accent-50/70">Name</span>
+          <div
+            class="
+              absolute top-0 left-0 right-0 h-[15%] border-b border-dashed
+              border-accent-50/50 bg-accent-50/10
+            "
+          >
+            <span class="absolute top-1 left-2 text-[10px] text-accent-50/70">
+              Name
+            </span>
           </div>
 
           <!-- Set region indicator (bottom 10%, left 40%) -->
-          <div class="absolute bottom-0 left-0 w-[40%] h-[10%] border-t border-r border-dashed border-accent-50/50 bg-accent-50/10">
-            <span class="absolute bottom-1 left-2 text-[10px] text-accent-50/70">Set</span>
+          <div
+            class="
+              absolute bottom-0 left-0 w-[40%] h-[10%] border-t border-r
+              border-dashed border-accent-50/50 bg-accent-50/10
+            "
+          >
+            <span class="absolute bottom-1 left-2 text-[10px] text-accent-50/70">
+              Set
+            </span>
           </div>
         </div>
 
@@ -80,10 +161,18 @@
 
       <!-- Preview Container (shown when card is found) -->
       <div data-card-scanner-target="preview" class="hidden mb-2 sm:mb-4">
-        <img data-card-scanner-target="previewImage"
-             alt="Captured card"
-             class="w-full aspect-[3/4] sm:aspect-[4/3] object-cover rounded-lg border-2 border-green-500">
-        <p class="text-center text-xs text-green-400 mt-1 sm:mt-2">Card detected!</p>
+        <img
+          data-card-scanner-target="previewImage"
+          alt="Captured card"
+          class="
+            w-full aspect-[3/4] sm:aspect-[4/3] object-cover rounded-lg
+            border-2 border-green-500
+          "
+        >
+
+        <p class="text-center text-xs text-green-400 mt-1 sm:mt-2">
+          Card detected!
+        </p>
       </div>
 
       <!-- Hidden Canvases for OCR Processing -->
@@ -93,54 +182,124 @@
 
       <!-- Controls -->
       <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-        <button data-action="click->card-scanner#startCamera"
-                class="px-3 py-2 sm:px-4 text-sm sm:text-base bg-highlight text-white rounded-lg hover:bg-highlight/80 transition cursor-pointer">
+        <button
+          data-action="click->card-scanner#startCamera"
+          class="
+            px-3 py-2 sm:px-4 text-sm sm:text-base bg-highlight text-white
+            rounded-lg hover:bg-highlight/80 transition cursor-pointer
+          "
+        >
           Start Camera
         </button>
 
-        <button data-card-scanner-target="scanToggle"
-                data-action="click->card-scanner#toggleScanning"
-                class="px-3 py-2 sm:px-4 text-sm sm:text-base bg-accent-50 text-menu rounded-lg hover:bg-accent-50/80 transition cursor-pointer">
+        <button
+          data-card-scanner-target="scanToggle"
+          data-action="click->card-scanner#toggleScanning"
+          class="
+            px-3 py-2 sm:px-4 text-sm sm:text-base bg-accent-50 text-menu
+            rounded-lg hover:bg-accent-50/80 transition cursor-pointer
+          "
+        >
           <span data-card-scanner-target="scanToggleText">Start Scanning</span>
         </button>
 
-        <button data-action="click->card-scanner#scanNext"
-                class="px-3 py-2 sm:px-4 text-sm sm:text-base border border-highlight text-grey-text rounded-lg hover:bg-background transition cursor-pointer">
+        <button
+          data-action="click->card-scanner#scanNext"
+          class="
+            px-3 py-2 sm:px-4 text-sm sm:text-base border border-highlight
+            text-grey-text rounded-lg hover:bg-background transition
+            cursor-pointer
+          "
+        >
           Scan Next
         </button>
 
-        <button data-action="click->card-scanner#rotateCamera"
-                class="px-3 py-2 sm:px-4 text-sm sm:text-base border border-highlight text-grey-text rounded-lg hover:bg-background transition cursor-pointer flex items-center justify-center gap-1"
-                title="Rotate camera 180°">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <button
+          data-action="click->card-scanner#rotateCamera"
+          class="
+            px-3 py-2 sm:px-4 text-sm sm:text-base border border-highlight
+            text-grey-text rounded-lg hover:bg-background transition
+            cursor-pointer flex items-center justify-center gap-1
+          "
+          title="Rotate camera 180°"
+        >
+          <svg
+            class="w-4 h-4 sm:w-5 sm:h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
+
           <span class="hidden sm:inline">Rotate</span>
         </button>
       </div>
 
       <!-- Zoom Controls -->
       <div class="flex items-center gap-2 mt-2 sm:mt-3">
-        <button data-action="click->card-scanner#zoomOut"
-                class="w-8 h-8 flex items-center justify-center border border-highlight text-grey-text rounded-lg hover:bg-background transition cursor-pointer text-lg font-bold">
+        <button
+          data-action="click->card-scanner#zoomOut"
+          class="
+            w-8 h-8 flex items-center justify-center border border-highlight
+            text-grey-text rounded-lg hover:bg-background transition
+            cursor-pointer text-lg font-bold
+          "
+        >
           −
         </button>
+
         <div class="flex-1 flex items-center gap-2">
-          <svg class="w-4 h-4 text-grey-text/50 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+          <svg
+            class="w-4 h-4 text-grey-text/50 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+            />
           </svg>
-          <input type="range"
-                 min="1"
-                 max="3"
-                 step="0.05"
-                 value="1"
-                 data-card-scanner-target="zoomSlider"
-                 data-action="input->card-scanner#handleZoomChange"
-                 class="flex-1 h-2 bg-background rounded-lg appearance-none cursor-pointer accent-accent-50">
-          <span data-card-scanner-target="zoomValue" class="text-xs text-grey-text/70 w-8 text-right">1.0x</span>
+
+          <input
+            type="range"
+            autocomplete="off"
+            min="1"
+            max="3"
+            step="0.05"
+            value="1"
+            data-card-scanner-target="zoomSlider"
+            data-action="input->card-scanner#handleZoomChange"
+            class="
+              flex-1 h-2 bg-background rounded-lg appearance-none
+              cursor-pointer accent-accent-50
+            "
+          >
+
+          <span
+            data-card-scanner-target="zoomValue"
+            class="text-xs text-grey-text/70 w-8 text-right"
+          >
+            1.0x
+          </span>
         </div>
-        <button data-action="click->card-scanner#zoomIn"
-                class="w-8 h-8 flex items-center justify-center border border-highlight text-grey-text rounded-lg hover:bg-background transition cursor-pointer text-lg font-bold">
+
+        <button
+          data-action="click->card-scanner#zoomIn"
+          class="
+            w-8 h-8 flex items-center justify-center border border-highlight
+            text-grey-text rounded-lg hover:bg-background transition
+            cursor-pointer text-lg font-bold
+          "
+        >
           +
         </button>
       </div>
@@ -148,11 +307,20 @@
       <!-- Tips - hidden on mobile -->
       <div class="hidden sm:block mt-4 sm:mt-6 p-3 sm:p-4 bg-background/50 rounded-lg">
         <h3 class="text-sm font-medium mb-2 text-white">How it works:</h3>
+
         <ul class="text-xs text-grey-text/70 space-y-1">
           <li>1. Click "Start Camera" to enable the camera</li>
-          <li>2. If the image is upside down, click "Rotate" to flip it 180°</li>
+
+          <li>
+            2. If the image is upside down, click "Rotate" to flip it 180°
+          </li>
+
           <li>3. Click "Start Scanning" to begin continuous scanning</li>
-          <li>4. Hold a Magic card in the guide - scanner runs every 2 seconds</li>
+
+          <li>
+            4. Hold a Magic card in the guide - scanner runs every 2 seconds
+          </li>
+
           <li>5. When a card is found in the database, scanning pauses</li>
           <li>6. Add the card to your collection, then click "Scan Next"</li>
         </ul>
@@ -163,75 +331,184 @@
   <!-- Right Column: Results, History & Processing Log -->
   <div class="flex flex-col gap-3 lg:gap-4 lg:w-1/2">
     <!-- Search Results -->
-    <div class="px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl bg-foreground border-highlight text-grey-text">
-      <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-white">Search Results</h2>
+    <div
+      class="
+        px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl
+        bg-foreground border-highlight text-grey-text
+      "
+    >
+      <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-white">
+        Search Results
+      </h2>
+
       <%= turbo_frame_tag "scan_results", data: { card_scanner_target: "results" }, class: "block max-h-[300px] sm:max-h-[500px] overflow-y-auto" do %>
-        <p class="text-grey-text/70 text-xs sm:text-sm">Start scanning to find cards.</p>
+        <p class="text-grey-text/70 text-xs sm:text-sm">
+          Start scanning to find cards.
+        </p>
       <% end %>
     </div>
 
     <!-- Scan History -->
-    <div class="px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl bg-foreground border-highlight text-grey-text">
-      <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-white">Session History</h2>
-      <div id="scan_history" data-card-scanner-target="scanHistory" class="space-y-2 max-h-[200px] sm:max-h-[300px] overflow-y-auto">
-        <p class="text-grey-text/70 text-xs sm:text-sm">Cards you add will appear here.</p>
+    <div
+      class="
+        px-3 py-3 sm:px-6 sm:py-4 border rounded-2xl sm:rounded-3xl
+        bg-foreground border-highlight text-grey-text
+      "
+    >
+      <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-white">
+        Session History
+      </h2>
+
+      <div
+        id="scan_history"
+        data-card-scanner-target="scanHistory"
+        class="space-y-2 max-h-[200px] sm:max-h-[300px] overflow-y-auto"
+      >
+        <p class="text-grey-text/70 text-xs sm:text-sm">
+          Cards you add will appear here.
+        </p>
       </div>
     </div>
 
     <!-- OCR Region Debug - hidden on mobile -->
-    <div class="hidden sm:block px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text">
+    <div
+      class="
+        hidden sm:block px-6 py-4 border rounded-3xl bg-foreground
+        border-highlight text-grey-text
+      "
+    >
       <h2 class="text-lg font-semibold mb-4 text-white">OCR Region Debug</h2>
-      <p class="text-xs text-grey-text/50 mb-3">These are the actual regions being sent to OCR (after preprocessing):</p>
+
+      <p class="text-xs text-grey-text/50 mb-3">
+        These are the actual regions being sent to OCR (after preprocessing):
+      </p>
+
       <div class="space-y-3">
         <div>
-          <span class="text-xs text-grey-text/70">Name Region (top of card):</span>
-          <div class="mt-1 bg-background rounded p-2 min-h-[60px] flex items-center justify-center">
-            <div data-card-scanner-target="debugNamePlaceholder" class="text-grey-text/30 text-xs flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <span class="text-xs text-grey-text/70">
+            Name Region (top of card):
+          </span>
+
+          <div
+            class="
+              mt-1 bg-background rounded p-2 min-h-[60px] flex items-center
+              justify-center
+            "
+          >
+            <div
+              data-card-scanner-target="debugNamePlaceholder"
+              class="text-grey-text/30 text-xs flex items-center gap-2"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               Waiting for scan...
             </div>
-            <img data-card-scanner-target="debugNamePreview"
-                 alt="Name region preview"
-                 class="hidden max-w-full h-auto rounded border border-highlight/30">
+
+            <img
+              data-card-scanner-target="debugNamePreview"
+              alt="Name region preview"
+              class="hidden max-w-full h-auto rounded border border-highlight/30"
+            >
           </div>
         </div>
+
         <div>
-          <span class="text-xs text-grey-text/70">Set Region (bottom-left of card):</span>
-          <div class="mt-1 bg-background rounded p-2 min-h-[40px] flex items-center justify-center">
-            <div data-card-scanner-target="debugSetPlaceholder" class="text-grey-text/30 text-xs flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <span class="text-xs text-grey-text/70">
+            Set Region (bottom-left of card):
+          </span>
+
+          <div
+            class="
+              mt-1 bg-background rounded p-2 min-h-[40px] flex items-center
+              justify-center
+            "
+          >
+            <div
+              data-card-scanner-target="debugSetPlaceholder"
+              class="text-grey-text/30 text-xs flex items-center gap-2"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               Waiting for scan...
             </div>
-            <img data-card-scanner-target="debugSetPreview"
-                 alt="Set region preview"
-                 class="hidden max-w-full h-auto rounded border border-highlight/30">
+
+            <img
+              data-card-scanner-target="debugSetPreview"
+              alt="Set region preview"
+              class="hidden max-w-full h-auto rounded border border-highlight/30"
+            >
           </div>
         </div>
       </div>
     </div>
 
     <!-- Processing Log - hidden on mobile -->
-    <div class="hidden sm:block px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text">
+    <div
+      class="
+        hidden sm:block px-6 py-4 border rounded-3xl bg-foreground
+        border-highlight text-grey-text
+      "
+    >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
           </svg>
           Processing Log
         </h2>
-        <button data-action="click->card-scanner#clearLog"
-                class="text-xs text-grey-text/50 hover:text-grey-text transition cursor-pointer">
+
+        <button
+          data-action="click->card-scanner#clearLog"
+          class="
+            text-xs text-grey-text/50 hover:text-grey-text transition
+            cursor-pointer
+          "
+        >
           Clear
         </button>
       </div>
-      <div data-card-scanner-target="logEntries"
-           class="h-48 overflow-y-auto bg-background/50 rounded-lg p-3 space-y-1">
-        <div class="font-mono text-xs text-grey-text/50">Waiting to start...</div>
+
+      <div
+        data-card-scanner-target="logEntries"
+        class="h-48 overflow-y-auto bg-background/50 rounded-lg p-3 space-y-1"
+      >
+        <div class="font-mono text-xs text-grey-text/50">
+          Waiting to start...
+        </div>
       </div>
+
       <div class="mt-3 flex flex-wrap gap-2 text-[10px]">
         <span class="text-blue-400">[SYSTEM]</span>
         <span class="text-green-400">[SUCCESS]</span>

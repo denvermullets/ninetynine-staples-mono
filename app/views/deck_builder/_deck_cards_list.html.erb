@@ -1,9 +1,8 @@
 <div class="columns-1 lg:columns-2 xl:columns-3 gap-6 space-y-4">
   <% @grouped_cards.each do |group_name, cards| %>
-    <%
-      group_count = cards.sum(&:display_quantity)
-      group_value = cards.sum(&:display_value)
-    %>
+    <% group_count = cards.sum(&:display_quantity)
+      group_value = cards.sum(&:display_value) %>
+
     <div class="break-inside-avoid mb-4">
       <!-- Group Header -->
       <div class="flex items-center gap-2 pb-2 mb-1 border-b border-highlight">
@@ -11,14 +10,16 @@
         <span class="font-semibold text-grey-text"><%= group_name %></span>
         <span class="text-grey-text">(<%= group_count %>)</span>
         <span class="text-grey-text/50">–</span>
-        <span class="text-grey-text/75"><%= number_to_currency(group_value) %></span>
+
+        <span class="text-grey-text/75">
+          <%= number_to_currency(group_value) %>
+        </span>
       </div>
 
       <!-- Card Rows -->
       <div class="space-y-0.5">
         <% cards.each do |card| %>
-          <%
-            current_qty = card.staged? ? card.staged_quantity : card.quantity
+          <% current_qty = card.staged? ? card.staged_quantity : card.quantity
             current_foil_qty = card.staged? ? card.staged_foil_quantity : card.foil_quantity
             can_set_commander = @is_owner && !card.commander? && card.magic_card.can_be_commander
             is_commander = @is_owner && card.commander?
@@ -26,88 +27,147 @@
             is_staged_planned = card.staged? && card.planned?
             is_needed = card.needed?
             is_finalized = !card.staged? && !card.needed?
-            can_remove = is_staged_owned || is_staged_planned || is_needed || is_finalized
-          %>
-          <div class="flex items-center gap-2 py-0.5 text-sm group cursor-pointer relative"
-               <% if @is_owner %>
-               data-controller="context-menu"
-               <% if can_set_commander %>
-               data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(@deck, card_id: card.id) %>"
-               <% end %>
-               <% if is_commander %>
-               data-context-menu-remove-commander-url-value="<%= remove_commander_deck_builder_path(@deck, card_id: card.id) %>"
-               <% end %>
-               data-context-menu-view-card-url-value="<%= view_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
-               <% if is_staged_planned %>
-               data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
-               data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(@deck, card_id: card.id) %>"
-               <% end %>
-               <% if is_staged_owned %>
-               data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
-               data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(@deck, card_id: card.id) %>"
-               data-context-menu-edit-staged-url-value="<%= edit_staged_modal_deck_builder_path(@deck, card_id: card.id) %>"
-               <% end %>
-               <% if is_staged_owned || is_finalized %>
-               data-context-menu-transfer-url-value="<%= transfer_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
-               <% elsif is_staged_planned || is_needed %>
-               data-context-menu-remove-url-value="<%= remove_card_deck_builder_path(@deck, card_id: card.id) %>"
-               <% end %>
-               data-action="mouseenter->deck-builder#previewCard click->context-menu#open contextmenu->context-menu#open"
-               <% else %>
-               data-action="mouseenter->deck-builder#previewCard"
-               <% end %>
-               data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
-               data-card-name="<%= card.magic_card.name %>">
+            can_remove = is_staged_owned || is_staged_planned || is_needed || is_finalized %>
+
+          <div
+            class="
+              flex items-center gap-2 py-0.5 text-sm group cursor-pointer
+              relative
+            "
+            <% if @is_owner %>
+              data-controller="context-menu"
+              <% if can_set_commander %>
+                data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(@deck, card_id: card.id) %>"
+              <% end %>
+              <% if is_commander %>
+                data-context-menu-remove-commander-url-value="<%= remove_commander_deck_builder_path(@deck, card_id: card.id) %>"
+              <% end %>
+              data-context-menu-view-card-url-value="<%= view_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
+              <% if is_staged_planned %>
+                data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
+                data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(@deck, card_id: card.id) %>"
+              <% end %>
+              <% if is_staged_owned %>
+                data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
+                data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(@deck, card_id: card.id) %>"
+                data-context-menu-edit-staged-url-value="<%= edit_staged_modal_deck_builder_path(@deck, card_id: card.id) %>"
+              <% end %>
+              <% if is_staged_owned || is_finalized %>
+                data-context-menu-transfer-url-value="<%= transfer_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
+              <% elsif is_staged_planned || is_needed %>
+                data-context-menu-remove-url-value="<%= remove_card_deck_builder_path(@deck, card_id: card.id) %>"
+              <% end %>
+              data-action="mouseenter->deck-builder#previewCard click->context-menu#open contextmenu->context-menu#open"
+            <% else %>
+              data-action="mouseenter->deck-builder#previewCard"
+            <% end %>
+            data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
+            data-card-name="<%= card.magic_card.name %>"
+          >
             <!-- Quantity (inline editable for owner) -->
             <% if @is_owner %>
-              <div class="w-8 shrink-0"
-                   data-controller="inline-quantity"
-                   data-inline-quantity-deck-id-value="<%= @deck.id %>"
-                   data-inline-quantity-card-id-value="<%= card.id %>">
-                <span data-inline-quantity-target="display"
-                      data-action="click->inline-quantity#edit"
-                      class="block w-full text-right text-grey-text/75 hover:text-accent-50 cursor-pointer">
+              <div
+                class="w-8 shrink-0"
+                data-controller="inline-quantity"
+                data-inline-quantity-deck-id-value="<%= @deck.id %>"
+                data-inline-quantity-card-id-value="<%= card.id %>"
+              >
+                <span
+                  data-inline-quantity-target="display"
+                  data-action="click->inline-quantity#edit"
+                  class="
+                    block w-full text-right text-grey-text/75
+                    hover:text-accent-50 cursor-pointer
+                  "
+                >
                   <%= card.display_quantity %>
                 </span>
-                <input type="number"
-                       data-inline-quantity-target="input"
-                       data-action="keydown->inline-quantity#handleKeydown blur->inline-quantity#save"
-                       value="<%= current_qty %>"
-                       min="1"
-                       class="hidden w-8 px-1 text-xs text-center border rounded border-highlight bg-background text-nine-white focus:border-accent-50 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+
+                <input
+                  type="number"
+                  autocomplete="off"
+                  data-inline-quantity-target="input"
+                  data-action="keydown->inline-quantity#handleKeydown blur->inline-quantity#save"
+                  value="<%= current_qty %>"
+                  min="1"
+                  class="
+                    hidden w-8 px-1 text-xs text-center border rounded
+                    border-highlight bg-background text-nine-white
+                    focus:border-accent-50 focus:outline-none
+                    [appearance:textfield]
+                    [&::-webkit-outer-spin-button]:appearance-none
+                    [&::-webkit-inner-spin-button]:appearance-none
+                  "
+                >
+
                 <% if current_foil_qty > 0 %>
-                  <input type="hidden"
-                         data-inline-quantity-target="foilInput"
-                         value="<%= current_foil_qty %>">
+                  <input
+                    type="hidden"
+                    data-inline-quantity-target="foilInput"
+                    value="<%= current_foil_qty %>"
+                  >
                 <% end %>
               </div>
             <% else %>
-              <span class="w-8 text-right text-grey-text/75 shrink-0"><%= card.display_quantity %></span>
+              <span class="w-8 text-right text-grey-text/75 shrink-0">
+                <%= card.display_quantity %>
+              </span>
             <% end %>
 
             <!-- Card Name -->
-            <span class="flex-1 truncate font-medium group-hover:font-bold transition-all
-                        <%= if card.staged? && card.from_owned_collection?
-                              'text-blue-400'
-                            elsif card.staged? && card.planned?
-                              'text-accent-400'
-                            elsif card.needed?
-                              'text-orange-400'
-                            else
-                              'text-grey-text'
-                            end %>">
+            <span
+              class="
+                flex-1 truncate font-medium group-hover:font-bold transition-all
+                <%= if card.staged? && card.from_owned_collection?
+                'text-blue-400'
+                elsif card.staged? && card.planned?
+                'text-accent-400'
+                elsif card.needed?
+                'text-orange-400'
+                else
+                'text-grey-text'
+                end %>
+              "
+            >
               <%= card.magic_card.name %>
+
               <% if card.display_foil? %>
-                <span class="ml-1 px-1 text-[10px] font-bold rounded bg-accent-50/20 text-accent-50 border border-accent-50/30">F</span>
+                <span
+                  class="
+                    ml-1 px-1 text-[10px] font-bold rounded bg-accent-50/20
+                    text-accent-50 border border-accent-50/30
+                  "
+                >
+                  F
+                </span>
               <% end %>
+
               <% if card.display_proxy? %>
-                <span class="ml-1 px-1 text-[10px] font-bold rounded bg-accent-400/20 text-accent-400 border border-accent-400/30">P</span>
+                <span
+                  class="
+                    ml-1 px-1 text-[10px] font-bold rounded bg-accent-400/20
+                    text-accent-400 border border-accent-400/30
+                  "
+                >
+                  P
+                </span>
               <% end %>
+
               <% if card.magic_card.card_side == 'b' %>
-                <span class="ml-1 px-1 text-[10px] font-bold rounded bg-accent-100/20 text-accent-100 border border-accent-100/30">B</span>
+                <span
+                  class="
+                    ml-1 px-1 text-[10px] font-bold rounded bg-accent-100/20
+                    text-accent-100 border border-accent-100/30
+                  "
+                >
+                  B
+                </span>
               <% end %>
+
               <% if card.staged? && card.from_owned_collection? %>
-                <span class="text-xs font-normal opacity-75">(from <%= card.source_collection.name.truncate(15) %>)</span>
+                <span class="text-xs font-normal opacity-75">
+                  (from <%= card.source_collection.name.truncate(15) %>)
+                </span>
               <% elsif card.staged? && card.planned? %>
                 <span class="text-xs font-normal opacity-75">(planned)</span>
               <% elsif card.needed? %>
@@ -127,7 +187,9 @@
             <% end %>
 
             <!-- Mana Cost -->
-            <span class="w-20 shrink-0 text-xs text-right"><%= mana_symbols(card.magic_card.mana_cost) %></span>
+            <span class="w-20 shrink-0 text-xs text-right">
+              <%= mana_symbols(card.magic_card.mana_cost) %>
+            </span>
 
             <!-- Price -->
             <span class="w-16 text-right text-grey-text/75 shrink-0">
@@ -136,67 +198,137 @@
 
             <% if @is_owner %>
               <!-- Context Menu -->
-              <div data-context-menu-target="menu"
-                   class="hidden fixed z-50 w-fit py-1 bg-foreground border border-highlight rounded-lg shadow-lg">
+              <div
+                data-context-menu-target="menu"
+                class="
+                  hidden fixed z-50 w-fit py-1 bg-foreground border
+                  border-highlight rounded-lg shadow-lg
+                "
+              >
                 <!-- View Card - always available -->
-                <button type="button"
-                        data-action="click->context-menu#viewCard"
-                        class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                <button
+                  type="button"
+                  data-action="click->context-menu#viewCard"
+                  class="
+                    block w-full px-4 py-2 text-left text-sm text-grey-text
+                    hover:bg-background hover:text-white transition
+                    cursor-pointer whitespace-nowrap
+                  "
+                >
                   View Card
                 </button>
+
                 <% if can_set_commander %>
-                  <button type="button"
-                          data-action="click->context-menu#setCommander"
-                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#setCommander"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Set as Commander
                   </button>
                 <% end %>
+
                 <% if is_commander %>
-                  <button type="button"
-                          data-action="click->context-menu#removeCommander"
-                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#removeCommander"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Remove as Commander
                   </button>
                 <% end %>
+
                 <% if is_staged_planned %>
-                  <button type="button"
-                          data-action="click->context-menu#swapPrinting"
-                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#swapPrinting"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Swap Printing
                   </button>
-                  <button type="button"
-                          data-action="click->context-menu#swapSource"
-                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#swapSource"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Source from Collection
                   </button>
                 <% end %>
+
                 <% if is_staged_owned %>
-                  <button type="button"
-                          data-action="click->context-menu#swapPrinting"
-                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#swapPrinting"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Swap Printing
                   </button>
-                  <button type="button"
-                          data-action="click->context-menu#editStaged"
-                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#editStaged"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Edit Quantity
                   </button>
-                  <button type="button"
-                          data-action="click->context-menu#swapSource"
-                          class="block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#swapSource"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Change Source
                   </button>
                 <% end %>
+
                 <% if is_staged_owned || is_finalized %>
-                  <button type="button"
-                          data-action="click->context-menu#transferCard"
-                          class="block w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#transferCard"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm text-red-400
+                      hover:bg-background hover:text-red-300 transition
+                      cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Remove from Deck
                   </button>
                 <% elsif is_staged_planned || is_needed %>
-                  <button type="button"
-                          data-action="click->context-menu#removeCard"
-                          class="block w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-background hover:text-red-300 transition cursor-pointer whitespace-nowrap">
+                  <button
+                    type="button"
+                    data-action="click->context-menu#removeCard"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm text-red-400
+                      hover:bg-background hover:text-red-300 transition
+                      cursor-pointer whitespace-nowrap
+                    "
+                  >
                     Remove Card
                   </button>
                 <% end %>

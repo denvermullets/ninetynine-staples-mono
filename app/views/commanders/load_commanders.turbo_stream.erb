@@ -1,6 +1,7 @@
 <%= turbo_stream.replace "search-form" do %>
   <%= render partial: 'shared/cards/search', locals: { search_path: load_commanders_path, show_price_filter: false } %>
 <% end %>
+
 <%= turbo_stream.update 'table-container' do %>
   <%= render 'table' %>
 <% end %>

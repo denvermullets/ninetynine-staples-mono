@@ -1,16 +1,37 @@
 <%= turbo_frame_tag frame_id do %>
-  <dialog id="edit-collection-dialog"
-          class="p-0 border rounded-lg bg-foreground border-highlight backdrop:bg-black/50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0"
-          data-controller="modal"
-          data-action="click->modal#closeOnBackdrop keydown.esc->modal#close">
+  <dialog
+    id="edit-collection-dialog"
+    class="
+      p-0 border rounded-lg bg-foreground border-highlight
+      backdrop:bg-black/50 fixed top-1/2 left-1/2 -translate-x-1/2
+      -translate-y-1/2 m-0
+    "
+    data-controller="modal"
+    data-action="click->modal#closeOnBackdrop keydown.esc->modal#close"
+  >
     <div class="w-96 p-6" data-modal-target="content">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-nine-white">Edit <%= collection.collection_type&.titleize || 'Collection' %></h3>
-        <button type="button"
-                data-action="click->modal#close"
-                class="text-grey-text hover:text-nine-white cursor-pointer">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        <h3 class="text-lg font-semibold text-nine-white">
+          Edit <%= collection.collection_type&.titleize || 'Collection' %>
+        </h3>
+
+        <button
+          type="button"
+          data-action="click->modal#close"
+          class="text-grey-text hover:text-nine-white cursor-pointer"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -21,6 +42,7 @@
                     class: "space-y-4" do |f| %>
         <div>
           <%= f.label :name, class: "block text-sm font-medium text-grey-text mb-1" %>
+
           <%= f.text_field :name,
               value: collection.name,
               class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
@@ -28,6 +50,7 @@
 
         <div>
           <%= f.label :description, class: "block text-sm font-medium text-grey-text mb-1" %>
+
           <%= f.text_field :description,
               value: collection.description,
               class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
@@ -35,6 +58,7 @@
 
         <div>
           <%= f.label :collection_type, "Type", class: "block text-sm font-medium text-grey-text mb-1" %>
+
           <%= f.select :collection_type,
               options_for_select([
                 ['Collection', 'collection'],
@@ -47,35 +71,62 @@
 
         <div>
           <%= f.label :is_public, "Visibility", class: "block text-sm font-medium text-grey-text" %>
-          <p class="text-xs text-grey-text mt-0.5 mb-2">Private collections are only visible to you</p>
+
+          <p class="text-xs text-grey-text mt-0.5 mb-2">
+            Private collections are only visible to you
+          </p>
+
           <label class="relative inline-flex items-center cursor-pointer">
             <%= f.check_box :is_public,
                 checked: collection.is_public,
                 class: "sr-only peer focus:ring-accent-50 accent-accent-50" %>
-            <div class="w-11 h-6 bg-highlight rounded-full peer peer-checked:bg-accent-50 peer-focus:ring-2 peer-focus:ring-accent-50/50 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-            <span class="ml-2 text-sm text-grey-text peer-checked:text-accent-50"><%= collection.is_public ? 'Public' : 'Private' %></span>
+
+            <div
+              class="
+                w-11 h-6 bg-highlight rounded-full peer
+                peer-checked:bg-accent-50 peer-focus:ring-2
+                peer-focus:ring-accent-50/50 after:content-['']
+                after:absolute after:top-0.5 after:left-[2px] after:bg-white
+                after:rounded-full after:h-5 after:w-5 after:transition-all
+                peer-checked:after:translate-x-full
+              "
+            ></div>
+
+            <span class="ml-2 text-sm text-grey-text peer-checked:text-accent-50">
+              <%= collection.is_public ? 'Public' : 'Private' %>
+            </span>
           </label>
         </div>
 
         <% if local_assigns[:available_tags]&.any? %>
           <div>
-            <label class="block text-sm font-medium text-grey-text mb-2">Tags</label>
+            <label class="block text-sm font-medium text-grey-text mb-2">
+              Tags
+            </label>
+
             <!-- Hidden field ensures tag_ids is sent even when no tags are selected -->
             <input type="hidden" name="tag_ids[]" value="">
+
             <div class="flex flex-wrap gap-2">
               <% available_tags.each do |tag| %>
                 <% is_selected = collection.tag_ids.include?(tag.id) %>
+
                 <label class="inline-flex items-center cursor-pointer">
-                  <input type="checkbox"
-                         name="tag_ids[]"
-                         value="<%= tag.id %>"
-                         <%= 'checked' if is_selected %>
-                         class="hidden peer">
-                  <span class="px-3 py-1 rounded-full text-sm font-medium transition-all border-2 <%= is_selected ? tag_text_color_class(tag.color) : 'text-grey-text' %> <%= is_selected ? '' : 'border-highlight hover:border-accent-50' %>"
-                        style="<%= is_selected ? "background-color: #{tag.color}; border-color: #{tag.color};" : '' %>"
-                        data-color="<%= tag.color %>"
-                        data-light-text="<%= color_is_light?(tag.color) %>"
-                        data-controller="tag-toggle">
+                  <input
+                    type="checkbox"
+                    name="tag_ids[]"
+                    value="<%= tag.id %>"
+                    <%= 'checked' if is_selected %>
+                    class="hidden peer"
+                  >
+
+                  <span
+                    class="px-3 py-1 rounded-full text-sm font-medium transition-all border-2 <%= is_selected ? tag_text_color_class(tag.color) : 'text-grey-text' %> <%= is_selected ? '' : 'border-highlight hover:border-accent-50' %>"
+                    style="<%= is_selected ? "background-color: #{tag.color}; border-color: #{tag.color};" : '' %>"
+                    data-color="<%= tag.color %>"
+                    data-light-text="<%= color_is_light?(tag.color) %>"
+                    data-controller="tag-toggle"
+                  >
                     <%= tag.name %>
                   </span>
                 </label>
@@ -85,11 +136,18 @@
         <% end %>
 
         <div class="flex justify-end gap-3 pt-2">
-          <button type="button"
-                  data-action="click->modal#close"
-                  class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-100 hover:border-accent-100 cursor-pointer">
+          <button
+            type="button"
+            data-action="click->modal#close"
+            class="
+              px-4 py-2 text-sm transition border rounded-md
+              border-highlight text-grey-text hover:bg-foreground
+              hover:text-accent-100 hover:border-accent-100 cursor-pointer
+            "
+          >
             Cancel
           </button>
+
           <%= f.submit "Save Changes",
               class: "px-4 py-2 text-sm transition rounded-md bg-accent-50 text-foreground border border-accent-50 hover:bg-foreground hover:text-accent-50 cursor-pointer" %>
         </div>

@@ -1,21 +1,29 @@
 <% if commanders.any? %>
   <% commanders.each do |commander| %>
-    <button type="button"
-            data-action="click->commander-search#select"
-            data-commander-id="<%= commander.id %>"
-            data-commander-name="<%= commander.name %>"
-            data-commander-image="<%= commander.image_small %>"
-            data-commander-image-large="<%= commander.image_large %>"
-            class="w-full flex items-center gap-3 p-3 hover:bg-background text-left border-b border-highlight last:border-0 cursor-pointer">
+    <button
+      type="button"
+      data-action="click->commander-search#select"
+      data-commander-id="<%= commander.id %>"
+      data-commander-name="<%= commander.name %>"
+      data-commander-image="<%= commander.image_small %>"
+      data-commander-image-large="<%= commander.image_large %>"
+      class="
+        w-full flex items-center gap-3 p-3 hover:bg-background text-left
+        border-b border-highlight last:border-0 cursor-pointer
+      "
+    >
       <% if commander.image_small.present? %>
-        <img src="<%= commander.image_small %>"
-             alt="<%= commander.name %>"
-             class="w-10 h-14 rounded object-cover"
-             data-controller="card-hover"
-             data-card-hover-image-value="<%= commander.image_large %>"
-             data-card-hover-name-value="<%= commander.name %>"
-             data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move">
+        <%= image_tag commander.image_small,
+          alt: commander.name,
+          class: "w-10 h-14 rounded object-cover",
+          data: {
+            controller: "card-hover",
+            card_hover_image_value: commander.image_large,
+            card_hover_name_value: commander.name,
+            action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+          } %>
       <% end %>
+
       <span class="text-grey-text"><%= commander.name %></span>
     </button>
   <% end %>

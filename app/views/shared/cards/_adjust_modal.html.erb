@@ -1,127 +1,215 @@
 <!-- Adjust Quantity Modal -->
 <div
   data-card-locations-target="adjustModal"
-  class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
-  data-action="click->card-locations#closeAdjustModal">
+  class="
+    fixed inset-0 z-50 flex items-center justify-center hidden bg-black
+    bg-opacity-50
+  "
+  data-action="click->card-locations#closeAdjustModal"
+>
   <div
-    class="relative w-full max-w-md p-6 mx-4 border rounded-lg bg-foreground border-highlight"
-    data-action="click->card-locations#stopPropagation">
+    class="
+      relative w-full max-w-md p-6 mx-4 border rounded-lg bg-foreground
+      border-highlight
+    "
+    data-action="click->card-locations#stopPropagation"
+  >
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-nine-white">
-        Adjust quantity <span class="text-sm text-grey-text" data-card-locations-target="adjustCollectionName"></span>
+        Adjust quantity
+        <span
+          class="text-sm text-grey-text"
+          data-card-locations-target="adjustCollectionName"
+        ></span>
       </h3>
+
       <button
         data-action="click->card-locations#closeAdjustModal"
-        class="text-grey-text hover:text-nine-white">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        class="text-grey-text hover:text-nine-white"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
+
     <%= form_with url: adjust_collection_magic_cards_path, method: :post, class: "flex flex-col gap-4", data: { turbo: true } do |f| %>
       <%= f.hidden_field :magic_card_id, value: magic_card.id %>
       <%= f.hidden_field :card_uuid, value: magic_card.card_uuid %>
       <%= f.hidden_field :collection_id, data: { card_locations_target: 'adjustCollectionId' } %>
+
       <!-- Regular Quantity -->
       <div class="p-3 border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
         <div class="flex items-center justify-between mb-3">
           <span class="text-sm text-grey-text">Regular:</span>
+
           <div class="flex items-center gap-2">
-            <span class="text-sm text-grey-text" data-card-locations-target="adjustRegularCurrent">0</span>
+            <span
+              class="text-sm text-grey-text"
+              data-card-locations-target="adjustRegularCurrent"
+            >
+              0
+            </span>
+
             <span class="text-grey-text">&#8594;</span>
+
             <input
               type="number"
               name="quantity"
+              autocomplete="off"
               data-card-locations-target="adjustRegularNew"
               min="0"
               value="0"
               <%= 'disabled' unless magic_card.non_foil_available? %>
-              class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50">
-            </div>
-          </div>
-          <div class="text-xs text-grey-text">
-            <%= magic_card.non_foil_available? ? 'Set exact quantity' : 'Not available for this card' %>
+              class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50"
+            >
           </div>
         </div>
-        <!-- Foil Quantity -->
-        <div class="p-3 border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-grey-text">Foil:</span>
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-grey-text" data-card-locations-target="adjustFoilCurrent">0</span>
-              <span class="text-grey-text">&#8594;</span>
-              <input
+
+        <div class="text-xs text-grey-text">
+          <%= magic_card.non_foil_available? ? 'Set exact quantity' : 'Not available for this card' %>
+        </div>
+      </div>
+
+      <!-- Foil Quantity -->
+      <div class="p-3 border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-sm text-grey-text">Foil:</span>
+
+          <div class="flex items-center gap-2">
+            <span
+              class="text-sm text-grey-text"
+              data-card-locations-target="adjustFoilCurrent"
+            >
+              0
+            </span>
+
+            <span class="text-grey-text">&#8594;</span>
+
+            <input
               type="number"
               name="foil_quantity"
+              autocomplete="off"
               data-card-locations-target="adjustFoilNew"
               min="0"
               value="0"
               <%= 'disabled' unless magic_card.foil_available? %>
-              class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50">
-              </div>
-            </div>
-            <div class="text-xs text-grey-text">
-              <%= magic_card.foil_available? ? 'Set exact quantity' : 'Not available for this card' %>
-            </div>
-          </div>
-
-        <!-- Proxy Regular Quantity -->
-        <div class="p-3 border rounded-md border-highlight bg-background">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-grey-text">Proxy Regular:</span>
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-grey-text" data-card-locations-target="adjustProxyCurrent">0</span>
-              <span class="text-grey-text">&#8594;</span>
-              <input
-                type="number"
-                name="proxy_quantity"
-                data-card-locations-target="adjustProxyNew"
-                min="0"
-                value="0"
-                class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-            </div>
-          </div>
-          <div class="text-xs text-grey-text">
-            Set exact proxy quantity (available for any card)
+              class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50"
+            >
           </div>
         </div>
 
-        <!-- Proxy Foil Quantity -->
-        <div class="p-3 border rounded-md border-highlight bg-background">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-grey-text">Proxy Foil:</span>
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-grey-text" data-card-locations-target="adjustProxyFoilCurrent">0</span>
-              <span class="text-grey-text">&#8594;</span>
-              <input
-                type="number"
-                name="proxy_foil_quantity"
-                data-card-locations-target="adjustProxyFoilNew"
-                min="0"
-                value="0"
-                class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-            </div>
-          </div>
-          <div class="text-xs text-grey-text">
-            Set exact proxy foil quantity (available for any card)
+        <div class="text-xs text-grey-text">
+          <%= magic_card.foil_available? ? 'Set exact quantity' : 'Not available for this card' %>
+        </div>
+      </div>
+
+      <!-- Proxy Regular Quantity -->
+      <div class="p-3 border rounded-md border-highlight bg-background">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-sm text-grey-text">Proxy Regular:</span>
+
+          <div class="flex items-center gap-2">
+            <span
+              class="text-sm text-grey-text"
+              data-card-locations-target="adjustProxyCurrent"
+            >
+              0
+            </span>
+
+            <span class="text-grey-text">&#8594;</span>
+
+            <input
+              type="number"
+              name="proxy_quantity"
+              autocomplete="off"
+              data-card-locations-target="adjustProxyNew"
+              min="0"
+              value="0"
+              class="
+                w-20 px-2 py-1 text-sm text-center border rounded-md
+                border-highlight bg-foreground text-nine-white
+                focus:border-accent-50 focus:ring-accent-50
+              "
+            >
           </div>
         </div>
 
-          <!-- Action Buttons -->
-          <div class="flex justify-end gap-3 mt-2">
-            <button
+        <div class="text-xs text-grey-text">
+          Set exact proxy quantity (available for any card)
+        </div>
+      </div>
+
+      <!-- Proxy Foil Quantity -->
+      <div class="p-3 border rounded-md border-highlight bg-background">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-sm text-grey-text">Proxy Foil:</span>
+
+          <div class="flex items-center gap-2">
+            <span
+              class="text-sm text-grey-text"
+              data-card-locations-target="adjustProxyFoilCurrent"
+            >
+              0
+            </span>
+
+            <span class="text-grey-text">&#8594;</span>
+
+            <input
+              type="number"
+              name="proxy_foil_quantity"
+              autocomplete="off"
+              data-card-locations-target="adjustProxyFoilNew"
+              min="0"
+              value="0"
+              class="
+                w-20 px-2 py-1 text-sm text-center border rounded-md
+                border-highlight bg-foreground text-nine-white
+                focus:border-accent-50 focus:ring-accent-50
+              "
+            >
+          </div>
+        </div>
+
+        <div class="text-xs text-grey-text">
+          Set exact proxy foil quantity (available for any card)
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3 mt-2">
+        <button
           type="button"
           data-action="click->card-locations#closeAdjustModal"
-              class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-background">
-              Cancel
-            </button>
-            <button
+          class="
+            px-4 py-2 text-sm transition border rounded-md border-highlight
+            text-grey-text hover:bg-background
+          "
+        >
+          Cancel
+        </button>
+
+        <button
           type="submit"
-          class="px-4 py-2 text-sm transition rounded-md bg-accent-50 text-background hover:bg-nine-white">
-              Save
-            </button>
-          </div>
-        <% end %>
+          class="
+            px-4 py-2 text-sm transition rounded-md bg-accent-50
+            text-background hover:bg-nine-white
+          "
+        >
+          Save
+        </button>
       </div>
-    </div>
+    <% end %>
+  </div>
+</div>

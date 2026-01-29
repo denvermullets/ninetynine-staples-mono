@@ -1,171 +1,325 @@
 <!-- Transfer Modal -->
 <div
   data-card-locations-target="transferModal"
-  class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
-  data-action="click->card-locations#closeTransferModal">
+  class="
+    fixed inset-0 z-50 flex items-center justify-center hidden bg-black
+    bg-opacity-50
+  "
+  data-action="click->card-locations#closeTransferModal"
+>
   <div
-    class="relative w-full max-w-md p-6 mx-4 border rounded-lg bg-foreground border-highlight"
-    data-action="click->card-locations#stopPropagation">
+    class="
+      relative w-full max-w-md p-6 mx-4 border rounded-lg bg-foreground
+      border-highlight
+    "
+    data-action="click->card-locations#stopPropagation"
+  >
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-nine-white">Transfer copies</h3>
+
       <button
         data-action="click->card-locations#closeTransferModal"
-        class="text-grey-text hover:text-nine-white">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        class="text-grey-text hover:text-nine-white"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
+
     <%= form_with url: transfer_collection_magic_cards_path, method: :post, class: "flex flex-col gap-4", data: { turbo: true } do |f| %>
       <%= f.hidden_field :magic_card_id, value: magic_card.id %>
       <%= f.hidden_field :from_collection_id, data: { card_locations_target: 'fromCollectionId' } %>
       <%= f.hidden_field :to_collection_id, data: { card_locations_target: 'toCollectionId' } %>
+
       <!-- From/To Selection -->
       <div class="flex items-center gap-3">
         <div class="flex-1">
           <label class="block mb-1 text-sm text-grey-text">From:</label>
+
           <input
             type="text"
+            autocomplete="off"
             data-card-locations-target="fromCollectionName"
             readonly
-            class="w-full px-3 py-2 text-sm border rounded-md cursor-not-allowed border-highlight bg-background text-grey-text">
-          </div>
-          <div class="mt-6 text-grey-text">&#8594;</div>
-          <div class="flex-1">
-            <label class="block mb-1 text-sm text-grey-text">To:</label>
-            <select
+            class="
+              w-full px-3 py-2 text-sm border rounded-md cursor-not-allowed
+              border-highlight bg-background text-grey-text
+            "
+          >
+        </div>
+
+        <div class="mt-6 text-grey-text">&#8594;</div>
+
+        <div class="flex-1">
+          <label class="block mb-1 text-sm text-grey-text">To:</label>
+
+          <select
             data-card-locations-target="toCollectionSelect"
             data-action="change->card-locations#updateToCollection"
-              class="w-full px-3 py-2 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50">
-              <option value="">Select...</option>
-              <% collections.each do |collection| %>
-                <option value="<%= collection.id %>"><%= collection.name %></option>
-              <% end %>
-            </select>
-          </div>
+            class="
+              w-full px-3 py-2 text-sm border rounded-md border-highlight
+              bg-background text-grey-text focus:border-accent-50
+              focus:ring-accent-50
+            "
+          >
+            <option value="">Select...</option>
+
+            <% collections.each do |collection| %>
+              <option value="<%= collection.id %>">
+                <%= collection.name %>
+              </option>
+            <% end %>
+          </select>
         </div>
-        <!-- Regular Quantity -->
-        <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
-          <span class="flex-1 text-sm text-grey-text">Regular:</span>
-          <% if magic_card.non_foil_available? %>
-            <button
+      </div>
+
+      <!-- Regular Quantity -->
+      <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
+        <span class="flex-1 text-sm text-grey-text">Regular:</span>
+
+        <% if magic_card.non_foil_available? %>
+          <button
             type="button"
             data-action="click->card-locations#decrementTransferRegular"
-              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-              -
-            </button>
-            <input
+            class="
+              px-3 py-1 text-sm transition border rounded-md
+              border-highlight text-grey-text hover:bg-foreground
+              hover:text-nine-white
+            "
+          >
+            -
+          </button>
+          <input
             type="number"
             name="quantity"
+            autocomplete="off"
             data-card-locations-target="transferRegularQty"
             min="0"
             value="0"
-            class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-              <button
+            class="
+              w-16 px-2 py-1 text-sm text-center border rounded-md
+              border-highlight bg-foreground text-nine-white
+              focus:border-accent-50 focus:ring-accent-50
+            "
+          >
+          <button
             type="button"
             data-action="click->card-locations#incrementTransferRegular"
-                class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-                +
-              </button>
-              <span class="text-xs text-grey-text" data-card-locations-target="transferRegularAvailable">(available: 0)</span>
-            <% else %>
-              <span class="text-xs text-grey-text">Not available for this card</span>
-            <% end %>
-          </div>
-          <!-- Foil Quantity -->
-          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
-            <span class="flex-1 text-sm text-grey-text">Foil:</span>
-            <% if magic_card.foil_available? %>
-              <button
+            class="
+              px-3 py-1 text-sm transition border rounded-md
+              border-highlight text-grey-text hover:bg-foreground
+              hover:text-nine-white
+            "
+          >
+            +
+          </button>
+          <span
+            class="text-xs text-grey-text"
+            data-card-locations-target="transferRegularAvailable"
+          >
+            (available: 0)
+          </span>
+        <% else %>
+          <span class="text-xs text-grey-text">
+            Not available for this card
+          </span>
+        <% end %>
+      </div>
+
+      <!-- Foil Quantity -->
+      <div class="flex items-center gap-3 p-3 border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
+        <span class="flex-1 text-sm text-grey-text">Foil:</span>
+
+        <% if magic_card.foil_available? %>
+          <button
             type="button"
             data-action="click->card-locations#decrementTransferFoil"
-                class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-                -
-              </button>
-              <input
+            class="
+              px-3 py-1 text-sm transition border rounded-md
+              border-highlight text-grey-text hover:bg-foreground
+              hover:text-nine-white
+            "
+          >
+            -
+          </button>
+          <input
             type="number"
             name="foil_quantity"
+            autocomplete="off"
             data-card-locations-target="transferFoilQty"
             min="0"
             value="0"
-            class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-                <button
+            class="
+              w-16 px-2 py-1 text-sm text-center border rounded-md
+              border-highlight bg-foreground text-nine-white
+              focus:border-accent-50 focus:ring-accent-50
+            "
+          >
+          <button
             type="button"
             data-action="click->card-locations#incrementTransferFoil"
-                  class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-                  +
-                </button>
-                <span class="text-xs text-grey-text" data-card-locations-target="transferFoilAvailable">(available: 0)</span>
-              <% else %>
-                <span class="text-xs text-grey-text">Not available for this card</span>
-              <% end %>
-            </div>
+            class="
+              px-3 py-1 text-sm transition border rounded-md
+              border-highlight text-grey-text hover:bg-foreground
+              hover:text-nine-white
+            "
+          >
+            +
+          </button>
+          <span
+            class="text-xs text-grey-text"
+            data-card-locations-target="transferFoilAvailable"
+          >
+            (available: 0)
+          </span>
+        <% else %>
+          <span class="text-xs text-grey-text">
+            Not available for this card
+          </span>
+        <% end %>
+      </div>
 
-          <!-- Proxy Regular Quantity -->
-          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight bg-background">
-            <span class="flex-1 text-sm text-grey-text">Proxy Regular:</span>
-            <button
-              type="button"
-              data-action="click->card-locations#decrementTransferProxy"
-              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-              -
-            </button>
-            <input
-              type="number"
-              name="proxy_quantity"
-              data-card-locations-target="transferProxyQty"
-              min="0"
-              value="0"
-              class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-            <button
-              type="button"
-              data-action="click->card-locations#incrementTransferProxy"
-              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-              +
-            </button>
-            <span class="text-xs text-grey-text" data-card-locations-target="transferProxyAvailable">(available: 0)</span>
-          </div>
+      <!-- Proxy Regular Quantity -->
+      <div
+        class="
+          flex items-center gap-3 p-3 border rounded-md border-highlight
+          bg-background
+        "
+      >
+        <span class="flex-1 text-sm text-grey-text">Proxy Regular:</span>
 
-          <!-- Proxy Foil Quantity -->
-          <div class="flex items-center gap-3 p-3 border rounded-md border-highlight bg-background">
-            <span class="flex-1 text-sm text-grey-text">Proxy Foil:</span>
-            <button
-              type="button"
-              data-action="click->card-locations#decrementTransferProxyFoil"
-              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-              -
-            </button>
-            <input
-              type="number"
-              name="proxy_foil_quantity"
-              data-card-locations-target="transferProxyFoilQty"
-              min="0"
-              value="0"
-              class="w-16 px-2 py-1 text-sm text-center border rounded-md border-highlight bg-foreground text-nine-white focus:border-accent-50 focus:ring-accent-50">
-            <button
-              type="button"
-              data-action="click->card-locations#incrementTransferProxyFoil"
-              class="px-3 py-1 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-nine-white">
-              +
-            </button>
-            <span class="text-xs text-grey-text" data-card-locations-target="transferProxyFoilAvailable">(available: 0)</span>
-          </div>
+        <button
+          type="button"
+          data-action="click->card-locations#decrementTransferProxy"
+          class="
+            px-3 py-1 text-sm transition border rounded-md border-highlight
+            text-grey-text hover:bg-foreground hover:text-nine-white
+          "
+        >
+          -
+        </button>
 
-            <!-- Action Buttons -->
-            <div class="flex justify-end gap-3 mt-2">
-              <button
+        <input
+          type="number"
+          name="proxy_quantity"
+          autocomplete="off"
+          data-card-locations-target="transferProxyQty"
+          min="0"
+          value="0"
+          class="
+            w-16 px-2 py-1 text-sm text-center border rounded-md
+            border-highlight bg-foreground text-nine-white
+            focus:border-accent-50 focus:ring-accent-50
+          "
+        >
+
+        <button
+          type="button"
+          data-action="click->card-locations#incrementTransferProxy"
+          class="
+            px-3 py-1 text-sm transition border rounded-md border-highlight
+            text-grey-text hover:bg-foreground hover:text-nine-white
+          "
+        >
+          +
+        </button>
+
+        <span
+          class="text-xs text-grey-text"
+          data-card-locations-target="transferProxyAvailable"
+        >
+          (available: 0)
+        </span>
+      </div>
+
+      <!-- Proxy Foil Quantity -->
+      <div
+        class="
+          flex items-center gap-3 p-3 border rounded-md border-highlight
+          bg-background
+        "
+      >
+        <span class="flex-1 text-sm text-grey-text">Proxy Foil:</span>
+
+        <button
+          type="button"
+          data-action="click->card-locations#decrementTransferProxyFoil"
+          class="
+            px-3 py-1 text-sm transition border rounded-md border-highlight
+            text-grey-text hover:bg-foreground hover:text-nine-white
+          "
+        >
+          -
+        </button>
+
+        <input
+          type="number"
+          name="proxy_foil_quantity"
+          autocomplete="off"
+          data-card-locations-target="transferProxyFoilQty"
+          min="0"
+          value="0"
+          class="
+            w-16 px-2 py-1 text-sm text-center border rounded-md
+            border-highlight bg-foreground text-nine-white
+            focus:border-accent-50 focus:ring-accent-50
+          "
+        >
+
+        <button
+          type="button"
+          data-action="click->card-locations#incrementTransferProxyFoil"
+          class="
+            px-3 py-1 text-sm transition border rounded-md border-highlight
+            text-grey-text hover:bg-foreground hover:text-nine-white
+          "
+        >
+          +
+        </button>
+
+        <span
+          class="text-xs text-grey-text"
+          data-card-locations-target="transferProxyFoilAvailable"
+        >
+          (available: 0)
+        </span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3 mt-2">
+        <button
           type="button"
           data-action="click->card-locations#closeTransferModal"
-                class="px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-background">
-                Cancel
-              </button>
-              <button
+          class="
+            px-4 py-2 text-sm transition border rounded-md border-highlight
+            text-grey-text hover:bg-background
+          "
+        >
+          Cancel
+        </button>
+
+        <button
           type="submit"
-          class="px-4 py-2 text-sm transition rounded-md bg-accent-50 text-background hover:bg-nine-white">
-                Transfer
-              </button>
-            </div>
-          <% end %>
-        </div>
+          class="
+            px-4 py-2 text-sm transition rounded-md bg-accent-50
+            text-background hover:bg-nine-white
+          "
+        >
+          Transfer
+        </button>
       </div>
+    <% end %>
+  </div>
+</div>

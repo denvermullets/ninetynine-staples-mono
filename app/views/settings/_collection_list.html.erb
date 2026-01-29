@@ -1,29 +1,59 @@
 <% if collections.empty? %>
-  <p class='text-sm text-grey-text'>You don't have any collections yet.</p>
+  <p class="text-sm text-grey-text">You don't have any collections yet.</p>
 <% else %>
-  <ul class='space-y-2'>
+  <ul class="space-y-2">
     <% collections.each_with_index do |collection, index| %>
-      <li class='flex items-center gap-3 p-3 border rounded-lg border-highlight bg-background'>
-        <div class='flex flex-col gap-1'>
+      <li
+        class="
+          flex items-center gap-3 p-3 border rounded-lg border-highlight
+          bg-background
+        "
+      >
+        <div class="flex flex-col gap-1">
           <%= button_to move_collection_path, method: :post, params: { collection_id: collection.id, direction: 'up' },
               class: "p-1 rounded hover:bg-menu transition disabled:opacity-30 disabled:cursor-not-allowed",
               disabled: index == 0,
               data: { turbo_frame: "collection_list" } do %>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 15l7-7 7 7"
+              ></path>
             </svg>
           <% end %>
+
           <%= button_to move_collection_path, method: :post, params: { collection_id: collection.id, direction: 'down' },
               class: "p-1 rounded hover:bg-menu transition disabled:opacity-30 disabled:cursor-not-allowed",
               disabled: index == collections.length - 1,
               data: { turbo_frame: "collection_list" } do %>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              ></path>
             </svg>
           <% end %>
         </div>
-        <span class='flex-1'><%= collection.name %></span>
-        <span class='text-xs text-grey-text'>(<%= collection.total_cards %> cards)</span>
+
+        <span class="flex-1"><%= collection.name %></span>
+
+        <span class="text-xs text-grey-text">
+          (<%= collection.total_cards %> cards)
+        </span>
       </li>
     <% end %>
   </ul>

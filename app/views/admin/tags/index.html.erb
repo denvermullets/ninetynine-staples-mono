@@ -1,27 +1,45 @@
-<div class='flex items-start justify-center w-full min-h-screen py-8 px-4'>
-  <div class='w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl text-grey-text'>
-    <div class='flex items-center justify-between mb-6'>
-      <h1 class='text-xl font-bold'>Manage Tags</h1>
+<div class="flex items-start justify-center w-full min-h-screen py-8 px-4">
+  <div
+    class="
+      w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl
+      text-grey-text
+    "
+  >
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold">Manage Tags</h1>
+
       <%= link_to 'New Tag', new_admin_tag_path,
           class: 'px-4 py-2 text-sm rounded-md bg-accent-50 text-foreground hover:bg-accent-100 transition' %>
     </div>
 
     <% if @tags.any? %>
-      <div class='space-y-3'>
+      <div class="space-y-3">
         <% @tags.each do |tag| %>
-          <div class='flex items-center justify-between p-4 border rounded-lg border-highlight bg-background'>
-            <div class='flex items-center gap-3'>
-              <span class='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= tag_text_color_class(tag.color) %>'
-                    style="background-color: <%= tag.color %>;">
+          <div
+            class="
+              flex items-center justify-between p-4 border rounded-lg
+              border-highlight bg-background
+            "
+          >
+            <div class="flex items-center gap-3">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= tag_text_color_class(tag.color) %>"
+                style="background-color: <%= tag.color %>;"
+              >
                 <%= tag.name %>
               </span>
+
               <% if tag.description.present? %>
-                <span class='text-sm text-grey-text/70'><%= tag.description %></span>
+                <span class="text-sm text-grey-text/70">
+                  <%= tag.description %>
+                </span>
               <% end %>
             </div>
-            <div class='flex items-center gap-2'>
+
+            <div class="flex items-center gap-2">
               <%= link_to 'Edit', edit_admin_tag_path(tag),
                   class: 'px-3 py-1 text-sm border rounded-md border-highlight text-grey-text hover:border-accent-50 hover:text-accent-50 transition' %>
+
               <%= button_to 'Delete', admin_tag_path(tag),
                   method: :delete,
                   data: { turbo_confirm: "Delete tag '#{tag.name}'?" },
@@ -31,7 +49,9 @@
         <% end %>
       </div>
     <% else %>
-      <p class='text-center py-8 text-grey-text/70'>No tags yet. Create one to get started.</p>
+      <p class="text-center py-8 text-grey-text/70">
+        No tags yet. Create one to get started.
+      </p>
     <% end %>
   </div>
 </div>

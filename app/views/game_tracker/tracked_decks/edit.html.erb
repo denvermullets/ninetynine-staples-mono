@@ -1,8 +1,12 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
   <%= render partial: 'shared/page_header',
     locals: { header: 'Edit Tracked Deck',
-              subtext: "Update settings for #{@tracked_deck.name}" }
-  %>
+              subtext: "Update settings for #{@tracked_deck.name}" } %>
 
   <div class="border rounded-3xl bg-foreground border-highlight p-6 md:p-8">
     <%= render 'form', tracked_deck: @tracked_deck %>

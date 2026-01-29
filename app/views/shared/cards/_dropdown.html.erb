@@ -1,6 +1,6 @@
 <div
-  class='flex-1 w-full md:min-w-[200px] md:max-w-[400px]'
-  id='collection-boxset-dropdown'
+  class="flex-1 w-full md:min-w-[200px] md:max-w-[400px]"
+  id="collection-boxset-dropdown"
   data-controller="filter-dropdown"
   data-filter-dropdown-options-value="<%= options %>"
   data-filter-dropdown-url-value="<%= filter_path %>"
@@ -8,22 +8,25 @@
   data-filter-dropdown-collection-value="<%= params[:collection_id] %>"
   data-filter-dropdown-default-code-value="<%= defined?(default_code) ? default_code : '' %>"
 >
-  <h3 class='mb-2 text-grey-text'>Boxset</h3>
+  <h3 class="mb-2 text-grey-text">Boxset</h3>
   <div class="relative">
     <input
       type="text"
+      autocomplete="off"
       data-filter-dropdown-target="input"
       data-action="input->filter-dropdown#search click->filter-dropdown#toggle keydown->filter-dropdown#handleKeydown"
       onfocus="this.select();"
       class="w-full pr-10 border rounded-md border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50"
-      placeholder="Select boxset">
-      <button data-action="click->filter-dropdown#toggle"
-        class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-auto text-grey-text cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-        </svg>
-      </button>
-    </input>
+      placeholder="Select boxset"
+    >
+    <button
+      data-action="click->filter-dropdown#toggle"
+      class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-auto text-grey-text cursor-pointer"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </button>
     <div
       data-filter-dropdown-target="dropdown"
       class="absolute z-10 hidden w-full mt-1 overflow-auto text-sm border rounded-md shadow-lg border-highlight bg-background max-h-72"
@@ -31,5 +34,5 @@
       <!-- Dropdown options will be injected here -->
     </div>
   </div>
-  <p class='mt-2 text-xs text-grey-text'>Type boxset name or short code</p>
+  <p class="mt-2 text-xs text-grey-text">Type boxset name or short code</p>
 </div>

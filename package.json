@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "@herb-tools/formatter": "^0.8.9",
+    "@herb-tools/linter": "^0.8.9"
+  },
+  "scripts": {
+    "herb:format": "herb-format",
+    "herb:format:check": "herb-format --check",
+    "herb:lint": "herb-lint"
+  }
+}

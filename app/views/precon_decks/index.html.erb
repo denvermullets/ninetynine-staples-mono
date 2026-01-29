@@ -1,34 +1,46 @@
-<div class='flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48 bg-dark-100'>
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
   <%= render partial: 'shared/page_header',
     locals: { header: 'Preconstructed Decks',
-              subtext: 'Browse preconstructed decks from MTG history. Click on a deck to view its contents and import to your collection.' }
-  %>
+              subtext: 'Browse preconstructed decks from MTG history. Click on a deck to view its contents and import to your collection.' } %>
 
-  <div class="flex flex-col md:flex-row md:flex-wrap px-8 py-4 gap-4 border rounded-3xl bg-foreground border-highlight">
+  <div
+    class="
+      flex flex-col md:flex-row md:flex-wrap px-8 py-4 gap-4 border
+      rounded-3xl bg-foreground border-highlight
+    "
+  >
     <%= form_with url: precon_decks_path, method: :get, local: true, class: "contents" do |f| %>
       <!-- Card Search -->
       <div class="flex flex-col gap-2 flex-1 md:min-w-[200px] md:max-w-[400px]">
         <label class="text-sm text-grey-text">Search Cards</label>
+
         <div class="flex flex-row">
           <%= f.text_field :card_search,
               value: params[:card_search],
               placeholder: 'Find decks containing a card...',
               onfocus: "this.select();",
-              class: 'w-full border text-grey-text rounded-l-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-3 py-2'
-          %>
+              class: 'w-full border text-grey-text rounded-l-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-3 py-2' %>
+
           <%= f.submit 'Search',
-              class: 'px-4 py-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700'
-          %>
+              class: 'px-4 py-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700' %>
         </div>
       </div>
+
       <!-- Deck Type Filter -->
       <div class="flex flex-col gap-2">
-        <label for="deck_type" class="text-sm text-grey-text">Filter by Type</label>
+        <label for="deck_type" class="text-sm text-grey-text">
+          Filter by Type
+        </label>
+
         <%= f.select :deck_type,
             options_for_select([['All Types', '']] + @deck_types.map { |t| [t, t] }, @selected_type),
             {},
-            { class: 'bg-background border border-highlight rounded-lg px-4 py-2 text-grey-text focus:outline-none focus:border-white', onchange: 'this.form.submit()' }
-        %>
+            { class: 'bg-background border border-highlight rounded-lg px-4 py-2 text-grey-text focus:outline-none focus:border-white', onchange: 'this.form.submit()' } %>
       </div>
     <% end %>
   </div>
@@ -37,52 +49,99 @@
     <table class="min-w-full">
       <thead class="bg-background">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider">
+          <th
+            class="
+              px-6 py-3 text-left text-xs font-medium text-grey-text
+              uppercase tracking-wider
+            "
+          >
             <%= link_to precon_decks_path(sort_config.link_params(:name)), class: 'flex items-center gap-1 hover:text-white' do %>
               Name
               <% if sort_config.indicator(:name) %>
-                <span class="text-accent-50"><%= sort_config.indicator(:name) %></span>
+                <span class="text-accent-50">
+                  <%= sort_config.indicator(:name) %>
+                </span>
               <% end %>
             <% end %>
           </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden md:table-cell">
+
+          <th
+            class="
+              px-6 py-3 text-left text-xs font-medium text-grey-text
+              uppercase tracking-wider hidden md:table-cell
+            "
+          >
             <%= link_to precon_decks_path(sort_config.link_params(:deck_type)), class: 'flex items-center gap-1 hover:text-white' do %>
               Type
               <% if sort_config.indicator(:deck_type) %>
-                <span class="text-accent-50"><%= sort_config.indicator(:deck_type) %></span>
+                <span class="text-accent-50">
+                  <%= sort_config.indicator(:deck_type) %>
+                </span>
               <% end %>
             <% end %>
           </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden md:table-cell">
+
+          <th
+            class="
+              px-6 py-3 text-left text-xs font-medium text-grey-text
+              uppercase tracking-wider hidden md:table-cell
+            "
+          >
             <%= link_to precon_decks_path(sort_config.link_params(:release_date)), class: 'flex items-center gap-1 hover:text-white' do %>
               Release Date
               <% if sort_config.indicator(:release_date) %>
-                <span class="text-accent-50"><%= sort_config.indicator(:release_date) %></span>
+                <span class="text-accent-50">
+                  <%= sort_config.indicator(:release_date) %>
+                </span>
               <% end %>
             <% end %>
           </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-grey-text uppercase tracking-wider hidden lg:table-cell">
+
+          <th
+            class="
+              px-6 py-3 text-left text-xs font-medium text-grey-text
+              uppercase tracking-wider hidden lg:table-cell
+            "
+          >
             <%= link_to precon_decks_path(sort_config.link_params(:code)), class: 'flex items-center gap-1 hover:text-white' do %>
               Code
               <% if sort_config.indicator(:code) %>
-                <span class="text-accent-50"><%= sort_config.indicator(:code) %></span>
+                <span class="text-accent-50">
+                  <%= sort_config.indicator(:code) %>
+                </span>
               <% end %>
             <% end %>
           </th>
         </tr>
       </thead>
+
       <tbody class="divide-y divide-highlight">
         <% @precon_decks.each do |deck| %>
-          <tr class="hover:bg-background/50 cursor-pointer" onclick="window.location='<%= precon_deck_path(deck) %>'">
+          <tr
+            class="hover:bg-background/50 cursor-pointer"
+            onclick="window.location='<%= precon_deck_path(deck) %>'"
+          >
             <td class="px-6 py-4">
               <div class="flex flex-col">
                 <span class="text-grey-text font-medium"><%= deck.name %></span>
-                <span class="text-grey-text text-sm md:hidden"><%= deck.deck_type %></span>
+
+                <span class="text-grey-text text-sm md:hidden">
+                  <%= deck.deck_type %>
+                </span>
               </div>
             </td>
-            <td class="px-6 py-4 text-grey-text hidden md:table-cell"><%= deck.deck_type %></td>
-            <td class="px-6 py-4 text-grey-text hidden md:table-cell"><%= deck.release_date&.strftime('%B %d, %Y') %></td>
-            <td class="px-6 py-4 text-grey-text hidden lg:table-cell"><%= deck.code %></td>
+
+            <td class="px-6 py-4 text-grey-text hidden md:table-cell">
+              <%= deck.deck_type %>
+            </td>
+
+            <td class="px-6 py-4 text-grey-text hidden md:table-cell">
+              <%= deck.release_date&.strftime('%B %d, %Y') %>
+            </td>
+
+            <td class="px-6 py-4 text-grey-text hidden lg:table-cell">
+              <%= deck.code %>
+            </td>
           </tr>
         <% end %>
       </tbody>
@@ -95,7 +154,12 @@
     <% end %>
 
     <% if @pagy.pages > 1 %>
-      <div class="flex flex-col md:flex-row justify-between items-center px-6 py-4 border-t border-highlight gap-4">
+      <div
+        class="
+          flex flex-col md:flex-row justify-between items-center px-6 py-4
+          border-t border-highlight gap-4
+        "
+      >
         <%== @pagy.info_tag() %>
         <%== @pagy.series_nav() %>
       </div>
