@@ -1,5 +1,20 @@
 <% visible_column_count = %w[card_number name type mana regular_price foil_price salt].count { |k| column_visible?(k, 'collections') } %>
-<div class='mb-24 overflow-x-auto border rounded-3xl border-highlight'>
+
+<!-- Mobile Card View -->
+<div class="md:hidden mb-24 max-w-full">
+  <% @magic_cards.each do |card| %>
+    <%= render partial: 'shared/cards/mobile_card', locals: { card: card } %>
+  <% end %>
+  <% if @pagy %>
+    <div class='flex flex-col gap-2 w-full px-4 py-3 mt-2 bg-foreground text-sm rounded-xl'>
+      <div class="text-grey-text"><%== @pagy.info_tag() %></div>
+      <div class="overflow-x-auto"><%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %></div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Desktop Table View -->
+<div class='hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight'>
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
@@ -13,13 +28,13 @@
           <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text lg:table-cell">Type</th>
         <% end %>
         <% if column_visible?('mana', 'collections') %>
-          <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text md:table-cell">Mana</th>
+          <th class="px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Mana</th>
         <% end %>
         <% if column_visible?('regular_price', 'collections') %>
-          <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-grey-text">Regular</th>
+          <th class="px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Regular</th>
         <% end %>
         <% if column_visible?('foil_price', 'collections') %>
-          <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case md:table-cell text-grey-text">Foil</th>
+          <th class="px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text">Foil</th>
         <% end %>
         <% if column_visible?('salt', 'collections') %>
           <th class="hidden px-4 py-2 text-xs font-normal tracking-wider text-left normal-case lg:table-cell text-grey-text">Salt</th>
@@ -51,14 +66,14 @@
             <td class="hidden px-4 py-2 text-sm whitespace-nowrap lg:table-cell"><%= card.card_type %></td>
           <% end %>
           <% if column_visible?('mana', 'collections') %>
-            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
               <div class='flex items-center m-0 space-x-1'>
                 <%= mana_symbols(card.mana_cost) %>
               </div>
             </td>
           <% end %>
           <% if column_visible?('regular_price', 'collections') %>
-            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
               <% if has_normal_in_collection %>
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.normal_price) %>
@@ -72,7 +87,7 @@
             </td>
           <% end %>
           <% if column_visible?('foil_price', 'collections') %>
-            <td class="hidden px-4 py-2 text-sm whitespace-nowrap md:table-cell">
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
               <% if has_foil_in_collection %>
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.foil_price) %>
