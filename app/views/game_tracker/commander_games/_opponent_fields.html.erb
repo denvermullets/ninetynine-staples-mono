@@ -27,16 +27,25 @@
       class="<%= has_commander ? 'flex' : 'hidden' %> items-center gap-3 p-2 border border-highlight rounded bg-background"
       data-opponent-selected="<%= index %>"
     >
-      <%= image_tag f.object.commander&.image_small,
-        alt: f.object.commander&.name,
-        class: "w-8 h-11 rounded object-cover cursor-pointer",
-        data: {
-          opponent_image: index,
-          controller: "card-hover",
-          card_hover_image_value: f.object.commander&.image_large,
-          card_hover_name_value: f.object.commander&.name,
-          action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
-        } %>
+      <% if has_commander && f.object.commander.image_small.present? %>
+        <%= image_tag f.object.commander.image_small,
+          alt: f.object.commander.name,
+          class: "w-8 h-11 rounded object-cover cursor-pointer",
+          data: {
+            opponent_image: index,
+            controller: "card-hover",
+            card_hover_image_value: f.object.commander.image_large,
+            card_hover_name_value: f.object.commander.name,
+            action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+          } %>
+      <% else %>
+        <div
+          class="w-8 h-11 rounded bg-highlight flex items-center justify-center"
+          data-opponent-image="<%= index %>"
+        >
+          <span class="text-grey-text text-xs">?</span>
+        </div>
+      <% end %>
 
       <span class="text-grey-text flex-1" data-opponent-name="<%= index %>">
         <%= f.object.commander&.name %>
