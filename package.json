@@ -6,6 +6,7 @@
   "scripts": {
     "herb:format": "herb-format",
     "herb:format:check": "herb-format --check",
-    "herb:lint": "herb-lint"
+    "herb:lint": "herb-lint",
+    "herb:fix": "herb:lint --fix"
   }
 }
