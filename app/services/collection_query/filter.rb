@@ -91,9 +91,9 @@ module CollectionQuery
       # Find cards that have exactly the selected colors (no more, no less)
       cards.where(
         id: MagicCard.joins(magic_card_colors: :color)
-                    .group('magic_cards.id')
-                    .having('ARRAY_AGG(colors.name ORDER BY colors.name) = ARRAY[?]::varchar[]', selected)
-                    .select(:id)
+            .group('magic_cards.id')
+            .having('ARRAY_AGG(colors.name ORDER BY colors.name) = ARRAY[?]::varchar[]', selected)
+            .select(:id)
       )
     end
   end

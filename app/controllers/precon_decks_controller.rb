@@ -7,7 +7,7 @@ class PreconDecksController < ApplicationController
   helper_method :sort_config
 
   def index
-    @deck_types = PreconDeck.pluck(:deck_type).compact.sort
+    @deck_types = PreconDeck.distinct.pluck(:deck_type).compact.sort
     @selected_type = params[:deck_type]
     @card_search = params[:card_search]
 
