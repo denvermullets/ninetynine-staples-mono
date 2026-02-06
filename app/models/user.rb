@@ -15,6 +15,18 @@ class User < ApplicationRecord
     password_digest&.last(10)
   end
 
+  generates_token_for :email_confirmation, expires_in: 24.hours do
+    email
+  end
+
+  def confirmed?
+    confirmed_at.present?
+  end
+
+  def confirm!
+    update!(confirmed_at: Time.current)
+  end
+
   # Preferences
   DEFAULT_COLUMN_VISIBILITY = {
     'card_number' => true,

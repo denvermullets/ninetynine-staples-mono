@@ -39,6 +39,14 @@
 
     <main class="flex flex-col h-auto min-h-full mx-auto bg-background">
       <div id="toasts" class="fixed z-50 space-y-2 bottom-4 right-4"></div>
+
+      <% if logged_in? && !current_user.confirmed? %>
+        <div class="flex items-center justify-center gap-3 px-4 py-3 text-sm bg-amber-900/40 text-amber-200">
+          <span>Please confirm your email address (<%= current_user.email %>).</span>
+          <%= button_to "Resend confirmation email", resend_confirm_email_path, class: "underline font-medium hover:text-amber-100 cursor-pointer", data: { turbo: false } %>
+        </div>
+      <% end %>
+
       <%= yield %>
     </main>
 

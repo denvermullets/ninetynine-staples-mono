@@ -50,6 +50,11 @@
         <% end %>
       </div>
 
+      <div style="position: absolute; left: -9999px;" aria-hidden="true">
+        <%= form.label :website, "Website" %>
+        <%= form.text_field :website, tabindex: "-1", autocomplete: "off" %>
+      </div>
+
       <div class="mb-4 space-y-2">
         <%= form.label :password_confirmation %>
         <%= form.password_field :password_confirmation, placeholder: 'Password Confirmation', required: true, class: input_styles %>

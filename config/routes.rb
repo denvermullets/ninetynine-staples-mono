@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   post 'login', to: 'users/sessions#create'
   delete 'logout', to: 'users/sessions#destroy', as: :logout
 
+  get 'confirm_email', to: 'users/email_confirmations#show', as: :confirm_email
+  post 'confirm_email/resend', to: 'users/email_confirmations#create', as: :resend_confirm_email
+
   get 'password_resets/new', to: 'users/password_resets#new', as: :new_password_reset
   post 'password_resets', to: 'users/password_resets#create', as: :password_resets
   get 'password_resets/:token/edit', to: 'users/password_resets#edit', as: :edit_password_reset
