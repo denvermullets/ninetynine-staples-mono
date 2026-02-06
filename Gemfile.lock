@@ -200,7 +200,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-musl)
       racc (~> 1.4)
-    pagy (43.2.8)
+    pagy (43.2.9)
       json
       yaml
     parallel (1.27.0)
@@ -231,6 +231,8 @@ GEM
     raabro (1.4.0)
     racc (1.8.1)
     rack (3.2.4)
+    rack-attack (6.8.0)
+      rack (>= 1.0, < 4)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -402,6 +404,7 @@ DEPENDENCIES
   pg (~> 1.6.3)
   pry
   puma (>= 7.2.0)
+  rack-attack
   rails (~> 8.1.2)
   rspec-rails (~> 8.0.2)
   rubocop
@@ -488,7 +491,7 @@ CHECKSUMS
   nokogiri (1.19.0-x86_64-darwin) sha256=1dad56220b603a8edb9750cd95798bffa2b8dd9dd9aa47f664009ee5b43e3067
   nokogiri (1.19.0-x86_64-linux-gnu) sha256=f482b95c713d60031d48c44ce14562f8d2ce31e3a9e8dd0ccb131e9e5a68b58c
   nokogiri (1.19.0-x86_64-linux-musl) sha256=1c4ca6b381622420073ce6043443af1d321e8ed93cc18b08e2666e5bd02ffae4
-  pagy (43.2.8) sha256=3d38376df4a9a7893361bb68825643896371707c4c49ef73acf1bd3b50af7562
+  pagy (43.2.9) sha256=6a167c8da72388883e8f4c8e29dc8f5577f9f934d8d0b704cb2f39d2cebd276e
   parallel (1.27.0) sha256=4ac151e1806b755fb4e2dc2332cbf0e54f2e24ba821ff2d3dcf86bf6dc4ae130
   parser (3.3.10.1) sha256=06f6a725d2cd91e5e7f2b7c32ba143631e1f7c8ae2fb918fc4cebec187e6a688
   pg (1.6.3) sha256=1388d0563e13d2758c1089e35e973a3249e955c659592d10e5b77c468f628a99
@@ -508,6 +511,7 @@ CHECKSUMS
   raabro (1.4.0) sha256=d4fa9ff5172391edb92b242eed8be802d1934b1464061ae5e70d80962c5da882
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rack (3.2.4) sha256=5d74b6f75082a643f43c1e76b419c40f0e5527fcfee1e669ac1e6b73c0ccb6f6
+  rack-attack (6.8.0) sha256=f2499fdebf85bcc05573a22dff57d24305ac14ec2e4156cd3c28d47cafeeecf2
   rack-session (2.1.1) sha256=0b6dc07dea7e4b583f58a48e8b806d4c9f1c6c9214ebc202ec94562cbea2e4e9
   rack-test (2.2.0) sha256=005a36692c306ac0b4a9350355ee080fd09ddef1148a5f8b2ac636c720f5c463
   rackup (2.3.1) sha256=6c79c26753778e90983761d677a48937ee3192b3ffef6bc963c0950f94688868
