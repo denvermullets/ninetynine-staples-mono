@@ -154,8 +154,21 @@ export default class extends Controller {
     if (hiddenField) hiddenField.value = commanderId;
     if (displayName) displayName.textContent = commanderName;
     if (displayImage && commanderImage) {
-      displayImage.src = commanderImage;
-      displayImage.alt = commanderName;
+      if (displayImage.tagName === "IMG") {
+        displayImage.src = commanderImage;
+        displayImage.alt = commanderName;
+      } else {
+        // Replace the placeholder div with an actual img element
+        const img = document.createElement("img");
+        img.src = commanderImage;
+        img.alt = commanderName;
+        img.className = "w-8 h-11 rounded object-cover cursor-pointer";
+        img.dataset.opponentImage = displayImage.dataset.opponentImage;
+        img.dataset.controller = "card-hover";
+        img.dataset.action = "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move";
+        displayImage.replaceWith(img);
+        displayImage = img;
+      }
       // Update card-hover controller values for the image
       displayImage.dataset.cardHoverImageValue = commanderImageLarge || commanderImage;
       displayImage.dataset.cardHoverNameValue = commanderName;
