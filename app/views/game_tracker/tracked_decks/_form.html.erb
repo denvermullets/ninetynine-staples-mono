@@ -34,13 +34,13 @@
       data-commander-search-target="selectedDisplay"
       class="<%= has_commander ? '' : 'hidden' %> flex items-center gap-3 p-3 border border-highlight rounded-lg bg-background"
     >
-      <%= image_tag tracked_deck.commander&.image_small,
+      <%= image_tag tracked_deck.commander&.image_small || "",
         alt: tracked_deck.commander&.name,
         class: "w-12 h-16 rounded object-cover cursor-pointer",
         data: {
           commander_search_target: "selectedImage",
           controller: "card-hover",
-          card_hover_image_value: tracked_deck.commander&.image_large,
+          card_hover_image_value: tracked_deck.commander&.image_large || "",
           card_hover_name_value: tracked_deck.commander&.name,
           action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
         } %>
@@ -128,13 +128,13 @@
         data-commander-search-target="selectedDisplay"
         class="<%= has_partner ? '' : 'hidden' %> flex items-center gap-3 p-3 border border-highlight rounded-lg bg-background"
       >
-        <%= image_tag tracked_deck.partner_commander&.image_small,
+        <%= image_tag tracked_deck.partner_commander&.image_small || "",
           alt: tracked_deck.partner_commander&.name,
           class: "w-12 h-16 rounded object-cover cursor-pointer",
           data: {
             commander_search_target: "selectedImage",
             controller: "card-hover",
-            card_hover_image_value: tracked_deck.partner_commander&.image_large,
+            card_hover_image_value: tracked_deck.partner_commander&.image_large || "",
             card_hover_name_value: tracked_deck.partner_commander&.name,
             action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
           } %>
