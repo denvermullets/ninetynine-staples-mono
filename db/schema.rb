@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_26_121348) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_15_184429) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -341,8 +341,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_26_121348) do
     t.string "flavor_text"
     t.decimal "foil_price", precision: 12, scale: 2, default: "0.0"
     t.string "frame_version"
-    t.boolean "has_foil"
-    t.boolean "has_non_foil"
     t.jsonb "identifiers"
     t.string "image_large"
     t.string "image_medium"

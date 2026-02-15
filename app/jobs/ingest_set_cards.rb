@@ -35,10 +35,10 @@ class IngestSetCards < ApplicationJob
       next unless card['availability'].include?('paper')
 
       puts "working on card #{card['name']}"
-      magic_card = CardIngestion::CardCreator.call(boxset: boxset, card_data: card)
+      magic_card = CardIngestion::CardCreator.call(boxset:, card_data: card)
       magic_card.boxset.update(valid_cards: true)
 
-      CardIngestion::AttributeCreator.call(magic_card: magic_card, card_data: card)
+      CardIngestion::AttributeCreator.call(magic_card:, card_data: card)
     end
   end
 

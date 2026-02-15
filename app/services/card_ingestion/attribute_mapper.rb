@@ -21,8 +21,6 @@ module CardIngestion
         power: @card_data['power'],
         toughness: @card_data['toughness'],
         card_type: @card_data['type'],
-        has_foil: @card_data['hasFoil'],
-        has_non_foil: @card_data['hasNonFoil'],
         border_color: @card_data['borderColor'],
         frame_version: @card_data['frameVersion'],
         is_reprint: @card_data['isReprint'],
