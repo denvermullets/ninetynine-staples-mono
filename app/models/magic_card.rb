@@ -87,11 +87,11 @@ class MagicCard < ApplicationRecord
   end
 
   def foil_available?
-    has_foil || finishes.exists?(name: 'etched')
+    finishes.exists?(name: %w[foil etched])
   end
 
   def non_foil_available?
-    has_non_foil
+    finishes.exists?(name: 'nonfoil')
   end
 
   def etched_finish?
