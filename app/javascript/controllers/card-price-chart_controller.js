@@ -103,6 +103,29 @@ export default class extends Controller {
     const fixedHeight = 275;
     canvas.style.height = `${fixedHeight}px`;
 
+    // Custom plugin to draw a vertical crosshair line on hover
+    const verticalLinePlugin = {
+      id: "verticalLine",
+      afterDraw: (chart) => {
+        if (chart.tooltip?._active?.length) {
+          const activePoint = chart.tooltip._active[0];
+          const ctx = chart.ctx;
+          const x = activePoint.element.x;
+          const topY = chart.scales.y.top;
+          const bottomY = chart.scales.y.bottom;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, topY);
+          ctx.lineTo(x, bottomY);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+          ctx.stroke();
+          ctx.restore();
+        }
+      },
+    };
+
     // Create a new chart instance
     this.chart = new Chart(canvas.getContext("2d"), {
       type: "line",
@@ -115,7 +138,6 @@ export default class extends Controller {
             backgroundColor: "#39DB7D",
             borderColor: "#39DB7D",
             borderWidth: 2,
-            // cubicInterpolationMode: "monotone",
             tension: 0.3,
             fill: false,
           },
@@ -133,6 +155,10 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
         scales: {
           y: {
             suggestedMin: this.getSuggestedMin(minPrice),
@@ -181,6 +207,8 @@ export default class extends Controller {
           },
           tooltip: {
             enabled: true,
+            mode: "index",
+            intersect: false,
             callbacks: {
               label: function (context) {
                 return context.dataset.label + ": $" + context.parsed.y.toFixed(2);
@@ -194,12 +222,12 @@ export default class extends Controller {
           },
           point: {
             radius: 0,
-            hoverRadius: 8,
+            hoverRadius: 6,
             pointHitRadius: 8,
-            // pointStyle: "crossRot",
           },
         },
       },
+      plugins: [verticalLinePlugin],
     });
   }
 
