@@ -1,5 +1,7 @@
-# this service will take in a collection of cards
-# searches and sorts the collection
+# Filters and sorts a card relation for the collections view.
+# Called on every page load (not just searches) — sort_by: :price is the default.
+# The first branch in handle_search drops user scoping intentionally
+# for the boxsets view, where cards aren't scoped to a user.
 
 module Search
   class Collection < Service
@@ -20,6 +22,17 @@ module Search
       @cards
     end
 
+    # Alias must be "computed_total_value" not "total_value" because collections.total_value exists on
+    # the joined collections table and Postgres resolves the column name to that instead of the alias.
+    # ORDER BY uses the full SUM() expression instead of the alias because
+    # Pagy's count query rewrites SELECT to COUNT(*), stripping aliases.
+    VALUE_SQL = <<~SQL.squish.freeze
+      COALESCE(collection_magic_cards.quantity, 0) * COALESCE(magic_cards.normal_price, 0) +
+      COALESCE(collection_magic_cards.foil_quantity, 0) * COALESCE(magic_cards.foil_price, 0)
+    SQL
+
+    ORDER_SQL = Arel.sql("SUM(#{VALUE_SQL}) DESC").freeze
+
     private
 
     # i know this is not the most efficient but it's mainly boxsets (max 800 records?) that'll hit it
@@ -32,13 +45,6 @@ module Search
         # if it fails, place it at the end
         [Float::INFINITY, 1]
       end
-    end
-
-    def value_expression
-      <<~SQL.squish
-        COALESCE(collection_magic_cards.quantity, 0) * COALESCE(magic_cards.normal_price, 0) +
-        COALESCE(collection_magic_cards.foil_quantity, 0) * COALESCE(magic_cards.foil_price, 0)
-      SQL
     end
 
     def handle_search
@@ -56,16 +62,19 @@ module Search
       when :id
         @cards = sort_by_card_num(@cards)
       when :price
+        # A card can exist in multiple collections so we SUM quantities
+        # across all collection_magic_cards rows to get the true totals.
+        # The view uses quantity/foil_quantity to decide which price columns to show.
         @cards
           .joins(:collection_magic_cards)
           .select(
             "magic_cards.*,
              SUM(COALESCE(collection_magic_cards.quantity, 0)) AS quantity,
              SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) AS foil_quantity,
-             SUM(#{value_expression}) AS computed_total_value"
+             SUM(#{VALUE_SQL}) AS computed_total_value"
           )
           .group('magic_cards.id')
-          .order(Arel.sql("SUM(#{value_expression}) DESC"))
+          .order(ORDER_SQL)
       end
     end
   end
