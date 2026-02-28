@@ -37,5 +37,8 @@ group :development, :test do
   gem "rspec-rails", "~> 8.0.3"
   gem "rubocop"
   gem "selenium-webdriver"
+end
+
+group :development do
   gem "web-console"
 end
