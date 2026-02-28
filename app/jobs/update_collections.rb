@@ -7,22 +7,22 @@ class UpdateCollections < ApplicationJob
     CollectionMagicCard.where(magic_card_id: card.id)
                        .includes(:collection)
                        .in_batches(of: 1000) do |batch|
-                         collection_updates = {}
+      collection_updates = {}
 
-                         batch.each do |collection_magic_card|
-                           collection = collection_magic_card.collection
-                           next unless collection
+      batch.each do |collection_magic_card|
+        collection = collection_magic_card.collection
+        next unless collection
 
-                           collection_updates[collection.id] ||= 0
-                           collection_updates[collection.id] += calculate_price_change(collection_magic_card,
-                                                                                       price_change)
-                         end
+        collection_updates[collection.id] ||= 0
+        collection_updates[collection.id] += calculate_price_change(collection_magic_card,
+                                                                    price_change)
+      end
 
-                         # update all collections
-                         collection_updates.each do |collection_id, total_price_change|
-                           Collection.where(id: collection_id).update_all(['total_value = total_value + ?',
-                                                                           total_price_change])
-                         end
+      # update all collections
+      collection_updates.each do |collection_id, total_price_change|
+        Collection.where(id: collection_id).update_all(['total_value = total_value + ?',
+                                                        total_price_change])
+      end
     end
   end
 
