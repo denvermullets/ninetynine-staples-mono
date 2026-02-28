@@ -12,7 +12,7 @@
 <% frame_id = local_assigns[:frame_id] || 'collection_modal' %>
 <% show_proxy_value = local_assigns[:show_proxy_value] || false %>
 <% commander = collection.commanders.first&.magic_card %>
-<% card = collection.magic_cards.any? ? collection.magic_cards.last : nil %>
+<% card = collection.display_cover_card %>
 
 <div
   class="relative"
