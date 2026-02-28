@@ -104,7 +104,7 @@ class IngestPrices < ApplicationJob
   def find_price_on_or_before_date(price_array, target_date)
     return nil if price_array.nil? || price_array.empty?
 
-    entry = price_array.sort_by { |e| e.keys.first }.reverse.find { |e| e.keys.first <= target_date }
+    entry = price_array.sort_by { |e| e.keys.first }.rfind { |e| e.keys.first <= target_date }
     return nil unless entry
 
     entry.values.first.to_f
