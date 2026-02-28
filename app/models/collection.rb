@@ -72,7 +72,7 @@ class Collection < ApplicationRecord
   end
 
   def display_cover_card
-    cover_card || MagicCard.find_by(name: 'Sol Ring')
+    cover_card
   end
 
   # Aggregate collection history across multiple collections
