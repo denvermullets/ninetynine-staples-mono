@@ -10,9 +10,15 @@
   <%= link_to link, class: "block" do %>
     <div class="flex flex-row items-center gap-2 p-2 h-16 transition border rounded-xl text-grey-text hover:border-accent-50 <%= active ? 'border-accent-50' : 'border-highlight' %>">
       <div class="relative w-12 h-12 shrink-0 overflow-hidden rounded-lg">
-        <%= image_tag card.art_crop.present? ? card.art_crop : card.image_small,
-                    alt: card.name,
-                    class: "absolute top-0 left-0 w-full h-full object-cover transform " %>
+        <% if card %>
+          <%= image_tag card.art_crop.present? ? card.art_crop : card.image_small,
+                      alt: card.name,
+                      class: "absolute top-0 left-0 w-full h-full object-cover transform " %>
+        <% else %>
+          <div class="absolute top-0 left-0 w-full h-full bg-background flex items-center justify-center">
+            <span class="text-grey-text text-lg">?</span>
+          </div>
+        <% end %>
       </div>
 
       <div class="flex flex-col justify-center min-w-0 <%= local_assigns[:is_owner] ? "pr-6" : "" %>">

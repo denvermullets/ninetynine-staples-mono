@@ -105,7 +105,7 @@
 
             <%= f.select :cover_card_id,
                 options_for_select(
-                  [['Auto (Sol Ring)', nil]] + cover_card_options.map { |c| [c.name, c.id] },
+                  [['None', nil]] + cover_card_options.map { |c| [c.name, c.id] },
                   collection.cover_card_id
                 ),
                 {},
