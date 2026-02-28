@@ -34,6 +34,13 @@ module Search
       end
     end
 
+    def value_expression
+      <<~SQL.squish
+        COALESCE(collection_magic_cards.quantity, 0) * COALESCE(magic_cards.normal_price, 0) +
+        COALESCE(collection_magic_cards.foil_quantity, 0) * COALESCE(magic_cards.foil_price, 0)
+      SQL
+    end
+
     def handle_search
       @cards = if @search_term.present? && @boxset_id.nil? && @collection_id.nil?
                  MagicCard.where('name ILIKE ?', "%#{@search_term}%")
@@ -49,22 +56,16 @@ module Search
       when :id
         @cards = sort_by_card_num(@cards)
       when :price
-        # TODO: when we add table sorting this will not work for boxsets
-        # Using DISTINCT ON to get one row per card, picking the one with highest total_value
-        subquery = @cards
-                   .joins(:collection_magic_cards)
-                   .select("DISTINCT ON (magic_cards.id) magic_cards.id,
-                             collection_magic_cards.foil_quantity,
-                             collection_magic_cards.quantity,
-                             COALESCE(collection_magic_cards.quantity, 0) * COALESCE(magic_cards.normal_price, 0) +
-                             COALESCE(collection_magic_cards.foil_quantity, 0) * COALESCE(magic_cards.foil_price, 0)
-                             AS total_value")
-                   .order('magic_cards.id, total_value DESC')
-
-        MagicCard
-          .joins("INNER JOIN (#{subquery.to_sql}) sub ON sub.id = magic_cards.id")
-          .select('magic_cards.*, sub.foil_quantity, sub.quantity, sub.total_value')
-          .order('sub.total_value DESC')
+        @cards
+          .joins(:collection_magic_cards)
+          .select(
+            "magic_cards.*,
+             SUM(COALESCE(collection_magic_cards.quantity, 0)) AS quantity,
+             SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) AS foil_quantity,
+             SUM(#{value_expression}) AS computed_total_value"
+          )
+          .group('magic_cards.id')
+          .order(Arel.sql("SUM(#{value_expression}) DESC"))
       end
     end
   end
