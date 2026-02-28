@@ -28,6 +28,7 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
+  gem "bundler-audit", require: false
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "capybara"
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
