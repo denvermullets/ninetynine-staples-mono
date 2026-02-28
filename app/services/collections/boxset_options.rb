@@ -21,14 +21,19 @@ module Collections
     end
 
     def single_collection_boxset_ids
-      collection = @collections.find_by(id: @collection_id)
-      return [] unless collection
-
-      collection.magic_cards.pluck(:boxset_id).uniq.compact
+      MagicCard.joins(:collection_magic_cards)
+               .where(collection_magic_cards: { collection_id: @collection_id })
+               .distinct
+               .pluck(:boxset_id)
+               .compact
     end
 
     def all_collection_boxset_ids
-      @collections.flat_map { |col| col.magic_cards.pluck(:boxset_id) }.uniq.compact
+      MagicCard.joins(:collection_magic_cards)
+               .where(collection_magic_cards: { collection_id: @collections.select(:id) })
+               .distinct
+               .pluck(:boxset_id)
+               .compact
     end
   end
 end
