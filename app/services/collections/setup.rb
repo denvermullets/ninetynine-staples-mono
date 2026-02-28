@@ -36,7 +36,7 @@ module Collections
 
     def ordered_collections
       unless owner?
-        collections = user_collections.order(:id).to_a
+        collections = user_collections.includes(:cover_card).order(:id).to_a
         return collections.select(&:is_public)
       end
 

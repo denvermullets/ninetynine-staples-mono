@@ -98,6 +98,21 @@
           </label>
         </div>
 
+        <% cover_card_options = collection.magic_cards.distinct.order(:name) %>
+        <% if cover_card_options.any? %>
+          <div>
+            <%= f.label :cover_card_id, "Cover Art", class: "block text-sm font-medium text-grey-text mb-1" %>
+
+            <%= f.select :cover_card_id,
+                options_for_select(
+                  [['Auto (Sol Ring)', nil]] + cover_card_options.map { |c| [c.name, c.id] },
+                  collection.cover_card_id
+                ),
+                {},
+                class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
+          </div>
+        <% end %>
+
         <% if local_assigns[:available_tags]&.any? %>
           <div>
             <label class="block text-sm font-medium text-grey-text mb-2">

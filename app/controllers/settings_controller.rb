@@ -68,8 +68,8 @@ class SettingsController < ApplicationController
 
   def build_column_prefs
     columns = params[:visible_columns] || {}
-    User::COLUMN_KEYS.each_with_object({}) do |key, hash|
-      hash[key] = ['true', true].include?(columns[key])
+    User::COLUMN_KEYS.to_h do |key|
+      [key, ['true', true].include?(columns[key])]
     end
   end
 end

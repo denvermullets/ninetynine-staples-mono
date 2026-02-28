@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_15_184429) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -31,7 +31,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_184429) do
     t.integer "total_set_size"
     t.datetime "updated_at", null: false
     t.boolean "valid_cards", default: false, null: false
-    t.jsonb "value_history", default: {"foil"=>[], "normal"=>[]}
+    t.jsonb "value_history", default: {"foil" => [], "normal" => []}
   end
 
   create_table "card_prices", force: :cascade do |t|
@@ -92,6 +92,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_184429) do
   create_table "collections", force: :cascade do |t|
     t.jsonb "collection_history", default: {}
     t.string "collection_type"
+    t.bigint "cover_card_id"
     t.datetime "created_at", null: false
     t.text "description"
     t.boolean "is_public", default: true, null: false
@@ -104,6 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_184429) do
     t.decimal "total_value", precision: 15, scale: 2, default: "0.0"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["cover_card_id"], name: "index_collections_on_cover_card_id"
     t.index ["user_id"], name: "index_collections_on_user_id"
   end
 
@@ -479,6 +481,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_184429) do
   add_foreign_key "collection_magic_cards", "magic_cards"
   add_foreign_key "collection_tags", "collections"
   add_foreign_key "collection_tags", "tags"
+  add_foreign_key "collections", "magic_cards", column: "cover_card_id"
   add_foreign_key "collections", "users"
   add_foreign_key "commander_games", "tracked_decks"
   add_foreign_key "commander_games", "users"

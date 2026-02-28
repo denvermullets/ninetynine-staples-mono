@@ -12,7 +12,7 @@ gem "pry"
 gem "puma", ">= 7.2.0"
 gem "rack-attack"
 gem "rails", "~> 8.1.2"
-gem "solid_queue", "~> 1.3.1"
+gem "solid_queue", "~> 1.3.2"
 gem "sprockets-rails"
 gem "stimulus-rails"
 gem "tailwindcss-rails", "~> 4.4.0"
@@ -28,13 +28,17 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
+  gem "bundler-audit", require: false
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "capybara"
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem 'factory_bot_rails'
   gem 'faker'
-  gem "rspec-rails", "~> 8.0.2"
+  gem "rspec-rails", "~> 8.0.3"
   gem "rubocop"
   gem "selenium-webdriver"
+end
+
+group :development do
   gem "web-console"
 end
