@@ -37,9 +37,9 @@ class User < ApplicationRecord
   def ordered_collections
     order = collection_order
     if order.present?
-      collections.sort_by { |c| [order.index(c.id) || Float::INFINITY, c.id] }
+      collections.includes(:cover_card).sort_by { |c| [order.index(c.id) || Float::INFINITY, c.id] }
     else
-      collections.order(:id).to_a
+      collections.includes(:cover_card).order(:id).to_a
     end
   end
 

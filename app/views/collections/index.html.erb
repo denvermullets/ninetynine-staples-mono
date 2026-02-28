@@ -59,7 +59,7 @@
                  locals: {
                    name: 'Create a Collection',
                    description: 'All this could be yours',
-                   card: MagicCard.first,
+                   card: MagicCard.find_by(name: 'Sol Ring'),
                    link: new_collection_path,
                    active: false
                  } %>
@@ -110,7 +110,7 @@
                        locals: {
                          name: col.name,
                          description: col.description,
-                         card: col.magic_cards.count.zero? ? MagicCard.last : col.magic_cards.last,
+                         card: col.display_cover_card,
                          link: show_path,
                          active: col.id == params[:collection_id].to_i,
                          collection: col,
@@ -163,7 +163,7 @@
                        locals: {
                          name: col.name,
                          description: col.description,
-                         card: col.magic_cards.count.zero? ? MagicCard.last : col.magic_cards.last,
+                         card: col.display_cover_card,
                          link: show_path,
                          active: col.id == params[:collection_id].to_i,
                          collection: col,

@@ -65,6 +65,7 @@ module CollectionRecord
       proxy_price_change = calculate_price_change(proxy_quantity_change, proxy_foil_quantity_change)
 
       update_card_quantities(collection_card)
+      @collection.update!(cover_card_id: @magic_card.id) if @collection.cover_card_id.nil?
 
       UpdateTotals.call(
         collection: @collection,

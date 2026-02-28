@@ -31,7 +31,11 @@ class CollectionsController < ApplicationController
   def overview
     @user = User.find_by!(username: params[:username])
     @is_owner = current_user&.id == @user.id
-    @collections = @is_owner ? current_user.ordered_collections : @user.collections.visible_to_public.order(:id)
+    @collections = if @is_owner
+                     current_user.ordered_collections
+                   else
+                     @user.collections.includes(:cover_card).visible_to_public.order(:id)
+                   end
     @deck_collections, @regular_collections = @collections.partition { |c| Collection.deck_type?(c.collection_type) }
   end
 
@@ -125,9 +129,9 @@ class CollectionsController < ApplicationController
 
   def collection_params
     if params[:collection].present?
-      params.require(:collection).permit(:description, :name, :collection_type, :user_id, :is_public)
+      params.require(:collection).permit(:description, :name, :collection_type, :user_id, :is_public, :cover_card_id)
     else
-      params.permit(:description, :name, :collection_type, :is_public)
+      params.permit(:description, :name, :collection_type, :is_public, :cover_card_id)
     end
   end
 

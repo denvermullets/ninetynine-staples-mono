@@ -2,6 +2,7 @@ class Collection < ApplicationRecord
   validates :name, :description, presence: true
 
   belongs_to :user
+  belongs_to :cover_card, class_name: 'MagicCard', optional: true
 
   has_many :collection_magic_cards
   has_many :magic_cards, through: :collection_magic_cards
@@ -68,6 +69,10 @@ class Collection < ApplicationRecord
 
   def hidden?
     !is_public
+  end
+
+  def display_cover_card
+    cover_card || MagicCard.find_by(name: 'Sol Ring')
   end
 
   # Aggregate collection history across multiple collections
