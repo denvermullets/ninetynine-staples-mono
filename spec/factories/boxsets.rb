@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :boxset do
-    code { 'SET123' }
+    sequence(:code) { |n| "SET#{n}" }
     name { 'Example Set' }
     release_date { '2024-01-01' }
     base_set_size { 100 }
