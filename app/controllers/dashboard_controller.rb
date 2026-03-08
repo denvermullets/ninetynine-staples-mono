@@ -46,4 +46,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def ingest_precon_decks
+    IngestPreconDecks.perform_later
+
+    redirect_to '/jobs'
+  end
 end
