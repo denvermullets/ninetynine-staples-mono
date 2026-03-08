@@ -62,12 +62,34 @@ module CardScanner
     end
 
     def find_best_match_for_words(words)
+      exact_match = find_exact_by_name(words)
+      return exact_match if exact_match
+
+      find_fuzzy_by_name(words)
+    end
+
+    def find_exact_by_name(words)
+      candidate = words.join(' ')
+      base_card_scope.where('magic_cards.name = ?', candidate)
+                     .order('boxsets.release_date DESC')
+                     .first
+    end
+
+    def find_fuzzy_by_name(words)
       conditions = words.map { 'magic_cards.name ILIKE ?' }
       values = words.map { |w| "%#{w}%" }
 
-      cards = base_card_scope.where(conditions.join(' OR '), *values)
+      # Try AND first — all words must match — for more precise results
+      cards = base_card_scope.where(conditions.join(' AND '), *values)
                              .order('boxsets.release_date DESC')
                              .limit(100)
+
+      # Fall back to OR if AND returns nothing
+      if cards.empty?
+        cards = base_card_scope.where(conditions.join(' OR '), *values)
+                               .order('boxsets.release_date DESC')
+                               .limit(100)
+      end
 
       score_and_select_best(cards, words)
     end

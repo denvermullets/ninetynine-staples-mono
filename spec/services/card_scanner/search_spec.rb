@@ -16,10 +16,22 @@ RSpec.describe CardScanner::Search, type: :service do
   end
 
   context 'searching by query name' do
-    it 'finds cards matching the name' do
+    it 'finds cards matching the name exactly' do
       result = described_class.call(query: 'Lightning Bolt', user: user)
       expect(result).not_to be_empty
       expect(result.first[:card].name).to eq('Lightning Bolt')
+    end
+
+    it 'falls back to fuzzy search when exact match fails' do
+      result = described_class.call(query: 'Lightning', user: user)
+      expect(result).not_to be_empty
+      expect(result.first[:card].name).to eq('Lightning Bolt')
+    end
+
+    it 'prefers exact match over fuzzy match' do
+      create(:magic_card, name: 'Lightning', boxset: boxset, card_side: nil, is_token: false)
+      result = described_class.call(query: 'Lightning', user: user)
+      expect(result.first[:card].name).to eq('Lightning')
     end
   end
 
