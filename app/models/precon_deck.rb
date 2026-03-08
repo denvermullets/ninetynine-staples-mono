@@ -19,6 +19,10 @@ class PreconDeck < ApplicationRecord
   end
 
   def needs_card_sync?
-    released? && within_sync_window?
+    return false unless released?
+
+    # Always sync if we have no cards yet (initial ingestion)
+    # Otherwise only re-sync within the 2-week window to catch updates
+    precon_deck_cards.empty? || within_sync_window?
   end
 end
