@@ -120,6 +120,7 @@
               <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Ingest Precon Decks', dashboard_ingest_precon_decks_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Manage Tags', admin_tags_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
@@ -319,6 +320,10 @@
 
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Ingest Precon Decks', dashboard_ingest_precon_decks_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
