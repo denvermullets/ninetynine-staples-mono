@@ -85,6 +85,29 @@ export default class extends Controller {
     const fixedHeight = 150;
     canvas.style.height = `${fixedHeight}px`;
 
+    // Custom plugin to draw a vertical crosshair line on hover
+    const verticalLinePlugin = {
+      id: "verticalLine",
+      afterDraw: (chart) => {
+        if (chart.tooltip?._active?.length) {
+          const activePoint = chart.tooltip._active[0];
+          const ctx = chart.ctx;
+          const x = activePoint.element.x;
+          const topY = chart.scales.y.top;
+          const bottomY = chart.scales.y.bottom;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, topY);
+          ctx.lineTo(x, bottomY);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+          ctx.stroke();
+          ctx.restore();
+        }
+      },
+    };
+
     // Create chart
     this.chart = new Chart(canvas.getContext("2d"), {
       type: "line",
@@ -102,9 +125,14 @@ export default class extends Controller {
           },
         ],
       },
+      plugins: [verticalLinePlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
         scales: {
           y: {
             suggestedMin: this.getSuggestedMin(minValue),
