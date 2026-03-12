@@ -43,6 +43,9 @@
                 data-context-menu-remove-commander-url-value="<%= remove_commander_deck_builder_path(@deck, card_id: card.id) %>"
               <% end %>
               data-context-menu-view-card-url-value="<%= view_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
+              <% if @combo_card_oracle_ids&.key?(card.magic_card.scryfall_oracle_id) %>
+                data-context-menu-view-combos-url-value="<%= view_combos_modal_deck_builder_path(@deck, card_id: card.id) %>"
+              <% end %>
               <% if is_staged_planned %>
                 data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
                 data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(@deck, card_id: card.id) %>"
@@ -124,6 +127,10 @@
                 'text-accent-400'
                 elsif card.needed?
                 'text-orange-400'
+                elsif @combo_card_oracle_ids&.dig(card.magic_card.scryfall_oracle_id) == :included
+                'text-purple-400'
+                elsif @combo_card_oracle_ids&.dig(card.magic_card.scryfall_oracle_id) == :almost_included
+                'text-amber-400'
                 else
                 'text-grey-text'
                 end %>
@@ -217,6 +224,20 @@
                 >
                   View Card
                 </button>
+
+                <% if @combo_card_oracle_ids&.key?(card.magic_card.scryfall_oracle_id) %>
+                  <button
+                    type="button"
+                    data-action="click->context-menu#viewCombos"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm text-purple-400
+                      hover:bg-background hover:text-purple-300 transition
+                      cursor-pointer whitespace-nowrap
+                    "
+                  >
+                    View Combo(s)
+                  </button>
+                <% end %>
 
                 <% if can_set_commander %>
                   <button

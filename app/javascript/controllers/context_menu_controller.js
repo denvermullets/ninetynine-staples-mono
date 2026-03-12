@@ -12,6 +12,7 @@ export default class extends Controller {
     swapSourceUrl: String,
     editStagedUrl: String,
     viewCardUrl: String,
+    viewCombosUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -227,6 +228,19 @@ export default class extends Controller {
     if (!url) return;
 
     // Open the view card modal via Turbo frame
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
+  }
+
+  viewCombos(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.viewCombosUrlValue;
+    if (!url) return;
+
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
       frame.src = url;

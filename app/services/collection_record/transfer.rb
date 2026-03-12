@@ -1,6 +1,5 @@
 # this service transfers cards from one collection to another
 module CollectionRecord
-  # rubocop:disable Metrics/ClassLength
   # Transfer service handles complex card movement between collections with quantity validation,
   # price calculations, and atomic updates. The logic is cohesive and further extraction would
   # reduce clarity. Price calculations and card details loading have already been extracted.
@@ -144,5 +143,4 @@ module CollectionRecord
       }
     end
   end
-  # rubocop:enable Metrics/ClassLength
 end

@@ -1,4 +1,3 @@
-# rubocop:disable Metrics/ClassLength
 class DeckBuilderController < ApplicationController
   include DeckBuilderModals
   include DeckBuilderCardActions
@@ -18,6 +17,7 @@ class DeckBuilderController < ApplicationController
     @sort_by = params[:sort_by] || 'mana_value'
     @search_scope = params[:search_scope] || 'all'
     load_deck_cards
+    load_combo_data
     respond_to do |format|
       format.html
       format.turbo_stream { render_deck_cards_stream }
@@ -80,6 +80,12 @@ class DeckBuilderController < ApplicationController
     render_card_action_response(result, success_message: "Changed source to #{result[:source_name]}")
   end
 
+  def refresh_combos
+    SyncDeckCombosJob.perform_later(@deck.id)
+    render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
+                                                       locals: { message: 'Checking for combos...' })
+  end
+
   private
 
   def set_deck
@@ -95,6 +101,12 @@ class DeckBuilderController < ApplicationController
     result = DeckBuilder::LoadCards.call(deck: @deck, grouping: @grouping, sort_by: @sort_by)
     @staged_cards, @needed_cards, @owned_cards = result.values_at(:staged_cards, :needed_cards, :owned_cards)
     @grouped_cards, @stats = result.values_at(:grouped_cards, :stats)
+  end
+
+  def load_combo_data
+    combo_result = DeckBuilder::LoadCombos.call(deck: @deck)
+    @combo_card_oracle_ids = combo_result[:combo_card_oracle_ids]
+    @combos_checked_at = combo_result[:checked_at]
   end
 
   def render_card_action_response(result, success_message:)
@@ -132,4 +144,3 @@ class DeckBuilderController < ApplicationController
 
   def deck_params = params.permit(:name, :description, :collection_type, :is_public, tag_ids: [])
 end
-# rubocop:enable Metrics/ClassLength
