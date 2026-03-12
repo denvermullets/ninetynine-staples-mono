@@ -8,6 +8,7 @@ module CollectionQuery
       @boxset_id = options[:code] ? Boxset.find_by(code: options[:code])&.id : nil
       @collection_id = options[:collection_id]
       @exact_color_match = options[:exact_color_match] || false
+      @hide_proxies = false
 
       # Support both direct values and raw params
       if options[:params]
@@ -17,6 +18,7 @@ module CollectionQuery
         @colors = options[:colors]&.compact_blank
         @price_change_min = options[:price_change_min]
         @price_change_max = options[:price_change_max]
+        @hide_proxies = options.fetch(:hide_proxies, false)
       end
     end
 
@@ -25,8 +27,9 @@ module CollectionQuery
       filtered = filtered.where(collections: { id: @collection_id }) if @collection_id.present?
       filtered = filtered.where(boxset_id: @boxset_id) if @boxset_id.present?
       filtered = filtered.where(rarity: @rarities) if @rarities.present?
-      filtered = filter_by_price_change(filtered) if @price_change_min.present? || @price_change_max.present?
+      filtered = filter_by_price_change(filtered) if price_change_filter?
       filtered = filter_by_colors(filtered) if @colors.present?
+      filtered = exclude_proxy_only(filtered) if @hide_proxies
 
       filtered
     end
@@ -38,6 +41,7 @@ module CollectionQuery
       @colors = params[:mana]&.flat_map { |c| c.split(',') }&.compact_blank
       @price_change_min, @price_change_max = parse_price_change_range(params[:price_change_range])
       @exact_color_match = params[:exact_color_match] == 'true'
+      @hide_proxies = params[:hide_proxies] != 'false'
     end
 
     def parse_price_change_range(range)
@@ -47,10 +51,11 @@ module CollectionQuery
       [min, max]
     end
 
-    def filter_by_price_change(cards)
-      return cards unless @price_change_min.present? || @price_change_max.present?
+    def price_change_filter?
+      @price_change_min.present? || @price_change_max.present?
+    end
 
-      # Show cards where EITHER normal or foil price change falls within the range
+    def filter_by_price_change(cards)
       if @price_change_min.present? && @price_change_max.present?
         cards.where(
           '(price_change_weekly_normal BETWEEN ? AND ?) OR (price_change_weekly_foil BETWEEN ? AND ?)',
@@ -83,6 +88,15 @@ module CollectionQuery
       cards.joins(magic_card_colors: :color)
            .where(colors: { name: @colors })
            .distinct
+    end
+
+    def exclude_proxy_only(cards)
+      return cards unless cards.respond_to?(:group_values) && cards.group_values.present?
+
+      cards.having(
+        'SUM(COALESCE(collection_magic_cards.quantity, 0)) + ' \
+        'SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) > 0'
+      )
     end
 
     def filter_by_exact_colors(cards)

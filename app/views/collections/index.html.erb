@@ -53,6 +53,35 @@
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
 
+    <!-- Show Proxies Toggle -->
+    <div
+      class="flex items-center justify-between"
+      data-controller="proxy-toggle"
+    >
+      <span class="text-sm text-grey-text">Show Proxies</span>
+
+      <button
+        type="button"
+        data-action="click->proxy-toggle#toggle"
+        data-proxy-toggle-target="button"
+        class="
+          relative inline-flex h-6 w-11 items-center rounded-full
+          transition-colors cursor-pointer
+          <%= params[:hide_proxies] == 'false' ? 'bg-highlight' : 'bg-background border border-highlight' %>
+        "
+        role="switch"
+        aria-checked="<%= params[:hide_proxies] == 'false' %>"
+      >
+        <span
+          data-proxy-toggle-target="knob"
+          class="
+            inline-block h-4 w-4 rounded-full bg-grey-text transition-transform
+            <%= params[:hide_proxies] == 'false' ? 'translate-x-6' : 'translate-x-1' %>
+          "
+        ></span>
+      </button>
+    </div>
+
     <div class="flex flex-col space-y-4">
       <% if current_user %>
         <%= render partial: 'binder',
