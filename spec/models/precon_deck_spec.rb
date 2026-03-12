@@ -78,8 +78,9 @@ RSpec.describe PreconDeck, type: :model do
       expect(deck.needs_card_sync?).to be false
     end
 
-    it 'returns false when released but outside sync window' do
+    it 'returns false when released but outside sync window and has cards' do
       deck = PreconDeck.new(release_date: 1.month.ago.to_date)
+      allow(deck.precon_deck_cards).to receive(:empty?).and_return(false)
       expect(deck.needs_card_sync?).to be false
     end
   end
