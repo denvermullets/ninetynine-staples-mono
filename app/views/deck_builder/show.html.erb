@@ -223,9 +223,17 @@
           </select>
         </div>
 
-        <% if @is_owner %>
-          <!-- Combo Check -->
-          <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2">
+          <% if @combos_checked_at %>
+            <%= link_to combos_deck_builder_path(@deck),
+              class: "px-3 py-1.5 text-sm border rounded-lg border-purple-500/30
+                text-purple-400 hover:bg-purple-500/10 hover:border-purple-500/50
+                transition cursor-pointer" do %>
+              View Combos
+            <% end %>
+          <% end %>
+
+          <% if @is_owner %>
             <%= button_to refresh_combos_deck_builder_path(@deck),
               class: "px-3 py-1.5 text-sm border rounded-lg border-highlight
                 text-grey-text hover:bg-foreground hover:text-accent-50
@@ -240,8 +248,8 @@
                 Check for Combos
               <% end %>
             <% end %>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
 
         <!-- Stats -->
         <%= turbo_frame_tag 'deck_stats' do %>
