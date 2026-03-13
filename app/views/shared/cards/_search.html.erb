@@ -28,6 +28,7 @@
         <%= form.hidden_field :view_mode, value: params[:view_mode] %>
         <%= form.hidden_field :grouping, value: params[:grouping] %>
         <%= form.hidden_field :exact_color_match, value: params[:exact_color_match] %>
+        <%= form.hidden_field :hide_proxies, value: params[:hide_proxies] || 'true' %>
 
         <%= form.submit 'Search',
               class: 'p-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700' %>

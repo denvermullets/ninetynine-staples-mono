@@ -124,6 +124,9 @@ export default class extends Controller {
           ...(currentParams.get("exact_color_match") === "true" && {
             exact_color_match: "true",
           }),
+          ...(currentParams.get("hide_proxies") === "false" && {
+            hide_proxies: "false",
+          }),
           ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
           ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
         }).toString();
