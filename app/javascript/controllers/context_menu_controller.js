@@ -236,14 +236,12 @@ export default class extends Controller {
 
   viewCombos(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.viewCombosUrlValue;
     if (!url) return;
 
-    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
-    if (frame) {
-      frame.src = url;
-    }
+    Turbo.visit(url);
   }
 }
