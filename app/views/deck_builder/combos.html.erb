@@ -14,11 +14,21 @@
         <% end %>
 
         <div>
-          <h1 class="text-xl font-semibold text-white">Combos</h1>
+          <h1 class="text-xl font-semibold text-white">
+            <% if @filtered_card %>
+              Combos for <%= @filtered_card.name %>
+            <% else %>
+              Combos
+            <% end %>
+          </h1>
           <% if @commander_names.present? %>
             <p class="text-sm text-grey-text"><%= @commander_names %></p>
           <% else %>
             <p class="text-sm text-grey-text"><%= @deck.name %></p>
+          <% end %>
+          <% if @filtered_card %>
+            <%= link_to "View all combos", combos_deck_builder_path(@deck),
+              class: "text-xs text-accent-50 hover:underline" %>
           <% end %>
         </div>
       </div>
