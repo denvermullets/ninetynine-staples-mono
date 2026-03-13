@@ -1,26 +1,11 @@
 module DeckBuilder
   class LoadCombos < Service
-    COMBO_ORDER = Arel.sql("CASE combo_type WHEN 'included' THEN 0 ELSE 1 END")
-
     def self.combos_for_card(deck:, oracle_id:)
       deck.deck_combos
           .includes(combo: :combo_cards, deck_combo_missing_cards: [])
           .joins(combo: :combo_cards)
           .where(combo_cards: { oracle_id: oracle_id })
           .distinct
-    end
-
-    def self.combos_for_page(deck:, oracle_id: nil)
-      if oracle_id.present?
-        matching_ids = deck.deck_combos.joins(combo: :combo_cards)
-                           .where(combo_cards: { oracle_id: oracle_id }).select(:id)
-        scope = DeckCombo.where(id: matching_ids)
-      else
-        scope = deck.deck_combos
-      end
-
-      scope.includes(combo: :combo_cards, deck_combo_missing_cards: [])
-           .order(COMBO_ORDER, :id)
     end
 
     def initialize(deck:)

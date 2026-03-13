@@ -87,7 +87,7 @@ class DeckBuilderController < ApplicationController
       return
     end
 
-    @deck_combos = DeckBuilder::LoadCombos.combos_for_page(deck: @deck, oracle_id: params[:card])
+    @deck_combos = DeckBuilder::LoadCombosPage.call(deck: @deck, oracle_id: params[:card])
     @filtered_card = find_filtered_card(params[:card])
     @included_count = @deck_combos.count { |dc| dc.combo_type == 'included' }
     @missing_count = @deck_combos.count { |dc| dc.combo_type == 'almost_included' }
