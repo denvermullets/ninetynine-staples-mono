@@ -3,8 +3,9 @@ class DeckBuilderController < ApplicationController
   include DeckBuilderCardActions
 
   before_action :set_deck
-  before_action :authenticate_user!, except: [:show]
-  before_action :ensure_owner, except: [:show]
+  before_action :authenticate_user!, except: %i[show view_card_modal view_combos_modal]
+  before_action :ensure_owner, except: %i[show view_card_modal view_combos_modal]
+  before_action :ensure_visible, only: %i[view_card_modal view_combos_modal]
 
   def show
     if @deck.hidden? && !@is_owner
@@ -95,6 +96,10 @@ class DeckBuilderController < ApplicationController
 
   def ensure_owner
     redirect_to(root_path, alert: 'Access denied') unless @deck.user_id == current_user.id
+  end
+
+  def ensure_visible
+    redirect_to(root_path, alert: 'This deck is private') if @deck.hidden? && !@is_owner
   end
 
   def load_deck_cards
