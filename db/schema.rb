@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_27_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_12_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -92,6 +92,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_200000) do
   create_table "collections", force: :cascade do |t|
     t.jsonb "collection_history", default: {}
     t.string "collection_type"
+    t.datetime "combos_checked_at"
     t.bigint "cover_card_id"
     t.datetime "created_at", null: false
     t.text "description"
@@ -113,6 +114,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_200000) do
     t.datetime "created_at", null: false
     t.string "name"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "combo_cards", force: :cascade do |t|
+    t.string "card_name", null: false
+    t.bigint "combo_id", null: false
+    t.datetime "created_at", null: false
+    t.uuid "oracle_id"
+    t.datetime "updated_at", null: false
+    t.index ["combo_id"], name: "index_combo_cards_on_combo_id"
+    t.index ["oracle_id"], name: "index_combo_cards_on_oracle_id"
+  end
+
+  create_table "combos", force: :cascade do |t|
+    t.string "color_identity"
+    t.datetime "created_at", null: false
+    t.boolean "has_banned_card", default: false
+    t.string "permalink"
+    t.text "prerequisites"
+    t.text "results"
+    t.string "spellbook_id", null: false
+    t.text "steps"
+    t.datetime "updated_at", null: false
+    t.index ["spellbook_id"], name: "index_combos_on_spellbook_id", unique: true
   end
 
   create_table "commander_games", force: :cascade do |t|
@@ -138,6 +162,81 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_200000) do
     t.index ["won"], name: "index_commander_games_on_won"
   end
 
+  create_table "commander_league_participants", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.bigint "commander_league_id", null: false
+    t.datetime "created_at", null: false
+    t.date "joined_on", null: false
+    t.string "status", default: "active", null: false
+    t.bigint "tracked_deck_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["collection_id"], name: "index_commander_league_participants_on_collection_id"
+    t.index ["commander_league_id", "collection_id"], name: "idx_league_participants_league_collection", unique: true
+    t.index ["commander_league_id", "user_id"], name: "idx_league_participants_league_user", unique: true
+    t.index ["commander_league_id"], name: "index_commander_league_participants_on_commander_league_id"
+    t.index ["tracked_deck_id"], name: "index_commander_league_participants_on_tracked_deck_id"
+    t.index ["user_id"], name: "index_commander_league_participants_on_user_id"
+  end
+
+  create_table "commander_league_rules", force: :cascade do |t|
+    t.bigint "commander_league_id", null: false
+    t.jsonb "config", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.string "rule_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commander_league_id", "rule_type"], name: "idx_on_commander_league_id_rule_type_cff361e57e", unique: true
+    t.index ["commander_league_id"], name: "index_commander_league_rules_on_commander_league_id"
+  end
+
+  create_table "commander_league_swaps", force: :cascade do |t|
+    t.bigint "card_added_id", null: false
+    t.bigint "card_removed_id", null: false
+    t.bigint "commander_league_participant_id", null: false
+    t.decimal "cost", precision: 12, scale: 2, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.boolean "is_basic_land_swap", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.integer "week_number", null: false
+    t.index ["card_added_id"], name: "index_commander_league_swaps_on_card_added_id"
+    t.index ["card_removed_id"], name: "index_commander_league_swaps_on_card_removed_id"
+    t.index ["commander_league_participant_id", "week_number"], name: "idx_league_swaps_participant_week"
+  end
+
+  create_table "commander_leagues", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.text "description"
+    t.date "end_date"
+    t.string "name", null: false
+    t.date "start_date", null: false
+    t.string "status", default: "draft", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_commander_leagues_on_created_by_id"
+    t.index ["status"], name: "index_commander_leagues_on_status"
+  end
+
+  create_table "deck_combo_missing_cards", force: :cascade do |t|
+    t.string "card_name", null: false
+    t.datetime "created_at", null: false
+    t.bigint "deck_combo_id", null: false
+    t.uuid "oracle_id"
+    t.datetime "updated_at", null: false
+    t.index ["deck_combo_id"], name: "index_deck_combo_missing_cards_on_deck_combo_id"
+  end
+
+  create_table "deck_combos", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.bigint "combo_id", null: false
+    t.string "combo_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collection_id", "combo_id"], name: "index_deck_combos_on_collection_id_and_combo_id", unique: true
+    t.index ["collection_id"], name: "index_deck_combos_on_collection_id"
+    t.index ["combo_id"], name: "index_deck_combos_on_combo_id"
+  end
+
   create_table "finishes", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
@@ -150,6 +249,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_200000) do
     t.string "name"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_frame_effects_on_name", unique: true
+  end
+
+  create_table "game_changers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "magic_card_id", null: false
+    t.text "reason"
+    t.datetime "updated_at", null: false
+    t.index ["magic_card_id"], name: "index_game_changers_on_magic_card_id", unique: true
   end
 
   create_table "game_opponents", force: :cascade do |t|
@@ -483,8 +590,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_200000) do
   add_foreign_key "collection_tags", "tags"
   add_foreign_key "collections", "magic_cards", column: "cover_card_id"
   add_foreign_key "collections", "users"
+  add_foreign_key "combo_cards", "combos"
   add_foreign_key "commander_games", "tracked_decks"
   add_foreign_key "commander_games", "users"
+  add_foreign_key "commander_league_participants", "collections"
+  add_foreign_key "commander_league_participants", "commander_leagues"
+  add_foreign_key "commander_league_participants", "tracked_decks"
+  add_foreign_key "commander_league_participants", "users"
+  add_foreign_key "commander_league_rules", "commander_leagues"
+  add_foreign_key "commander_league_swaps", "commander_league_participants"
+  add_foreign_key "commander_league_swaps", "magic_cards", column: "card_added_id"
+  add_foreign_key "commander_league_swaps", "magic_cards", column: "card_removed_id"
+  add_foreign_key "commander_leagues", "users", column: "created_by_id"
+  add_foreign_key "deck_combo_missing_cards", "deck_combos"
+  add_foreign_key "deck_combos", "collections"
+  add_foreign_key "deck_combos", "combos"
+  add_foreign_key "game_changers", "magic_cards"
   add_foreign_key "game_opponents", "commander_games"
   add_foreign_key "game_opponents", "magic_cards", column: "commander_id"
   add_foreign_key "game_opponents", "magic_cards", column: "partner_commander_id"

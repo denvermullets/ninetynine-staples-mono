@@ -87,6 +87,7 @@ export default class extends Controller {
       ...(currentParams.get("code") && { code: currentParams.get("code") }),
       ...(this.collectionIdValue && { collection_id: this.collectionIdValue }),
       ...(currentParams.get("valuable_only") && { valuable_only: currentParams.get("valuable_only") }),
+      ...(currentParams.get("hide_proxies") === "false" && { hide_proxies: "false" }),
       ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
       ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
     }).toString();

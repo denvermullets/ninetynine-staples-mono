@@ -93,6 +93,16 @@ module DeckBuilderModals
     }
   end
 
+  def view_combos_modal
+    card = @deck.collection_magic_cards.find(params[:card_id])
+    magic_card = card.magic_card
+    card_combos = DeckBuilder::LoadCombos.combos_for_card(deck: @deck, oracle_id: magic_card.scryfall_oracle_id)
+
+    render partial: 'deck_builder/view_combos_modal', locals: {
+      card: card, deck: @deck, magic_card: magic_card, card_combos: card_combos
+    }
+  end
+
   private
 
   def calculate_max_quantities(card, available)

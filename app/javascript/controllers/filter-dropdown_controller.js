@@ -176,6 +176,7 @@ export default class extends Controller {
       ...(currentParams.get("owned_only") && {
         owned_only: currentParams.get("owned_only"),
       }),
+      ...(currentParams.get("hide_proxies") === "false" && { hide_proxies: "false" }),
       ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
       ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
       ...(currentParams.get("view_mode") && { view_mode: currentParams.get("view_mode") }),
@@ -200,6 +201,7 @@ export default class extends Controller {
           ...(currentParams.get("owned_only") && {
             owned_only: currentParams.get("owned_only"),
           }),
+          ...(currentParams.get("hide_proxies") === "false" && { hide_proxies: "false" }),
           ...(currentParams.get("sort") && { sort: currentParams.get("sort") }),
           ...(currentParams.get("direction") && { direction: currentParams.get("direction") }),
           ...(currentParams.get("view_mode") && { view_mode: currentParams.get("view_mode") }),
