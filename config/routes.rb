@@ -114,7 +114,6 @@ Rails.application.routes.draw do
       get :edit_staged_modal
       patch :update_staged
       get :view_card_modal
-      get :view_combos_modal
       get :combos
       post :refresh_combos
     end
