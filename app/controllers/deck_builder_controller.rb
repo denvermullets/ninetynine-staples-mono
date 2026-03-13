@@ -3,9 +3,9 @@ class DeckBuilderController < ApplicationController
   include DeckBuilderCardActions
 
   before_action :set_deck
-  before_action :authenticate_user!, except: %i[show view_card_modal view_combos_modal]
-  before_action :ensure_owner, except: %i[show view_card_modal view_combos_modal]
-  before_action :ensure_visible, only: %i[view_card_modal view_combos_modal]
+  before_action :authenticate_user!, except: %i[show view_card_modal view_combos_modal combos]
+  before_action :ensure_owner, except: %i[show view_card_modal view_combos_modal combos]
+  before_action :ensure_visible, only: %i[view_card_modal view_combos_modal combos]
 
   def show
     if @deck.hidden? && !@is_owner
@@ -79,6 +79,22 @@ class DeckBuilderController < ApplicationController
       new_source_collection_id: params[:source_collection_id], new_magic_card_id: params[:magic_card_id]
     )
     render_card_action_response(result, success_message: "Changed source to #{result[:source_name]}")
+  end
+
+  def combos
+    if @deck.hidden? && !@is_owner
+      redirect_to root_path, alert: 'This deck is private'
+      return
+    end
+
+    @deck_combos = @deck.deck_combos
+                        .includes(combo: :combo_cards, deck_combo_missing_cards: [])
+                        .order(Arel.sql("CASE combo_type WHEN 'included' THEN 0 ELSE 1 END"), :id)
+
+    @included_count = @deck_combos.count { |dc| dc.combo_type == 'included' }
+    @missing_count = @deck_combos.count { |dc| dc.combo_type == 'almost_included' }
+
+    @commander_names = @deck.commanders.map { |c| c.magic_card.name }.join(' & ')
   end
 
   def refresh_combos

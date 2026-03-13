@@ -37,7 +37,7 @@
             data-controller="context-menu"
             data-context-menu-view-card-url-value="<%= view_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
             <% if @combo_card_oracle_ids&.key?(card.magic_card.scryfall_oracle_id) %>
-              data-context-menu-view-combos-url-value="<%= view_combos_modal_deck_builder_path(@deck, card_id: card.id) %>"
+              data-context-menu-view-combos-url-value="<%= combos_deck_builder_path(@deck) %>"
             <% end %>
             <% if @is_owner %>
               <% if can_set_commander %>
