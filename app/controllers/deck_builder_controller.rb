@@ -87,13 +87,10 @@ class DeckBuilderController < ApplicationController
       return
     end
 
-    @deck_combos = @deck.deck_combos
-                        .includes(combo: :combo_cards, deck_combo_missing_cards: [])
-                        .order(Arel.sql("CASE combo_type WHEN 'included' THEN 0 ELSE 1 END"), :id)
-
+    @deck_combos = DeckBuilder::LoadCombos.combos_for_page(deck: @deck, oracle_id: params[:card])
+    @filtered_card = find_filtered_card(params[:card])
     @included_count = @deck_combos.count { |dc| dc.combo_type == 'included' }
     @missing_count = @deck_combos.count { |dc| dc.combo_type == 'almost_included' }
-
     @commander_names = @deck.commanders.map { |c| c.magic_card.name }.join(' & ')
   end
 
@@ -104,6 +101,12 @@ class DeckBuilderController < ApplicationController
   end
 
   private
+
+  def find_filtered_card(oracle_id)
+    return unless oracle_id.present?
+
+    MagicCard.where(scryfall_oracle_id: oracle_id, card_side: [nil, 'a']).first
+  end
 
   def set_deck
     @deck = Collection.includes(:tags).find(params[:id])
