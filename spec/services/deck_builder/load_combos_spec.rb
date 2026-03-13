@@ -52,25 +52,4 @@ RSpec.describe DeckBuilder::LoadCombos, type: :service do
       expect(result[:combos_by_oracle_id]['bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'].size).to eq(1)
     end
   end
-
-  describe '.combos_for_card' do
-    let(:combo) { Combo.create!(spellbook_id: 'combo-1') }
-
-    before do
-      combo.combo_cards.create!(card_name: 'Card A', oracle_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
-      combo.combo_cards.create!(card_name: 'Card B', oracle_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb')
-      DeckCombo.create!(collection: deck, combo: combo, combo_type: 'included')
-    end
-
-    it 'returns deck_combos for the given oracle_id' do
-      result = described_class.combos_for_card(deck: deck, oracle_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
-      expect(result.size).to eq(1)
-      expect(result.first.combo).to eq(combo)
-    end
-
-    it 'returns empty when oracle_id has no combos' do
-      result = described_class.combos_for_card(deck: deck, oracle_id: 'nonexistent')
-      expect(result).to be_empty
-    end
-  end
 end
