@@ -34,17 +34,17 @@
               flex items-center gap-2 py-0.5 text-sm group cursor-pointer
               relative
             "
+            data-controller="context-menu"
+            data-context-menu-view-card-url-value="<%= view_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
+            <% if @combo_card_oracle_ids&.key?(card.magic_card.scryfall_oracle_id) %>
+              data-context-menu-view-combos-url-value="<%= view_combos_modal_deck_builder_path(@deck, card_id: card.id) %>"
+            <% end %>
             <% if @is_owner %>
-              data-controller="context-menu"
               <% if can_set_commander %>
                 data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(@deck, card_id: card.id) %>"
               <% end %>
               <% if is_commander %>
                 data-context-menu-remove-commander-url-value="<%= remove_commander_deck_builder_path(@deck, card_id: card.id) %>"
-              <% end %>
-              data-context-menu-view-card-url-value="<%= view_card_modal_deck_builder_path(@deck, card_id: card.id) %>"
-              <% if @combo_card_oracle_ids&.key?(card.magic_card.scryfall_oracle_id) %>
-                data-context-menu-view-combos-url-value="<%= view_combos_modal_deck_builder_path(@deck, card_id: card.id) %>"
               <% end %>
               <% if is_staged_planned %>
                 data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(@deck, card_id: card.id) %>"
@@ -60,10 +60,8 @@
               <% elsif is_staged_planned || is_needed %>
                 data-context-menu-remove-url-value="<%= remove_card_deck_builder_path(@deck, card_id: card.id) %>"
               <% end %>
-              data-action="mouseenter->deck-builder#previewCard click->context-menu#open contextmenu->context-menu#open"
-            <% else %>
-              data-action="mouseenter->deck-builder#previewCard"
             <% end %>
+            data-action="mouseenter->deck-builder#previewCard click->context-menu#open contextmenu->context-menu#open"
             data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
             data-card-name="<%= card.magic_card.name %>"
           >
@@ -203,42 +201,42 @@
               <%= number_to_currency(card.magic_card.display_price) %>
             </span>
 
-            <% if @is_owner %>
-              <!-- Context Menu -->
-              <div
-                data-context-menu-target="menu"
+            <!-- Context Menu -->
+            <div
+              data-context-menu-target="menu"
+              class="
+                hidden fixed z-50 w-fit py-1 bg-foreground border
+                border-highlight rounded-lg shadow-lg
+              "
+            >
+              <!-- View Card - always available -->
+              <button
+                type="button"
+                data-action="click->context-menu#viewCard"
                 class="
-                  hidden fixed z-50 w-fit py-1 bg-foreground border
-                  border-highlight rounded-lg shadow-lg
+                  block w-full px-4 py-2 text-left text-sm text-grey-text
+                  hover:bg-background hover:text-white transition
+                  cursor-pointer whitespace-nowrap
                 "
               >
-                <!-- View Card - always available -->
+                View Card
+              </button>
+
+              <% if @combo_card_oracle_ids&.key?(card.magic_card.scryfall_oracle_id) %>
                 <button
                   type="button"
-                  data-action="click->context-menu#viewCard"
+                  data-action="click->context-menu#viewCombos"
                   class="
-                    block w-full px-4 py-2 text-left text-sm text-grey-text
-                    hover:bg-background hover:text-white transition
+                    block w-full px-4 py-2 text-left text-sm text-purple-400
+                    hover:bg-background hover:text-purple-300 transition
                     cursor-pointer whitespace-nowrap
                   "
                 >
-                  View Card
+                  View Combo(s)
                 </button>
+              <% end %>
 
-                <% if @combo_card_oracle_ids&.key?(card.magic_card.scryfall_oracle_id) %>
-                  <button
-                    type="button"
-                    data-action="click->context-menu#viewCombos"
-                    class="
-                      block w-full px-4 py-2 text-left text-sm text-purple-400
-                      hover:bg-background hover:text-purple-300 transition
-                      cursor-pointer whitespace-nowrap
-                    "
-                  >
-                    View Combo(s)
-                  </button>
-                <% end %>
-
+              <% if @is_owner %>
                 <% if can_set_commander %>
                   <button
                     type="button"
@@ -353,8 +351,8 @@
                     Remove Card
                   </button>
                 <% end %>
-              </div>
-            <% end %>
+              <% end %>
+            </div>
           </div>
         <% end %>
       </div>

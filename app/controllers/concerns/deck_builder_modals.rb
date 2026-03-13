@@ -83,7 +83,7 @@ module DeckBuilderModals
   def view_card_modal
     card = @deck.collection_magic_cards.find(params[:card_id])
     magic_card = card.magic_card
-    user_copies = DeckBuilder::FindUserCopies.call(magic_card: magic_card, user: current_user)
+    user_copies = current_user ? DeckBuilder::FindUserCopies.call(magic_card: magic_card, user: current_user) : []
 
     render partial: 'deck_builder/view_card_modal', locals: {
       card: card,
