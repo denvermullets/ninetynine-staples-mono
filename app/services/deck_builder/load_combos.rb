@@ -1,13 +1,5 @@
 module DeckBuilder
   class LoadCombos < Service
-    def self.combos_for_card(deck:, oracle_id:)
-      deck.deck_combos
-          .includes(combo: :combo_cards, deck_combo_missing_cards: [])
-          .joins(combo: :combo_cards)
-          .where(combo_cards: { oracle_id: oracle_id })
-          .distinct
-    end
-
     def initialize(deck:)
       @deck = deck
     end
