@@ -32,12 +32,6 @@ export default class extends Controller {
       ? parseInt(this.foilInputTarget.value) || 0
       : 0;
 
-    // Don't save if both are zero
-    if (quantity === 0 && foilQuantity === 0) {
-      this.cancel();
-      return;
-    }
-
     const formData = new FormData();
     formData.append("quantity", quantity);
     formData.append("foil_quantity", foilQuantity);
