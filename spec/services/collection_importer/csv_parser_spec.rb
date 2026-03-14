@@ -57,6 +57,27 @@ RSpec.describe CollectionImporter::CsvParser, type: :service do
       end
     end
 
+    context 'with Archidekt modifier column instead of finish' do
+      let(:foil_uuid) { SecureRandom.uuid }
+      let(:normal_uuid) { SecureRandom.uuid }
+      let(:csv_data) do
+        <<~CSV
+          Quantity,Name,Edition Code,Scryfall ID,Modifier
+          1,Lightning Bolt,2XM,#{normal_uuid},Normal
+          1,Ad Nauseam,2XM,#{foil_uuid},Foil
+        CSV
+      end
+
+      it 'maps modifier to finish for foil detection' do
+        expect(ImportCollectionRowJob).to receive(:perform_later)
+          .with(collection.id, hash_including(finish: 'Normal'), skip_existing: false)
+        expect(ImportCollectionRowJob).to receive(:perform_later)
+          .with(collection.id, hash_including(finish: 'Foil'), skip_existing: false)
+
+        described_class.call(csv_data: csv_data, collection: collection, user: user)
+      end
+    end
+
     context 'with missing required headers' do
       let(:csv_data) do
         <<~CSV
