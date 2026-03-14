@@ -1,6 +1,6 @@
 # job will reset all the collection values to $0
 class ResetCollectionValues < ApplicationJob
-  queue_as :background
+  queue_as :collection_updates
 
   def perform
     Collection.find_each do |col|

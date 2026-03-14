@@ -1,6 +1,6 @@
 # Records daily snapshot of boxset values (total of all cards in set)
 class RecordBoxsetValueHistory < ApplicationJob
-  queue_as :background
+  queue_as :collection_updates
 
   def perform
     puts 'Recording boxset value history snapshots'

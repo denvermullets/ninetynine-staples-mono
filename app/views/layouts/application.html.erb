@@ -38,6 +38,9 @@
     <%= render 'shared/navbar' %>
 
     <main class="flex flex-col h-auto min-h-full mx-auto bg-background">
+      <% if logged_in? %>
+        <%= turbo_stream_from "user_#{current_user.id}_notifications" %>
+      <% end %>
       <div id="toasts" class="fixed z-50 space-y-2 bottom-4 right-4"></div>
 
       <% if logged_in? && !current_user.confirmed? %>
