@@ -27,6 +27,36 @@ RSpec.describe CollectionImporter::CsvParser, type: :service do
       end
     end
 
+    context 'with alternate-cased headers' do
+      let(:csv_data) do
+        <<~CSV
+          quantity,name,edition code,scryfall id,finish
+          2,Lightning Bolt,2XM,#{SecureRandom.uuid},Normal
+        CSV
+      end
+
+      it 'matches headers case-insensitively' do
+        result = described_class.call(csv_data: csv_data, collection: collection, user: user)
+        expect(result[:action]).to eq(:success)
+        expect(result[:rows_queued]).to eq(1)
+      end
+    end
+
+    context 'with "scryfall ID" header' do
+      let(:csv_data) do
+        <<~CSV
+          Quantity,Name,Edition Code,scryfall ID,Finish
+          1,Lightning Bolt,2XM,#{SecureRandom.uuid},Normal
+        CSV
+      end
+
+      it 'matches the header' do
+        result = described_class.call(csv_data: csv_data, collection: collection, user: user)
+        expect(result[:action]).to eq(:success)
+        expect(result[:rows_queued]).to eq(1)
+      end
+    end
+
     context 'with missing required headers' do
       let(:csv_data) do
         <<~CSV
@@ -38,7 +68,7 @@ RSpec.describe CollectionImporter::CsvParser, type: :service do
       it 'raises ArgumentError' do
         expect {
           described_class.call(csv_data: csv_data, collection: collection, user: user)
-        }.to raise_error(ArgumentError, /Scryfall ID/)
+        }.to raise_error(ArgumentError, /scryfall id/)
       end
     end
 
