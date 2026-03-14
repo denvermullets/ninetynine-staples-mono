@@ -113,6 +113,11 @@
               Cancel
             </button>
 
+            <%= link_to "Delete",
+                delete_card_deck_builder_path(deck, card_id: card.id),
+                class: "px-4 py-2 text-sm transition rounded-md border border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer",
+                data: { turbo_method: :delete, turbo_confirm: "Delete this card from your collection? This cannot be undone." } %>
+
             <%= f.submit "Transfer",
                 class: "px-4 py-2 text-sm font-medium transition rounded-md bg-accent-50 text-foreground border border-accent-50 hover:bg-foreground hover:text-accent-50 hover:border-accent-50 cursor-pointer" %>
           </div>

@@ -97,6 +97,7 @@ Rails.application.routes.draw do
       post :add_card
       post :add_new_card
       delete :remove_card
+      delete :delete_card
       post :swap_card
       patch :update_quantity
       post :finalize
