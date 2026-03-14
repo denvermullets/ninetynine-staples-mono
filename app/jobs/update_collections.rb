@@ -1,5 +1,7 @@
 # job will pull all collections that have a given card and update the total value
 class UpdateCollections < ApplicationJob
+  queue_as :collection_updates
+
   def perform(card)
     price_change = card.price_change.deep_symbolize_keys
     return if price_change_is_zero?(price_change)

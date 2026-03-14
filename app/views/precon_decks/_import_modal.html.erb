@@ -39,7 +39,7 @@
         </button>
       </div>
 
-      <%= form_with url: import_to_collection_precon_deck_path(@precon_deck), method: :post, class: "flex flex-col gap-4", data: { turbo: false }, id: "import-form" do |f| %>
+      <%= form_with url: import_to_collection_precon_deck_path(@precon_deck), method: :post, class: "flex flex-col gap-4", id: "import-form" do |f| %>
         <p class="text-sm text-grey-text">
           Import all cards from
           <span class="text-white font-medium"><%= @precon_deck.name %></span>
@@ -172,7 +172,8 @@
         }
 
         errorDiv.classList.add('hidden');
-        document.getElementById('import-form').submit();
+        document.getElementById('import-form').requestSubmit();
+        document.getElementById('import-modal').classList.add('hidden');
       }
     </script>
     </div>

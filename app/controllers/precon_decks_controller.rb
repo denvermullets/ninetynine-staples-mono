@@ -31,27 +31,16 @@ class PreconDecksController < ApplicationController
   end
 
   def import_to_collection
-    unless current_user
-      redirect_to login_path, alert: 'Please log in to import decks'
-      return
-    end
+    return redirect_to login_path, alert: 'Please log in to import decks' unless current_user
 
-    # Validate: must have collection_id OR collection_name
-    if params[:collection_id].blank? && params[:collection_name].blank?
-      redirect_to precon_deck_path(@precon_deck),
-                  alert: 'Please enter a collection name or select an existing collection.'
-      return
+    if missing_collection_params?
+      return redirect_to precon_deck_path(@precon_deck),
+                         alert: 'Please enter a collection name or select an existing collection.'
     end
 
     collection = find_or_create_collection
-
-    result = PreconDeckImporter.call(
-      precon_deck: @precon_deck,
-      collection: collection
-    )
-
-    redirect_to collection_show_path(current_user.username, collection),
-                notice: "#{@precon_deck.name} imported successfully! (#{result[:cards_imported]} cards)"
+    ImportPreconDeckJob.perform_later(@precon_deck.id, collection.id, current_user.id)
+    respond_to_import(collection)
   end
 
   private
@@ -76,6 +65,22 @@ class PreconDecksController < ApplicationController
     respond_to do |format|
       format.html
       format.turbo_stream { render turbo_stream: turbo_stream.update('deck_cards', partial: 'deck_cards') }
+    end
+  end
+
+  def missing_collection_params?
+    params[:collection_id].blank? && params[:collection_name].blank?
+  end
+
+  def respond_to_import(collection)
+    flash.now[:type] = 'success'
+    message = "#{@precon_deck.name} is being imported to #{collection.name}. Cards will appear shortly."
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+      end
+      format.html { redirect_to collection_show_path(current_user.username, collection), notice: message }
     end
   end
 

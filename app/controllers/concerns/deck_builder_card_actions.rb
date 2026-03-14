@@ -2,8 +2,19 @@ module DeckBuilderCardActions
   extend ActiveSupport::Concern
 
   def finalize
-    result = DeckBuilder::Finalize.call(deck: @deck)
-    result[:success] ? handle_finalize_success(result) : handle_finalize_failure(result)
+    unless @deck.in_build_mode?
+      render_error_toast('No staged cards to finalize')
+      return
+    end
+
+    FinalizeDeckJob.perform_later(@deck.id, current_user.id)
+
+    flash.now[:type] = 'success'
+    message = "#{@deck.name} is being finalized. Cards will be moved shortly."
+    render turbo_stream: [
+      turbo_stream.update('deck_modal', ''),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+    ]
   end
 
   def set_commander

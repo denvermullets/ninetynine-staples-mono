@@ -1,5 +1,5 @@
 class IngestPreconDecks < ApplicationJob
-  queue_as :background
+  queue_as :ingest
 
   DECK_LIST_URL = 'https://mtgjson.com/api/v5/DeckList.json'.freeze
 
