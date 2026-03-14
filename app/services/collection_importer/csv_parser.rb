@@ -4,10 +4,11 @@ module CollectionImporter
   class CsvParser < Service
     REQUIRED_HEADERS = ['Scryfall ID', 'Quantity'].freeze
 
-    def initialize(csv_data:, collection:, user:)
+    def initialize(csv_data:, collection:, user:, skip_existing: false)
       @csv_data = csv_data
       @collection = collection
       @user = user
+      @skip_existing = skip_existing
     end
 
     def call
@@ -27,7 +28,7 @@ module CollectionImporter
 
         next if row_data[:scryfall_id].blank? || row_data[:quantity] < 1
 
-        ImportCollectionRowJob.perform_later(@collection.id, row_data)
+        ImportCollectionRowJob.perform_later(@collection.id, row_data, skip_existing: @skip_existing)
         rows_queued += 1
       end
 

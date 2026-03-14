@@ -45,6 +45,11 @@ class DeckBuilderController < ApplicationController
     render_card_action_response(result, success_message: result[:message])
   end
 
+  def delete_card
+    result = DeckBuilder::DeleteCard.call(deck: @deck, collection_magic_card_id: params[:card_id])
+    render_card_action_response(result, success_message: result[:message])
+  end
+
   def swap_card
     result = DeckBuilder::SwapCard.call(
       deck: @deck, collection_magic_card_id: params[:card_id], source_collection_id: params[:source_collection_id]
