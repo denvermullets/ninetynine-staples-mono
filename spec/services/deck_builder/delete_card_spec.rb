@@ -7,57 +7,67 @@ RSpec.describe DeckBuilder::DeleteCard, type: :service do
 
   subject { described_class.call(deck: deck, collection_magic_card_id: card.id) }
 
-  context 'when deleting a finalized card' do
+  context 'when card has multiple copies' do
     let(:card) do
       create(:collection_magic_card,
              collection: deck,
              magic_card: magic_card,
              staged: false,
              needed: false,
-             quantity: 2,
-             foil_quantity: 1)
+             quantity: 3,
+             foil_quantity: 0)
     end
 
-    before do
-      deck.update!(total_quantity: 2, total_foil_quantity: 1, total_value: 20.0)
+    before { deck.update!(total_quantity: 3, total_value: 15.0) }
+
+    it 'decrements quantity by 1' do
+      subject
+      card.reload
+      expect(card.quantity).to eq(2)
     end
 
-    it 'destroys the card' do
+    it 'does not destroy the record' do
       card
-      expect { subject }.to change { CollectionMagicCard.count }.by(-1)
+      expect { subject }.not_to(change { CollectionMagicCard.count })
     end
 
     it 'returns success' do
       expect(subject[:success]).to be true
-      expect(subject[:message]).to eq("#{magic_card.name} deleted from collection")
     end
 
-    it 'decrements collection totals' do
+    it 'updates collection totals' do
       subject
       deck.reload
-      expect(deck.total_quantity).to eq(0)
-      expect(deck.total_foil_quantity).to eq(0)
+      expect(deck.total_quantity).to eq(2)
     end
   end
 
-  context 'when deleting a staged card' do
+  context 'when card has 1 copy' do
     let(:card) do
       create(:collection_magic_card,
              collection: deck,
              magic_card: magic_card,
-             staged: true,
-             quantity: 0,
-             foil_quantity: 0,
-             staged_quantity: 1)
+             staged: false,
+             needed: false,
+             quantity: 1,
+             foil_quantity: 0)
     end
 
-    it 'destroys the card' do
+    before { deck.update!(total_quantity: 1, total_value: 5.0) }
+
+    it 'destroys the record' do
       card
       expect { subject }.to change { CollectionMagicCard.count }.by(-1)
     end
 
     it 'returns success' do
       expect(subject[:success]).to be true
+    end
+
+    it 'updates collection totals' do
+      subject
+      deck.reload
+      expect(deck.total_quantity).to eq(0)
     end
   end
 
