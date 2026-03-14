@@ -116,9 +116,12 @@ RSpec.describe DeckBuilder::UpdateQuantity, type: :service do
       )
     end
 
-    it 'returns an error' do
-      expect(subject[:success]).to be false
-      expect(subject[:error]).to eq('Quantity must be at least 1')
+    it 'deletes the card' do
+      expect { subject }.to change { CollectionMagicCard.count }.by(-1)
+    end
+
+    it 'returns success' do
+      expect(subject[:success]).to be true
     end
   end
 

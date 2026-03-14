@@ -1,7 +1,7 @@
 Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
 
 # Throttle signup attempts by IP — 1 per hour
-Rack::Attack.throttle('sign_up/ip', limit: 1, period: 1.hour) do |req|
+Rack::Attack.throttle('sign_up/ip', limit: 5, period: 1.hour) do |req|
   req.ip if req.path == '/sign_up' && req.post?
 end
 
