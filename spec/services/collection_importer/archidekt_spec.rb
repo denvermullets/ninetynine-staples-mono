@@ -91,5 +91,41 @@ RSpec.describe CollectionImporter::Archidekt, type: :service do
         expect(cmc.quantity).to eq(4)
       end
     end
+
+    context 'with skip_existing option' do
+      let(:row_data) do
+        { scryfall_id: scryfall_id, quantity: 2, finish: 'Normal', name: 'Lightning Bolt', edition_code: '2XM' }
+      end
+
+      context 'when card does not exist in collection' do
+        it 'creates the card' do
+          expect {
+            described_class.call(row_data: row_data, collection: collection, skip_existing: true)
+          }.to change { collection.collection_magic_cards.count }.by(1)
+        end
+
+        it 'returns success' do
+          result = described_class.call(row_data: row_data, collection: collection, skip_existing: true)
+          expect(result[:action]).to eq(:success)
+        end
+      end
+
+      context 'when card already exists in collection' do
+        before do
+          described_class.call(row_data: row_data, collection: collection)
+        end
+
+        it 'skips the card' do
+          result = described_class.call(row_data: row_data, collection: collection, skip_existing: true)
+          expect(result[:action]).to eq(:skipped)
+        end
+
+        it 'does not change quantity' do
+          described_class.call(row_data: row_data, collection: collection, skip_existing: true)
+          cmc = collection.collection_magic_cards.find_by(magic_card: magic_card)
+          expect(cmc.quantity).to eq(2)
+        end
+      end
+    end
   end
 end

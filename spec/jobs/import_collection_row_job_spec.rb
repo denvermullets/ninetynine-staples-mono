@@ -19,10 +19,21 @@ RSpec.describe ImportCollectionRowJob, type: :job do
     it 'calls CollectionImporter::Archidekt' do
       expect(CollectionImporter::Archidekt).to receive(:call).with(
         row_data: row_data,
-        collection: collection
+        collection: collection,
+        skip_existing: false
       ).and_call_original
 
       described_class.new.perform(collection.id, row_data)
+    end
+
+    it 'passes skip_existing option' do
+      expect(CollectionImporter::Archidekt).to receive(:call).with(
+        row_data: row_data,
+        collection: collection,
+        skip_existing: true
+      ).and_call_original
+
+      described_class.new.perform(collection.id, row_data, skip_existing: true)
     end
 
     it 'imports the card into the collection' do

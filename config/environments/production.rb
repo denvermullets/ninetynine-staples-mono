@@ -75,6 +75,7 @@ Rails.application.configure do
   # Use a real queuing backend for Active Job (and separate queues per environment).
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
+  config.action_mailer.deliver_later_queue_name = 'mailers'
 
   # config.active_job.queue_name_prefix = "ninetynine_staples_mono_production"
 

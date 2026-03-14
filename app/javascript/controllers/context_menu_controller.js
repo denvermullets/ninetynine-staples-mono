@@ -166,6 +166,7 @@ export default class extends Controller {
 
   transferCard(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.transferUrlValue;
