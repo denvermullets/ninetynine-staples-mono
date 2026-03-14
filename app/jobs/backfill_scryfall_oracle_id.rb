@@ -22,7 +22,7 @@ class BackfillScryfallOracleId < ApplicationJob
   private
 
   def process_card(card)
-    scryfall_oracle_id = card.identifiers&.dig('scryfallOracleId')
+    scryfall_oracle_id = card.magic_card_identifier&.scryfall_oracle_id
 
     return :skipped if scryfall_oracle_id.blank?
 

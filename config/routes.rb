@@ -56,6 +56,8 @@ Rails.application.routes.draw do
   post 'dashboard/backfill-scryfall-oracle-id', to: 'dashboard#backfill_scryfall_oracle_id', as: :dashboard_backfill_scryfall_oracle_id
   post 'dashboard/ingest-precon-decks', to: 'dashboard#ingest_precon_decks', as: :dashboard_ingest_precon_decks
 
+  resources :collection_imports, only: %i[new create], path: 'import-collection'
+
   get 'load_boxset', to: 'boxsets#load_boxset', as: :load_boxset
   get 'commanders', to: 'commanders#index', as: :commanders
   get 'load_commanders', to: 'commanders#load_commanders', as: :load_commanders

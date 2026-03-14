@@ -4,6 +4,7 @@ class MagicCard < ApplicationRecord
   has_many :printings
 
   has_one :card_price
+  has_one :magic_card_identifier
 
   has_many :magic_card_artists
   has_many :artists, through: :magic_card_artists

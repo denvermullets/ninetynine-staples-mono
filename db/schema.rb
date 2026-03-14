@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_12_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_14_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -364,6 +364,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_12_200000) do
     t.index ["magic_card_id"], name: "index_magic_card_frame_effects_on_magic_card_id"
   end
 
+  create_table "magic_card_identifiers", force: :cascade do |t|
+    t.string "abu_id"
+    t.string "card_kingdom_etched_id"
+    t.string "card_kingdom_foil_id"
+    t.string "card_kingdom_id"
+    t.string "cardsphere_foil_id"
+    t.string "cardsphere_id"
+    t.string "cardtrader_id"
+    t.datetime "created_at", null: false
+    t.string "csi_id"
+    t.bigint "magic_card_id", null: false
+    t.string "mcm_id"
+    t.string "mcm_meta_id"
+    t.string "miniaturemarket_id"
+    t.string "mtg_arena_id"
+    t.string "mtgjson_foil_version_id"
+    t.string "mtgjson_non_foil_version_id"
+    t.string "mtgjson_v4_id"
+    t.string "mtgo_foil_id"
+    t.string "mtgo_id"
+    t.string "multiverse_id"
+    t.string "scg_id"
+    t.string "scryfall_card_back_id"
+    t.string "scryfall_id"
+    t.string "scryfall_illustration_id"
+    t.string "scryfall_oracle_id"
+    t.string "tcgplayer_alternative_foil_product_id"
+    t.string "tcgplayer_etched_product_id"
+    t.string "tcgplayer_product_id"
+    t.string "tnt_id"
+    t.datetime "updated_at", null: false
+    t.index ["magic_card_id"], name: "index_magic_card_identifiers_on_magic_card_id", unique: true
+    t.index ["multiverse_id"], name: "index_magic_card_identifiers_on_multiverse_id"
+    t.index ["scryfall_id"], name: "index_magic_card_identifiers_on_scryfall_id"
+  end
+
   create_table "magic_card_keywords", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "keyword_id"
@@ -450,7 +486,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_12_200000) do
     t.string "flavor_text"
     t.decimal "foil_price", precision: 12, scale: 2, default: "0.0"
     t.string "frame_version"
-    t.jsonb "identifiers"
     t.string "image_large"
     t.string "image_medium"
     t.string "image_small"
@@ -615,6 +650,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_12_200000) do
   add_foreign_key "magic_card_finishes", "magic_cards"
   add_foreign_key "magic_card_frame_effects", "frame_effects"
   add_foreign_key "magic_card_frame_effects", "magic_cards"
+  add_foreign_key "magic_card_identifiers", "magic_cards"
   add_foreign_key "magic_card_legalities", "legalities"
   add_foreign_key "magic_card_legalities", "magic_cards"
   add_foreign_key "magic_card_variations", "magic_cards"
