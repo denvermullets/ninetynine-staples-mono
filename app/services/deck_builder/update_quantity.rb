@@ -8,7 +8,7 @@ module DeckBuilder
     end
 
     def call
-      return error_result('Quantity must be at least 1') if zero_quantity?
+      return delete_card if zero_quantity?
 
       ActiveRecord::Base.transaction do
         return validate_and_update_staged if staged_from_collection?
@@ -26,6 +26,19 @@ module DeckBuilder
 
     def zero_quantity?
       @new_quantity.zero? && @new_foil_quantity.zero?
+    end
+
+    def delete_card
+      result = CollectionRecord::CreateOrUpdate.call(
+        params: {
+          collection_id: @deck.id,
+          magic_card_id: @card.magic_card_id,
+          card_uuid: @card.card_uuid,
+          quantity: 0, foil_quantity: 0,
+          proxy_quantity: 0, proxy_foil_quantity: 0
+        }
+      )
+      { success: true, card_name: result[:name], card: @card }
     end
 
     def staged_from_collection?
