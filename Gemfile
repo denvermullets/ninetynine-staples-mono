@@ -35,7 +35,7 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem 'factory_bot_rails'
   gem 'faker'
-  gem "rspec-rails", "~> 8.0.3"
+  gem "rspec-rails", "~> 8.0.4"
   gem "rubocop"
   gem "selenium-webdriver"
 end

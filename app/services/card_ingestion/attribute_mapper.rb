@@ -12,7 +12,7 @@ module CardIngestion
 
     private
 
-    # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+    # rubocop:disable Metrics/MethodLength
     def base_attributes
       {
         boxset: @boxset,
@@ -25,7 +25,6 @@ module CardIngestion
         frame_version: @card_data['frameVersion'],
         is_reprint: @card_data['isReprint'],
         card_number: @card_data['number'],
-        identifiers: @card_data['identifiers'],
         scryfall_oracle_id: @card_data.dig('identifiers', 'scryfallOracleId'),
         card_uuid: @card_data['uuid'],
         is_token: @is_token,
@@ -39,7 +38,7 @@ module CardIngestion
         can_be_oathbreaker_commander: @card_data.dig('leadershipSkills', 'oathbreaker') || false
       }
     end
-    # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+    # rubocop:enable Metrics/MethodLength
 
     def card_specific_attributes
       {
