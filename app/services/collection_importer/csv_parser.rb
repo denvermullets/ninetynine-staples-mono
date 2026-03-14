@@ -36,7 +36,7 @@ module CollectionImporter
       {
         scryfall_id: row[@header_map['scryfall id']],
         quantity: row[@header_map['quantity']].to_i,
-        finish: row[@header_map['finish']],
+        finish: row[@header_map['finish']] || row[@header_map['modifier']],
         name: row[@header_map['name']],
         edition_code: row[@header_map['edition code']]
       }
