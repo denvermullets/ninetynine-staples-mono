@@ -18,9 +18,40 @@ module CardIngestion
       create_frame_effects
       create_rulings
       create_variations
+      create_identifiers
 
       @magic_card
     end
+
+    IDENTIFIER_KEY_MAP = {
+      'abuId' => :abu_id,
+      'cardKingdomEtchedId' => :card_kingdom_etched_id,
+      'cardKingdomFoilId' => :card_kingdom_foil_id,
+      'cardKingdomId' => :card_kingdom_id,
+      'cardsphereFoilId' => :cardsphere_foil_id,
+      'cardsphereId' => :cardsphere_id,
+      'cardtraderId' => :cardtrader_id,
+      'csiId' => :csi_id,
+      'mcmId' => :mcm_id,
+      'mcmMetaId' => :mcm_meta_id,
+      'miniaturemarketId' => :miniaturemarket_id,
+      'mtgArenaId' => :mtg_arena_id,
+      'mtgjsonFoilVersionId' => :mtgjson_foil_version_id,
+      'mtgjsonNonFoilVersionId' => :mtgjson_non_foil_version_id,
+      'mtgjsonV4Id' => :mtgjson_v4_id,
+      'mtgoFoilId' => :mtgo_foil_id,
+      'mtgoId' => :mtgo_id,
+      'multiverseId' => :multiverse_id,
+      'scgId' => :scg_id,
+      'scryfallCardBackId' => :scryfall_card_back_id,
+      'scryfallId' => :scryfall_id,
+      'scryfallIllustrationId' => :scryfall_illustration_id,
+      'scryfallOracleId' => :scryfall_oracle_id,
+      'tcgplayerAlternativeFoilProductId' => :tcgplayer_alternative_foil_product_id,
+      'tcgplayerEtchedProductId' => :tcgplayer_etched_product_id,
+      'tcgplayerProductId' => :tcgplayer_product_id,
+      'tntId' => :tnt_id
+    }.freeze
 
     private
 
@@ -117,6 +148,20 @@ module CardIngestion
 
         MagicCardVariation.find_or_create_by(magic_card: @magic_card, variation: variation)
       end
+    end
+
+    def create_identifiers
+      identifiers_data = @card_data['identifiers']
+      return unless identifiers_data.present?
+
+      attrs = {}
+      IDENTIFIER_KEY_MAP.each do |camel_key, snake_key|
+        value = identifiers_data[camel_key]
+        attrs[snake_key] = value if value.present?
+      end
+
+      record = MagicCardIdentifier.find_or_initialize_by(magic_card: @magic_card)
+      record.update!(attrs)
     end
   end
 end
