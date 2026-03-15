@@ -1,0 +1,82 @@
+<div class="flex items-start justify-center w-full min-h-screen py-8 px-4">
+  <div
+    class="
+      w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl
+      text-grey-text
+    "
+  >
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold">Manage Brackets</h1>
+
+      <%= link_to 'New Bracket', new_admin_bracket_path,
+          class: 'px-4 py-2 text-sm rounded-md bg-accent-50 text-foreground hover:bg-accent-100 transition' %>
+    </div>
+
+    <% if @brackets.any? %>
+      <div class="space-y-3">
+        <% @brackets.each do |bracket| %>
+          <div
+            class="
+              flex items-center justify-between p-4 border rounded-lg
+              border-highlight bg-background
+            "
+          >
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span class="
+                  inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-full
+                  <%= bracket_badge_classes(bracket.level) %>
+                ">
+                  B<%= bracket.level %>
+                </span>
+
+                <span class="text-sm font-medium text-white">
+                  <%= bracket.name %>
+                </span>
+
+                <% unless bracket.enabled %>
+                  <span class="px-1.5 py-0.5 text-xs rounded bg-red-500/20 text-red-400">
+                    Disabled
+                  </span>
+                <% end %>
+              </div>
+
+              <% if bracket.description.present? %>
+                <span class="text-xs text-grey-text/70">
+                  <%= bracket.description %>
+                </span>
+              <% end %>
+
+              <% if bracket.deck_rules.any? %>
+                <div class="flex flex-wrap gap-1 mt-1">
+                  <% bracket.deck_rules.each do |rule| %>
+                    <span class="
+                      px-1.5 py-0.5 text-xs rounded
+                      <%= rule.enabled ? 'bg-accent-400/10 text-accent-400' : 'bg-grey-text/10 text-grey-text/50 line-through' %>
+                    ">
+                      <%= rule.name %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <%= link_to 'Edit', edit_admin_bracket_path(bracket),
+                  class: 'px-3 py-1 text-sm border rounded-md border-highlight text-grey-text hover:border-accent-50 hover:text-accent-50 transition' %>
+
+              <%= button_to 'Delete', admin_bracket_path(bracket),
+                  method: :delete,
+                  data: { turbo_confirm: "Delete bracket '#{bracket.name}'? This will also remove its rules." },
+                  class: 'px-3 py-1 text-sm border rounded-md border-highlight text-grey-text hover:border-red-500 hover:text-red-500 transition cursor-pointer' %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-center py-8 text-grey-text/70">
+        No brackets yet. Add one to get started.
+      </p>
+    <% end %>
+  </div>
+</div>

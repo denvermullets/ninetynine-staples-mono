@@ -1,5 +1,6 @@
 class Collection < ApplicationRecord
   validates :name, :description, presence: true
+  validates :bracket_level, numericality: { only_integer: true, in: 1..5 }, allow_nil: true
 
   belongs_to :user
   belongs_to :cover_card, class_name: 'MagicCard', optional: true
