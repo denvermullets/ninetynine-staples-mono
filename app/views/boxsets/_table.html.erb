@@ -191,8 +191,6 @@
                   <% end %>
                 </div>
 
-              <% else %>
-
               <% end %>
             </td>
           <% end %>
@@ -200,7 +198,6 @@
           <% if column_visible?('foil_price', 'boxsets') %>
             <td class="px-4 py-2 text-sm whitespace-nowrap">
               <% if card.foil_available? %>
-
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.foil_price) %>
 
@@ -211,9 +208,6 @@
                     </span>
                   <% end %>
                 </div>
-
-              <% else %>
-
               <% end %>
             </td>
           <% end %>
