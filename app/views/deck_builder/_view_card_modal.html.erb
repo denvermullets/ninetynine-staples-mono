@@ -19,8 +19,18 @@
       data-modal-target="content"
     >
       <div class="flex items-center justify-between mb-4 shrink-0">
-        <h3 class="text-lg font-semibold text-grey-text">
+        <h3 class="text-lg font-semibold text-grey-text flex items-center gap-2">
           <%= magic_card.name %>
+          <% if magic_card.game_changer.present? %>
+            <span
+              class="
+                px-1.5 py-0.5 text-xs font-bold rounded bg-yellow-500/20
+                text-yellow-400 border border-yellow-500/30
+              "
+            >
+              &#9733; Game Changer
+            </span>
+          <% end %>
         </h3>
 
         <button
@@ -135,6 +145,19 @@
             </div>
           </div>
 
+          <% if magic_card.game_changer.present? %>
+            <div class="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10">
+              <h4 class="text-sm font-semibold text-yellow-400 mb-1">
+                &#9733; Game Changer
+              </h4>
+              <% if magic_card.game_changer.reason.present? %>
+                <span class="text-sm text-grey-text">
+                  <%= magic_card.game_changer.reason %>
+                </span>
+              <% end %>
+            </div>
+          <% end %>
+
           <!-- Card Info -->
           <div class="space-y-2">
             <div class="flex items-start gap-2">
@@ -168,9 +191,7 @@
                   Text:
                 </span>
 
-                <span class="text-sm text-grey-text whitespace-pre-wrap">
-                  <%= card_text_with_symbols(magic_card.text) %>
-                </span>
+                <span class="text-sm text-grey-text"><%= card_text_with_symbols(magic_card.text) %></span>
               </div>
             <% end %>
 
