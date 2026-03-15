@@ -74,10 +74,14 @@
         </h3>
 
         <ul class="space-y-3">
-          <% if current_user %>
-            <li>
+          <li>
+            <% if current_user %>
               <%= link_to 'Overview', collections_overview_path(current_user.username), class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
+            <% else %>
+              <%= link_to 'Sign up to start', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
+            <% end %>
+          </li>
+          <% if current_user %>
             <li>
               <%= link_to 'All Cards', collection_show_path(current_user.username), class: 'text-grey-text hover:text-white transition-colors' %>
             </li>
@@ -86,10 +90,6 @@
             </li>
             <li>
               <%= link_to 'Scan Cards', card_scanner_path, class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
-          <% else %>
-            <li>
-              <%= link_to 'Sign up to start', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
             </li>
           <% end %>
         </ul>
@@ -102,15 +102,13 @@
         </h3>
 
         <ul class="space-y-3">
-          <% if current_user %>
-            <li>
+          <li>
+            <% if current_user %>
               <%= link_to 'Game Tracker', game_tracker_path(current_user.username), class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
-          <% else %>
-            <li>
+            <% else %>
               <%= link_to 'Game Tracker', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
-          <% end %>
+            <% end %>
+          </li>
 
           <li>
             <%= link_to 'Deck Builder', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
@@ -125,21 +123,20 @@
         </h3>
 
         <ul class="space-y-3">
-          <% if current_user %>
-            <li>
+          <li>
+            <% if current_user %>
               <%= link_to 'Settings', settings_path, class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
-            <li>
-              <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
-          <% else %>
-            <li>
+            <% else %>
               <%= link_to 'Log in', login_path, class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
-            <li>
+            <% end %>
+          </li>
+          <li>
+            <% if current_user %>
+              <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'text-grey-text hover:text-white transition-colors' %>
+            <% else %>
               <%= link_to 'Sign up', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
-            </li>
-          <% end %>
+            <% end %>
+          </li>
         </ul>
       </div>
     </div>

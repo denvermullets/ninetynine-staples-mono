@@ -3,5 +3,5 @@
 <% end %>
 
 <%= turbo_stream.update 'table-container' do %>
-  <%= render 'table' %>
+  <%= render partial: 'table', locals: { magic_cards: @magic_cards, pagy: @pagy } %>
 <% end %>

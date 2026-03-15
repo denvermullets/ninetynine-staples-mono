@@ -11,7 +11,7 @@
 # GitHub Repo: https://github.com/marcoroth/herb
 #
 
-version: 0.8.9
+version: 0.9.0
 
 # files:
 #   # Additional patterns beyond the defaults (**.html, **.rhtml, **.html.erb, etc.)
@@ -28,7 +28,7 @@ linter:
   enabled: true
   # # Exit with error code when diagnostics of this severity or higher are present
   # # Valid values: error (default), warning, info, hint
-  # failLevel: warning
+  failLevel: error
 
   # # Additional patterns beyond the defaults for linting
   # include:
@@ -78,3 +78,8 @@ formatter:
   #     - tailwind-class-sorter
   #   # Post-format rewriters (modify formatted output string)
   #   post: []
+engine:
+  validators:
+    security: true # Enable/disable security validation (default: true)
+    nesting: true # Enable/disable HTML nesting validation (default: true)
+    accessibility: true # Enable/disable accessibility validation (default: true)

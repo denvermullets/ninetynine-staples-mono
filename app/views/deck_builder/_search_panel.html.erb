@@ -1,12 +1,12 @@
-<% if @is_owner %>
+<% if is_owner %>
   <div
     class="
       p-4 border rounded-xl bg-foreground border-highlight lg:sticky
       lg:top-4
     "
     data-controller="deck-search"
-    data-deck-search-deck-id-value="<%= @deck.id %>"
-    data-deck-search-scope-value="<%= @search_scope %>"
+    data-deck-search-deck-id-value="<%= deck.id %>"
+    data-deck-search-scope-value="<%= search_scope %>"
   >
     <h2 class="mb-4 text-lg font-semibold text-white">Add Cards</h2>
 
@@ -40,7 +40,7 @@
     </div>
 
     <!-- Search Form -->
-    <%= form_with url: search_deck_builder_path(@deck), method: :get, local: false,
+    <%= form_with url: search_deck_builder_path(deck), method: :get, local: false,
       data: { action: "submit->deck-search#submit", deck_search_target: "form" },
       class: "relative" do |f| %>
       <div class="flex">
@@ -49,7 +49,7 @@
           data: { deck_search_target: "input" },
           class: "flex-1 px-4 py-2 border rounded-l-lg bg-background border-highlight text-white placeholder-grey-text focus:border-accent-50 focus:outline-none" %>
 
-        <%= f.hidden_field :scope, value: @search_scope, data: { deck_search_target: "scopeField" } %>
+        <%= f.hidden_field :scope, value: search_scope, data: { deck_search_target: "scopeField" } %>
 
         <%= f.submit "Search",
           class: "px-4 py-2 bg-background text-grey-text rounded-r-lg border border-l-0 border-highlight hover:bg-highlight cursor-pointer transition" %>

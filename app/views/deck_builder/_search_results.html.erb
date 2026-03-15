@@ -2,6 +2,6 @@
   <p class="py-4 text-sm text-center text-grey-text">No cards found</p>
 <% else %>
   <% results.each do |result| %>
-    <%= render partial: 'search_result', locals: { result: result } %>
+    <%= render partial: 'search_result', locals: { result: result, deck: deck } %>
   <% end %>
 <% end %>

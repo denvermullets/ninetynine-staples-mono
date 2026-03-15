@@ -1,20 +1,20 @@
 <div class="flex flex-wrap items-center gap-4 text-sm">
   <div class="flex items-center gap-1.5">
     <span class="text-grey-text">Cards:</span>
-    <span class="font-semibold text-white"><%= @stats[:total] %></span>
+    <span class="font-semibold text-white"><%= stats[:total] %></span>
   </div>
 
   <div class="flex items-center gap-1.5">
     <span class="text-grey-text">Value:</span>
 
     <span class="font-semibold text-white">
-      <%= number_to_currency(@stats[:real_value]) %>
+      <%= number_to_currency(stats[:real_value]) %>
     </span>
 
-    <% if @stats[:proxy_value].to_f > 0 %>
+    <% if stats[:proxy_value].to_f > 0 %>
       <span class="text-grey-text">//</span>
       <span class="font-semibold text-white">
-        <%= number_to_currency(@stats[:proxy_value]) %>
+        <%= number_to_currency(stats[:proxy_value]) %>
       </span>
       <span
         class="
@@ -28,27 +28,27 @@
     <% end %>
   </div>
 
-  <% if @stats[:staged] > 0 %>
+  <% if stats[:staged] > 0 %>
     <div class="flex items-center gap-1.5">
       <span class="w-2 h-2 rounded-full bg-blue-400"></span>
       <span class="text-blue-400">Staged:</span>
-      <span class="font-semibold text-blue-400"><%= @stats[:staged] %></span>
+      <span class="font-semibold text-blue-400"><%= stats[:staged] %></span>
     </div>
   <% end %>
 
-  <% if @stats[:needed] > 0 %>
+  <% if stats[:needed] > 0 %>
     <div class="flex items-center gap-1.5">
       <span class="w-2 h-2 rounded-full bg-orange-400"></span>
       <span class="text-orange-400">Need:</span>
-      <span class="font-semibold text-orange-400"><%= @stats[:needed] %></span>
+      <span class="font-semibold text-orange-400"><%= stats[:needed] %></span>
     </div>
   <% end %>
 
-  <% if @stats[:owned] > 0 %>
+  <% if stats[:owned] > 0 %>
     <div class="flex items-center gap-1.5">
       <span class="w-2 h-2 rounded-full bg-accent-50"></span>
       <span class="text-accent-50">Owned:</span>
-      <span class="font-semibold text-accent-50"><%= @stats[:owned] %></span>
+      <span class="font-semibold text-accent-50"><%= stats[:owned] %></span>
     </div>
   <% end %>
 </div>

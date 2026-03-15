@@ -5,14 +5,23 @@
   <h1 class="text-2xl font-semibold text-white">Import Collection</h1>
 
   <p class="text-grey-text text-sm">
-    Upload a CSV file exported from Archidekt to import cards into your collection.
-    The CSV must include <strong class="text-white">Scryfall ID</strong> and <strong class="text-white">Quantity</strong> columns.
+    Upload a CSV file exported from Archidekt to import cards into your
+    collection. The CSV must include
+    <strong class="text-white">Scryfall ID</strong> and
+    <strong class="text-white">Quantity</strong> columns.
   </p>
 
   <%= form_tag collection_imports_path, multipart: true, class: 'flex flex-col gap-4', data: { action: 'submit->csv-import#submit' } do %>
     <!-- Collection Selection -->
-    <div class="px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text">
-      <label class="block text-sm font-medium mb-2 text-white">Add cards to:</label>
+    <div
+      class="
+        px-6 py-4 border rounded-3xl bg-foreground border-highlight
+        text-grey-text
+      "
+    >
+      <label class="block text-sm font-medium mb-2 text-white">
+        Add cards to:
+      </label>
 
       <div class="flex items-center gap-4 mb-3">
         <label class="flex items-center gap-2 cursor-pointer">
@@ -25,6 +34,7 @@
             data-csv-import-target="sourceRadio"
             class="accent-accent-50"
           >
+
           <span class="text-sm">Existing collection</span>
         </label>
 
@@ -37,6 +47,7 @@
             data-csv-import-target="sourceRadio"
             class="accent-accent-50"
           >
+
           <span class="text-sm">New collection</span>
         </label>
       </div>
@@ -52,7 +63,9 @@
             "
           >
             <% @collections.each do |collection| %>
-              <option value="<%= collection.id %>"><%= collection.name %></option>
+              <option value="<%= collection.id %>">
+                <%= collection.name %>
+              </option>
             <% end %>
           </select>
         <% else %>
@@ -85,22 +98,32 @@
           value="1"
           class="accent-accent-50"
         >
+
         <span class="text-sm">Skip if already in collection</span>
       </label>
+
       <p class="text-xs text-grey-text/60 mt-1 ml-6">
-        When unchecked, importing a card that already exists will add to its quantity.
+        When unchecked, importing a card that already exists will add to its
+        quantity.
       </p>
     </div>
 
     <!-- File Upload -->
-    <div class="px-6 py-4 border rounded-3xl bg-foreground border-highlight text-grey-text">
+    <div
+      class="
+        px-6 py-4 border rounded-3xl bg-foreground border-highlight
+        text-grey-text
+      "
+    >
       <label class="block text-sm font-medium mb-2 text-white">CSV File</label>
 
       <div class="flex items-center gap-3">
-        <label class="
-          px-4 py-2 bg-highlight text-white rounded-lg hover:bg-highlight/80
-          transition cursor-pointer text-sm
-        ">
+        <label
+          class="
+            px-4 py-2 bg-highlight text-white rounded-lg hover:bg-highlight/80
+            transition cursor-pointer text-sm
+          "
+        >
           Choose File
           <input
             type="file"
@@ -112,7 +135,10 @@
           >
         </label>
 
-        <span data-csv-import-target="fileName" class="text-sm text-grey-text/70">
+        <span
+          data-csv-import-target="fileName"
+          class="text-sm text-grey-text/70"
+        >
           No file selected
         </span>
       </div>

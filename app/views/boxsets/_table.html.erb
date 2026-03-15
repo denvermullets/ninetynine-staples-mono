@@ -2,21 +2,21 @@
 
 <!-- Mobile Card View -->
 <div class="md:hidden mb-24 max-w-full">
-  <% @magic_cards.each do |card| %>
-    <%= render partial: 'shared/cards/mobile_card', locals: { card: card } %>
+  <% magic_cards.each do |card| %>
+    <%= render partial: 'shared/cards/mobile_card', locals: { card: card, is_owner: false, collections: [], collection: nil } %>
   <% end %>
 
-  <% if @pagy %>
+  <% if pagy %>
     <div
       class="
-        flex flex-col gap-2 w-full px-4 py-3 mt-2 bg-foreground text-sm
-        rounded-xl
-      "
+    flex flex-col gap-2 w-full px-4 py-3 mt-2 bg-foreground text-sm
+    rounded-xl
+    "
     >
-      <div class="text-grey-text"><%== @pagy.info_tag() %></div>
+      <div class="text-grey-text"><%== pagy.info_tag() %></div>
 
       <div class="overflow-x-auto">
-        <%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
+        <%== pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
       </div>
     </div>
   <% end %>
@@ -30,9 +30,9 @@
         <% if column_visible?('card_number', 'boxsets') %>
           <th
             class="
-              py-3 pl-4 pr-0 text-xs font-normal tracking-wider text-left
-              normal-case text-grey-text
-            "
+          py-3 pl-4 pr-0 text-xs font-normal tracking-wider text-left
+          normal-case text-grey-text
+          "
           >
             #
           </th>
@@ -41,9 +41,9 @@
         <% if column_visible?('name', 'boxsets') %>
           <th
             class="
-              px-4 py-2 text-xs font-normal tracking-wider text-left
-              normal-case text-grey-text
-            "
+          px-4 py-2 text-xs font-normal tracking-wider text-left
+          normal-case text-grey-text
+          "
           >
             Name
           </th>
@@ -52,9 +52,9 @@
         <% if column_visible?('type', 'boxsets') %>
           <th
             class="
-              hidden px-4 py-2 text-xs font-normal tracking-wider text-left
-              normal-case text-grey-text lg:table-cell
-            "
+          hidden px-4 py-2 text-xs font-normal tracking-wider text-left
+          normal-case text-grey-text lg:table-cell
+          "
           >
             Type
           </th>
@@ -63,9 +63,9 @@
         <% if column_visible?('mana', 'boxsets') %>
           <th
             class="
-              px-4 py-2 text-xs font-normal tracking-wider text-left
-              normal-case text-grey-text
-            "
+          px-4 py-2 text-xs font-normal tracking-wider text-left
+          normal-case text-grey-text
+          "
           >
             Mana
           </th>
@@ -74,9 +74,9 @@
         <% if column_visible?('regular_price', 'boxsets') %>
           <th
             class="
-              px-4 py-2 text-xs font-normal tracking-wider text-left
-              normal-case text-grey-text
-            "
+          px-4 py-2 text-xs font-normal tracking-wider text-left
+          normal-case text-grey-text
+          "
           >
             Regular
           </th>
@@ -85,9 +85,9 @@
         <% if column_visible?('foil_price', 'boxsets') %>
           <th
             class="
-              px-4 py-2 text-xs font-normal tracking-wider text-left
-              normal-case text-grey-text
-            "
+          px-4 py-2 text-xs font-normal tracking-wider text-left
+          normal-case text-grey-text
+          "
           >
             Foil
           </th>
@@ -96,9 +96,9 @@
         <% if column_visible?('salt', 'boxsets') %>
           <th
             class="
-              hidden px-4 py-2 text-xs font-normal tracking-wider text-left
-              normal-case lg:table-cell text-grey-text
-            "
+          hidden px-4 py-2 text-xs font-normal tracking-wider text-left
+          normal-case lg:table-cell text-grey-text
+          "
           >
             Salt
           </th>
@@ -107,16 +107,16 @@
     </thead>
 
     <tbody class="bg-background" data-controller="expandable-row">
-      <% @magic_cards.each do |card| %>
+      <% magic_cards.each do |card| %>
         <% trends = card.price_trend %>
 
         <tr
           data-action="click->expandable-row#toggle"
           data-card-id="<%= card.id %>"
           class="
-            border border-background text-grey-text bg-foreground
-            hover:bg-menu hover:cursor-pointer
-          "
+        border border-background text-grey-text bg-foreground
+        hover:bg-menu hover:cursor-pointer
+        "
         >
           <% if column_visible?('card_number', 'boxsets') %>
             <td class="pl-4 pr-0 text-sm py-7 whitespace-nowrap">
@@ -126,7 +126,7 @@
 
           <% if column_visible?('name', 'boxsets') %>
             <td class="px-4 py-2 text-sm whitespace-nowrap">
-              <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
+              <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code&.downcase} ss-#{card.rarity&.downcase || 'common'} ss-fw ss-2x mr-4" %>"></i>
 
               <% if card&.card_side == 'a' %>
                 <%= card.name.split('//')[0] %>
@@ -139,9 +139,9 @@
               <% if card.etched_finish? %>
                 <span
                   class="
-                    ml-2 px-1.5 py-0.5 text-xs rounded bg-purple-900/30
-                    text-purple-400 border border-purple-500/30
-                  "
+                ml-2 px-1.5 py-0.5 text-xs rounded bg-purple-900/30
+                text-purple-400 border border-purple-500/30
+                "
                   title="Etched finish"
                 >
                   E
@@ -151,9 +151,9 @@
               <% if card.is_token %>
                 <span
                   class="
-                    ml-2 px-1.5 py-0.5 text-xs rounded bg-amber-900/30
-                    text-amber-400 border border-amber-500/30
-                  "
+                ml-2 px-1.5 py-0.5 text-xs rounded bg-amber-900/30
+                text-amber-400 border border-amber-500/30
+                "
                   title="Token"
                 >
                   T
@@ -177,8 +177,9 @@
           <% end %>
 
           <% if column_visible?('regular_price', 'boxsets') %>
-            <% if card.non_foil_available? %>
-              <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <% if card.non_foil_available? %>
+
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.normal_price) %>
 
@@ -189,15 +190,14 @@
                     </span>
                   <% end %>
                 </div>
-              </td>
-            <% else %>
-              <td class="px-4 py-2 text-sm whitespace-nowrap"></td>
-            <% end %>
+
+              <% end %>
+            </td>
           <% end %>
 
           <% if column_visible?('foil_price', 'boxsets') %>
-            <% if card.foil_available? %>
-              <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <% if card.foil_available? %>
                 <div class="flex items-center gap-2">
                   <%= number_to_currency(card.foil_price) %>
 
@@ -208,10 +208,8 @@
                     </span>
                   <% end %>
                 </div>
-              </td>
-            <% else %>
-              <td class="px-4 py-2 text-sm whitespace-nowrap"></td>
-            <% end %>
+              <% end %>
+            </td>
           <% end %>
 
           <% if column_visible?('salt', 'boxsets') %>
@@ -236,10 +234,10 @@
     </tbody>
   </table>
 
-  <% if @pagy %>
+  <% if pagy %>
     <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
-      <%== @pagy.info_tag() %>
-      <%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
     </div>
   <% end %>
 </div>

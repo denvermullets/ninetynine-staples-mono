@@ -1,8 +1,8 @@
 <%
-  # Determine editability and available collections from instance variables or locals
-  is_editable = (defined?(editable) && editable) || (defined?(@is_owner) && @is_owner)
-  available_collections = defined?(collections) && collections.present? ? collections : (defined?(@collections) ? @collections : [])
-  current_collection = defined?(@collection) ? @collection : nil
+  # Determine editability and available collections from locals
+  is_editable = local_assigns.fetch(:editable, local_assigns.fetch(:is_owner, false))
+  available_collections = local_assigns.fetch(:collections, [])
+  current_collection = local_assigns.fetch(:collection, nil)
 
   # Get aggregated quantities across all user's collections for this card
   # This ensures accurate totals when a card is in multiple collections
@@ -52,7 +52,7 @@
     "
   >
     <!-- Rarity Icon -->
-    <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x flex-shrink-0"></i>
+    <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code&.downcase} ss-#{card.rarity&.downcase || 'common'} ss-fw ss-2x flex-shrink-0" %>"></i>
 
     <!-- Card Info -->
     <div class="flex-1 min-w-0">

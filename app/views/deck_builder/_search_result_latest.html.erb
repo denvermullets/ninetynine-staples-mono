@@ -4,7 +4,7 @@
     transition
   "
   data-controller="add-card"
-  data-add-card-deck-id-value="<%= @deck.id %>"
+  data-add-card-deck-id-value="<%= deck.id %>"
   data-add-card-card-id-value="<%= result[:card].id %>"
 >
   <div class="flex items-start gap-3">
@@ -47,7 +47,7 @@
           <%= result[:deck_card_planned] ? 'Planned' : 'Already in deck' %>
         </span>
       <% else %>
-        <%= link_to choose_printing_modal_deck_builder_path(@deck, magic_card_id: result[:card].id),
+        <%= link_to choose_printing_modal_deck_builder_path(deck, magic_card_id: result[:card].id),
             data: { turbo_frame: "deck_modal", action: "click->add-card#openChoosePrinting" },
             class: "text-xs text-accent-50 hover:text-accent-100 hover:underline" do %>
           Change printing
