@@ -158,7 +158,7 @@
         data-action="click->mobile-card#toggleImage"
         class="flex-shrink-0 focus:outline-none"
       >
-        <%= image_tag (card.image_small.presence || card.image_medium),
+        <%= image_tag (card.image_small.presence || card.image_medium.presence || ""),
           alt: card.name,
           class: "w-16 h-auto rounded-lg",
           loading: "lazy" %>
@@ -208,13 +208,13 @@
           >
             <div data-card-flip-target="card" class="flip-card">
               <div class="flip-card-front">
-                <%= image_tag (card.image_large.presence || card.image_medium),
+                <%= image_tag (card.image_large.presence || card.image_medium.presence || ""),
                   class: "w-full h-auto rounded-2xl",
                   alt: card.name %>
               </div>
 
               <div class="flip-card-back">
-                <%= image_tag (other_card&.image_large.presence || other_card&.image_medium),
+                <%= image_tag (other_card&.image_large.presence || other_card&.image_medium.presence || ""),
                   class: "w-full h-auto rounded-2xl",
                   alt: other_card&.name %>
               </div>
@@ -224,7 +224,7 @@
           <p class="mt-2 text-sm text-grey-text">Tap card to flip</p>
         </div>
       <% else %>
-        <%= image_tag (card.image_large.presence || card.image_medium),
+        <%= image_tag (card.image_large.presence || card.image_medium.presence || ""),
           class: "w-full max-w-xs mx-auto h-auto rounded-2xl",
           alt: card.name %>
       <% end %>

@@ -27,13 +27,13 @@
           >
             <div data-card-flip-target="card" class="flip-card">
               <div class="flip-card-front">
-                <%= image_tag card.image_medium,
+                <%= image_tag (card.image_medium.presence || ""),
                   class: "object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96",
                   alt: card.name %>
               </div>
 
               <div class="flip-card-back">
-                <%= image_tag other_card&.image_medium,
+                <%= image_tag (other_card&.image_medium.presence || ""),
                   class: "object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96",
                   alt: other_card&.name %>
               </div>
@@ -45,7 +45,7 @@
           </p>
         </div>
       <% else %>
-        <%= image_tag card.image_medium,
+        <%= image_tag (card.image_medium.presence || ""),
           class: "object-contain w-full h-auto max-w-md rounded-3xl md:max-w-96",
           alt: card.name %>
       <% end %>

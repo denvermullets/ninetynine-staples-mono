@@ -59,8 +59,7 @@ module CardIngestion
       artist_name = @card_data['artist']
       return unless artist_name.present?
 
-      artist = Artist.where('LOWER(name) = LOWER(?)', artist_name).first ||
-               Artist.create(name: artist_name)
+      artist = Artist.find_or_create_by_name(artist_name)
 
       MagicCardArtist.find_or_create_by(artist: artist, magic_card: @magic_card)
     end
