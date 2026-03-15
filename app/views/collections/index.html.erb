@@ -48,8 +48,8 @@
     data-collection-sidebar-target="sidebar"
     class="hidden md:flex flex-col shrink-0 h-auto px-4 md:px-8 py-3 md:py-4 gap-3 md:gap-8 border w-[85vw] md:w-72 max-w-sm md:max-w-none rounded-3xl md:rounded-3xl border-highlight bg-foreground text-grey-text fixed md:relative inset-y-0 left-0 z-40 md:z-auto <%= 'overflow-y-auto max-h-screen' if is_own_collection %>"
   >
-    <%= render partial: 'view_toggle' %>
-    <%= render partial: 'grouping_dropdown' %>
+    <%= render partial: 'view_toggle', locals: { view_mode: @view_mode } %>
+    <%= render partial: 'grouping_dropdown', locals: { view_mode: @view_mode, grouping_allowed: @grouping_allowed, grouping: @grouping } %>
     <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
 
@@ -208,8 +208,8 @@
   <!-- Main Content -->
   <div class="flex flex-col grow gap-8 min-w-0">
     <!-- Collection Info Header -->
-    <% if @collection.present? %>
-      <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-1">
+      <% if @collection.present? %>
         <div class="flex items-center gap-3">
           <h1 class="text-2xl font-semibold text-grey-text">
             <%= @collection.name %>
@@ -232,16 +232,14 @@
         <% if @collection.description.present? %>
           <p class="text-sm text-grey-text"><%= @collection.description %></p>
         <% end %>
-      </div>
-    <% else %>
-      <div class="flex flex-col gap-1">
+      <% else %>
         <h1 class="text-2xl font-semibold text-grey-text">Viewing All Cards</h1>
 
         <p class="text-sm text-grey-text">
           Select one of your specific collections to view in isolation
         </p>
-      </div>
-    <% end %>
+      <% end %>
+    </div>
 
     <!-- Top Bar / Stats -->
     <div
@@ -311,9 +309,9 @@
       <%= turbo_frame_tag 'boxset_content' do %>
         <div id="table-container" class="min-w-full">
           <% if @view_mode == 'visual' %>
-            <%= render partial: 'visual' %>
+            <%= render partial: 'visual', locals: { grouping: @grouping, grouped_cards: @grouped_cards, magic_cards: @magic_cards, pagy: @pagy, aggregated_quantities: @aggregated_quantities } %>
           <% else %>
-            <%= render partial: 'table' %>
+            <%= render partial: 'table', locals: { magic_cards: @magic_cards, is_owner: @is_owner, collections: @collections || [], collection: @collection, pagy: @pagy } %>
           <% end %>
         </div>
       <% end %>

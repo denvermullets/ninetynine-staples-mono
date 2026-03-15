@@ -71,7 +71,7 @@
               data-card-locations-target="adjustRegularNew"
               min="0"
               value="0"
-              <%= 'disabled' unless magic_card.non_foil_available? %>
+              <% unless magic_card.non_foil_available? %> disabled<% end %>
               class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50"
             >
           </div>
@@ -104,7 +104,7 @@
               data-card-locations-target="adjustFoilNew"
               min="0"
               value="0"
-              <%= 'disabled' unless magic_card.foil_available? %>
+              <% unless magic_card.foil_available? %> disabled<% end %>
               class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50"
             >
           </div>

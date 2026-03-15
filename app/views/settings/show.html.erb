@@ -33,7 +33,7 @@
                 value="dark"
                 data-theme-target="radio"
                 data-action="change->theme#toggle"
-                <%= 'checked' if current_user.theme == 'dark' %>
+                <% if current_user.theme == 'dark' %> checked<% end %>
                 class="
                   w-4 h-4 border-highlight bg-background
                   accent-accent-50 focus:ring-accent-50
@@ -56,7 +56,7 @@
                 value="light"
                 data-theme-target="radio"
                 data-action="change->theme#toggle"
-                <%= 'checked' if current_user.theme == 'light' %>
+                <% if current_user.theme == 'light' %> checked<% end %>
                 class="
                   w-4 h-4 border-highlight bg-background
                   accent-accent-50 focus:ring-accent-50
@@ -95,7 +95,7 @@
               type="checkbox"
               data-game-tracker-visibility-target="toggle"
               data-action="change->game-tracker-visibility#toggle"
-              <%= 'checked' if current_user.game_tracker_public? %>
+              <% if current_user.game_tracker_public? %> checked<% end %>
               class="
                 w-4 h-4 rounded border-highlight bg-background
                 accent-accent-50 focus:ring-accent-50
@@ -170,7 +170,7 @@
                 <input
                   type="checkbox"
                   data-action="change->column-visibility#toggle"
-                  <%= 'checked' if current_user.column_visible?(key, 'collections') %>
+                  <% if current_user.column_visible?(key, 'collections') %> checked<% end %>
                   class="
                     w-4 h-4 rounded border-highlight bg-background
                     accent-accent-50 focus:ring-accent-50
@@ -231,7 +231,7 @@
                 <input
                   type="checkbox"
                   data-action="change->column-visibility#toggle"
-                  <%= 'checked' if current_user.column_visible?(key, 'boxsets') %>
+                  <% if current_user.column_visible?(key, 'boxsets') %> checked<% end %>
                   class="
                     w-4 h-4 rounded border-highlight bg-background
                     accent-accent-50 focus:ring-accent-50

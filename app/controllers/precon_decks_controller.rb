@@ -64,7 +64,10 @@ class PreconDecksController < ApplicationController
   def respond_to_show
     respond_to do |format|
       format.html
-      format.turbo_stream { render turbo_stream: turbo_stream.update('deck_cards', partial: 'deck_cards') }
+      format.turbo_stream do
+        locals = { grouped_cards: @grouped_cards, view_mode: @view_mode, sort_by: @sort_by }
+        render turbo_stream: turbo_stream.update('deck_cards', partial: 'deck_cards', locals: locals)
+      end
     end
   end
 

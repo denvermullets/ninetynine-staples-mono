@@ -184,28 +184,28 @@
               focus:outline-none
             "
           >
-            <option value="type" <%= 'selected' if @grouping == 'type' %>>Type</option>
+            <option value="type" <% if @grouping == 'type' %> selected<% end %>>Type</option>
 
             <option
               value="mana_value"
-              <%= 'selected' if @grouping == 'mana_value' %>
+              <% if @grouping == 'mana_value' %> selected<% end %>
             >
               Mana Value
             </option>
 
-            <option value="color" <%= 'selected' if @grouping == 'color' %>>Color</option>
+            <option value="color" <% if @grouping == 'color' %> selected<% end %>>Color</option>
 
             <option
               value="color_identity"
-              <%= 'selected' if @grouping == 'color_identity' %>
+              <% if @grouping == 'color_identity' %> selected<% end %>
             >
               Color Identity
             </option>
 
-            <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>Rarity</option>
-            <option value="set" <%= 'selected' if @grouping == 'set' %>>Set</option>
-            <option value="zone" <%= 'selected' if @grouping == 'zone' %>>Zone</option>
-            <option value="none" <%= 'selected' if @grouping == 'none' %>>None</option>
+            <option value="rarity" <% if @grouping == 'rarity' %> selected<% end %>>Rarity</option>
+            <option value="set" <% if @grouping == 'set' %> selected<% end %>>Set</option>
+            <option value="zone" <% if @grouping == 'zone' %> selected<% end %>>Zone</option>
+            <option value="none" <% if @grouping == 'none' %> selected<% end %>>None</option>
           </select>
         </div>
 
@@ -222,29 +222,29 @@
               focus:outline-none
             "
           >
-            <option value="name" <%= 'selected' if @sort_by == 'name' %>>Name</option>
+            <option value="name" <% if @sort_by == 'name' %> selected<% end %>>Name</option>
 
             <option
               value="mana_value"
-              <%= 'selected' if @sort_by == 'mana_value' %>
+              <% if @sort_by == 'mana_value' %> selected<% end %>
             >
               Mana Value
             </option>
 
-            <option value="price" <%= 'selected' if @sort_by == 'price' %>>Price</option>
-            <option value="rarity" <%= 'selected' if @sort_by == 'rarity' %>>Rarity</option>
-            <option value="edhrec" <%= 'selected' if @sort_by == 'edhrec' %>>EDHREC</option>
-            <option value="salt" <%= 'selected' if @sort_by == 'salt' %>>Salt</option>
+            <option value="price" <% if @sort_by == 'price' %> selected<% end %>>Price</option>
+            <option value="rarity" <% if @sort_by == 'rarity' %> selected<% end %>>Rarity</option>
+            <option value="edhrec" <% if @sort_by == 'edhrec' %> selected<% end %>>EDHREC</option>
+            <option value="salt" <% if @sort_by == 'salt' %> selected<% end %>>Salt</option>
           </select>
         </div>
       </div>
 
       <!-- Deck Cards -->
       <%= turbo_frame_tag 'deck_cards' do %>
-        <%= render partial: 'deck_cards' %>
+        <%= render partial: 'deck_cards', locals: { grouped_cards: @grouped_cards, view_mode: @view_mode, sort_by: @sort_by } %>
       <% end %>
     </div>
   </div>
 </div>
 
-<%= render partial: 'import_modal' %>
+<%= render partial: 'import_modal', locals: { precon_deck: @precon_deck, collections: @collections } %>

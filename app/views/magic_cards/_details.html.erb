@@ -8,12 +8,14 @@
     >
       <% if card.foil_available? %>
         <h3 class="font-normal text-md text-grey-text"><%= card.name %></h3>
-        <p class="text-md text-grey-text">
-          (R) $<%= card.normal_price %> / (foil) $<%= card.foil_price %>
-        </p>
-      <% else %>
-        <p class="text-md text-grey-text">(R) $<%= card.normal_price %></p>
       <% end %>
+      <p class="text-md text-grey-text">
+        <% if card.foil_available? %>
+          (R) $<%= card.normal_price %> / (foil) $<%= card.foil_price %>
+        <% else %>
+          (R) $<%= card.normal_price %>
+        <% end %>
+      </p>
     </div>
 
     <div class="flex items-start justify-center w-full md:col-span-1">

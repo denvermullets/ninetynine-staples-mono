@@ -197,7 +197,7 @@
           <% @recent_games.each do |game| %>
             <tr
               class="hover:bg-background/50 cursor-pointer"
-              onclick="window.location='<%= game_tracker_commander_game_path(tracker_owner.username, game) %>'"
+              data-action="click->row-link#navigate" data-row-link-url-value="<%= game_tracker_commander_game_path(tracker_owner.username, game) %>"
             >
               <td class="px-6 py-4 text-grey-text">
                 <%= game.played_on.strftime('%b %d, %Y') %>

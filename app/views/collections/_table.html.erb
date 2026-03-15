@@ -2,21 +2,21 @@
 
 <!-- Mobile Card View -->
 <div class="md:hidden mb-24 max-w-full">
-  <% @magic_cards.each do |card| %>
-    <%= render partial: 'shared/cards/mobile_card', locals: { card: card } %>
+  <% magic_cards.each do |card| %>
+    <%= render partial: 'shared/cards/mobile_card', locals: { card: card, is_owner: is_owner, collections: collections || [], collection: collection } %>
   <% end %>
 
-  <% if @pagy %>
+  <% if pagy %>
     <div
       class="
         flex flex-col gap-2 w-full px-4 py-3 mt-2 bg-foreground text-sm
         rounded-xl
       "
     >
-      <div class="text-grey-text"><%== @pagy.info_tag() %></div>
+      <div class="text-grey-text"><%== pagy.info_tag() %></div>
 
       <div class="overflow-x-auto">
-        <%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
+        <%== pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
       </div>
     </div>
   <% end %>
@@ -107,7 +107,7 @@
     </thead>
 
     <tbody class="bg-background" data-controller="expandable-row">
-      <% @magic_cards.each do |card| %>
+      <% magic_cards.each do |card| %>
         <% trends = card.price_trend %>
         <% has_foil_in_collection = card.respond_to?(:foil_quantity) && card.foil_quantity.to_i > 0 %>
         <% has_normal_in_collection = card.respond_to?(:quantity) && card.quantity.to_i > 0 %>
@@ -128,7 +128,7 @@
 
           <% if column_visible?('name', 'collections') %>
             <td class="px-4 py-2 text-sm whitespace-nowrap">
-              <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-4"></i>
+              <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code.downcase} ss-#{card.rarity.downcase} ss-fw ss-2x mr-4" %>"></i>
               <%= card.name %>
 
               <% if card.etched_finish? %>
@@ -229,10 +229,10 @@
     </tbody>
   </table>
 
-  <% if @pagy %>
+  <% if pagy %>
     <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
-      <%== @pagy.info_tag() %>
-      <%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
     </div>
   <% end %>
 </div>

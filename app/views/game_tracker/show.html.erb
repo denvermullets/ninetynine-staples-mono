@@ -9,8 +9,8 @@
               subtext: @is_owner ? 'Your Commander game statistics and performance overview.' : 'Commander game statistics and performance overview.' } %>
 
   <!-- Quick Actions (only for owner) -->
-  <% if @is_owner %>
-    <div class="flex flex-wrap gap-3">
+  <div class="flex flex-wrap gap-3">
+    <% if @is_owner %>
       <%= link_to new_commander_game_path, class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:border-accent-50 hover:text-accent-50 font-medium cursor-pointer' do %>
         + Record Game
       <% end %>
@@ -21,13 +21,11 @@
 
       <%= link_to 'All Games', game_tracker_commander_games_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
       <%= link_to 'My Decks', game_tracker_tracked_decks_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
-    </div>
-  <% else %>
-    <div class="flex flex-wrap gap-3">
+    <% else %>
       <%= link_to 'All Games', game_tracker_commander_games_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
       <%= link_to 'View Decks', game_tracker_tracked_decks_path(tracker_owner.username), class: 'px-4 py-2 border border-highlight text-grey-text rounded-lg hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 
   <!-- Overall Stats Cards -->
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -225,7 +223,8 @@
           <% @deck_stats.each do |deck| %>
             <tr
               class="hover:bg-background/50 cursor-pointer"
-              onclick="window.location='<%= game_tracker_tracked_deck_path(tracker_owner.username, deck[:id]) %>'"
+              data-action="click->row-link#navigate"
+              data-row-link-url-value="<%= game_tracker_tracked_deck_path(tracker_owner.username, deck[:id]) %>"
             >
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">

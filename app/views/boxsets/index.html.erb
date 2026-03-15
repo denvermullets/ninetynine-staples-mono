@@ -70,9 +70,9 @@
             text-grey-text focus:border-accent-50 focus:ring-accent-50
           "
         >
-          <option value="none" <%= 'selected' if @grouping == 'none' %>>No Grouping</option>
-          <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>By Rarity</option>
-          <option value="color" <%= 'selected' if @grouping == 'color' %>>By Color</option>
+          <option value="none" <% if @grouping == 'none' %> selected<% end %>>No Grouping</option>
+          <option value="rarity" <% if @grouping == 'rarity' %> selected<% end %>>By Rarity</option>
+          <option value="color" <% if @grouping == 'color' %> selected<% end %>>By Color</option>
         </select>
 
         <p class="mt-2 text-xs text-grey-text">Group cards in visual view</p>
@@ -111,9 +111,9 @@
     <div id="table-container" class="min-w-full">
       <% if @magic_cards.present? %>
         <% if @view_mode == 'visual' %>
-          <%= render partial: 'visual' %>
+          <%= render partial: 'visual', locals: { grouping: @grouping, grouped_cards: @grouped_cards, magic_cards: @magic_cards, pagy: @pagy } %>
         <% else %>
-          <%= render partial: 'table' %>
+          <%= render partial: 'table', locals: { pagy: @pagy, magic_cards: @magic_cards } %>
         <% end %>
       <% else %>
         <div

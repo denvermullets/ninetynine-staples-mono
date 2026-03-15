@@ -174,7 +174,9 @@
 
   <!-- Navigation -->
   <div class="flex justify-between">
-    <%= link_to '&larr; All Games'.html_safe, game_tracker_commander_games_path(tracker_owner.username), class: 'text-accent-50 hover:text-accent-100' %>
+    <%= link_to game_tracker_commander_games_path(tracker_owner.username), class: 'text-accent-50 hover:text-accent-100' do %>
+      &larr; All Games
+    <% end %>
     <%= link_to "View #{@commander_game.deck_name}", game_tracker_tracked_deck_path(tracker_owner.username, @commander_game.tracked_deck), class: 'text-accent-50 hover:text-accent-100' %>
   </div>
 </div>

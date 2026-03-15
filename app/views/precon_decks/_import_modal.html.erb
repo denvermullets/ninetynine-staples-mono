@@ -39,10 +39,10 @@
         </button>
       </div>
 
-      <%= form_with url: import_to_collection_precon_deck_path(@precon_deck), method: :post, class: "flex flex-col gap-4", id: "import-form" do |f| %>
+      <%= form_with url: import_to_collection_precon_deck_path(precon_deck), method: :post, class: "flex flex-col gap-4", id: "import-form" do |f| %>
         <p class="text-sm text-grey-text">
           Import all cards from
-          <span class="text-white font-medium"><%= @precon_deck.name %></span>
+          <span class="text-white font-medium"><%= precon_deck.name %></span>
           to a collection.
         </p>
 
@@ -64,7 +64,7 @@
           >
             <option value="">-- Create new collection --</option>
 
-            <% @collections.each do |collection| %>
+            <% collections.each do |collection| %>
               <option value="<%= collection.id %>">
                 <%= collection.name %>
               </option>
@@ -83,7 +83,7 @@
             name="collection_name"
             id="new-collection-name"
             autocomplete="off"
-            placeholder="<%= @precon_deck.name %>"
+            placeholder="<%= precon_deck.name %>"
             class="
               w-full px-3 py-2 text-sm border rounded-md border-highlight
               bg-background text-white placeholder-grey-text

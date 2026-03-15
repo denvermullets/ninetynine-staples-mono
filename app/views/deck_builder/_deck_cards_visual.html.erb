@@ -1,5 +1,5 @@
 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-  <% @grouped_cards.each do |group_name, cards| %>
+  <% grouped_cards.each do |group_name, cards| %>
     <div class="p-4 border rounded-xl bg-foreground border-highlight">
       <h3 class="mb-3 text-sm font-semibold text-grey-text">
         <%= group_name %> (<%= cards.sum(&:display_quantity) %>)
@@ -92,7 +92,7 @@
                   <span class="text-accent-400">Planned</span>
                 <% elsif card.needed? %>
                   <span class="text-orange-400">Need</span>
-                  <% if @is_owner && card.available_swap?(current_user) %>
+                  <% if is_owner && card.available_swap?(current_user) %>
                     <span class="text-accent-50">- Swap available!</span>
                   <% end %>
                 <% end %>
