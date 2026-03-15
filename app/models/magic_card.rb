@@ -45,10 +45,18 @@ class MagicCard < ApplicationRecord
   has_many :magic_card_variations
   has_many :variations, through: :magic_card_variations, source: :variation
 
+  has_one :game_changer, primary_key: :scryfall_oracle_id, foreign_key: :oracle_id
+
   has_many :tracked_decks_as_commander, class_name: 'TrackedDeck', foreign_key: :commander_id
   has_many :tracked_decks_as_partner, class_name: 'TrackedDeck', foreign_key: :partner_commander_id
   has_many :game_opponents_as_commander, class_name: 'GameOpponent', foreign_key: :commander_id
   has_many :game_opponents_as_partner, class_name: 'GameOpponent', foreign_key: :partner_commander_id
+
+  scope :game_changers, -> { joins(:game_changer) }
+
+  def game_changer?
+    GameChanger.exists?(oracle_id: scryfall_oracle_id)
+  end
 
   def other_face
     return nil unless other_face_uuid.present?
