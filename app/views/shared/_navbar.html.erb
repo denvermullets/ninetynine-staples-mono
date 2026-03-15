@@ -123,6 +123,7 @@
               <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Ingest Precon Decks', dashboard_ingest_precon_decks_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Manage Tags', admin_tags_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Game Changers', admin_game_changers_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Mission Control', '/jobs', class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
@@ -333,6 +334,10 @@
 
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Manage Tags', admin_tags_path %>
+            </div>
+
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= link_to 'Game Changers', admin_game_changers_path %>
             </div>
 
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">

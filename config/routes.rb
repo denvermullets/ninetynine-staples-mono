@@ -34,6 +34,11 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :tags, except: [:show]
+    resources :game_changers, except: [:show] do
+      collection do
+        get :search_cards
+      end
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

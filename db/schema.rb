@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_14_200001) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_15_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -194,6 +194,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_14_200001) do
     t.string "name"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_frame_effects_on_name", unique: true
+  end
+
+  create_table "game_changers", force: :cascade do |t|
+    t.string "card_name", null: false
+    t.datetime "created_at", null: false
+    t.uuid "oracle_id", null: false
+    t.text "reason"
+    t.datetime "updated_at", null: false
+    t.index ["oracle_id"], name: "index_game_changers_on_oracle_id", unique: true
   end
 
   create_table "game_opponents", force: :cascade do |t|

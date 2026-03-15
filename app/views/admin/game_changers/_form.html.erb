@@ -1,0 +1,50 @@
+<%= form_with model: [:admin, game_changer], class: 'space-y-4', data: { controller: 'card-search-admin' } do |f| %>
+  <% if game_changer.errors.any? %>
+    <div class="p-4 border border-red-500 rounded-lg bg-red-500/10">
+      <ul class="list-disc list-inside text-red-400 text-sm">
+        <% game_changer.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <label class="block text-sm font-medium text-grey-text mb-1">Card Search</label>
+
+    <input
+      type="text"
+      placeholder="Search for a card..."
+      class="w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50"
+      data-card-search-admin-target="searchInput"
+      data-action="input->card-search-admin#search"
+      value="<%= game_changer.card_name %>"
+      autocomplete="off"
+    >
+
+    <div
+      data-card-search-admin-target="results"
+      class="mt-1 rounded-md bg-background border border-highlight overflow-hidden hidden"
+    ></div>
+  </div>
+
+  <%= f.hidden_field :oracle_id, data: { card_search_admin_target: 'oracleId' } %>
+  <%= f.hidden_field :card_name, data: { card_search_admin_target: 'cardName' } %>
+
+  <div>
+    <%= f.label :reason, class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.text_area :reason,
+        rows: 3,
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50',
+        placeholder: 'Why is this card a game changer?' %>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-2">
+    <%= link_to 'Cancel', admin_game_changers_path,
+        class: 'px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-100 hover:border-accent-100' %>
+
+    <%= f.submit game_changer.persisted? ? 'Update Game Changer' : 'Create Game Changer',
+        class: 'px-4 py-2 text-sm transition rounded-md bg-accent-50 text-foreground border border-accent-50 hover:bg-foreground hover:text-accent-50 cursor-pointer' %>
+  </div>
+<% end %>
