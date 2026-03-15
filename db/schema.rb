@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_15_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_15_200003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200000) do
     t.datetime "updated_at", null: false
     t.boolean "valid_cards", default: false, null: false
     t.jsonb "value_history", default: {"foil" => [], "normal" => []}
+  end
+
+  create_table "brackets", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.integer "level", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["level"], name: "index_brackets_on_level", unique: true
   end
 
   create_table "card_prices", force: :cascade do |t|
@@ -90,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200000) do
   end
 
   create_table "collections", force: :cascade do |t|
+    t.integer "bracket_level"
     t.jsonb "collection_history", default: {}
     t.string "collection_type"
     t.datetime "combos_checked_at"
@@ -106,6 +117,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200000) do
     t.decimal "total_value", precision: 15, scale: 2, default: "0.0"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["bracket_level"], name: "index_collections_on_bracket_level"
     t.index ["cover_card_id"], name: "index_collections_on_cover_card_id"
     t.index ["user_id"], name: "index_collections_on_user_id"
   end
@@ -180,6 +192,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200000) do
     t.index ["collection_id", "combo_id"], name: "index_deck_combos_on_collection_id_and_combo_id", unique: true
     t.index ["collection_id"], name: "index_deck_combos_on_collection_id"
     t.index ["combo_id"], name: "index_deck_combos_on_combo_id"
+  end
+
+  create_table "deck_rules", force: :cascade do |t|
+    t.bigint "bracket_id", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.string "name", null: false
+    t.string "rule_type", null: false
+    t.datetime "updated_at", null: false
+    t.integer "value", null: false
+    t.index ["bracket_id"], name: "index_deck_rules_on_bracket_id"
+    t.index ["rule_type", "bracket_id"], name: "index_deck_rules_on_rule_type_and_bracket_id", unique: true
   end
 
   create_table "finishes", force: :cascade do |t|
@@ -545,6 +570,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200000) do
   add_foreign_key "deck_combo_missing_cards", "deck_combos"
   add_foreign_key "deck_combos", "collections"
   add_foreign_key "deck_combos", "combos"
+  add_foreign_key "deck_rules", "brackets"
   add_foreign_key "game_opponents", "commander_games"
   add_foreign_key "game_opponents", "magic_cards", column: "commander_id"
   add_foreign_key "game_opponents", "magic_cards", column: "partner_commander_id"

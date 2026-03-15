@@ -257,6 +257,16 @@
         <% end %>
       </div>
 
+      <!-- Bracket Detection -->
+      <% if @deck.commander_deck? %>
+        <div class="p-4 mb-4 border rounded-xl bg-foreground border-highlight">
+          <%= turbo_frame_tag 'deck_bracket' do %>
+            <%= render partial: 'deck_bracket',
+                       locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner } %>
+          <% end %>
+        </div>
+      <% end %>
+
       <!-- Deck Cards -->
       <%= turbo_frame_tag 'deck_cards' do %>
         <%= render partial: 'deck_cards', locals: { grouped_cards: @grouped_cards, view_mode: @view_mode, is_owner: @is_owner, deck: @deck, combo_card_oracle_ids: @combo_card_oracle_ids, sort_by: @sort_by } %>

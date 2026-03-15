@@ -98,6 +98,24 @@
           </label>
         </div>
 
+        <% if collection.commander_deck? %>
+          <div>
+            <%= f.label :bracket_level, "Bracket", class: "block text-sm font-medium text-grey-text mb-1" %>
+
+            <p class="text-xs text-grey-text mt-0.5 mb-2">
+              What bracket do you consider this deck?
+            </p>
+
+            <%= f.select :bracket_level,
+                options_for_select(
+                  [['Not Set', nil]] + Bracket.enabled.ordered.map { |b| ["B#{b.level} - #{b.name}", b.level] },
+                  collection.bracket_level
+                ),
+                {},
+                class: "w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50" %>
+          </div>
+        <% end %>
+
         <% cover_card_options = collection.magic_cards.distinct.order(:name) %>
 
         <% if cover_card_options.any? %>

@@ -131,6 +131,7 @@ class DeckBuilderController < ApplicationController
     result = DeckBuilder::LoadCards.call(deck: @deck, grouping: @grouping, sort_by: @sort_by)
     @staged_cards, @needed_cards, @owned_cards = result.values_at(:staged_cards, :needed_cards, :owned_cards)
     @grouped_cards, @stats = result.values_at(:grouped_cards, :stats)
+    @bracket_result = result[:bracket_result]
   end
 
   def load_combo_data
@@ -145,5 +146,5 @@ class DeckBuilderController < ApplicationController
     @sort_by = @sort_by || params[:sort_by] || 'mana_value'
   end
 
-  def deck_params = params.permit(:name, :description, :collection_type, :is_public, tag_ids: [])
+  def deck_params = params.permit(:name, :description, :collection_type, :is_public, :bracket_level, tag_ids: [])
 end

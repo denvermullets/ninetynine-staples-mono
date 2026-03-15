@@ -39,6 +39,8 @@ Rails.application.routes.draw do
         get :search_cards
       end
     end
+    resources :brackets, except: [:show]
+    resources :deck_rules, except: [:show]
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

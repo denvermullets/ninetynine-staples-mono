@@ -1,0 +1,80 @@
+<%= form_with model: [:admin, deck_rule], class: 'space-y-4' do |f| %>
+  <% if deck_rule.errors.any? %>
+    <div class="p-4 border border-red-500 rounded-lg bg-red-500/10">
+      <ul class="list-disc list-inside text-red-400 text-sm">
+        <% deck_rule.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.text_field :name,
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50',
+        placeholder: 'e.g. Max 3 Game Changers (B3)' %>
+  </div>
+
+  <div>
+    <%= f.label :bracket_id, 'Bracket', class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.select :bracket_id,
+        options_for_select(
+          Bracket.ordered.map { |b| ["B#{b.level} - #{b.name}", b.id] },
+          deck_rule.bracket_id
+        ),
+        { prompt: 'Select a bracket' },
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50' %>
+  </div>
+
+  <div>
+    <%= f.label :rule_type, 'Rule Type', class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.select :rule_type,
+        options_for_select(
+          DeckRule::RULE_TYPES.map { |t| [t.humanize, t] },
+          deck_rule.rule_type
+        ),
+        { prompt: 'Select a rule type' },
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50' %>
+  </div>
+
+  <div>
+    <%= f.label :value, 'Limit', class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.number_field :value,
+        min: 0,
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50',
+        placeholder: 'e.g. 0, 3, 100' %>
+
+    <p class="text-xs text-grey-text/50 mt-1">
+      The maximum allowed value. Use a high number (e.g. 9999) for unlimited.
+    </p>
+  </div>
+
+  <div>
+    <%= f.label :description, class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.text_area :description,
+        rows: 2,
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50',
+        placeholder: 'Optional description' %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= f.check_box :enabled,
+        class: 'rounded bg-background border-highlight text-accent-50 focus:ring-accent-50' %>
+
+    <%= f.label :enabled, class: 'text-sm text-grey-text' %>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-2">
+    <%= link_to 'Cancel', admin_deck_rules_path,
+        class: 'px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-100 hover:border-accent-100' %>
+
+    <%= f.submit deck_rule.persisted? ? 'Update Rule' : 'Create Rule',
+        class: 'px-4 py-2 text-sm transition rounded-md bg-accent-50 text-foreground border border-accent-50 hover:bg-foreground hover:text-accent-50 cursor-pointer' %>
+  </div>
+<% end %>

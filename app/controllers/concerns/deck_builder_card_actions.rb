@@ -82,6 +82,7 @@ module DeckBuilderCardActions
     streams = [
       turbo_stream.update('deck_cards', partial: 'deck_cards'),
       turbo_stream.update('deck_stats', partial: 'deck_stats'),
+      turbo_stream.update('deck_bracket', partial: 'deck_bracket', locals: bracket_locals),
       turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
     ]
     streams << turbo_stream.update('deck_modal', '') if clear_modal

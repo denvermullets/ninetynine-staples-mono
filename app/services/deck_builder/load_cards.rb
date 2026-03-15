@@ -20,7 +20,8 @@ module DeckBuilder
         needed_cards: needed,
         owned_cards: owned,
         grouped_cards: GroupCards.call(cards: cards_to_group, grouping: @grouping, sort_by: @sort_by),
-        stats: build_stats(cards_to_group, staged, needed, owned)
+        stats: build_stats(cards_to_group, staged, needed, owned),
+        bracket_result: DeckRules::DetectBracket.call(deck: @deck)
       }
     end
 
