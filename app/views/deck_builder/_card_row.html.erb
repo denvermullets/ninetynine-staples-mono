@@ -46,6 +46,18 @@
           </span>
         <% end %>
 
+        <% if card.magic_card.game_changer.present? %>
+          <span
+            class="
+              px-1.5 py-0.5 text-xs font-bold rounded bg-yellow-500/20
+              text-yellow-400 border border-yellow-500/30
+            "
+            title="Game Changer"
+          >
+            &#9733;
+          </span>
+        <% end %>
+
         <% if can_set_commander && deck.commanders.empty? %>
           <%= button_to set_commander_deck_builder_path(deck, card_id: card.id),
               method: :post,

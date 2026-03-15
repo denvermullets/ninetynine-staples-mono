@@ -158,6 +158,18 @@
                 </span>
               <% end %>
 
+              <% if card.magic_card.game_changer.present? %>
+                <span
+                  class="
+                    ml-1 px-1 text-[10px] font-bold rounded bg-yellow-500/20
+                    text-yellow-400 border border-yellow-500/30
+                  "
+                  title="Game Changer"
+                >
+                  &#9733;
+                </span>
+              <% end %>
+
               <% if card.magic_card.card_side == 'b' %>
                 <span
                   class="

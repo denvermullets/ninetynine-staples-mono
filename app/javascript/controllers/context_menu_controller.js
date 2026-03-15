@@ -68,6 +68,7 @@ export default class extends Controller {
 
   edit(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.editUrlValue;
@@ -181,6 +182,7 @@ export default class extends Controller {
 
   swapPrinting(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.swapPrintingUrlValue;
@@ -195,6 +197,7 @@ export default class extends Controller {
 
   swapSource(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.swapSourceUrlValue;
@@ -209,6 +212,7 @@ export default class extends Controller {
 
   editStaged(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.editStagedUrlValue;
@@ -223,6 +227,7 @@ export default class extends Controller {
 
   viewCard(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.viewCardUrlValue;
