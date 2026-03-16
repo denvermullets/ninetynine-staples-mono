@@ -5,7 +5,10 @@ module Admin
     before_action :set_deck_rule, only: %i[edit update destroy]
 
     def index
-      @deck_rules = DeckRule.includes(:bracket).order('brackets.level', :rule_type)
+      @deck_rules = DeckRule
+                    .includes(:bracket)
+                    .joins('LEFT JOIN brackets ON brackets.id = deck_rules.bracket_id')
+                    .order(Arel.sql('brackets.level IS NOT NULL, brackets.level, deck_rules.rule_type'))
     end
 
     def new
@@ -47,7 +50,7 @@ module Admin
     end
 
     def deck_rule_params
-      params.require(:deck_rule).permit(:name, :description, :rule_type, :value, :bracket_id, :enabled)
+      params.require(:deck_rule).permit(:name, :description, :rule_type, :value, :bracket_id, :applies_to, :enabled)
     end
   end
 end

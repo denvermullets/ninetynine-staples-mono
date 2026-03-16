@@ -1,9 +1,9 @@
 <div class="flex items-start justify-center w-full min-h-screen py-8 px-4">
   <div
     class="
-      w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl
-      text-grey-text
-    "
+  w-full max-w-2xl p-6 border border-foreground bg-foreground rounded-xl
+  text-grey-text
+  "
   >
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-xl font-bold">Manage Deck Rules</h1>
@@ -17,22 +17,35 @@
         <% @deck_rules.group_by(&:bracket).each do |bracket, rules| %>
           <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
-              <span class="
-                inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-full
-                <%= bracket_badge_classes(bracket.level) %>
-              ">
-                B<%= bracket.level %>
-              </span>
+              <span class="text-sm font-medium text-white">
+                <% if bracket %>
+                  <span class="
+                  inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-full
+                  <%= bracket_badge_classes(bracket.level) %>
+                  ">
+                    B<%= bracket.level %>
+                  </span>
 
-              <span class="text-sm font-medium text-white"><%= bracket.name %></span>
+                  <%= bracket.name %>
+                <% else %>
+                  <span class="
+                  inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-full
+                  bg-grey-text/20 text-grey-text
+                  ">
+                    Global
+                  </span>
+
+                  Rules (no bracket)
+                <% end %>
+              </span>
             </div>
 
             <% rules.each do |rule| %>
               <div
                 class="
-                  flex items-center justify-between p-4 border rounded-lg
-                  border-highlight bg-background mb-2
-                "
+              flex items-center justify-between p-4 border rounded-lg
+              border-highlight bg-background mb-2
+              "
               >
                 <div class="flex flex-col gap-1">
                   <div class="flex items-center gap-2">
@@ -43,6 +56,12 @@
                     <% unless rule.enabled %>
                       <span class="px-1.5 py-0.5 text-xs rounded bg-red-500/20 text-red-400">
                         Disabled
+                      </span>
+                    <% end %>
+
+                    <% if rule.applies_to != 'all' %>
+                      <span class="px-1.5 py-0.5 text-xs rounded bg-blue-500/20 text-blue-400">
+                        <%= rule.applies_to.humanize %>
                       </span>
                     <% end %>
                   </div>
