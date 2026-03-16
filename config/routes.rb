@@ -126,6 +126,7 @@ Rails.application.routes.draw do
       get :view_card_modal
       get :combos
       post :refresh_combos
+      get :violations
     end
   end
 

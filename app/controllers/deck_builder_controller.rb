@@ -4,9 +4,9 @@ class DeckBuilderController < ApplicationController
   include DeckBuilderRendering
 
   before_action :set_deck
-  before_action :authenticate_user!, except: %i[show view_card_modal combos]
-  before_action :ensure_owner, except: %i[show view_card_modal combos]
-  before_action :ensure_visible, only: %i[view_card_modal combos]
+  before_action :authenticate_user!, except: %i[show view_card_modal combos violations]
+  before_action :ensure_owner, except: %i[show view_card_modal combos violations]
+  before_action :ensure_visible, only: %i[view_card_modal combos violations]
 
   def show
     if @deck.hidden? && !@is_owner
@@ -100,6 +100,16 @@ class DeckBuilderController < ApplicationController
     @commander_names = @deck.commanders.map { |c| c.magic_card.name }.join(' & ')
   end
 
+  def violations
+    if @deck.hidden? && !@is_owner
+      redirect_to root_path, alert: 'This deck is private'
+      return
+    end
+
+    @violations_result = DeckRules::Evaluate.call(deck: @deck)
+    render partial: 'violations', locals: { violations_result: @violations_result }
+  end
+
   def refresh_combos
     SyncDeckCombosJob.perform_later(@deck.id)
     render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
@@ -132,6 +142,7 @@ class DeckBuilderController < ApplicationController
     @staged_cards, @needed_cards, @owned_cards = result.values_at(:staged_cards, :needed_cards, :owned_cards)
     @grouped_cards, @stats = result.values_at(:grouped_cards, :stats)
     @bracket_result = result[:bracket_result]
+    @violations_result = result[:violations_result]
   end
 
   def load_combo_data

@@ -22,11 +22,27 @@
 
     <%= f.select :bracket_id,
         options_for_select(
-          Bracket.ordered.map { |b| ["B#{b.level} - #{b.name}", b.id] },
+          [['Global (no bracket)', nil]] + Bracket.ordered.map { |b| ["B#{b.level} - #{b.name}", b.id] },
           deck_rule.bracket_id
         ),
-        { prompt: 'Select a bracket' },
+        {},
         class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50' %>
+  </div>
+
+  <div>
+    <%= f.label :applies_to, 'Applies To', class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.select :applies_to,
+        options_for_select(
+          DeckRule::APPLIES_TO_OPTIONS.map { |t| [t.humanize, t] },
+          deck_rule.applies_to
+        ),
+        {},
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50' %>
+
+    <p class="text-xs text-grey-text/50 mt-1">
+      Which deck types this rule applies to. "All" applies to every deck type.
+    </p>
   </div>
 
   <div>
