@@ -90,6 +90,16 @@ module ApplicationHelper
     luminance > 0.5
   end
 
+  def bracket_badge_classes(level)
+    case level
+    when 1 then 'bg-green-500/20 text-green-400'
+    when 2 then 'bg-blue-500/20 text-blue-400'
+    when 3 then 'bg-amber-500/20 text-amber-400'
+    when 4 then 'bg-red-500/20 text-red-400'
+    else 'bg-grey-text/20 text-grey-text'
+    end
+  end
+
   def column_visible?(column_key, view = nil)
     return true unless current_user
 

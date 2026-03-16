@@ -8,7 +8,7 @@ module DeckBuilder
 
     def call
       all_cards = @deck.collection_magic_cards
-                       .includes(magic_card: %i[boxset sub_types colors magic_card_color_idents])
+                       .includes(magic_card: %i[boxset sub_types colors magic_card_color_idents game_changer])
 
       staged = all_cards.staged
       needed = all_cards.needed
@@ -20,7 +20,8 @@ module DeckBuilder
         needed_cards: needed,
         owned_cards: owned,
         grouped_cards: GroupCards.call(cards: cards_to_group, grouping: @grouping, sort_by: @sort_by),
-        stats: build_stats(cards_to_group, staged, needed, owned)
+        stats: build_stats(cards_to_group, staged, needed, owned),
+        bracket_result: DeckRules::DetectBracket.call(deck: @deck)
       }
     end
 

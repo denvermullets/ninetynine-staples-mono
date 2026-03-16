@@ -1,4 +1,4 @@
-<% quantities = @aggregated_quantities&.dig(card.id) || { total_quantity: 0, total_foil_quantity: 0 } %>
+<% quantities = aggregated_quantities&.dig(card.id) || { total_quantity: 0, total_foil_quantity: 0 } %>
 <% total_qty = quantities[:total_quantity] + quantities[:total_foil_quantity] %>
 <% foil_qty = quantities[:total_foil_quantity] %>
 

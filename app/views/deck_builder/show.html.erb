@@ -44,7 +44,7 @@
       </div>
 
       <%= turbo_frame_tag 'header_actions' do %>
-        <%= render partial: 'header_actions' %>
+        <%= render partial: 'header_actions', locals: { deck: @deck, is_owner: @is_owner } %>
       <% end %>
     </div>
   </div>
@@ -86,7 +86,7 @@
         </div>
       </div>
 
-      <%= render partial: 'search_panel' %>
+      <%= render partial: 'search_panel', locals: { deck: @deck, is_owner: @is_owner, search_scope: @search_scope } %>
     </div>
 
     <!-- Main Content -->
@@ -170,27 +170,27 @@
               focus:outline-none cursor-pointer
             "
           >
-            <option value="type" <%= 'selected' if @grouping == 'type' %>>Type</option>
+            <option value="type" <% if @grouping == 'type' %> selected<% end %>>Type</option>
 
             <option
               value="mana_value"
-              <%= 'selected' if @grouping == 'mana_value' %>
+              <% if @grouping == 'mana_value' %> selected<% end %>
             >
               Mana Value
             </option>
 
-            <option value="color" <%= 'selected' if @grouping == 'color' %>>Color</option>
+            <option value="color" <% if @grouping == 'color' %> selected<% end %>>Color</option>
 
             <option
               value="color_identity"
-              <%= 'selected' if @grouping == 'color_identity' %>
+              <% if @grouping == 'color_identity' %> selected<% end %>
             >
               Color Identity
             </option>
 
-            <option value="rarity" <%= 'selected' if @grouping == 'rarity' %>>Rarity</option>
-            <option value="set" <%= 'selected' if @grouping == 'set' %>>Set</option>
-            <option value="none" <%= 'selected' if @grouping == 'none' %>>None</option>
+            <option value="rarity" <% if @grouping == 'rarity' %> selected<% end %>>Rarity</option>
+            <option value="set" <% if @grouping == 'set' %> selected<% end %>>Set</option>
+            <option value="none" <% if @grouping == 'none' %> selected<% end %>>None</option>
           </select>
         </div>
 
@@ -207,19 +207,19 @@
               focus:outline-none cursor-pointer
             "
           >
-            <option value="name" <%= 'selected' if @sort_by == 'name' %>>Name</option>
+            <option value="name" <% if @sort_by == 'name' %> selected<% end %>>Name</option>
 
             <option
               value="mana_value"
-              <%= 'selected' if @sort_by == 'mana_value' %>
+              <% if @sort_by == 'mana_value' %> selected<% end %>
             >
               Mana Value
             </option>
 
-            <option value="price" <%= 'selected' if @sort_by == 'price' %>>Price</option>
-            <option value="rarity" <%= 'selected' if @sort_by == 'rarity' %>>Rarity</option>
-            <option value="edhrec" <%= 'selected' if @sort_by == 'edhrec' %>>EDHREC</option>
-            <option value="salt" <%= 'selected' if @sort_by == 'salt' %>>Salt</option>
+            <option value="price" <% if @sort_by == 'price' %> selected<% end %>>Price</option>
+            <option value="rarity" <% if @sort_by == 'rarity' %> selected<% end %>>Rarity</option>
+            <option value="edhrec" <% if @sort_by == 'edhrec' %> selected<% end %>>EDHREC</option>
+            <option value="salt" <% if @sort_by == 'salt' %> selected<% end %>>Salt</option>
           </select>
         </div>
 
@@ -253,13 +253,23 @@
 
         <!-- Stats -->
         <%= turbo_frame_tag 'deck_stats' do %>
-          <%= render partial: 'deck_stats' %>
+          <%= render partial: 'deck_stats', locals: { stats: @stats } %>
         <% end %>
       </div>
 
+      <!-- Bracket Detection -->
+      <% if @deck.commander_deck? %>
+        <div class="p-4 mb-4 border rounded-xl bg-foreground border-highlight">
+          <%= turbo_frame_tag 'deck_bracket' do %>
+            <%= render partial: 'deck_bracket',
+                       locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner } %>
+          <% end %>
+        </div>
+      <% end %>
+
       <!-- Deck Cards -->
       <%= turbo_frame_tag 'deck_cards' do %>
-        <%= render partial: 'deck_cards' %>
+        <%= render partial: 'deck_cards', locals: { grouped_cards: @grouped_cards, view_mode: @view_mode, is_owner: @is_owner, deck: @deck, combo_card_oracle_ids: @combo_card_oracle_ids, sort_by: @sort_by } %>
       <% end %>
     </div>
   </div>

@@ -83,7 +83,9 @@
           <% @tracked_decks.each do |deck| %>
             <tr
               class="hover:bg-background/50 cursor-pointer"
-              onclick="window.location='<%= game_tracker_tracked_deck_path(tracker_owner.username, deck) %>'"
+              data-controller="row-link"
+              data-row-link-url-value="<%= game_tracker_tracked_deck_path(tracker_owner.username, deck) %>"
+              data-action="click->row-link#navigate"
             >
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">

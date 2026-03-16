@@ -12,7 +12,15 @@ class CollectionsController < ApplicationController
   def create
     collection = Collection.new(collection_params)
 
-    collection.save ? redirect_to(root_path) : render(:new, status: :unprocessable_entity)
+    if collection.save
+      if Collection.deck_type?(collection.collection_type)
+        redirect_to decks_index_path(current_user.username)
+      else
+        redirect_to root_path
+      end
+    else
+      render :new, status: :unprocessable_entity
+    end
   end
 
   def edit_collection_modal

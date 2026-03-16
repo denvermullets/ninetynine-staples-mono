@@ -1,5 +1,5 @@
 <% if result[:type] == :owned %>
-  <%= render partial: 'search_result_owned', locals: { result: result } %>
+  <%= render partial: 'search_result_owned', locals: { result: result, deck: deck } %>
 <% else %>
-  <%= render partial: 'search_result_latest', locals: { result: result } %>
+  <%= render partial: 'search_result_latest', locals: { result: result, deck: deck } %>
 <% end %>

@@ -1,5 +1,5 @@
 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-  <% @grouped_cards.each do |group_name, cards| %>
+  <% grouped_cards.each do |group_name, cards| %>
     <div class="p-4 border rounded-xl bg-foreground border-highlight">
       <h3 class="mb-3 text-sm font-semibold text-grey-text">
         <%= group_name %> (<%= cards.sum(&:display_quantity) %>)
@@ -49,8 +49,8 @@
               </span>
             <% end %>
 
-            <!-- Type Badges (Foil/Proxy) -->
-            <% if card.display_foil? || card.display_proxy? %>
+            <!-- Type Badges (Foil/Proxy/Game Changer) -->
+            <% if card.display_foil? || card.display_proxy? || card.magic_card.game_changer.present? %>
               <div class="absolute top-2 left-2 flex gap-1">
                 <% if card.display_foil? %>
                   <span
@@ -73,6 +73,18 @@
                     P
                   </span>
                 <% end %>
+
+                <% if card.magic_card.game_changer.present? %>
+                  <span
+                    class="
+                      px-1 text-[10px] font-bold rounded bg-yellow-500/90
+                      text-background shadow
+                    "
+                    title="Game Changer"
+                  >
+                    &#9733;
+                  </span>
+                <% end %>
               </div>
             <% end %>
 
@@ -92,7 +104,7 @@
                   <span class="text-accent-400">Planned</span>
                 <% elsif card.needed? %>
                   <span class="text-orange-400">Need</span>
-                  <% if @is_owner && card.available_swap?(current_user) %>
+                  <% if is_owner && card.available_swap?(current_user) %>
                     <span class="text-accent-50">- Swap available!</span>
                   <% end %>
                 <% end %>

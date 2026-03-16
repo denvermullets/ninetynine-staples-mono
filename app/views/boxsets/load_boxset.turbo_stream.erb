@@ -35,8 +35,8 @@
 
 <%= turbo_stream.update 'table-container' do %>
   <% if @view_mode == 'visual' %>
-    <%= render 'visual' %>
+    <%= render partial: 'visual', locals: { grouping: @grouping, grouped_cards: @grouped_cards, magic_cards: @magic_cards, pagy: @pagy } %>
   <% else %>
-    <%= render 'table' %>
+    <%= render partial: 'table', locals: { pagy: @pagy, magic_cards: @magic_cards } %>
   <% end %>
 <% end %>

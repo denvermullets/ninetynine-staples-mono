@@ -1,7 +1,7 @@
 <div class="mb-24">
   <div class="p-4 border rounded-3xl bg-foreground border-highlight">
-    <% if @grouping && @grouping != 'none' && @grouped_cards.present? %>
-      <% @grouped_cards.each do |group_name, cards| %>
+    <% if grouping && grouping != 'none' && grouped_cards.present? %>
+      <% grouped_cards.each do |group_name, cards| %>
         <div class="mb-8 last:mb-0">
           <h3 class="mb-4 text-lg font-semibold text-grey-text">
             <%= group_name %> (<%= cards.size %>)
@@ -14,7 +14,7 @@
             "
           >
             <% cards.each do |card| %>
-              <%= render partial: 'visual_card', locals: { card: card } %>
+              <%= render partial: 'visual_card', locals: { card: card, aggregated_quantities: aggregated_quantities } %>
             <% end %>
           </div>
         </div>
@@ -26,22 +26,22 @@
           lg:grid-cols-4 xl:grid-cols-5
         "
       >
-        <% @magic_cards.each do |card| %>
-          <%= render partial: 'visual_card', locals: { card: card } %>
+        <% magic_cards.each do |card| %>
+          <%= render partial: 'visual_card', locals: { card: card, aggregated_quantities: aggregated_quantities } %>
         <% end %>
       </div>
     <% end %>
   </div>
 
-  <% if @pagy.present? %>
+  <% if pagy.present? %>
     <div
       class="
         flex flex-row items-center justify-between w-full p-6 mt-6 space-x-4
         border rounded-3xl border-highlight bg-foreground
       "
     >
-      <%== @pagy.info_tag() %>
-      <%== @pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav(link_extra: 'data-turbo-stream="true"') %>
     </div>
   <% end %>
 </div>

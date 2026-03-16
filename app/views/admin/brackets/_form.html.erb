@@ -1,0 +1,52 @@
+<%= form_with model: [:admin, bracket], class: 'space-y-4' do |f| %>
+  <% if bracket.errors.any? %>
+    <div class="p-4 border border-red-500 rounded-lg bg-red-500/10">
+      <ul class="list-disc list-inside text-red-400 text-sm">
+        <% bracket.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :level, class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.number_field :level,
+        min: 1,
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50',
+        placeholder: 'e.g. 1, 2, 3, 4' %>
+  </div>
+
+  <div>
+    <%= f.label :name, class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.text_field :name,
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50',
+        placeholder: 'e.g. Precon, Casual, Optimized, High Power' %>
+  </div>
+
+  <div>
+    <%= f.label :description, class: 'block text-sm font-medium text-grey-text mb-1' %>
+
+    <%= f.text_area :description,
+        rows: 3,
+        class: 'w-full rounded-md bg-background border-highlight text-white focus:border-accent-50 focus:ring-accent-50',
+        placeholder: 'Description of this bracket level' %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= f.check_box :enabled,
+        class: 'rounded bg-background border-highlight text-accent-50 focus:ring-accent-50' %>
+
+    <%= f.label :enabled, class: 'text-sm text-grey-text' %>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-2">
+    <%= link_to 'Cancel', admin_brackets_path,
+        class: 'px-4 py-2 text-sm transition border rounded-md border-highlight text-grey-text hover:bg-foreground hover:text-accent-100 hover:border-accent-100' %>
+
+    <%= f.submit bracket.persisted? ? 'Update Bracket' : 'Create Bracket',
+        class: 'px-4 py-2 text-sm transition rounded-md bg-accent-50 text-foreground border border-accent-50 hover:bg-foreground hover:text-accent-50 cursor-pointer' %>
+  </div>
+<% end %>

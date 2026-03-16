@@ -1,6 +1,7 @@
 class DeckBuilderController < ApplicationController
   include DeckBuilderModals
   include DeckBuilderCardActions
+  include DeckBuilderRendering
 
   before_action :set_deck
   before_action :authenticate_user!, except: %i[show view_card_modal combos]
@@ -29,7 +30,7 @@ class DeckBuilderController < ApplicationController
     @results = DeckBuilder::Search.call(
       query: params[:q], user: current_user, deck: @deck, scope: params[:scope] || 'all', limit: 20
     )
-    render partial: 'search_results', locals: { results: @results }
+    render partial: 'search_results', locals: { results: @results, deck: @deck }
   end
 
   def add_card
@@ -130,6 +131,7 @@ class DeckBuilderController < ApplicationController
     result = DeckBuilder::LoadCards.call(deck: @deck, grouping: @grouping, sort_by: @sort_by)
     @staged_cards, @needed_cards, @owned_cards = result.values_at(:staged_cards, :needed_cards, :owned_cards)
     @grouped_cards, @stats = result.values_at(:grouped_cards, :stats)
+    @bracket_result = result[:bracket_result]
   end
 
   def load_combo_data
@@ -138,38 +140,11 @@ class DeckBuilderController < ApplicationController
     @combos_checked_at = combo_result[:checked_at]
   end
 
-  def render_card_action_response(result, success_message:)
-    return render_error_toast(result[:error]) unless result[:success]
-
-    flash.now[:type] = 'success'
-    load_deck_cards
-    render turbo_stream: [
-      turbo_stream.update('deck_cards', partial: 'deck_cards'),
-      turbo_stream.update('deck_stats', partial: 'deck_stats'),
-      turbo_stream.update('header_actions', partial: 'header_actions'),
-      turbo_stream.update('deck_modal', ''),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: success_message })
-    ]
+  def set_deck_view_defaults
+    @view_mode = @view_mode || params[:view_mode] || 'list'
+    @grouping = @grouping || params[:grouping] || 'type'
+    @sort_by = @sort_by || params[:sort_by] || 'mana_value'
   end
 
-  def render_deck_cards_stream
-    render turbo_stream: [
-      turbo_stream.update('deck_cards', partial: 'deck_cards'),
-      turbo_stream.update('deck_stats', partial: 'deck_stats')
-    ]
-  end
-
-  def render_update_deck_success
-    flash.now[:type] = 'success'
-    @deck.reload
-    render turbo_stream: [
-      turbo_stream.update('deck-name', @deck.name),
-      turbo_stream.update('deck-description', @deck.description),
-      turbo_stream.replace('deck-tags', partial: 'deck_tags_wrapper', locals: { deck: @deck }),
-      turbo_stream.update('deck_modal', ''),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: 'Deck updated successfully' })
-    ]
-  end
-
-  def deck_params = params.permit(:name, :description, :collection_type, :is_public, tag_ids: [])
+  def deck_params = params.permit(:name, :description, :collection_type, :is_public, :bracket_level, tag_ids: [])
 end

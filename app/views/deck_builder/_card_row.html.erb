@@ -1,4 +1,4 @@
-<% can_set_commander = @is_owner && !card.commander? && @deck.commander_deck? && card.magic_card.can_be_commander %>
+<% can_set_commander = is_owner && !card.commander? && deck.commander_deck? && card.magic_card.can_be_commander %>
 
 <tr
   class="
@@ -9,7 +9,7 @@
   "
   <% if can_set_commander %>
     data-controller="context-menu"
-    data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(@deck, card_id: card.id) %>"
+    data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(deck, card_id: card.id) %>"
     data-action="click->context-menu#open contextmenu->context-menu#open"
   <% end %>
 >
@@ -46,8 +46,20 @@
           </span>
         <% end %>
 
-        <% if can_set_commander && @deck.commanders.empty? %>
-          <%= button_to set_commander_deck_builder_path(@deck, card_id: card.id),
+        <% if card.magic_card.game_changer.present? %>
+          <span
+            class="
+              px-1.5 py-0.5 text-xs font-bold rounded bg-yellow-500/20
+              text-yellow-400 border border-yellow-500/30
+            "
+            title="Game Changer"
+          >
+            &#9733;
+          </span>
+        <% end %>
+
+        <% if can_set_commander && deck.commanders.empty? %>
+          <%= button_to set_commander_deck_builder_path(deck, card_id: card.id),
               method: :post,
               class: 'text-accent-50 hover:text-accent-100 text-xs' do %>
             Set as Commander
@@ -87,20 +99,20 @@
   <!-- Actions -->
   <td class="px-4 py-2 text-right">
     <% if card.staged? %>
-      <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+      <%= button_to remove_card_deck_builder_path(deck, card_id: card.id),
           method: :delete,
           class: 'text-red-400 hover:text-red-300 text-sm transition',
           data: { turbo_confirm: 'Remove this card?' } do %>
         Remove
       <% end %>
     <% elsif card.needed? && card.available_swap?(current_user) %>
-      <%= button_to swap_card_deck_builder_path(@deck, card_id: card.id),
+      <%= button_to swap_card_deck_builder_path(deck, card_id: card.id),
           method: :post,
           class: 'px-2 py-1 text-xs rounded bg-accent-50 text-background font-medium hover:bg-accent-50/90 transition' do %>
         Swap
       <% end %>
     <% elsif card.needed? %>
-      <%= button_to remove_card_deck_builder_path(@deck, card_id: card.id),
+      <%= button_to remove_card_deck_builder_path(deck, card_id: card.id),
           method: :delete,
           class: 'text-red-400 hover:text-red-300 text-sm transition',
           data: { turbo_confirm: 'Remove this needed card?' } do %>

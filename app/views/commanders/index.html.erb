@@ -43,7 +43,7 @@
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">
       <% if @magic_cards.present? %>
-        <%= render partial: 'table' %>
+        <%= render partial: 'table', locals: { magic_cards: @magic_cards, pagy: @pagy } %>
       <% else %>
         <div
           class="

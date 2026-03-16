@@ -7,7 +7,7 @@
       data-collection-view-target="tableButton"
       data-action="click->collection-view#setViewMode"
       data-view-mode="table"
-      class="px-3 py-1.5 text-sm rounded-md transition cursor-pointer <%= @view_mode == 'visual' ? 'bg-background text-grey-text hover:bg-menu' : 'bg-highlight text-nine-white' %>"
+      class="px-3 py-1.5 text-sm rounded-md transition cursor-pointer <%= view_mode == 'visual' ? 'bg-background text-grey-text hover:bg-menu' : 'bg-highlight text-nine-white' %>"
     >
       Table
     </button>
@@ -17,7 +17,7 @@
       data-collection-view-target="visualButton"
       data-action="click->collection-view#setViewMode"
       data-view-mode="visual"
-      class="px-3 py-1.5 text-sm rounded-md transition cursor-pointer <%= @view_mode == 'visual' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
+      class="px-3 py-1.5 text-sm rounded-md transition cursor-pointer <%= view_mode == 'visual' ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu' %>"
     >
       Visual
     </button>

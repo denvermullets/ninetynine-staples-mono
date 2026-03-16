@@ -1,8 +1,8 @@
 <%
-  # Determine editability and available collections from instance variables or locals
-  is_editable = (defined?(editable) && editable) || (defined?(@is_owner) && @is_owner)
-  available_collections = defined?(collections) && collections.present? ? collections : (defined?(@collections) ? @collections : [])
-  current_collection = defined?(@collection) ? @collection : nil
+  # Determine editability and available collections from locals
+  is_editable = local_assigns.fetch(:editable, local_assigns.fetch(:is_owner, false))
+  available_collections = local_assigns.fetch(:collections, [])
+  current_collection = local_assigns.fetch(:collection, nil)
 
   # Get aggregated quantities across all user's collections for this card
   # This ensures accurate totals when a card is in multiple collections
@@ -52,7 +52,7 @@
     "
   >
     <!-- Rarity Icon -->
-    <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x flex-shrink-0"></i>
+    <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code&.downcase} ss-#{card.rarity&.downcase || 'common'} ss-fw ss-2x flex-shrink-0" %>"></i>
 
     <!-- Card Info -->
     <div class="flex-1 min-w-0">
@@ -158,7 +158,7 @@
         data-action="click->mobile-card#toggleImage"
         class="flex-shrink-0 focus:outline-none"
       >
-        <%= image_tag (card.image_small.presence || card.image_medium),
+        <%= image_tag (card.image_small.presence || card.image_medium.presence || ""),
           alt: card.name,
           class: "w-16 h-auto rounded-lg",
           loading: "lazy" %>
@@ -208,13 +208,13 @@
           >
             <div data-card-flip-target="card" class="flip-card">
               <div class="flip-card-front">
-                <%= image_tag (card.image_large.presence || card.image_medium),
+                <%= image_tag (card.image_large.presence || card.image_medium.presence || ""),
                   class: "w-full h-auto rounded-2xl",
                   alt: card.name %>
               </div>
 
               <div class="flip-card-back">
-                <%= image_tag (other_card&.image_large.presence || other_card&.image_medium),
+                <%= image_tag (other_card&.image_large.presence || other_card&.image_medium.presence || ""),
                   class: "w-full h-auto rounded-2xl",
                   alt: other_card&.name %>
               </div>
@@ -224,7 +224,7 @@
           <p class="mt-2 text-sm text-grey-text">Tap card to flip</p>
         </div>
       <% else %>
-        <%= image_tag (card.image_large.presence || card.image_medium),
+        <%= image_tag (card.image_large.presence || card.image_medium.presence || ""),
           class: "w-full max-w-xs mx-auto h-auto rounded-2xl",
           alt: card.name %>
       <% end %>
