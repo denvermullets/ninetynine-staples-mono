@@ -26,7 +26,8 @@ module DeckBuilderRendering
       turbo_stream.update('deck_cards', partial: 'deck_cards', locals: deck_cards_locals),
       turbo_stream.update('deck_stats', partial: 'deck_stats', locals: { stats: @stats }),
       turbo_stream.update('deck_bracket', partial: 'deck_bracket',
-                                          locals: bracket_locals)
+                                          locals: bracket_locals),
+      turbo_stream.update('deck_violations', partial: 'violations', locals: violations_locals)
     ]
   end
 
@@ -34,11 +35,16 @@ module DeckBuilderRendering
     { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner }
   end
 
+  def violations_locals
+    { violations_result: @violations_result }
+  end
+
   def card_action_streams(success_message)
     [
       turbo_stream.update('deck_cards', partial: 'deck_cards', locals: deck_cards_locals),
       turbo_stream.update('deck_stats', partial: 'deck_stats', locals: { stats: @stats }),
       turbo_stream.update('deck_bracket', partial: 'deck_bracket', locals: bracket_locals),
+      turbo_stream.update('deck_violations', partial: 'violations', locals: violations_locals),
       turbo_stream.update('header_actions', partial: 'header_actions',
                                             locals: { deck: @deck, is_owner: @is_owner }),
       turbo_stream.update('deck_modal', ''),

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_15_200003) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_15_200004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -195,7 +195,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200003) do
   end
 
   create_table "deck_rules", force: :cascade do |t|
-    t.bigint "bracket_id", null: false
+    t.string "applies_to", default: "all", null: false
+    t.bigint "bracket_id"
     t.datetime "created_at", null: false
     t.text "description"
     t.boolean "enabled", default: true, null: false
@@ -204,7 +205,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200003) do
     t.datetime "updated_at", null: false
     t.integer "value", null: false
     t.index ["bracket_id"], name: "index_deck_rules_on_bracket_id"
-    t.index ["rule_type", "bracket_id"], name: "index_deck_rules_on_rule_type_and_bracket_id", unique: true
+    t.index ["rule_type", "applies_to", "bracket_id"], name: "index_deck_rules_on_type_applies_to_bracket", unique: true
   end
 
   create_table "finishes", force: :cascade do |t|
