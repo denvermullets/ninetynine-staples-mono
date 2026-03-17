@@ -6,7 +6,8 @@ module DeckRules
       EVALUATOR_MAP = {
         'max_game_changers' => 'DeckRules::Evaluators::MaxGameChangers',
         'max_copies_per_card' => 'DeckRules::Evaluators::MaxCopiesPerCard',
-        'max_deck_size' => 'DeckRules::Evaluators::MaxDeckSize'
+        'max_deck_size' => 'DeckRules::Evaluators::MaxDeckSize',
+        'min_cards_in_infinite_combo' => 'DeckRules::Evaluators::MinCardsInInfiniteCombo'
       }.freeze
 
       def self.for(rule_type)

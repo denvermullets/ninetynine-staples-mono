@@ -100,6 +100,16 @@ module ApplicationHelper
     end
   end
 
+  def bracket_text_class(level)
+    case level
+    when 1 then 'text-green-400'
+    when 2 then 'text-blue-400'
+    when 3 then 'text-amber-400'
+    when 4 then 'text-red-400'
+    else 'text-grey-text'
+    end
+  end
+
   def column_visible?(column_key, view = nil)
     return true unless current_user
 

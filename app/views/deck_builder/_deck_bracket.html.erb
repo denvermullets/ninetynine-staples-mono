@@ -9,41 +9,29 @@
   <% if detected_level %>
     <div class="flex items-center gap-1.5" title="Detected based on deck rules">
       <span class="text-grey-text">Detected:</span>
-      <span class="
-        inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full
-        <%= bracket_badge_classes(detected_level) %>
-      ">
+      <span class="font-bold <%= bracket_text_class(detected_level) %>">
         B<%= detected_level %>
-        <span class="font-normal"><%= detected.name %></span>
       </span>
+      <span class="<%= bracket_text_class(detected_level) %>"><%= detected.name %></span>
     </div>
   <% end %>
 
   <% if declared_level %>
     <div class="flex items-center gap-1.5" title="Declared by deck owner">
       <span class="text-grey-text">Declared:</span>
-      <span class="
-        inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full
-        border border-current
-        <%= bracket_badge_classes(declared_level) %>
-      ">
+      <span class="font-bold <%= bracket_text_class(declared_level) %>">
         B<%= declared_level %>
       </span>
     </div>
   <% end %>
 
-  <% if detected_level && declared_level && detected_level != declared_level %>
-    <span class="text-xs text-amber-400" title="Declared bracket doesn't match detected bracket">
-      <svg class="inline w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-      </svg>
-      Mismatch
-    </span>
-  <% end %>
+  <div class="flex items-center gap-1.5">
+    <span class="text-grey-text">Game Changers:</span>
+    <span class="font-semibold text-white"><%= game_changer_count %></span>
+  </div>
 
   <div class="flex items-center gap-1.5">
-    <span class="text-grey-text">GC:</span>
-    <span class="font-semibold text-white"><%= game_changer_count %></span>
+    <span class="text-grey-text">Combos:</span>
+    <span class="font-semibold text-purple-400"><%= combo_count %></span>
   </div>
 </div>

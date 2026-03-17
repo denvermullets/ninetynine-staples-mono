@@ -34,11 +34,11 @@
     >
       <!-- Card Image -->
       <div class="relative h-48 bg-background overflow-hidden">
-        <% if commander %>
+        <% if commander && (commander.art_crop.presence || commander.image_large) %>
           <%= image_tag (commander.art_crop.presence || commander.image_large),
             alt: commander.name,
             class: "w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200" %>
-        <% elsif card %>
+        <% elsif card && (card.art_crop.presence || card.image_large) %>
           <%= image_tag (card.art_crop.presence || card.image_large),
             alt: card.name,
             class: "w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-200" %>

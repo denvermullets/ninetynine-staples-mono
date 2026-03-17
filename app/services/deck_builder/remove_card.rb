@@ -9,11 +9,13 @@ module DeckBuilder
       card = @deck.collection_magic_cards.find(@card_id)
 
       if card.staged?
+        oracle_id = card.magic_card.scryfall_oracle_id
         card.destroy!
-        { success: true, message: 'Card removed from deck' }
+        { success: true, message: 'Card removed from deck', removed_oracle_id: oracle_id }
       elsif card.needed?
+        oracle_id = card.magic_card.scryfall_oracle_id
         card.destroy!
-        { success: true, message: 'Needed card removed from deck' }
+        { success: true, message: 'Needed card removed from deck', removed_oracle_id: oracle_id }
       else
         { success: false, error: 'Cannot remove finalized cards. Use transfer instead.' }
       end

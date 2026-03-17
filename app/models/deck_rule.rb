@@ -1,5 +1,5 @@
 class DeckRule < ApplicationRecord
-  RULE_TYPES = %w[max_game_changers max_copies_per_card max_deck_size].freeze
+  RULE_TYPES = %w[max_game_changers max_copies_per_card max_deck_size min_cards_in_infinite_combo].freeze
   APPLIES_TO_OPTIONS = %w[all commander_deck deck].freeze
 
   belongs_to :bracket, optional: true

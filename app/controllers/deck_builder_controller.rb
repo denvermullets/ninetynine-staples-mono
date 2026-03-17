@@ -48,7 +48,7 @@ class DeckBuilderController < ApplicationController
 
   def delete_card
     result = DeckBuilder::DeleteCard.call(deck: @deck, collection_magic_card_id: params[:card_id])
-    render_card_action_response(result, success_message: result[:message])
+    render_card_action_response(result, success_message: result[:message], flash_type: 'error')
   end
 
   def swap_card
@@ -112,6 +112,7 @@ class DeckBuilderController < ApplicationController
 
   def refresh_combos
     SyncDeckCombosJob.perform_later(@deck.id)
+    flash.now[:type] = 'success'
     render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
                                                        locals: { message: 'Checking for combos...' })
   end
@@ -149,6 +150,22 @@ class DeckBuilderController < ApplicationController
     combo_result = DeckBuilder::LoadCombos.call(deck: @deck)
     @combo_card_oracle_ids = combo_result[:combo_card_oracle_ids]
     @combos_checked_at = combo_result[:checked_at]
+    @combo_count = combo_result[:combo_count]
+    @deck_cards_changed = @combos_checked_at &&
+                          @deck.collection_magic_cards
+                               .where('created_at > :t OR updated_at > :t', t: @combos_checked_at)
+                               .exists?
+  end
+
+  def invalidate_combos_for(oracle_id)
+    return unless @deck.combos_checked_at && oracle_id.present?
+
+    affected = @deck.deck_combos.joins(combo: :combo_cards)
+                    .where(combo_cards: { oracle_id: oracle_id })
+    return unless affected.exists?
+
+    affected.destroy_all
+    @deck.update_column(:combos_checked_at, nil) unless @deck.deck_combos.exists?
   end
 
   def set_deck_view_defaults

@@ -40,6 +40,7 @@ module DeckBuilderCardActions
     result = execute_transfer(card, to_collection)
 
     if result[:success]
+      invalidate_combos_for(card.magic_card.scryfall_oracle_id)
       render_deck_update_response("#{card.magic_card.name} transferred to #{to_collection.name}", clear_modal: true)
     else
       render_error_toast(result[:error])
@@ -78,16 +79,23 @@ module DeckBuilderCardActions
 
   def render_deck_update_response(message, clear_modal: false)
     flash.now[:type] = 'success'
+    set_deck_view_defaults
     load_deck_cards
-    streams = [
-      turbo_stream.update('deck_cards', partial: 'deck_cards'),
-      turbo_stream.update('deck_stats', partial: 'deck_stats'),
-      turbo_stream.update('deck_bracket', partial: 'deck_bracket', locals: bracket_locals),
-      turbo_stream.update('deck_violations', partial: 'violations', locals: violations_locals),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
-    ]
+    load_combo_data
+    streams = deck_update_streams(message)
     streams << turbo_stream.update('deck_modal', '') if clear_modal
     render turbo_stream: streams
+  end
+
+  def deck_update_streams(message)
+    [
+      turbo_stream.update('deck_cards', partial: 'deck_cards', locals: deck_cards_locals),
+      turbo_stream.update('deck_stats', partial: 'deck_stats', locals: { stats: @stats }),
+      turbo_stream.update('deck_bracket', partial: 'deck_bracket', locals: bracket_locals),
+      turbo_stream.update('deck_violations', partial: 'violations', locals: violations_locals),
+      turbo_stream.update('combo_actions', partial: 'combo_actions', locals: combo_actions_locals),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
+    ]
   end
 
   def render_error_toast(message)

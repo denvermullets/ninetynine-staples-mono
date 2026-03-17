@@ -17,6 +17,10 @@ RSpec.describe DeckBuilder::LoadCombos, type: :service do
       result = subject
       expect(result[:checked_at]).to be_present
     end
+
+    it 'returns combo_count of 0' do
+      expect(subject[:combo_count]).to eq(0)
+    end
   end
 
   context 'with included and almost_included combos' do
@@ -50,6 +54,10 @@ RSpec.describe DeckBuilder::LoadCombos, type: :service do
       result = subject
       expect(result[:combos_by_oracle_id]['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'].size).to eq(2)
       expect(result[:combos_by_oracle_id]['bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'].size).to eq(1)
+    end
+
+    it 'returns combo_count of included combos only' do
+      expect(subject[:combo_count]).to eq(1)
     end
   end
 end

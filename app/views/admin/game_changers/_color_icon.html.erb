@@ -1,0 +1,22 @@
+<% case color_name %>
+<% when 'White' %>
+  <i class="no-tailwind ms ms-w ms-cost ms-shadow" title="White"></i>
+<% when 'Blue' %>
+  <i class="no-tailwind ms ms-u ms-cost ms-shadow" title="Blue"></i>
+<% when 'Black' %>
+  <i class="no-tailwind ms ms-b ms-cost ms-shadow" title="Black"></i>
+<% when 'Red' %>
+  <i class="no-tailwind ms ms-r ms-cost ms-shadow" title="Red"></i>
+<% when 'Green' %>
+  <i class="no-tailwind ms ms-g ms-cost ms-shadow" title="Green"></i>
+<% when 'Multicolor' %>
+  <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
+  </svg>
+<% when 'Colorless' %>
+  <i class="no-tailwind ms ms-c ms-cost ms-shadow" title="Colorless"></i>
+<% when 'Land' %>
+  <svg class="w-4 h-4 text-grey-text" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z" />
+  </svg>
+<% end %>

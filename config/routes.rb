@@ -34,7 +34,7 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :tags, except: [:show]
-    resources :game_changers, except: [:show] do
+    resources :game_changers, except: [:show], path: 'game-changers' do
       collection do
         get :search_cards
       end

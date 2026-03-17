@@ -1,0 +1,23 @@
+<% has_combos = combos_checked_at && combo_card_oracle_ids.present? %>
+
+<% if has_combos && !deck_cards_changed %>
+  <%= link_to combos_deck_builder_path(deck),
+    data: { turbo_frame: "_top" },
+    class: "px-4 py-2 border rounded-lg border-highlight
+      text-grey-text hover:bg-foreground hover:text-accent-50
+      hover:border-accent-50 transition cursor-pointer" do %>
+    View Combos
+  <% end %>
+<% elsif is_owner %>
+  <%= button_to refresh_combos_deck_builder_path(deck),
+    class: "px-4 py-2 border rounded-lg border-highlight
+      text-grey-text hover:bg-foreground hover:text-accent-50
+      hover:border-accent-50 transition cursor-pointer",
+    data: { turbo_stream: true } do %>
+    <% if deck_cards_changed %>
+      Refresh Combos
+    <% else %>
+      Check for Combos
+    <% end %>
+  <% end %>
+<% end %>
