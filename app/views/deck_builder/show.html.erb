@@ -184,23 +184,24 @@
 
     <!-- Main Content -->
     <div class="flex-1 min-w-0">
-      <!-- Stats -->
-      <div class="mb-4">
-        <%= turbo_frame_tag 'deck_stats' do %>
-          <%= render partial: 'deck_stats', locals: { stats: @stats } %>
+      <!-- Stats & Bracket Detection -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <% if @deck.commander_deck? %>
+          <div>
+            <%= turbo_frame_tag 'deck_bracket' do %>
+              <%= render partial: 'deck_bracket',
+                         locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner,
+                                   combo_count: @combo_count || 0 } %>
+            <% end %>
+          </div>
         <% end %>
-      </div>
 
-      <!-- Bracket Detection -->
-      <% if @deck.commander_deck? %>
-        <div class="p-4 mb-4 border rounded-xl bg-foreground border-highlight">
-          <%= turbo_frame_tag 'deck_bracket' do %>
-            <%= render partial: 'deck_bracket',
-                       locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner,
-                                 combo_count: @combo_count || 0 } %>
+        <div class="ml-auto">
+          <%= turbo_frame_tag 'deck_stats' do %>
+            <%= render partial: 'deck_stats', locals: { stats: @stats } %>
           <% end %>
         </div>
-      <% end %>
+      </div>
 
       <!-- Violations -->
       <% if @deck.commander_deck? %>
