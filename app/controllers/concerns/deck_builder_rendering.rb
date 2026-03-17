@@ -37,7 +37,8 @@ module DeckBuilderRendering
     {
       deck: @deck, is_owner: @is_owner,
       combos_checked_at: @combos_checked_at,
-      combo_card_oracle_ids: @combo_card_oracle_ids
+      combo_card_oracle_ids: @combo_card_oracle_ids,
+      deck_cards_changed: @deck_cards_changed
     }
   end
 
