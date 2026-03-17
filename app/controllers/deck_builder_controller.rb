@@ -48,7 +48,7 @@ class DeckBuilderController < ApplicationController
 
   def delete_card
     result = DeckBuilder::DeleteCard.call(deck: @deck, collection_magic_card_id: params[:card_id])
-    render_card_action_response(result, success_message: result[:message])
+    render_card_action_response(result, success_message: result[:message], flash_type: 'error')
   end
 
   def swap_card
@@ -112,6 +112,7 @@ class DeckBuilderController < ApplicationController
 
   def refresh_combos
     SyncDeckCombosJob.perform_later(@deck.id)
+    flash.now[:type] = 'success'
     render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast',
                                                        locals: { message: 'Checking for combos...' })
   end

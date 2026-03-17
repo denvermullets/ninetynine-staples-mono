@@ -11,10 +11,10 @@ module DeckBuilderRendering
     }
   end
 
-  def render_card_action_response(result, success_message:)
+  def render_card_action_response(result, success_message:, flash_type: 'success')
     return render_error_toast(result[:error]) unless result[:success]
 
-    flash.now[:type] = 'success'
+    flash.now[:type] = flash_type
     set_deck_view_defaults
     invalidate_combos_for(result[:removed_oracle_id]) if result[:removed_oracle_id]
     load_deck_cards
