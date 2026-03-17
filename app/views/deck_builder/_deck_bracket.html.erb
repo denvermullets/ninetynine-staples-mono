@@ -9,24 +9,17 @@
   <% if detected_level %>
     <div class="flex items-center gap-1.5" title="Detected based on deck rules">
       <span class="text-grey-text">Detected:</span>
-      <span class="
-        inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full
-        <%= bracket_badge_classes(detected_level) %>
-      ">
+      <span class="font-bold <%= bracket_text_class(detected_level) %>">
         B<%= detected_level %>
-        <span class="font-normal"><%= detected.name %></span>
       </span>
+      <span class="<%= bracket_text_class(detected_level) %>"><%= detected.name %></span>
     </div>
   <% end %>
 
   <% if declared_level %>
     <div class="flex items-center gap-1.5" title="Declared by deck owner">
       <span class="text-grey-text">Declared:</span>
-      <span class="
-        inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full
-        border border-current
-        <%= bracket_badge_classes(declared_level) %>
-      ">
+      <span class="font-bold <%= bracket_text_class(declared_level) %>">
         B<%= declared_level %>
       </span>
     </div>
