@@ -115,20 +115,32 @@
                 border-gray-700 py-2 rounded-lg shadow-lg z-50 min-w-max
               "
             >
-              <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Ingest Precon Decks', dashboard_ingest_precon_decks_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= link_to 'Manage Tags', admin_tags_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <!-- Deck Engine -->
+              <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Deck Engine</div>
               <%= link_to 'Game Changers', admin_game_changers_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Brackets', admin_brackets_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Deck Rules', admin_deck_rules_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
-              <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+
+              <div class="my-1 border-t border-gray-700"></div>
+
+              <!-- Jobs -->
+              <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Jobs</div>
               <%= link_to 'Mission Control', '/jobs', class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Ingest Precon Decks', dashboard_ingest_precon_decks_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Reset Collections', dashboard_reset_collections_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+              <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, form_class: 'w-full', class: 'w-full cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
+
+              <div class="my-1 border-t border-gray-700"></div>
+
+              <!-- Settings -->
+              <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settings</div>
+              <%= link_to 'Manage Tags', admin_tags_path, class: 'block cursor-pointer text-left whitespace-nowrap px-4 py-2 hover:text-white hover:bg-gray-700' %>
             </div>
           </div>
         <% end %>
@@ -306,60 +318,55 @@
           </button>
 
           <div data-collapsible-target="content" class="hidden pl-4 space-y-1">
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Ingest Precon Decks', dashboard_ingest_precon_decks_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= link_to 'Manage Tags', admin_tags_path %>
-            </div>
-
+            <!-- Deck Engine -->
+            <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Deck Engine</div>
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Game Changers', admin_game_changers_path %>
             </div>
-
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Brackets', admin_brackets_path %>
             </div>
-
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= link_to 'Deck Rules', admin_deck_rules_path %>
             </div>
 
+            <!-- Jobs -->
+            <div class="px-4 py-1 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Jobs</div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= link_to 'Mission Control', '/jobs' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Ingest Cards', dashboard_ingest_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Ingest Prices', dashboard_ingest_prices_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Ingest Precon Decks', dashboard_ingest_precon_decks_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Backfill Boxset History', dashboard_backfill_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Trim Boxset History', dashboard_trim_boxset_history_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Backfill Price Change', dashboard_backfill_price_change_weekly_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Backfill Oracle ID', dashboard_backfill_scryfall_oracle_id_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
+            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
+              <%= button_to 'Reset Collections', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left' %>
+            </div>
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
               <%= button_to 'Clear Jobs', dashboard_clear_jobs_path, method: :post, class: 'cursor-pointer text-left' %>
             </div>
 
+            <!-- Settings -->
+            <div class="px-4 py-1 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settings</div>
             <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= button_to 'Reset', dashboard_reset_collections_path, method: :post, class: 'cursor-pointer text-left' %>
-            </div>
-
-            <div class="px-4 py-2 rounded-3xl text-nav-text border-transparent">
-              <%= link_to 'Mission Control', '/jobs' %>
+              <%= link_to 'Manage Tags', admin_tags_path %>
             </div>
           </div>
         </div>
