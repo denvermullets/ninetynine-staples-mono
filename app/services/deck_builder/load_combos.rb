@@ -12,7 +12,8 @@ module DeckBuilder
       {
         combo_card_oracle_ids: build_oracle_id_map(deck_combos),
         combos_by_oracle_id: build_combos_by_oracle_id(deck_combos),
-        checked_at: @deck.combos_checked_at
+        checked_at: @deck.combos_checked_at,
+        combo_count: deck_combos.count { |dc| dc.combo_type == 'included' }
       }
     end
 

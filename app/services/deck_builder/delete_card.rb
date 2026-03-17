@@ -7,20 +7,13 @@ module DeckBuilder
 
     def call
       card = @deck.collection_magic_cards.find(@card_id)
+      card_name = card.magic_card.name
+      oracle_id = card.magic_card.scryfall_oracle_id
 
-      result = CollectionRecord::CreateOrUpdate.call(
-        params: {
-          collection_id: @deck.id,
-          magic_card_id: card.magic_card_id,
-          card_uuid: card.card_uuid,
-          quantity: [card.quantity - 1, 0].max,
-          foil_quantity: card.foil_quantity,
-          proxy_quantity: card.proxy_quantity,
-          proxy_foil_quantity: card.proxy_foil_quantity
-        }
-      )
+      card.destroy!
 
-      { success: true, message: "#{result[:name]} removed from collection" }
+      { success: true, message: "#{card_name} deleted from collection",
+        removed_oracle_id: oracle_id }
     rescue ActiveRecord::RecordNotFound
       { success: false, error: 'Card not found in deck' }
     end

@@ -23,9 +23,11 @@ RSpec.describe DeckBuilder::RemoveCard, type: :service do
       expect { subject }.to change { CollectionMagicCard.count }.by(-1)
     end
 
-    it 'returns success' do
-      expect(subject[:success]).to be true
-      expect(subject[:message]).to eq('Card removed from deck')
+    it 'returns success with oracle_id' do
+      result = subject
+      expect(result[:success]).to be true
+      expect(result[:message]).to eq('Card removed from deck')
+      expect(result[:removed_oracle_id]).to eq(magic_card.scryfall_oracle_id)
     end
   end
 
@@ -45,9 +47,11 @@ RSpec.describe DeckBuilder::RemoveCard, type: :service do
       expect { subject }.to change { CollectionMagicCard.count }.by(-1)
     end
 
-    it 'returns success' do
-      expect(subject[:success]).to be true
-      expect(subject[:message]).to eq('Needed card removed from deck')
+    it 'returns success with oracle_id' do
+      result = subject
+      expect(result[:success]).to be true
+      expect(result[:message]).to eq('Needed card removed from deck')
+      expect(result[:removed_oracle_id]).to eq(magic_card.scryfall_oracle_id)
     end
   end
 

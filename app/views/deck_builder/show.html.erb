@@ -43,9 +43,102 @@
         <%= render partial: 'deck_tags_wrapper', locals: { deck: @deck } %>
       </div>
 
-      <%= turbo_frame_tag 'header_actions' do %>
-        <%= render partial: 'header_actions', locals: { deck: @deck, is_owner: @is_owner } %>
-      <% end %>
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- View Controls -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-grey-text">View:</span>
+
+          <button
+            data-deck-builder-target="viewModeList"
+            data-action="click->deck-builder#setViewMode"
+            data-mode="list"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg border-highlight
+              text-grey-text hover:bg-foreground hover:text-accent-50
+              hover:border-accent-50 transition flex items-center gap-1
+              cursor-pointer
+            "
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            List
+          </button>
+
+          <button
+            data-deck-builder-target="viewModeCard"
+            data-action="click->deck-builder#setViewMode"
+            data-mode="card"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg border-highlight
+              text-grey-text hover:bg-foreground hover:text-accent-50
+              hover:border-accent-50 transition flex items-center gap-1
+              cursor-pointer
+            "
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+            </svg>
+            Cards
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-grey-text">Group:</span>
+          <select
+            data-deck-builder-target="groupingSelect"
+            data-action="change->deck-builder#changeGrouping"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg bg-background
+              border-highlight text-grey-text focus:border-accent-50
+              focus:outline-none cursor-pointer
+            "
+          >
+            <option value="type" <% if @grouping == 'type' %> selected<% end %>>Type</option>
+            <option value="mana_value" <% if @grouping == 'mana_value' %> selected<% end %>>Mana Value</option>
+            <option value="color" <% if @grouping == 'color' %> selected<% end %>>Color</option>
+            <option value="color_identity" <% if @grouping == 'color_identity' %> selected<% end %>>Color Identity</option>
+            <option value="rarity" <% if @grouping == 'rarity' %> selected<% end %>>Rarity</option>
+            <option value="set" <% if @grouping == 'set' %> selected<% end %>>Set</option>
+            <option value="none" <% if @grouping == 'none' %> selected<% end %>>None</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-grey-text">Sort:</span>
+          <select
+            data-deck-builder-target="sortBySelect"
+            data-action="change->deck-builder#changeSortBy"
+            class="
+              px-3 py-1.5 text-sm border rounded-lg bg-background
+              border-highlight text-grey-text focus:border-accent-50
+              focus:outline-none cursor-pointer
+            "
+          >
+            <option value="name" <% if @sort_by == 'name' %> selected<% end %>>Name</option>
+            <option value="mana_value" <% if @sort_by == 'mana_value' %> selected<% end %>>Mana Value</option>
+            <option value="price" <% if @sort_by == 'price' %> selected<% end %>>Price</option>
+            <option value="rarity" <% if @sort_by == 'rarity' %> selected<% end %>>Rarity</option>
+            <option value="edhrec" <% if @sort_by == 'edhrec' %> selected<% end %>>EDHREC</option>
+            <option value="salt" <% if @sort_by == 'salt' %> selected<% end %>>Salt</option>
+          </select>
+        </div>
+
+        <%= turbo_frame_tag 'combo_actions' do %>
+          <%= render partial: 'combo_actions', locals: {
+            deck: @deck, is_owner: @is_owner,
+            combos_checked_at: @combos_checked_at,
+            combo_card_oracle_ids: @combo_card_oracle_ids,
+            deck_cards_changed: @deck_cards_changed
+          } %>
+        <% end %>
+
+        <!-- Action Buttons -->
+        <%= turbo_frame_tag 'header_actions' do %>
+          <%= render partial: 'header_actions', locals: { deck: @deck, is_owner: @is_owner } %>
+        <% end %>
+      </div>
     </div>
   </div>
 
@@ -91,167 +184,8 @@
 
     <!-- Main Content -->
     <div class="flex-1 min-w-0">
-      <!-- Controls Bar -->
-      <div
-        class="
-          flex flex-wrap items-center justify-between gap-4 p-4 mb-4 border
-          rounded-xl bg-foreground border-highlight
-        "
-      >
-        <!-- View Mode Toggle -->
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-grey-text">View:</span>
-
-          <button
-            data-deck-builder-target="viewModeList"
-            data-action="click->deck-builder#setViewMode"
-            data-mode="list"
-            class="
-              px-3 py-1.5 text-sm border rounded-lg border-highlight
-              text-grey-text hover:bg-foreground hover:text-accent-50
-              hover:border-accent-50 transition flex items-center gap-1
-              cursor-pointer
-            "
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-            List
-          </button>
-
-          <button
-            data-deck-builder-target="viewModeCard"
-            data-action="click->deck-builder#setViewMode"
-            data-mode="card"
-            class="
-              px-3 py-1.5 text-sm border rounded-lg border-highlight
-              text-grey-text hover:bg-foreground hover:text-accent-50
-              hover:border-accent-50 transition flex items-center gap-1
-              cursor-pointer
-            "
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"
-              />
-            </svg>
-            Cards
-          </button>
-        </div>
-
-        <!-- Grouping Selector -->
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-grey-text">Group:</span>
-
-          <select
-            data-deck-builder-target="groupingSelect"
-            data-action="change->deck-builder#changeGrouping"
-            class="
-              px-3 py-1.5 text-sm border rounded-lg bg-background
-              border-highlight text-grey-text focus:border-accent-50
-              focus:outline-none cursor-pointer
-            "
-          >
-            <option value="type" <% if @grouping == 'type' %> selected<% end %>>Type</option>
-
-            <option
-              value="mana_value"
-              <% if @grouping == 'mana_value' %> selected<% end %>
-            >
-              Mana Value
-            </option>
-
-            <option value="color" <% if @grouping == 'color' %> selected<% end %>>Color</option>
-
-            <option
-              value="color_identity"
-              <% if @grouping == 'color_identity' %> selected<% end %>
-            >
-              Color Identity
-            </option>
-
-            <option value="rarity" <% if @grouping == 'rarity' %> selected<% end %>>Rarity</option>
-            <option value="set" <% if @grouping == 'set' %> selected<% end %>>Set</option>
-            <option value="none" <% if @grouping == 'none' %> selected<% end %>>None</option>
-          </select>
-        </div>
-
-        <!-- Sort Selector -->
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-grey-text">Sort:</span>
-
-          <select
-            data-deck-builder-target="sortBySelect"
-            data-action="change->deck-builder#changeSortBy"
-            class="
-              px-3 py-1.5 text-sm border rounded-lg bg-background
-              border-highlight text-grey-text focus:border-accent-50
-              focus:outline-none cursor-pointer
-            "
-          >
-            <option value="name" <% if @sort_by == 'name' %> selected<% end %>>Name</option>
-
-            <option
-              value="mana_value"
-              <% if @sort_by == 'mana_value' %> selected<% end %>
-            >
-              Mana Value
-            </option>
-
-            <option value="price" <% if @sort_by == 'price' %> selected<% end %>>Price</option>
-            <option value="rarity" <% if @sort_by == 'rarity' %> selected<% end %>>Rarity</option>
-            <option value="edhrec" <% if @sort_by == 'edhrec' %> selected<% end %>>EDHREC</option>
-            <option value="salt" <% if @sort_by == 'salt' %> selected<% end %>>Salt</option>
-          </select>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <% if @combos_checked_at %>
-            <%= link_to combos_deck_builder_path(@deck),
-              class: "px-3 py-1.5 text-sm border rounded-lg border-purple-500/30
-                text-purple-400 hover:bg-purple-500/10 hover:border-purple-500/50
-                transition cursor-pointer" do %>
-              View Combos
-            <% end %>
-          <% end %>
-
-          <% if @is_owner %>
-            <%= button_to refresh_combos_deck_builder_path(@deck),
-              class: "px-3 py-1.5 text-sm border rounded-lg border-highlight
-                text-grey-text hover:bg-foreground hover:text-accent-50
-                hover:border-accent-50 transition cursor-pointer",
-              data: { turbo_stream: true } do %>
-              <% if @combos_checked_at %>
-                Refresh Combos
-                <span class="text-xs text-grey-text/50 ml-1">
-                  (<%= time_ago_in_words(@combos_checked_at) %> ago)
-                </span>
-              <% else %>
-                Check for Combos
-              <% end %>
-            <% end %>
-          <% end %>
-        </div>
-
-        <!-- Stats -->
+      <!-- Stats -->
+      <div class="mb-4">
         <%= turbo_frame_tag 'deck_stats' do %>
           <%= render partial: 'deck_stats', locals: { stats: @stats } %>
         <% end %>
@@ -262,7 +196,8 @@
         <div class="p-4 mb-4 border rounded-xl bg-foreground border-highlight">
           <%= turbo_frame_tag 'deck_bracket' do %>
             <%= render partial: 'deck_bracket',
-                       locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner } %>
+                       locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner,
+                                 combo_count: @combo_count || 0 } %>
           <% end %>
         </div>
       <% end %>
