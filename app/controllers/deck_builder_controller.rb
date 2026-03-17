@@ -152,11 +152,15 @@ class DeckBuilderController < ApplicationController
     @combo_count = combo_result[:combo_count]
   end
 
-  def invalidate_combo_data
-    return unless @deck.combos_checked_at
+  def invalidate_combos_for(oracle_id)
+    return unless @deck.combos_checked_at && oracle_id.present?
 
-    @deck.update_column(:combos_checked_at, nil)
-    @deck.deck_combos.destroy_all
+    affected = @deck.deck_combos.joins(combo: :combo_cards)
+                    .where(combo_cards: { oracle_id: oracle_id })
+    return unless affected.exists?
+
+    affected.destroy_all
+    @deck.update_column(:combos_checked_at, nil) unless @deck.deck_combos.exists?
   end
 
   def set_deck_view_defaults

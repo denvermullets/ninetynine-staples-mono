@@ -40,6 +40,7 @@ module DeckBuilderCardActions
     result = execute_transfer(card, to_collection)
 
     if result[:success]
+      invalidate_combos_for(card.magic_card.scryfall_oracle_id)
       render_deck_update_response("#{card.magic_card.name} transferred to #{to_collection.name}", clear_modal: true)
     else
       render_error_toast(result[:error])
@@ -79,7 +80,6 @@ module DeckBuilderCardActions
   def render_deck_update_response(message, clear_modal: false)
     flash.now[:type] = 'success'
     set_deck_view_defaults
-    invalidate_combo_data
     load_deck_cards
     load_combo_data
     streams = deck_update_streams(message)

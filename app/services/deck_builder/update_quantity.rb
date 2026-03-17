@@ -2,12 +2,14 @@ module DeckBuilder
   class UpdateQuantity < Service
     def initialize(deck:, collection_magic_card_id:, quantity:, foil_quantity:)
       @deck = deck
-      @card = deck.collection_magic_cards.find(collection_magic_card_id)
+      @collection_magic_card_id = collection_magic_card_id
       @new_quantity = [quantity.to_i, 0].max
       @new_foil_quantity = [foil_quantity.to_i, 0].max
     end
 
     def call
+      @card = @deck.collection_magic_cards.find(@collection_magic_card_id)
+
       return delete_card if zero_quantity?
 
       ActiveRecord::Base.transaction do
@@ -38,7 +40,8 @@ module DeckBuilder
           proxy_quantity: 0, proxy_foil_quantity: 0
         }
       )
-      { success: true, card_name: result[:name], card: @card }
+      { success: true, card_name: result[:name], card: @card,
+        removed_oracle_id: @card.magic_card.scryfall_oracle_id }
     end
 
     def staged_from_collection?

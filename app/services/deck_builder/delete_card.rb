@@ -20,7 +20,8 @@ module DeckBuilder
         }
       )
 
-      { success: true, message: "#{result[:name]} removed from collection" }
+      { success: true, message: "#{result[:name]} removed from collection",
+        removed_oracle_id: card.magic_card.scryfall_oracle_id }
     rescue ActiveRecord::RecordNotFound
       { success: false, error: 'Card not found in deck' }
     end

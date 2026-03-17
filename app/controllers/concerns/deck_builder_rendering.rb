@@ -16,7 +16,7 @@ module DeckBuilderRendering
 
     flash.now[:type] = 'success'
     set_deck_view_defaults
-    invalidate_combo_data
+    invalidate_combos_for(result[:removed_oracle_id]) if result[:removed_oracle_id]
     load_deck_cards
     load_combo_data
     render turbo_stream: card_action_streams(success_message)
