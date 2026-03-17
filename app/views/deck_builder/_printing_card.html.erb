@@ -14,14 +14,15 @@
   </div>
 <% end %>
 
-<% if printing.image_large.present? %>
-  <%= image_tag printing.image_large,
+<% image_url = printing.image_large.presence || printing.image_medium %>
+<% if image_url %>
+  <%= image_tag image_url,
     alt: printing.name,
     class: "w-full h-auto rounded mb-2" %>
 <% else %>
-  <%= image_tag printing.image_medium,
-    alt: printing.name,
-    class: "w-full h-auto rounded mb-2" %>
+  <div class="w-full aspect-[488/680] rounded mb-2 bg-background flex items-center justify-center">
+    <span class="text-grey-text text-sm">No image</span>
+  </div>
 <% end %>
 
 <p class="text-sm font-medium text-grey-text truncate">

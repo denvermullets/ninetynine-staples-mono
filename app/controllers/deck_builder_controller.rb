@@ -149,6 +149,14 @@ class DeckBuilderController < ApplicationController
     combo_result = DeckBuilder::LoadCombos.call(deck: @deck)
     @combo_card_oracle_ids = combo_result[:combo_card_oracle_ids]
     @combos_checked_at = combo_result[:checked_at]
+    @combo_count = combo_result[:combo_count]
+  end
+
+  def invalidate_combo_data
+    return unless @deck.combos_checked_at
+
+    @deck.update_column(:combos_checked_at, nil)
+    @deck.deck_combos.destroy_all
   end
 
   def set_deck_view_defaults
