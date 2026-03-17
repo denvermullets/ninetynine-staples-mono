@@ -4,24 +4,21 @@
   <% if has_combos %>
     <%= link_to combos_deck_builder_path(deck),
       data: { turbo_frame: "_top" },
-      class: "px-3 py-1.5 text-sm border rounded-lg border-purple-500/30
-        text-purple-400 hover:bg-purple-500/10 hover:border-purple-500/50
-        transition cursor-pointer" do %>
+      class: "px-4 py-2 border rounded-lg border-highlight
+        text-grey-text hover:bg-foreground hover:text-accent-50
+        hover:border-accent-50 transition cursor-pointer" do %>
       View Combos
     <% end %>
   <% end %>
 
   <% if is_owner %>
     <%= button_to refresh_combos_deck_builder_path(deck),
-      class: "px-3 py-1.5 text-sm border rounded-lg border-highlight
+      class: "px-4 py-2 border rounded-lg border-highlight
         text-grey-text hover:bg-foreground hover:text-accent-50
         hover:border-accent-50 transition cursor-pointer",
       data: { turbo_stream: true } do %>
       <% if has_combos %>
         Refresh Combos
-        <span class="text-xs text-grey-text/50 ml-1">
-          (<%= time_ago_in_words(combos_checked_at) %> ago)
-        </span>
       <% else %>
         Check for Combos
       <% end %>

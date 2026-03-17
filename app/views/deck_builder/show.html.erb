@@ -125,6 +125,14 @@
           </select>
         </div>
 
+        <%= turbo_frame_tag 'combo_actions' do %>
+          <%= render partial: 'combo_actions', locals: {
+            deck: @deck, is_owner: @is_owner,
+            combos_checked_at: @combos_checked_at,
+            combo_card_oracle_ids: @combo_card_oracle_ids
+          } %>
+        <% end %>
+
         <!-- Action Buttons -->
         <%= turbo_frame_tag 'header_actions' do %>
           <%= render partial: 'header_actions', locals: { deck: @deck, is_owner: @is_owner } %>
@@ -184,19 +192,11 @@
 
       <!-- Bracket Detection -->
       <% if @deck.commander_deck? %>
-        <div class="flex flex-wrap items-center justify-between gap-3 p-4 mb-4 border rounded-xl bg-foreground border-highlight">
+        <div class="p-4 mb-4 border rounded-xl bg-foreground border-highlight">
           <%= turbo_frame_tag 'deck_bracket' do %>
             <%= render partial: 'deck_bracket',
                        locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner,
                                  combo_count: @combo_count || 0 } %>
-          <% end %>
-
-          <%= turbo_frame_tag 'combo_actions' do %>
-            <%= render partial: 'combo_actions', locals: {
-              deck: @deck, is_owner: @is_owner,
-              combos_checked_at: @combos_checked_at,
-              combo_card_oracle_ids: @combo_card_oracle_ids
-            } %>
           <% end %>
         </div>
       <% end %>

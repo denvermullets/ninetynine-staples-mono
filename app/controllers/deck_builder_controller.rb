@@ -150,6 +150,10 @@ class DeckBuilderController < ApplicationController
     @combo_card_oracle_ids = combo_result[:combo_card_oracle_ids]
     @combos_checked_at = combo_result[:checked_at]
     @combo_count = combo_result[:combo_count]
+    @deck_cards_changed = @combos_checked_at &&
+                          @deck.collection_magic_cards
+                               .where('created_at > :t OR updated_at > :t', t: @combos_checked_at)
+                               .exists?
   end
 
   def invalidate_combos_for(oracle_id)
