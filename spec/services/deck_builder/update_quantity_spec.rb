@@ -126,15 +126,15 @@ RSpec.describe DeckBuilder::UpdateQuantity, type: :service do
   end
 
   context 'when card does not exist' do
-    it 'raises RecordNotFound' do
-      expect {
-        described_class.call(
-          deck: deck,
-          collection_magic_card_id: -1,
-          quantity: 1,
-          foil_quantity: 0
-        )
-      }.to raise_error(ActiveRecord::RecordNotFound)
+    it 'returns an error' do
+      result = described_class.call(
+        deck: deck,
+        collection_magic_card_id: -1,
+        quantity: 1,
+        foil_quantity: 0
+      )
+      expect(result[:success]).to be false
+      expect(result[:error]).to eq('Card not found')
     end
   end
 end
