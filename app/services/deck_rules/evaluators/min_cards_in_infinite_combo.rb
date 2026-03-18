@@ -17,7 +17,7 @@ module DeckRules
 
       def violation_message
         count = violating_combos.size
-        "#{count} infinite combo(s) with fewer than #{@rule.value} cards"
+        "Deck has #{count} infinite combo#{'s' if count != 1} that use fewer than #{@rule.value} cards"
       end
 
       private

@@ -33,7 +33,7 @@
 
           <div
             class="
-              flex items-center gap-2 py-0.5 text-sm group cursor-pointer
+              flex items-center gap-1 sm:gap-2 py-0.5 text-sm group cursor-pointer
               relative
             "
             data-controller="context-menu"
@@ -206,12 +206,12 @@
             <% end %>
 
             <!-- Mana Cost -->
-            <span class="w-20 shrink-0 text-xs text-right">
+            <span class="shrink-0 text-xs text-right w-14 sm:w-20">
               <%= mana_symbols(card.magic_card.mana_cost) %>
             </span>
 
             <!-- Price -->
-            <span class="w-16 text-right text-grey-text/75 shrink-0">
+            <span class="shrink-0 text-xs sm:text-sm text-right text-grey-text/75 w-12 sm:w-16">
               <%= number_to_currency(card.magic_card.display_price) %>
             </span>
 

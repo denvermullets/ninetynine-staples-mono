@@ -5,7 +5,7 @@
   game_changer_count = bracket_result&.dig(:game_changer_count) || 0
 %>
 
-<div class="flex flex-wrap items-center gap-3 text-sm">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm">
   <% if detected_level %>
     <div class="flex items-center gap-1.5" title="Detected based on deck rules">
       <span class="text-grey-text">Detected:</span>
