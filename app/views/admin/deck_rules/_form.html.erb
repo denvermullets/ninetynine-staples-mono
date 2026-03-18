@@ -48,9 +48,16 @@
   <div>
     <%= f.label :rule_type, 'Rule Type', class: 'block text-sm font-medium text-grey-text mb-1' %>
 
+    <% rule_type_labels = {
+      'max_game_changers' => 'Max game changers',
+      'max_copies_per_card' => 'Max copies per card',
+      'max_deck_size' => 'Max deck size',
+      'min_cards_in_infinite_combo' => 'Min combo size (cards)'
+    } %>
+
     <%= f.select :rule_type,
         options_for_select(
-          DeckRule::RULE_TYPES.map { |t| [t.humanize, t] },
+          DeckRule::RULE_TYPES.map { |t| [rule_type_labels[t] || t.humanize, t] },
           deck_rule.rule_type
         ),
         { prompt: 'Select a rule type' },
@@ -66,7 +73,8 @@
         placeholder: 'e.g. 0, 3, 100' %>
 
     <p class="text-xs text-grey-text/50 mt-1">
-      The maximum allowed value. Use a high number (e.g. 9999) for unlimited.
+      The limit value for the rule. For combo rules, this is the minimum number of cards a combo must have
+      (e.g. 3 = no 2-card combos). Use 0 for no restriction. For other rules, use a high number (e.g. 9999) for unlimited.
     </p>
   </div>
 
