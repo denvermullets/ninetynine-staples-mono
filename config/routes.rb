@@ -69,8 +69,8 @@ Rails.application.routes.draw do
   get 'commanders', to: 'commanders#index', as: :commanders
   get 'load_commanders', to: 'commanders#load_commanders', as: :load_commanders
   get 'load_collection', to: 'collections#load', as: :load_collection
-  resources :boxsets
-  resources :magic_cards
+  resources :boxsets, only: [:index]
+  resources :magic_cards, only: %i[show destroy]
 
   resources :precon_decks, only: %i[index show], path: 'precon-decks' do
     member do
@@ -83,7 +83,6 @@ Rails.application.routes.draw do
   post 'collection_magic_cards/update_collection', to: 'collection_magic_cards#update_collection', as: :collection_magic_cards_update
   post 'collection_magic_cards/transfer', to: 'collection_magic_cards#transfer', as: :transfer_collection_magic_cards
   post 'collection_magic_cards/adjust', to: 'collection_magic_cards#adjust', as: :adjust_collection_magic_cards
-  resources :collection_magic_cards
 
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
   resources :collections, only: %w[new create update] do

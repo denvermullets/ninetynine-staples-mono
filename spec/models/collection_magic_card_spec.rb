@@ -39,22 +39,6 @@ RSpec.describe CollectionMagicCard, type: :model do
       end
     end
 
-    describe '.mainboard' do
-      it 'returns cards with board_type mainboard' do
-        mainboard = create(:collection_magic_card, board_type: 'mainboard')
-        create(:collection_magic_card, board_type: 'sideboard')
-        expect(described_class.mainboard).to eq([mainboard])
-      end
-    end
-
-    describe '.sideboard' do
-      it 'returns cards with board_type sideboard' do
-        sideboard = create(:collection_magic_card, board_type: 'sideboard')
-        create(:collection_magic_card, board_type: 'mainboard')
-        expect(described_class.sideboard).to eq([sideboard])
-      end
-    end
-
     describe '.staged' do
       it 'returns cards where staged is true' do
         staged = create(:collection_magic_card, staged: true)
@@ -104,28 +88,6 @@ RSpec.describe CollectionMagicCard, type: :model do
         expect(described_class.planned).to eq([planned])
       end
     end
-
-    describe '.with_proxies' do
-      it 'returns cards with proxy_quantity > 0' do
-        proxy = create(:collection_magic_card, proxy_quantity: 1)
-        create(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-        expect(described_class.with_proxies).to include(proxy)
-      end
-
-      it 'returns cards with proxy_foil_quantity > 0' do
-        proxy_foil = create(:collection_magic_card, proxy_foil_quantity: 2)
-        create(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-        expect(described_class.with_proxies).to include(proxy_foil)
-      end
-    end
-
-    describe '.real_only' do
-      it 'returns cards with no proxies' do
-        real = create(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-        create(:collection_magic_card, proxy_quantity: 1)
-        expect(described_class.real_only).to eq([real])
-      end
-    end
   end
 
   describe '#total_regular' do
@@ -139,23 +101,6 @@ RSpec.describe CollectionMagicCard, type: :model do
     it 'sums foil_quantity and proxy_foil_quantity' do
       card = build(:collection_magic_card, foil_quantity: 1, proxy_foil_quantity: 4)
       expect(card.total_foil).to eq(5)
-    end
-  end
-
-  describe '#proxies?' do
-    it 'returns true when proxy_quantity is positive' do
-      card = build(:collection_magic_card, proxy_quantity: 1, proxy_foil_quantity: 0)
-      expect(card.proxies?).to be true
-    end
-
-    it 'returns true when proxy_foil_quantity is positive' do
-      card = build(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 1)
-      expect(card.proxies?).to be true
-    end
-
-    it 'returns false when both proxy quantities are zero' do
-      card = build(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-      expect(card.proxies?).to be false
     end
   end
 
@@ -236,25 +181,23 @@ RSpec.describe CollectionMagicCard, type: :model do
   end
 
   describe '#display_value' do
-    it 'returns real_value + proxy_value for non-staged cards' do
+    it 'returns display_quantity * display_price for non-staged cards' do
       card = create(:collection_magic_card, quantity: 2, foil_quantity: 1, proxy_quantity: 1, proxy_foil_quantity: 1)
-      expected = ((2 * 5.0) + (1 * 10.0)) + ((1 * 5.0) + (1 * 10.0))
-      expect(card.display_value).to eq(expected)
+      expect(card.display_value).to eq(5 * 5.0)
     end
 
     context 'when card is staged' do
-      it 'uses staged quantities for value calculation' do
+      it 'uses staged display_quantity * display_price' do
         card = create(:collection_magic_card,
                       staged: true,
                       staged_quantity: 2, staged_foil_quantity: 1,
                       staged_proxy_quantity: 1, staged_proxy_foil_quantity: 1)
-        expected = (3 * 5.0) + (2 * 10.0)
-        expect(card.display_value).to eq(expected)
+        expect(card.display_value).to eq(5 * 5.0)
       end
     end
 
     context 'when card is foil-only (normal_price is 0)' do
-      it 'uses foil_price multiplied by display_quantity' do
+      it 'uses foil_price as display_price' do
         magic_card = create(:magic_card, normal_price: 0.0, foil_price: 15.0)
         card = create(:collection_magic_card,
                       magic_card: magic_card,
