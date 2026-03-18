@@ -39,22 +39,6 @@ RSpec.describe CollectionMagicCard, type: :model do
       end
     end
 
-    describe '.mainboard' do
-      it 'returns cards with board_type mainboard' do
-        mainboard = create(:collection_magic_card, board_type: 'mainboard')
-        create(:collection_magic_card, board_type: 'sideboard')
-        expect(described_class.mainboard).to eq([mainboard])
-      end
-    end
-
-    describe '.sideboard' do
-      it 'returns cards with board_type sideboard' do
-        sideboard = create(:collection_magic_card, board_type: 'sideboard')
-        create(:collection_magic_card, board_type: 'mainboard')
-        expect(described_class.sideboard).to eq([sideboard])
-      end
-    end
-
     describe '.staged' do
       it 'returns cards where staged is true' do
         staged = create(:collection_magic_card, staged: true)
@@ -104,28 +88,6 @@ RSpec.describe CollectionMagicCard, type: :model do
         expect(described_class.planned).to eq([planned])
       end
     end
-
-    describe '.with_proxies' do
-      it 'returns cards with proxy_quantity > 0' do
-        proxy = create(:collection_magic_card, proxy_quantity: 1)
-        create(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-        expect(described_class.with_proxies).to include(proxy)
-      end
-
-      it 'returns cards with proxy_foil_quantity > 0' do
-        proxy_foil = create(:collection_magic_card, proxy_foil_quantity: 2)
-        create(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-        expect(described_class.with_proxies).to include(proxy_foil)
-      end
-    end
-
-    describe '.real_only' do
-      it 'returns cards with no proxies' do
-        real = create(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-        create(:collection_magic_card, proxy_quantity: 1)
-        expect(described_class.real_only).to eq([real])
-      end
-    end
   end
 
   describe '#total_regular' do
@@ -139,23 +101,6 @@ RSpec.describe CollectionMagicCard, type: :model do
     it 'sums foil_quantity and proxy_foil_quantity' do
       card = build(:collection_magic_card, foil_quantity: 1, proxy_foil_quantity: 4)
       expect(card.total_foil).to eq(5)
-    end
-  end
-
-  describe '#proxies?' do
-    it 'returns true when proxy_quantity is positive' do
-      card = build(:collection_magic_card, proxy_quantity: 1, proxy_foil_quantity: 0)
-      expect(card.proxies?).to be true
-    end
-
-    it 'returns true when proxy_foil_quantity is positive' do
-      card = build(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 1)
-      expect(card.proxies?).to be true
-    end
-
-    it 'returns false when both proxy quantities are zero' do
-      card = build(:collection_magic_card, proxy_quantity: 0, proxy_foil_quantity: 0)
-      expect(card.proxies?).to be false
     end
   end
 

@@ -13,13 +13,7 @@ class CollectionMagicCard < ApplicationRecord
   validates :board_type, inclusion: { in: BOARD_TYPES }, allow_nil: true
 
   # Scopes
-  scope :with_proxies, -> { where('proxy_quantity > 0 OR proxy_foil_quantity > 0') }
-  scope :real_only, -> { where(proxy_quantity: 0, proxy_foil_quantity: 0) }
-
-  # Board type scopes
   scope :commanders, -> { where(board_type: 'commander') }
-  scope :mainboard, -> { where(board_type: 'mainboard') }
-  scope :sideboard, -> { where(board_type: 'sideboard') }
 
   # Build mode scopes
   scope :staged, -> { where(staged: true) }
@@ -36,10 +30,6 @@ class CollectionMagicCard < ApplicationRecord
 
   def total_foil
     foil_quantity + proxy_foil_quantity
-  end
-
-  def proxies?
-    proxy_quantity.positive? || proxy_foil_quantity.positive?
   end
 
   # Display type detection (handles staged vs finalized cards)
