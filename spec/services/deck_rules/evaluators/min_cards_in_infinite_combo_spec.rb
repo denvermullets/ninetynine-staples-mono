@@ -97,7 +97,7 @@ RSpec.describe DeckRules::Evaluators::MinCardsInInfiniteCombo do
       evaluator = described_class.new(rule: rule, deck: deck)
       evaluator.evaluate
 
-      expect(evaluator.violation_message).to eq('1 infinite combo(s) with fewer than 3 cards')
+      expect(evaluator.violation_message).to eq('Deck has 1 infinite combo that use fewer than 3 cards')
     end
   end
 end
