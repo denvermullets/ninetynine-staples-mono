@@ -22,12 +22,10 @@ class SyncDeckCombosJob < ApplicationJob
   private
 
   def broadcast_toast(user_id, message, type)
-    bg_class = type == 'success' ? 'bg-accent-50' : 'bg-accent-100'
-    html = <<~HTML
-      <div data-controller="toast" class="p-4 rounded-lg shadow-lg text-menu #{bg_class}">
-        #{ERB::Util.html_escape(message)}
-      </div>
-    HTML
+    html = ApplicationController.render(
+      partial: 'shared/broadcast_toast',
+      locals: { message: message, type: type }
+    )
 
     Turbo::StreamsChannel.broadcast_append_to(
       "user_#{user_id}_notifications",

@@ -52,12 +52,6 @@ class MagicCard < ApplicationRecord
   has_many :game_opponents_as_commander, class_name: 'GameOpponent', foreign_key: :commander_id
   has_many :game_opponents_as_partner, class_name: 'GameOpponent', foreign_key: :partner_commander_id
 
-  scope :game_changers, -> { joins(:game_changer) }
-
-  def game_changer?
-    GameChanger.exists?(oracle_id: scryfall_oracle_id)
-  end
-
   def other_face
     return nil unless other_face_uuid.present?
 
