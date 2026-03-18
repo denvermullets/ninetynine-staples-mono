@@ -236,25 +236,23 @@ RSpec.describe CollectionMagicCard, type: :model do
   end
 
   describe '#display_value' do
-    it 'returns real_value + proxy_value for non-staged cards' do
+    it 'returns display_quantity * display_price for non-staged cards' do
       card = create(:collection_magic_card, quantity: 2, foil_quantity: 1, proxy_quantity: 1, proxy_foil_quantity: 1)
-      expected = ((2 * 5.0) + (1 * 10.0)) + ((1 * 5.0) + (1 * 10.0))
-      expect(card.display_value).to eq(expected)
+      expect(card.display_value).to eq(5 * 5.0)
     end
 
     context 'when card is staged' do
-      it 'uses staged quantities for value calculation' do
+      it 'uses staged display_quantity * display_price' do
         card = create(:collection_magic_card,
                       staged: true,
                       staged_quantity: 2, staged_foil_quantity: 1,
                       staged_proxy_quantity: 1, staged_proxy_foil_quantity: 1)
-        expected = (3 * 5.0) + (2 * 10.0)
-        expect(card.display_value).to eq(expected)
+        expect(card.display_value).to eq(5 * 5.0)
       end
     end
 
     context 'when card is foil-only (normal_price is 0)' do
-      it 'uses foil_price multiplied by display_quantity' do
+      it 'uses foil_price as display_price' do
         magic_card = create(:magic_card, normal_price: 0.0, foil_price: 15.0)
         card = create(:collection_magic_card,
                       magic_card: magic_card,
