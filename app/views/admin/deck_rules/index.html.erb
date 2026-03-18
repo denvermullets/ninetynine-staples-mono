@@ -67,7 +67,11 @@
                   </div>
 
                   <span class="text-xs text-grey-text/70">
-                    <%= rule.rule_type.humanize %> = <%= rule.value %>
+                    <% if rule.rule_type == 'min_cards_in_infinite_combo' %>
+                      Combos must have at least <%= rule.value %> cards
+                    <% else %>
+                      <%= rule.rule_type.humanize %> = <%= rule.value %>
+                    <% end %>
                   </span>
 
                   <% if rule.description.present? %>

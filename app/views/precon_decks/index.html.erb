@@ -119,6 +119,7 @@
         <% @precon_decks.each do |deck| %>
           <tr
             class="hover:bg-background/50 cursor-pointer"
+            data-controller="row-link"
             data-action="click->row-link#navigate"
             data-row-link-url-value="<%= precon_deck_path(deck) %>"
           >

@@ -43,9 +43,9 @@
         <%= render partial: 'deck_tags_wrapper', locals: { deck: @deck } %>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- View Controls -->
-        <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- View Controls (hidden on mobile, list view is default) -->
+        <div class="hidden sm:flex items-center gap-2">
           <span class="text-sm text-grey-text">View:</span>
 
           <button
@@ -84,13 +84,13 @@
           </button>
         </div>
 
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-grey-text">Group:</span>
+        <div class="flex items-center gap-1.5">
+          <span class="hidden sm:inline text-sm text-grey-text">Group:</span>
           <select
             data-deck-builder-target="groupingSelect"
             data-action="change->deck-builder#changeGrouping"
             class="
-              px-3 py-1.5 text-sm border rounded-lg bg-background
+              px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm border rounded-lg bg-background
               border-highlight text-grey-text focus:border-accent-50
               focus:outline-none cursor-pointer
             "
@@ -105,13 +105,13 @@
           </select>
         </div>
 
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-grey-text">Sort:</span>
+        <div class="flex items-center gap-1.5">
+          <span class="hidden sm:inline text-sm text-grey-text">Sort:</span>
           <select
             data-deck-builder-target="sortBySelect"
             data-action="change->deck-builder#changeSortBy"
             class="
-              px-3 py-1.5 text-sm border rounded-lg bg-background
+              px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm border rounded-lg bg-background
               border-highlight text-grey-text focus:border-accent-50
               focus:outline-none cursor-pointer
             "
@@ -142,7 +142,7 @@
     </div>
   </div>
 
-  <div class="flex flex-col flex-1 gap-4 p-4 lg:flex-row lg:p-8">
+  <div class="flex flex-col flex-1 gap-4 px-1 py-4 sm:p-4 lg:flex-row lg:p-8">
     <!-- Sidebar: Card Preview + Search -->
     <div class="w-full lg:w-80 shrink-0 space-y-4">
       <!-- Card Preview (desktop only) -->
@@ -184,23 +184,22 @@
 
     <!-- Main Content -->
     <div class="flex-1 min-w-0">
-      <!-- Stats -->
-      <div class="mb-4">
-        <%= turbo_frame_tag 'deck_stats' do %>
-          <%= render partial: 'deck_stats', locals: { stats: @stats } %>
-        <% end %>
-      </div>
-
-      <!-- Bracket Detection -->
-      <% if @deck.commander_deck? %>
-        <div class="p-4 mb-4 border rounded-xl bg-foreground border-highlight">
+      <!-- Stats & Bracket Detection -->
+      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-4">
+        <% if @deck.commander_deck? %>
           <%= turbo_frame_tag 'deck_bracket' do %>
             <%= render partial: 'deck_bracket',
                        locals: { bracket_result: @bracket_result, deck: @deck, is_owner: @is_owner,
                                  combo_count: @combo_count || 0 } %>
           <% end %>
+        <% end %>
+
+        <div class="sm:ml-auto">
+          <%= turbo_frame_tag 'deck_stats' do %>
+            <%= render partial: 'deck_stats', locals: { stats: @stats } %>
+          <% end %>
         </div>
-      <% end %>
+      </div>
 
       <!-- Violations -->
       <% if @deck.commander_deck? %>
