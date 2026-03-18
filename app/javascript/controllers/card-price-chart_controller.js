@@ -230,8 +230,4 @@ export default class extends Controller {
       plugins: [verticalLinePlugin],
     });
   }
-
-  canvasContext() {
-    return this.cardPriceChartTarget.getContext("2d");
-  }
 }
