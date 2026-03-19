@@ -1,0 +1,123 @@
+<div class="flex items-start justify-center w-full min-h-screen py-8 px-4">
+  <div
+    class="
+      w-full max-w-5xl p-6 border border-foreground bg-foreground rounded-xl
+      text-grey-text
+    "
+  >
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold">Orphaned Cards</h1>
+      <span class="text-sm text-grey-text/70">
+        <%= @pagy.count %> duplicate group<%= @pagy.count == 1 ? '' : 's' %> found
+      </span>
+    </div>
+
+    <p class="text-sm text-grey-text/70 mb-6">
+      Cards that share the same name, set, and card number but have different UUIDs.
+      The orphan (stale data from mtgjson) is highlighted in red.
+    </p>
+
+    <% if @orphaned_groups.any? %>
+      <div class="space-y-4">
+        <% @orphaned_groups.each do |group| %>
+          <div class="border rounded-lg border-highlight bg-background p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="font-semibold text-white"><%= group[:name] %></span>
+              <span class="text-xs text-grey-text/50">
+                <%= group[:boxset].name %> &middot; #<%= group[:card_number] %>
+              </span>
+            </div>
+
+            <div class="space-y-2">
+              <% group[:all_cards].each do |card| %>
+                <% is_orphan = card == group[:orphan] && group[:all_cards].size > 1 %>
+                <div
+                  class="
+                    flex items-center justify-between p-3 rounded-md text-sm cursor-pointer
+                    <%= is_orphan ? 'border border-red-500/30 bg-red-500/10' : 'border border-green-500/30 bg-green-500/10' %>
+                  "
+                  data-controller="card-hover"
+                  data-card-hover-image-value="<%= card.image_large %>"
+                  data-card-hover-name-value="<%= card.name %>"
+                  data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+                >
+                  <div class="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
+                    <div>
+                      <span class="text-grey-text/50">ID:</span>
+                      <span class="font-mono"><%= card.id %></span>
+                    </div>
+                    <div>
+                      <span class="text-grey-text/50">UUID:</span>
+                      <span class="font-mono text-xs"><%= card.card_uuid&.first(12) %>&hellip;</span>
+                    </div>
+                    <div>
+                      <span class="text-grey-text/50">Updated:</span>
+                      <span><%= card.updated_at.strftime('%Y-%m-%d') %></span>
+                    </div>
+                    <div>
+                      <span class="text-grey-text/50">Price:</span>
+                      <span>$<%= card.normal_price || '—' %> / $<%= card.foil_price || '—' %></span>
+                    </div>
+                    <div>
+                      <span class="text-grey-text/50">Layout:</span>
+                      <span><%= card.layout || 'null' %></span>
+                    </div>
+                    <div>
+                      <span class="text-grey-text/50">EDHREC:</span>
+                      <span><%= card.edhrec_rank || 'null' %></span>
+                    </div>
+                    <div>
+                      <span class="text-grey-text/50">History:</span>
+                      <% history_count = [card.price_history&.dig('normal')&.size.to_i, card.price_history&.dig('foil')&.size.to_i].max %>
+                      <span><%= history_count %> entries</span>
+                    </div>
+                    <div>
+                      <span class="text-grey-text/50">In collections:</span>
+                      <span><%= card.collection_magic_cards.size %></span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2 ml-4 shrink-0">
+                    <% if is_orphan %>
+                      <span class="px-2 py-0.5 text-xs rounded bg-red-500/20 text-red-400">orphan</span>
+                    <% else %>
+                      <span class="px-2 py-0.5 text-xs rounded bg-green-500/20 text-green-400">current</span>
+                    <% end %>
+
+                    <% if is_orphan && card.collection_magic_cards.empty? %>
+                      <%= button_to admin_orphaned_card_path(card),
+                          method: :delete,
+                          data: { turbo_confirm: "Delete orphaned card '#{card.name}' (ID: #{card.id})?" },
+                          class: 'px-3 py-1 text-xs border rounded-md border-red-500/50 text-red-400 hover:bg-red-500/20 transition cursor-pointer' do %>
+                        Delete
+                      <% end %>
+                    <% elsif is_orphan && card.collection_magic_cards.any? %>
+                      <span class="text-xs text-yellow-400" title="This card is in user collections and cannot be deleted directly">
+                        in use
+                      </span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <% if @pagy.pages > 1 %>
+        <div
+          class="
+            flex flex-col md:flex-row justify-between items-center px-6 py-4
+            border-t border-highlight gap-4 mt-4
+          "
+        >
+          <%== @pagy.info_tag() %>
+          <%== @pagy.series_nav() %>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="text-center py-8 text-grey-text/70">
+        No orphaned cards found. All cards have unique name/set/number combinations.
+      </p>
+    <% end %>
+  </div>
+</div>
