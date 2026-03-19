@@ -38,22 +38,26 @@ module Admin
 
     def duplicate_group_keys
       MagicCard
-        .select(:name, :boxset_id, :card_number)
-        .group(:name, :boxset_id, :card_number)
+        .where.not(layout: 'art_series')
+        .select(:name, :boxset_id, :card_number, :card_side)
+        .group(:name, :boxset_id, :card_number, :card_side)
         .having('COUNT(*) > 1')
         .order(:name, :boxset_id, :card_number)
-        .map { |g| { name: g.name, boxset_id: g.boxset_id, card_number: g.card_number } }
+        .map { |g| { name: g.name, boxset_id: g.boxset_id, card_number: g.card_number, card_side: g.card_side } }
     end
 
     def build_groups(page_keys)
       relation = page_keys.reduce(MagicCard.none) do |combined, key|
-        combined.or(MagicCard.where(name: key[:name], boxset_id: key[:boxset_id], card_number: key[:card_number]))
+        combined.or(MagicCard.where(
+                      name: key[:name], boxset_id: key[:boxset_id],
+                      card_number: key[:card_number], card_side: key[:card_side]
+                    ))
       end
 
       relation
         .includes(:boxset, :collection_magic_cards)
         .order(:name, :boxset_id, :card_number, :updated_at)
-        .group_by { |c| [c.name, c.boxset_id, c.card_number] }
+        .group_by { |c| [c.name, c.boxset_id, c.card_number, c.card_side] }
         .map { |key, cards| build_group_hash(key, cards) }
     end
 
