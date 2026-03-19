@@ -48,10 +48,9 @@ module Admin
 
     def build_groups(page_keys)
       relation = page_keys.reduce(MagicCard.none) do |combined, key|
-        combined.or(MagicCard.where(
-                      name: key[:name], boxset_id: key[:boxset_id],
-                      card_number: key[:card_number], card_side: key[:card_side]
-                    ))
+        scope = MagicCard.where(name: key[:name], boxset_id: key[:boxset_id], card_number: key[:card_number])
+        scope = key[:card_side] ? scope.where(card_side: key[:card_side]) : scope.where(card_side: nil)
+        combined.or(scope)
       end
 
       relation
