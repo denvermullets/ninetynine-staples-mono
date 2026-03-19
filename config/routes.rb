@@ -41,6 +41,7 @@ Rails.application.routes.draw do
     end
     resources :brackets, except: [:show]
     resources :deck_rules, except: [:show]
+    resources :orphaned_cards, only: %i[index destroy], path: 'orphaned-cards'
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
