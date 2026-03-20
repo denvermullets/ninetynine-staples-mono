@@ -86,7 +86,7 @@ Rails.application.routes.draw do
   post 'collection_magic_cards/adjust', to: 'collection_magic_cards#adjust', as: :adjust_collection_magic_cards
 
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
-  resources :collections, only: %w[new create update] do
+  resources :collections, only: %w[new create update destroy] do
     member do
       get :edit_collection_modal
     end
@@ -124,6 +124,8 @@ Rails.application.routes.draw do
       get :edit_staged_modal
       patch :update_staged
       get :view_card_modal
+      get :bulk_import
+      get :bulk_import_search
       get :combos
       post :refresh_combos
       get :violations

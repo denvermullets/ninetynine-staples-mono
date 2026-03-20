@@ -5,6 +5,11 @@
           class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-accent-50 text-foreground font-medium rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer',
           data: { turbo_frame: 'deck_modal' } %>
     <% end %>
+    <% if deck.deck? || deck.commander_deck? %>
+      <%= link_to 'Bulk Import', bulk_import_deck_builder_path(deck),
+          class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
+          data: { turbo_frame: '_top' } %>
+    <% end %>
     <%= link_to 'Edit', edit_deck_modal_deck_builder_path(deck),
         class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
         data: { turbo_frame: 'deck_modal' } %>

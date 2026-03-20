@@ -19,6 +19,9 @@
   <% if is_owner && local_assigns[:edit_url] %>
     data-controller="context-menu"
     data-context-menu-edit-url-value="<%= edit_url %>"
+    <% if local_assigns[:delete_url] %>
+      data-context-menu-delete-url-value="<%= delete_url %>"
+    <% end %>
     data-context-menu-frame-id-value="<%= frame_id %>"
     data-action="contextmenu->context-menu#open"
   <% end %>
@@ -182,6 +185,18 @@
       >
         Edit
       </button>
+      <% if local_assigns[:delete_url] %>
+        <button
+          type="button"
+          data-action="click->context-menu#deleteDeck"
+          class="
+            w-full px-4 py-2 text-left text-sm text-red-400
+            hover:bg-background hover:text-red-300 transition cursor-pointer
+          "
+        >
+          Delete
+        </button>
+      <% end %>
     </div>
   <% end %>
 </div>

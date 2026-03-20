@@ -1,7 +1,7 @@
 class CollectionsController < ApplicationController
-  before_action :authenticate_user!, only: %i[edit_collection_modal update]
-  before_action :set_collection, only: %i[edit_collection_modal update]
-  before_action :ensure_owner, only: %i[edit_collection_modal update]
+  before_action :authenticate_user!, only: %i[edit_collection_modal update destroy]
+  before_action :set_collection, only: %i[edit_collection_modal update destroy]
+  before_action :ensure_owner, only: %i[edit_collection_modal update destroy]
 
   def new
     @collection = Collection.new
@@ -32,6 +32,22 @@ class CollectionsController < ApplicationController
       redirect_back fallback_location: root_path, notice: 'Collection updated successfully'
     else
       redirect_back fallback_location: root_path, alert: 'Failed to update collection'
+    end
+  end
+
+  def destroy
+    unless @collection.deletable?
+      redirect_back fallback_location: root_path, alert: 'Cannot delete a deck that has finalized cards'
+      return
+    end
+
+    @collection.collection_magic_cards.destroy_all
+    @collection.destroy
+
+    if Collection.deck_type?(@collection.collection_type)
+      redirect_to decks_index_path(current_user.username), notice: 'Deck deleted successfully'
+    else
+      redirect_to root_path, notice: 'Collection deleted successfully'
     end
   end
 

@@ -78,6 +78,10 @@ class Collection < ApplicationRecord
     cover_card
   end
 
+  def deletable?
+    collection_magic_cards.where(staged: false).empty?
+  end
+
   # Aggregate collection history across multiple collections
   # Returns a hash of date => total_value
   def self.aggregate_history(collections)

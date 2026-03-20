@@ -13,6 +13,7 @@ export default class extends Controller {
     editStagedUrl: String,
     viewCardUrl: String,
     viewCombosUrl: String,
+    deleteUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -249,5 +250,36 @@ export default class extends Controller {
     if (!url) return;
 
     Turbo.visit(url);
+  }
+
+  deleteDeck(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.deleteUrlValue;
+    if (!url) return;
+
+    if (!confirm("Are you sure you want to delete this deck? This cannot be undone.")) return;
+
+    fetch(url, {
+      method: "DELETE",
+      headers: {
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+        Accept: "text/html",
+      },
+    })
+      .then((response) => {
+        if (response.redirected) {
+          Turbo.visit(response.url);
+        } else if (response.ok) {
+          window.location.reload();
+        } else {
+          throw new Error("Failed to delete deck");
+        }
+      })
+      .catch((error) => {
+        console.error("Error deleting deck:", error);
+      });
   }
 }

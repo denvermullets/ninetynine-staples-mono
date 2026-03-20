@@ -1,5 +1,6 @@
 class DeckBuilderController < ApplicationController
   include DeckBuilderModals
+  include DeckBuilderBulkImport
   include DeckBuilderCardActions
   include DeckBuilderRendering
 
