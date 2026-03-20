@@ -17,7 +17,6 @@ export default class extends Controller {
 
   static values = {
     deckId: Number,
-    deckPath: String,
   };
 
   connect() {
