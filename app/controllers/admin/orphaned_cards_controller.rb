@@ -38,12 +38,13 @@ module Admin
     end
 
     def duplicate_group_keys
-      # Find groups with more duplicates than can be explained by card sides alone
+      not_art_series = MagicCard.where(layout: 'art_series').select(:id)
+
       MagicCard
-        .where.not(layout: 'art_series')
+        .where.not(id: not_art_series)
         .select(:name, :boxset_id, :card_number)
         .group(:name, :boxset_id, :card_number)
-        .having('COUNT(*) > COUNT(DISTINCT card_side)')
+        .having('COUNT(*) > 1')
         .order(:name, :boxset_id, :card_number)
         .map { |g| { name: g.name, boxset_id: g.boxset_id, card_number: g.card_number } }
     end
@@ -54,7 +55,6 @@ module Admin
       end
 
       relation
-        .where.not(layout: 'art_series')
         .includes(:boxset, :collection_magic_cards)
         .order(:name, :boxset_id, :card_number, :updated_at)
         .group_by { |c| [c.name, c.boxset_id, c.card_number] }
