@@ -1,0 +1,118 @@
+<% if results.empty? %>
+  <p class="py-4 text-sm text-center text-grey-text">No cards found</p>
+<% else %>
+  <% results.each do |result| %>
+    <div class="p-4 border rounded-lg border-highlight hover:border-accent-50/50 transition">
+      <div class="flex items-start gap-4">
+        <% if result[:card].image_small.present? %>
+          <%= image_tag result[:card].image_medium || result[:card].image_small,
+            alt: result[:card].name,
+            class: "w-64 h-auto rounded-lg",
+            loading: "lazy",
+            data: {
+              controller: "card-hover",
+              card_hover_image_value: result[:card].image_large,
+              card_hover_name_value: result[:card].name,
+              action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+            } %>
+        <% end %>
+
+        <div class="flex-1 min-w-0">
+          <h4 class="font-medium text-grey-text truncate text-base"><%= result[:card].name %></h4>
+
+          <p class="text-xs text-grey-text/70 truncate">
+            <%= result[:card].boxset&.name %>
+            (<%= result[:card].boxset&.code&.upcase %>)
+          </p>
+
+          <%= link_to choose_printing_modal_deck_builder_path(deck, magic_card_id: result[:card].id),
+              data: { turbo_frame: "deck_modal" },
+              class: "inline-block mt-1 text-xs text-accent-50 hover:text-accent-100 hover:underline" do %>
+            Change printing
+          <% end %>
+
+          <% if result[:type] == :owned %>
+            <div class="mt-2 p-2 rounded bg-highlight/50 border border-highlight">
+              <div class="flex items-center gap-1 text-xs text-accent-50">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <span class="font-medium"><%= result[:collection_name] %></span>
+              </div>
+              <p class="text-xs text-grey-text mt-1">
+                <% if result[:card_type] == :foil || result[:card_type] == :proxy_foil %>
+                  <span class="text-accent-300">&#10022;</span>
+                <% end %>
+                <%= result[:available] %> <%= result[:type_label].downcase %> available
+              </p>
+            </div>
+
+            <% unless result[:already_in_deck] %>
+              <button
+                type="button"
+                data-action="click->bulk-import#addOwned"
+                data-magic-card-id="<%= result[:card].id %>"
+                data-source-collection-id="<%= result[:collection_id] %>"
+                data-card-type="<%= result[:card_type] %>"
+                data-quantity="<%= [quantity, result[:available]].min %>"
+                class="
+                  mt-2 w-full px-3 py-1.5 text-xs rounded bg-accent-50
+                  text-foreground font-medium border border-accent-50
+                  hover:bg-foreground hover:text-accent-50 transition cursor-pointer
+                "
+              >
+                Add (<%= [quantity, result[:available]].min %>)
+              </button>
+            <% else %>
+              <span class="inline-block px-2 py-1 mt-2 text-xs rounded bg-highlight text-grey-text">
+                Already in deck
+              </span>
+            <% end %>
+          <% else %>
+            <p class="text-xs text-accent-50/70 mt-1">Latest printing</p>
+
+            <% if result[:already_in_deck] %>
+              <span class="inline-block px-2 py-1 mt-2 text-xs rounded bg-highlight text-grey-text">
+                <%= result[:deck_card_planned] ? 'Planned' : 'Already in deck' %>
+              </span>
+            <% else %>
+              <button
+                type="button"
+                data-action="click->bulk-import#addNew"
+                data-magic-card-id="<%= result[:card].id %>"
+                data-quantity="<%= quantity %>"
+                class="
+                  mt-2 w-full px-3 py-1.5 text-xs rounded bg-accent-50
+                  text-foreground font-medium border border-accent-50
+                  hover:bg-foreground hover:text-accent-50 transition cursor-pointer
+                "
+              >
+                Add as New (<%= quantity %>)
+              </button>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<%# Fallback: Add as Planned %>
+<% first_result = results.first %>
+<% if first_result && !results.any? { |r| r[:already_in_deck] } %>
+  <button
+    type="button"
+    data-action="click->bulk-import#addPlanned"
+    data-magic-card-id="<%= first_result[:card].id %>"
+    data-card-type="regular"
+    data-quantity="<%= quantity %>"
+    class="
+      mt-2 w-full px-3 py-1.5 text-xs border rounded
+      border-accent-400/50 text-accent-400 hover:bg-accent-400/10
+      transition cursor-pointer
+    "
+  >
+    Add as Planned (<%= quantity %>)
+  </button>
+<% end %>
