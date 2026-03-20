@@ -38,13 +38,10 @@ module Admin
     end
 
     def duplicate_group_keys
-      not_art_series = MagicCard.where(layout: 'art_series').select(:id)
-
       MagicCard
-        .where.not(id: not_art_series)
         .select(:name, :boxset_id, :card_number)
         .group(:name, :boxset_id, :card_number)
-        .having('COUNT(*) > 1')
+        .having('COUNT(*) > 1 AND COUNT(*) FILTER (WHERE layout IS NULL) > 0')
         .order(:name, :boxset_id, :card_number)
         .map { |g| { name: g.name, boxset_id: g.boxset_id, card_number: g.card_number } }
     end
