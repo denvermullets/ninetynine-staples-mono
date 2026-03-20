@@ -16,7 +16,8 @@ module Admin
         redirect_to admin_orphaned_cards_path, alert: msg
       else
         @card.destroy
-        redirect_to admin_orphaned_cards_path, notice: "'#{@card.name}' (ID: #{params[:id]}) deleted successfully."
+        redirect_to admin_orphaned_cards_path,
+                    notice: "'#{@card.name}' (ID: #{params[:id]}) deleted successfully."
       end
     end
 
@@ -37,11 +38,12 @@ module Admin
     end
 
     def duplicate_group_keys
+      # Find groups with more duplicates than can be explained by card sides alone
       MagicCard
         .where.not(layout: 'art_series')
         .select(:name, :boxset_id, :card_number)
         .group(:name, :boxset_id, :card_number)
-        .having('COUNT(*) > 1')
+        .having('COUNT(*) > COUNT(DISTINCT card_side)')
         .order(:name, :boxset_id, :card_number)
         .map { |g| { name: g.name, boxset_id: g.boxset_id, card_number: g.card_number } }
     end
@@ -56,14 +58,10 @@ module Admin
         .includes(:boxset, :collection_magic_cards)
         .order(:name, :boxset_id, :card_number, :updated_at)
         .group_by { |c| [c.name, c.boxset_id, c.card_number] }
-        .filter_map { |key, cards| build_group_hash(key, cards) }
+        .map { |key, cards| build_group_hash(key, cards) }
     end
 
     def build_group_hash(key, cards)
-      # Skip if all cards have unique card_side values (just front/back faces)
-      sides = cards.map(&:card_side).compact
-      return nil if sides.size == cards.size && sides.uniq.size == cards.size
-
       sorted = cards.sort_by(&:updated_at)
       {
         name: key[0],
