@@ -54,8 +54,8 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def proxy_value
-    ((proxy_quantity || 0) * magic_card.normal_price.to_f) +
-      ((proxy_foil_quantity || 0) * magic_card.foil_price.to_f)
+    ((proxy_quantity || 0) * magic_card.proxy_normal_price) +
+      ((proxy_foil_quantity || 0) * magic_card.proxy_foil_price)
   end
 
   # Value for deck builder display - uses display_price to stay consistent
@@ -69,7 +69,7 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def staged_proxy_value
-    (staged_proxy_quantity * magic_card.normal_price) + (staged_proxy_foil_quantity * magic_card.foil_price)
+    (staged_proxy_quantity * magic_card.proxy_normal_price) + (staged_proxy_foil_quantity * magic_card.proxy_foil_price)
   end
 
   # Build mode methods

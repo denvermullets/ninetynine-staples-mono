@@ -54,6 +54,12 @@ module DeckBuilderCardActions
     render_card_action_response(result, success_message: "Swapped printing for #{result[:card_name]}")
   end
 
+  def change_card_type
+    result = DeckBuilder::ChangeCardType.call(deck: @deck, card_id: params[:card_id], card_type: params[:card_type])
+    message = "#{result[:card_name]} changed to #{result[:card_type]&.tr('_', ' ')}"
+    render_card_action_response(result, success_message: message)
+  end
+
   def update_staged
     result = DeckBuilder::UpdateStaged.call(deck: @deck, card_id: params[:card_id], quantities: staged_params)
     message = result[:removed] ? "#{result[:card_name]} removed from deck" : "Updated #{result[:card_name]}"
@@ -75,47 +81,5 @@ module DeckBuilderCardActions
         proxy_quantity: card.proxy_quantity, proxy_foil_quantity: card.proxy_foil_quantity
       }
     )
-  end
-
-  def render_deck_update_response(message, clear_modal: false)
-    flash.now[:type] = 'success'
-    set_deck_view_defaults
-    load_deck_cards
-    load_combo_data
-    streams = deck_update_streams(message)
-    streams << turbo_stream.update('deck_modal', '') if clear_modal
-    render turbo_stream: streams
-  end
-
-  def deck_update_streams(message)
-    [
-      turbo_stream.update('deck_cards', partial: 'deck_cards', locals: deck_cards_locals),
-      turbo_stream.update('deck_stats', partial: 'deck_stats', locals: { stats: @stats }),
-      turbo_stream.update('deck_bracket', partial: 'deck_bracket', locals: bracket_locals),
-      turbo_stream.update('deck_violations', partial: 'violations', locals: violations_locals),
-      turbo_stream.update('combo_actions', partial: 'combo_actions', locals: combo_actions_locals),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
-    ]
-  end
-
-  def render_error_toast(message)
-    flash.now[:type] = 'error'
-    render turbo_stream: turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: message })
-  end
-
-  def handle_finalize_success(result)
-    msg = "Deck finalized! #{result[:cards_moved]} cards moved"
-    msg += ", #{result[:cards_needed]} cards needed" if result[:cards_needed].positive?
-    redirect_to decks_index_path(username: current_user.username), notice: msg, status: :see_other
-  end
-
-  def handle_finalize_failure(result)
-    load_deck_cards
-    render turbo_stream: [
-      turbo_stream.update('deck_cards', partial: 'deck_builder/deck_cards'),
-      turbo_stream.update('deck_stats', partial: 'deck_builder/deck_stats'),
-      turbo_stream.update('deck_modal', ''),
-      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: result[:error], type: 'error' })
-    ], status: :unprocessable_entity
   end
 end

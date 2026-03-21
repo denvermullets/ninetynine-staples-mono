@@ -60,6 +60,7 @@
               <% end %>
               <% if is_finalized || is_needed %>
                 data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(deck, card_id: card.id) %>"
+                data-context-menu-change-card-type-url-value="<%= change_card_type_deck_builder_path(deck, card_id: card.id) %>"
               <% end %>
               <% if is_staged_owned || is_finalized %>
                 data-context-menu-transfer-url-value="<%= transfer_card_modal_deck_builder_path(deck, card_id: card.id) %>"
@@ -363,6 +364,70 @@
                   >
                     Swap Printing
                   </button>
+                  <%
+                    is_regular = card.quantity.positive? && card.foil_quantity.zero? && card.proxy_quantity.zero? && card.proxy_foil_quantity.zero?
+                    is_foil = card.foil_quantity.positive? && card.quantity.zero? && card.proxy_quantity.zero? && card.proxy_foil_quantity.zero?
+                    is_proxy = card.proxy_quantity.positive? && card.quantity.zero? && card.foil_quantity.zero? && card.proxy_foil_quantity.zero?
+                    is_proxy_foil = card.proxy_foil_quantity.positive? && card.quantity.zero? && card.foil_quantity.zero? && card.proxy_quantity.zero?
+                  %>
+                  <hr class="my-1 border-highlight">
+                  <% unless is_regular %>
+                    <button
+                      type="button"
+                      data-action="click->context-menu#changeCardType"
+                      data-card-type="regular"
+                      class="
+                        block w-full px-4 py-2 text-left text-sm
+                        text-grey-text hover:bg-background hover:text-white
+                        transition cursor-pointer whitespace-nowrap
+                      "
+                    >
+                      Swap to Regular
+                    </button>
+                  <% end %>
+                  <% unless is_foil %>
+                    <button
+                      type="button"
+                      data-action="click->context-menu#changeCardType"
+                      data-card-type="foil"
+                      class="
+                        block w-full px-4 py-2 text-left text-sm
+                        text-grey-text hover:bg-background hover:text-white
+                        transition cursor-pointer whitespace-nowrap
+                      "
+                    >
+                      Swap to Foil
+                    </button>
+                  <% end %>
+                  <% unless is_proxy %>
+                    <button
+                      type="button"
+                      data-action="click->context-menu#changeCardType"
+                      data-card-type="proxy"
+                      class="
+                        block w-full px-4 py-2 text-left text-sm
+                        text-grey-text hover:bg-background hover:text-white
+                        transition cursor-pointer whitespace-nowrap
+                      "
+                    >
+                      Swap to Proxy
+                    </button>
+                  <% end %>
+                  <% unless is_proxy_foil %>
+                    <button
+                      type="button"
+                      data-action="click->context-menu#changeCardType"
+                      data-card-type="proxy_foil"
+                      class="
+                        block w-full px-4 py-2 text-left text-sm
+                        text-grey-text hover:bg-background hover:text-white
+                        transition cursor-pointer whitespace-nowrap
+                      "
+                    >
+                      Swap to Proxy Foil
+                    </button>
+                  <% end %>
+                  <hr class="my-1 border-highlight">
                 <% end %>
                 <% if is_staged_owned || is_finalized %>
                   <button
