@@ -58,6 +58,9 @@
                 data-context-menu-swap-source-url-value="<%= swap_source_modal_deck_builder_path(deck, card_id: card.id) %>"
                 data-context-menu-edit-staged-url-value="<%= edit_staged_modal_deck_builder_path(deck, card_id: card.id) %>"
               <% end %>
+              <% if is_finalized || is_needed %>
+                data-context-menu-swap-printing-url-value="<%= swap_printing_modal_deck_builder_path(deck, card_id: card.id) %>"
+              <% end %>
               <% if is_staged_owned || is_finalized %>
                 data-context-menu-transfer-url-value="<%= transfer_card_modal_deck_builder_path(deck, card_id: card.id) %>"
               <% elsif is_staged_planned || is_needed %>
@@ -346,6 +349,19 @@
                     "
                   >
                     Change Source
+                  </button>
+                <% end %>
+                <% if is_finalized || is_needed %>
+                  <button
+                    type="button"
+                    data-action="click->context-menu#swapPrinting"
+                    class="
+                      block w-full px-4 py-2 text-left text-sm
+                      text-grey-text hover:bg-background hover:text-white
+                      transition cursor-pointer whitespace-nowrap
+                    "
+                  >
+                    Swap Printing
                   </button>
                 <% end %>
                 <% if is_staged_owned || is_finalized %>
