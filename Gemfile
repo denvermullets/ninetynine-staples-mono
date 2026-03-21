@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "bcrypt", "~> 3.1.21"
+gem "bcrypt", "~> 3.1.22"
 gem "bootsnap", require: false
 gem 'dotenv-rails'
 gem "httparty"
