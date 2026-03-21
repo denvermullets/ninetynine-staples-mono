@@ -1,0 +1,238 @@
+<%= turbo_frame_tag "deck_modal" do %>
+  <dialog
+    id="find-replacements-dialog"
+    class="
+      p-0 border-0 md:border rounded-none md:rounded-lg bg-foreground
+      md:border-highlight backdrop:bg-black/50 fixed inset-0 md:inset-auto
+      md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 m-0
+      max-w-none md:max-w-[95vw] w-full h-full md:w-auto md:h-auto
+      md:max-h-[90vh] overflow-hidden
+    "
+    data-controller="modal"
+    data-action="click->modal#closeOnBackdrop keydown.esc->modal#close"
+  >
+    <div
+      class="
+        w-full md:w-[900px] p-4 md:p-6 flex flex-col h-full md:h-auto
+        md:max-h-[90vh]
+      "
+      data-modal-target="content"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4 shrink-0">
+        <h3 class="text-lg font-semibold text-grey-text">
+          Find Replacements &mdash; <%= card.magic_card.name %>
+        </h3>
+
+        <button
+          type="button"
+          data-action="click->modal#close"
+          class="text-grey-text hover:text-nine-white cursor-pointer"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Source card roles -->
+      <% if roles.any? %>
+        <div class="flex flex-wrap gap-1.5 mb-4 shrink-0">
+          <% roles.each do |role| %>
+            <span class="
+              px-2 py-0.5 text-xs font-medium rounded-full
+              bg-accent-50/15 text-accent-50 border border-accent-50/30
+            ">
+              <%= role[:role].titleize %> &middot; <%= role[:effect].titleize %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Candidates -->
+      <div class="overflow-y-auto flex-1">
+        <% if candidates.empty? %>
+          <div class="p-8 text-center">
+            <p class="text-grey-text/75">No replacement candidates found for this card.</p>
+          </div>
+        <% else %>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <% candidates.each do |candidate| %>
+              <% mc = candidate[:magic_card] %>
+              <div
+                class="
+                  p-3 border rounded-lg transition
+                  <%= candidate[:owned] ? 'border-green-500/40 bg-green-500/5' : 'border-highlight' %>
+                "
+                data-controller="add-card"
+                data-add-card-deck-id-value="<%= deck.id %>"
+                <% if candidate[:owned] %>
+                  <% first_source = candidate[:sources].first %>
+                  data-add-card-card-id-value="<%= first_source[:magic_card_id] %>"
+                  data-add-card-collection-id-value="<%= first_source[:collection_id] %>"
+                  data-add-card-card-type-value="<%= first_source[:quantity] > 0 ? 'regular' : 'foil' %>"
+                <% else %>
+                  data-add-card-card-id-value="<%= mc.id %>"
+                <% end %>
+              >
+                <div class="flex flex-col gap-3">
+                  <!-- Card image -->
+                  <% if mc.image_medium.present? %>
+                    <%= image_tag mc.image_medium, alt: mc.name,
+                      class: "w-full h-auto rounded-lg",
+                      loading: "lazy" %>
+                  <% elsif mc.image_small.present? %>
+                    <%= image_tag mc.image_small, alt: mc.name,
+                      class: "w-full h-auto rounded-lg",
+                      loading: "lazy" %>
+                  <% end %>
+
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-medium text-grey-text truncate"><%= mc.name %></h4>
+                    <p class="text-xs text-grey-text truncate"><%= mc.card_type %></p>
+                    <p class="text-xs text-grey-text/70 truncate">
+                      <%= mc.boxset&.name %> (<%= mc.boxset&.code&.upcase %>)
+                      &middot; <%= number_to_currency(mc.display_price) %>
+                    </p>
+
+                    <!-- Matched roles -->
+                    <div class="flex flex-wrap gap-1 mt-1.5">
+                      <% candidate[:matched_roles].each do |mr| %>
+                        <span class="
+                          px-1.5 py-0.5 text-[10px] font-medium rounded-full
+                          bg-accent-50/10 text-accent-50/75 border border-accent-50/20
+                        ">
+                          <%= mr[:role].titleize %> &middot; <%= mr[:effect].titleize %>
+                        </span>
+                      <% end %>
+                    </div>
+
+                    <% if candidate[:owned] %>
+                      <!-- Owned: show collection sources -->
+                      <% candidate[:sources].each do |source| %>
+                        <div class="mt-2 p-2 rounded bg-highlight/50 border border-highlight">
+                          <div class="flex items-center gap-1 text-xs text-accent-50">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <span class="font-medium"><%= source[:collection_name] %></span>
+                          </div>
+                          <p class="text-xs text-grey-text mt-1">
+                            <% parts = [] %>
+                            <% parts << "#{source[:quantity]} regular" if source[:quantity] > 0 %>
+                            <% parts << "#{source[:foil_quantity]} foil" if source[:foil_quantity] > 0 %>
+                            <%= parts.join(', ') %> available
+                          </p>
+                        </div>
+                      <% end %>
+
+                      <!-- Add from collection controls -->
+                      <div class="flex items-center gap-2 mt-3">
+                        <div class="flex items-center">
+                          <button type="button" data-action="click->add-card#decrementQuantity"
+                            class="w-7 h-7 flex items-center justify-center text-xs border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">-</button>
+                          <input type="number" autocomplete="off" data-add-card-target="quantityInput" value="1" min="1"
+                            max="<%= candidate[:sources].sum { |s| s[:quantity] + s[:foil_quantity] } %>"
+                            class="w-10 h-7 px-1 text-xs text-center border-y bg-background border-highlight text-grey-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                          <button type="button" data-action="click->add-card#incrementQuantity"
+                            class="w-7 h-7 flex items-center justify-center text-xs border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">+</button>
+                        </div>
+                        <button type="button" data-action="click->add-card#addOwned"
+                          data-add-card-target="addOwnedButton"
+                          class="flex-1 px-2 py-1 text-xs rounded bg-accent-50 text-foreground font-medium border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                          Add from Collection
+                        </button>
+                      </div>
+                      <button data-add-card-target="addPlannedButton" data-action="click->add-card#addPlanned"
+                        class="w-full px-2 py-1 text-xs border rounded border-accent-400/50 text-accent-400 hover:bg-accent-400/10 transition cursor-pointer mt-2">
+                        Add as Planned
+                      </button>
+                    <% else %>
+                      <!-- Unowned: add as planned or add new -->
+                      <div class="mt-3 space-y-2">
+                        <div class="flex items-center gap-2">
+                          <div class="flex items-center">
+                            <button type="button" data-action="click->add-card#decrementQuantity"
+                              class="w-7 h-7 flex items-center justify-center text-xs border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">-</button>
+                            <input type="number" autocomplete="off" data-add-card-target="quantityInput" value="1" min="1" max="99"
+                              class="w-10 h-7 px-1 text-xs text-center border-y bg-background border-highlight text-grey-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                            <button type="button" data-action="click->add-card#incrementQuantity"
+                              class="w-7 h-7 flex items-center justify-center text-xs border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">+</button>
+                          </div>
+                        </div>
+
+                        <!-- Desktop: dropdown + add -->
+                        <div class="hidden md:flex items-center gap-2">
+                          <select data-add-card-target="cardTypeSelect"
+                            class="flex-1 px-2 py-1 text-xs border rounded bg-background border-highlight text-grey-text cursor-pointer">
+                            <% if mc.non_foil_available? %>
+                              <option value="regular">Regular</option>
+                            <% end %>
+                            <% if mc.foil_available? %>
+                              <option value="foil">Foil</option>
+                            <% end %>
+                            <option value="proxy">Proxy</option>
+                            <option value="foil_proxy">Foil Proxy</option>
+                          </select>
+                          <button type="button" data-action="click->add-card#addNew"
+                            class="px-3 py-1 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                            Add
+                          </button>
+                        </div>
+
+                        <!-- Mobile: button grid -->
+                        <div class="grid grid-cols-2 gap-1.5 md:hidden">
+                          <% if mc.non_foil_available? %>
+                            <button type="button" data-action="click->add-card#addNewWithType" data-card-type="regular"
+                              class="px-2 py-1 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                              Add Regular
+                            </button>
+                          <% end %>
+                          <% if mc.foil_available? %>
+                            <button type="button" data-action="click->add-card#addNewWithType" data-card-type="foil"
+                              class="px-2 py-1 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                              Add Foil
+                            </button>
+                          <% end %>
+                          <button type="button" data-action="click->add-card#addNewWithType" data-card-type="proxy"
+                            class="px-2 py-1 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                            Add Proxy
+                          </button>
+                          <button type="button" data-action="click->add-card#addNewWithType" data-card-type="foil_proxy"
+                            class="px-2 py-1 text-xs font-medium border rounded bg-accent-50 text-foreground border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer">
+                            Add Foil Proxy
+                          </button>
+                        </div>
+
+                        <button data-add-card-target="addPlannedButton" data-action="click->add-card#addPlanned"
+                          class="w-full px-2 py-1 text-xs border rounded border-accent-400/50 text-accent-400 hover:bg-accent-400/10 transition cursor-pointer">
+                          Add as Planned
+                        </button>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-end pt-4 mt-4 border-t border-highlight shrink-0">
+        <button
+          type="button"
+          data-action="click->modal#close"
+          class="
+            px-4 py-2 text-sm transition border rounded-md border-highlight
+            text-grey-text hover:bg-foreground hover:text-accent-50
+            hover:border-accent-50 cursor-pointer
+          "
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </dialog>
+<% end %>

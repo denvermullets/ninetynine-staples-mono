@@ -63,6 +63,7 @@ Rails.application.routes.draw do
   post 'dashboard/backfill-price-change-weekly', to: 'dashboard#backfill_price_change_weekly', as: :dashboard_backfill_price_change_weekly
   post 'dashboard/backfill-scryfall-oracle-id', to: 'dashboard#backfill_scryfall_oracle_id', as: :dashboard_backfill_scryfall_oracle_id
   post 'dashboard/ingest-precon-decks', to: 'dashboard#ingest_precon_decks', as: :dashboard_ingest_precon_decks
+  post 'dashboard/profile-card-roles', to: 'dashboard#profile_card_roles', as: :dashboard_profile_card_roles
 
   resources :collection_imports, only: %i[new create], path: 'import-collection'
 
@@ -123,6 +124,7 @@ Rails.application.routes.draw do
       post :swap_source
       get :edit_staged_modal
       patch :update_staged
+      get :find_replacements_modal
       get :view_card_modal
       get :bulk_import
       get :bulk_import_search

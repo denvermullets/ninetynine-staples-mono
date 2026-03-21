@@ -31,15 +31,20 @@ class IngestSetCards < ApplicationJob
   end
 
   def process_cards(boxset, cards)
+    oracle_ids = []
+
     cards.each do |card|
       next unless card['availability'].include?('paper')
 
       puts "working on card #{card['name']}"
       magic_card = CardIngestion::CardCreator.call(boxset:, card_data: card)
       magic_card.boxset.update(valid_cards: true)
+      oracle_ids << magic_card.scryfall_oracle_id if magic_card.scryfall_oracle_id.present?
 
       CardIngestion::AttributeCreator.call(magic_card:, card_data: card)
     end
+
+    ProfileCardRolesJob.perform_later(oracle_ids: oracle_ids.uniq) if oracle_ids.present?
   end
 
   def process_tokens(boxset, tokens)

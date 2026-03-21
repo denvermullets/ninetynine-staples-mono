@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_15_200004) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_20_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -51,6 +51,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_15_200004) do
     t.jsonb "price_data"
     t.datetime "updated_at", null: false
     t.index ["magic_card_id"], name: "index_card_prices_on_magic_card_id"
+  end
+
+  create_table "card_roles", force: :cascade do |t|
+    t.float "confidence", default: 1.0, null: false
+    t.datetime "created_at", null: false
+    t.string "effect", null: false
+    t.string "role", null: false
+    t.string "scryfall_oracle_id", null: false
+    t.string "source", default: "pattern", null: false
+    t.datetime "updated_at", null: false
+    t.index ["role", "effect"], name: "index_card_roles_on_role_and_effect"
+    t.index ["role"], name: "index_card_roles_on_role"
+    t.index ["scryfall_oracle_id", "role", "effect"], name: "idx_card_roles_unique", unique: true
+    t.index ["scryfall_oracle_id"], name: "index_card_roles_on_scryfall_oracle_id"
   end
 
   create_table "card_types", force: :cascade do |t|
