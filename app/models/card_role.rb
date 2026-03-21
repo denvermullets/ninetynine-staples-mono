@@ -1,7 +1,7 @@
 class CardRole < ApplicationRecord
   ROLES = %w[
     ramp removal card_draw tutor protection recursion tokens
-    lifegain pump evasion finisher lands_matter sacrifice
+    lifegain pump evasion finisher lands_matter sacrifice mill
   ].freeze
 
   EFFECTS = {
@@ -17,7 +17,8 @@ class CardRole < ApplicationRecord
     'evasion' => %w[flying_grant unblockable trample_grant menace_grant],
     'finisher' => %w[extra_turns alt_wincon big_beater],
     'lands_matter' => %w[extra_land_drop landfall_payoff land_recursion land_animation],
-    'sacrifice' => %w[sacrifice_outlet death_trigger aristocrat_payoff]
+    'sacrifice' => %w[sacrifice_outlet death_trigger aristocrat_payoff],
+    'mill' => %w[mill self_mill mill_payoff]
   }.freeze
 
   validates :scryfall_oracle_id, presence: true

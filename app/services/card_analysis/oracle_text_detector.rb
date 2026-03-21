@@ -50,7 +50,15 @@ module CardAnalysis
       { pattern: /(return|put) .* land .* from .* graveyard/,
         role: 'lands_matter', effect: 'land_recursion', confidence: 0.85 },
       { pattern: /land(s)? you control .* become .* creature/,
-        role: 'lands_matter', effect: 'land_animation', confidence: 0.8 }
+        role: 'lands_matter', effect: 'land_animation', confidence: 0.8 },
+      { pattern: /mills? \d+ cards?|puts? the top \d+ cards? .* into .* graveyard/,
+        role: 'mill', effect: 'mill', confidence: 0.9 },
+      { pattern: /puts? the top .* cards? of your library into your graveyard/,
+        role: 'mill', effect: 'self_mill', confidence: 0.85 },
+      { pattern: /whenever .* cards? (is|are) put into .*(an opponent|their).* graveyard/,
+        role: 'mill', effect: 'mill_payoff', confidence: 0.9 },
+      { pattern: /whenever .* mills/,
+        role: 'mill', effect: 'mill_payoff', confidence: 0.85 }
     ].freeze
 
     def initialize(oracle_text, card_type)

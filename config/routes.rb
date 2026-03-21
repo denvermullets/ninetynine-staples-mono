@@ -124,6 +124,7 @@ Rails.application.routes.draw do
       post :swap_source
       get :edit_staged_modal
       patch :update_staged
+      get :find_replacements_modal
       get :view_card_modal
       get :bulk_import
       get :bulk_import_search

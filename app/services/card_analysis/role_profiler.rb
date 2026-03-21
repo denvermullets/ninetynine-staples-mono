@@ -28,7 +28,8 @@ module CardAnalysis
         'lifelink' => { role: 'lifegain', effect: 'life_gain', confidence: 0.4 },
         'ward' => { role: 'protection', effect: 'ward_grant', confidence: 0.5 },
         'hexproof' => { role: 'protection', effect: 'hexproof_grant', confidence: 0.5 },
-        'indestructible' => { role: 'protection', effect: 'indestructible_grant', confidence: 0.5 }
+        'indestructible' => { role: 'protection', effect: 'indestructible_grant', confidence: 0.5 },
+        'mill' => { role: 'mill', effect: 'mill', confidence: 0.5 }
       }
 
       @keywords.each do |kw|

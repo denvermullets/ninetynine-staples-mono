@@ -224,6 +224,49 @@ RSpec.describe CardAnalysis::RoleProfiler, type: :service do
     end
   end
 
+  describe 'mill detection' do
+    it 'detects mill from mill keyword text' do
+      results = profile(
+        oracle_text: 'Target opponent mills 3 cards.',
+        card_type: 'Sorcery'
+      )
+      expect(roles_from(results)).to include(%w[mill mill])
+    end
+
+    it 'detects mill from put into graveyard text' do
+      results = profile(
+        oracle_text: 'Target player puts the top 5 cards of their library into their graveyard.',
+        card_type: 'Sorcery'
+      )
+      expect(roles_from(results)).to include(%w[mill mill])
+    end
+
+    it 'detects self_mill' do
+      results = profile(
+        oracle_text: 'Put the top 3 cards of your library into your graveyard.',
+        card_type: 'Creature - Zombie'
+      )
+      expect(roles_from(results)).to include(%w[mill self_mill])
+    end
+
+    it 'detects mill_payoff' do
+      results = profile(
+        oracle_text: 'Whenever an opponent mills one or more cards, you gain 1 life.',
+        card_type: 'Enchantment'
+      )
+      expect(roles_from(results)).to include(%w[mill mill_payoff])
+    end
+
+    it 'detects mill keyword at low confidence' do
+      results = profile(
+        oracle_text: '',
+        card_type: 'Creature - Merfolk',
+        keywords: ['Mill']
+      )
+      expect(roles_from(results)).to include(%w[mill mill])
+    end
+  end
+
   describe 'keyword detection' do
     it 'detects flying keyword at low confidence' do
       results = profile(
