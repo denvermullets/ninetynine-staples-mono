@@ -49,6 +49,21 @@ RSpec.describe DeckBuilder::LoadCards, type: :service do
              foil_quantity: 1)
     end
 
+    let!(:planned_card) do
+      create(:collection_magic_card,
+             collection: deck,
+             magic_card: create(:magic_card, normal_price: 2.0, foil_price: 4.0, card_type: 'Enchantment',
+                                             boxset: create(:boxset)),
+             source_collection_id: nil,
+             staged: true,
+             staged_quantity: 3,
+             staged_foil_quantity: 0,
+             staged_proxy_quantity: 0,
+             staged_proxy_foil_quantity: 0,
+             quantity: 0,
+             foil_quantity: 0)
+    end
+
     let!(:needed_card) do
       create(:collection_magic_card,
              collection: deck,
@@ -62,7 +77,7 @@ RSpec.describe DeckBuilder::LoadCards, type: :service do
 
     it 'categorizes cards correctly' do
       result = subject
-      expect(result[:staged_cards].count).to eq(1)
+      expect(result[:staged_cards].count).to eq(2)
       expect(result[:owned_cards].count).to eq(1)
       expect(result[:needed_cards].count).to eq(1)
     end
@@ -70,6 +85,7 @@ RSpec.describe DeckBuilder::LoadCards, type: :service do
     it 'calculates stats' do
       result = subject
       expect(result[:stats][:staged]).to eq(2)
+      expect(result[:stats][:planned]).to eq(3)
       expect(result[:stats][:owned]).to eq(4) # 3 + 1
       expect(result[:stats][:needed]).to eq(1)
     end

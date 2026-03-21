@@ -16,8 +16,8 @@ module CollectionRecord
     end
 
     def calculate_proxy_price(collection_card)
-      (collection_card.proxy_quantity * @magic_card.normal_price) +
-        (collection_card.proxy_foil_quantity * @magic_card.foil_price)
+      (collection_card.proxy_quantity * @magic_card.proxy_normal_price) +
+        (collection_card.proxy_foil_quantity * @magic_card.proxy_foil_price)
     end
   end
 end
