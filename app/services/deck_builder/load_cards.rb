@@ -29,9 +29,12 @@ module DeckBuilder
     private
 
     def build_stats(cards, staged, needed, owned)
+      planned, staged_owned = staged.partition(&:planned?)
+
       {
         total: cards.sum(&:display_quantity),
-        staged: staged.sum(&:total_staged),
+        staged: staged_owned.sum(&:total_staged),
+        planned: planned.sum(&:total_staged),
         needed: needed.sum(&:display_quantity),
         owned: owned.sum(&:display_quantity),
         value: calculate_deck_value(cards),
