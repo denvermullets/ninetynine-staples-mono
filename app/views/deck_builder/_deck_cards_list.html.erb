@@ -371,7 +371,7 @@
                     is_proxy_foil = card.proxy_foil_quantity.positive? && card.quantity.zero? && card.foil_quantity.zero? && card.proxy_quantity.zero?
                   %>
                   <hr class="my-1 border-highlight">
-                  <% unless is_regular %>
+                  <% if card.magic_card.non_foil_available? && !is_regular %>
                     <button
                       type="button"
                       data-action="click->context-menu#changeCardType"
@@ -385,7 +385,7 @@
                       Swap to Regular
                     </button>
                   <% end %>
-                  <% unless is_foil %>
+                  <% if card.magic_card.foil_available? && !is_foil %>
                     <button
                       type="button"
                       data-action="click->context-menu#changeCardType"
