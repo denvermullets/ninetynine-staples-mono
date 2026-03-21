@@ -67,10 +67,9 @@
                 data-controller="add-card"
                 data-add-card-deck-id-value="<%= deck.id %>"
                 <% if candidate[:owned] %>
-                  <% first_source = candidate[:sources].first %>
-                  data-add-card-card-id-value="<%= first_source[:magic_card_id] %>"
-                  data-add-card-collection-id-value="<%= first_source[:collection_id] %>"
-                  data-add-card-card-type-value="<%= first_source[:quantity] > 0 ? 'regular' : 'foil' %>"
+                  data-add-card-card-id-value="<%= candidate[:magic_card_id] %>"
+                  data-add-card-collection-id-value="<%= candidate[:collection_id] %>"
+                  data-add-card-card-type-value="<%= candidate[:card_type] %>"
                 <% else %>
                   data-add-card-card-id-value="<%= mc.id %>"
                 <% end %>
@@ -108,24 +107,19 @@
                     </div>
 
                     <% if candidate[:owned] %>
-                      <!-- Owned: show collection sources -->
-                      <% candidate[:sources].each do |source| %>
-                        <div class="mt-2 p-2 rounded bg-highlight/50 border border-highlight">
-                          <div class="flex items-center gap-1 text-xs text-accent-50">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>
-                            <span class="font-medium"><%= source[:collection_name] %></span>
-                          </div>
-                          <p class="text-xs text-grey-text mt-1">
-                            <% parts = [] %>
-                            <% parts << "#{source[:quantity]} regular" if source[:quantity] > 0 %>
-                            <% parts << "#{source[:foil_quantity]} foil" if source[:foil_quantity] > 0 %>
-                            <%= parts.join(', ') %> available
-                          </p>
+                      <!-- Owned: show source collection and type -->
+                      <div class="mt-2 p-2 rounded bg-highlight/50 border border-highlight">
+                        <div class="flex items-center gap-1 text-xs text-accent-50">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                          </svg>
+                          <span class="font-medium"><%= candidate[:collection_name] %></span>
                         </div>
-                      <% end %>
+                        <p class="text-xs text-grey-text mt-1">
+                          <%= candidate[:available] %> <%= candidate[:type_label] %> available
+                        </p>
+                      </div>
 
                       <!-- Add from collection controls -->
                       <div class="flex items-center gap-2 mt-3">
@@ -133,7 +127,7 @@
                           <button type="button" data-action="click->add-card#decrementQuantity"
                             class="w-7 h-7 flex items-center justify-center text-xs border rounded-l border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">-</button>
                           <input type="number" autocomplete="off" data-add-card-target="quantityInput" value="1" min="1"
-                            max="<%= candidate[:sources].sum { |s| s[:quantity] + s[:foil_quantity] } %>"
+                            max="<%= candidate[:available] %>"
                             class="w-10 h-7 px-1 text-xs text-center border-y bg-background border-highlight text-grey-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                           <button type="button" data-action="click->add-card#incrementQuantity"
                             class="w-7 h-7 flex items-center justify-center text-xs border rounded-r border-highlight text-grey-text hover:text-white hover:bg-background transition cursor-pointer">+</button>

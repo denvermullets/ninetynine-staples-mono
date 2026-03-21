@@ -159,7 +159,7 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
         expect(oracle_ids.first).to eq(owned_oid)
       end
 
-      it 'marks owned candidates with owned: true and owned_copies count' do
+      it 'marks owned candidates with owned: true and available count' do
         owned_oid = SecureRandom.uuid
         owned_card = create_card_with_roles(
           oracle_id: owned_oid,
@@ -174,10 +174,11 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
         )
         candidate = result[:candidates].find { |c| c[:magic_card].scryfall_oracle_id == owned_oid }
         expect(candidate[:owned]).to be true
-        expect(candidate[:owned_copies]).to eq(3)
+        expect(candidate[:available]).to eq(3)
+        expect(candidate[:card_type]).to eq(:regular)
       end
 
-      it 'returns sources with collection details for owned candidates' do
+      it 'returns flattened entries per card type for owned candidates' do
         owned_oid = SecureRandom.uuid
         owned_card = create_card_with_roles(
           oracle_id: owned_oid,
@@ -190,14 +191,17 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
         result = described_class.call(
           magic_card: source_card, deck: deck, user: user
         )
-        candidate = result[:candidates].find { |c| c[:magic_card].scryfall_oracle_id == owned_oid }
-        expect(candidate[:sources]).to be_present
-        source = candidate[:sources].first
-        expect(source[:collection_name]).to eq('Binder')
-        expect(source[:collection_id]).to eq(other_collection.id)
-        expect(source[:magic_card_id]).to eq(owned_card.id)
-        expect(source[:quantity]).to eq(2)
-        expect(source[:foil_quantity]).to eq(1)
+        entries = result[:candidates].select { |c| c[:magic_card].scryfall_oracle_id == owned_oid }
+        expect(entries.length).to eq(2)
+
+        regular = entries.find { |c| c[:card_type] == :regular }
+        expect(regular[:collection_name]).to eq('Binder')
+        expect(regular[:collection_id]).to eq(other_collection.id)
+        expect(regular[:magic_card_id]).to eq(owned_card.id)
+        expect(regular[:available]).to eq(2)
+
+        foil = entries.find { |c| c[:card_type] == :foil }
+        expect(foil[:available]).to eq(1)
       end
     end
 

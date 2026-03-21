@@ -1,5 +1,8 @@
 module CardAnalysis
   class ReplacementFinder < Service
+    CARD_TYPES = %i[regular foil proxy proxy_foil].freeze
+    TYPE_LABELS = { regular: 'Regular', foil: 'Foil', proxy: 'Proxy', proxy_foil: 'Foil Proxy' }.freeze
+
     def initialize(magic_card:, deck:, user:, limit: 20)
       @magic_card = magic_card
       @deck = deck
@@ -77,10 +80,19 @@ module CardAnalysis
                 .where(staged: false, needed: false)
 
       records.group_by { |r| r.magic_card.scryfall_oracle_id }.transform_values do |copies|
-        copies.map do |c|
-          { collection_id: c.collection_id, collection_name: c.collection.name,
-            magic_card_id: c.magic_card_id, quantity: c.quantity, foil_quantity: c.foil_quantity }
-        end
+        copies.flat_map { |c| ownership_entries_for(c) }
+      end
+    end
+
+    def ownership_entries_for(cmc)
+      available = DeckBuilder::StagedQuantities.calculate_available(source: cmc)
+
+      CARD_TYPES.filter_map do |type|
+        next unless available[type].positive?
+
+        { collection_id: cmc.collection_id, collection_name: cmc.collection.name,
+          magic_card_id: cmc.magic_card_id, magic_card: cmc.magic_card, card_type: type,
+          type_label: TYPE_LABELS[type], available: available[type] }
       end
     end
 
@@ -137,22 +149,25 @@ module CardAnalysis
     end
 
     def build_results(sorted, cards, ownership)
-      sorted.filter_map do |oid, data|
+      sorted.flat_map do |oid, data|
         card = cards[oid]
         next unless card
 
         sources = ownership[oid] || []
-        total_copies = sources.sum { |s| s[:quantity] + s[:foil_quantity] }
+        base = { magic_card: card, score: data[:score].round(3), matched_roles: data[:matched_roles] }
 
-        {
-          magic_card: card,
-          score: data[:score].round(3),
-          matched_roles: data[:matched_roles],
-          owned: sources.any?,
-          owned_copies: total_copies,
-          sources: sources
-        }
-      end
+        if sources.any?
+          sources.map do |source|
+            base.merge(
+              owned: true, magic_card: source[:magic_card], collection_id: source[:collection_id],
+              collection_name: source[:collection_name], magic_card_id: source[:magic_card_id],
+              card_type: source[:card_type], type_label: source[:type_label], available: source[:available]
+            )
+          end
+        else
+          [base.merge(owned: false)]
+        end
+      end.compact
     end
   end
 end
