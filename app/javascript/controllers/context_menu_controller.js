@@ -86,6 +86,7 @@ export default class extends Controller {
 
   setCommander(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.setCommanderUrlValue;
@@ -114,6 +115,7 @@ export default class extends Controller {
 
   removeCommander(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.removeCommanderUrlValue;
@@ -142,6 +144,7 @@ export default class extends Controller {
 
   removeCard(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.removeUrlValue;
@@ -259,6 +262,7 @@ export default class extends Controller {
 
   changeCardType(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.changeCardTypeUrlValue;
