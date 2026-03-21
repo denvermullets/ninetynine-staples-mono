@@ -27,8 +27,8 @@ module Collections
 
     def calculate_proxy_value(cards)
       cards.sum do |c|
-        (c.proxy_quantity.to_i * c.magic_card.normal_price.to_f) +
-          (c.proxy_foil_quantity.to_i * c.magic_card.foil_price.to_f)
+        (c.proxy_quantity.to_i * c.magic_card.proxy_normal_price) +
+          (c.proxy_foil_quantity.to_i * c.magic_card.proxy_foil_price)
       end
     end
   end

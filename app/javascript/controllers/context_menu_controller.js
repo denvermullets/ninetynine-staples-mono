@@ -14,6 +14,7 @@ export default class extends Controller {
     viewCardUrl: String,
     viewCombosUrl: String,
     findReplacementsUrl: String,
+    changeCardTypeUrl: String,
     deleteUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
@@ -254,6 +255,35 @@ export default class extends Controller {
     if (frame) {
       frame.src = url;
     }
+  }
+
+  changeCardType(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.changeCardTypeUrlValue;
+    const cardType = event.currentTarget.dataset.cardType;
+    if (!url || !cardType) return;
+
+    fetch(`${url}&card_type=${cardType}`, {
+      method: "PATCH",
+      headers: {
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+        Accept: "text/vnd.turbo-stream.html",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.text();
+        }
+        throw new Error("Failed to change card type");
+      })
+      .then((html) => {
+        Turbo.renderStreamMessage(html);
+      })
+      .catch((error) => {
+        console.error("Error changing card type:", error);
+      });
   }
 
   viewCombos(event) {

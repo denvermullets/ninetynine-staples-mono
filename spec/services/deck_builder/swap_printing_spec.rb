@@ -89,6 +89,41 @@ RSpec.describe DeckBuilder::SwapPrinting, type: :service do
     end
   end
 
+  context 'when swapping printing on a finalized card' do
+    let!(:finalized_card) do
+      create(:collection_magic_card,
+             collection: deck,
+             magic_card: magic_card,
+             staged: false,
+             quantity: 1,
+             foil_quantity: 0)
+    end
+
+    before do
+      magic_card.update_column(:scryfall_oracle_id, oracle_id)
+      alt_printing.update_column(:scryfall_oracle_id, oracle_id)
+    end
+
+    subject do
+      described_class.call(
+        deck: deck,
+        collection_magic_card_id: finalized_card.id,
+        new_magic_card_id: alt_printing.id
+      )
+    end
+
+    it 'returns success' do
+      expect(subject[:success]).to be true
+      expect(subject[:card_name]).to eq(alt_printing.name)
+    end
+
+    it 'updates the magic_card_id' do
+      subject
+      finalized_card.reload
+      expect(finalized_card.magic_card_id).to eq(alt_printing.id)
+    end
+  end
+
   context 'when card does not exist' do
     it 'raises RecordNotFound' do
       expect {

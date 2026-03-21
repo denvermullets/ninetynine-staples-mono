@@ -110,6 +110,16 @@ class MagicCard < ApplicationRecord
     foil_price.to_f
   end
 
+  # Proxy price helpers — proxies are stand-ins so their value should reflect
+  # whatever price data exists for the card, falling back across finish types.
+  def proxy_normal_price
+    normal_price.to_f.positive? ? normal_price.to_f : foil_price.to_f
+  end
+
+  def proxy_foil_price
+    foil_price.to_f.positive? ? foil_price.to_f : normal_price.to_f
+  end
+
   private
 
   def price_trend_service
