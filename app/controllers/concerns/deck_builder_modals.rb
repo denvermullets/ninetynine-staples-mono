@@ -80,6 +80,16 @@ module DeckBuilderModals
     }
   end
 
+  def find_replacements_modal
+    card = @deck.collection_magic_cards.find(params[:card_id])
+    result = CardAnalysis::ReplacementFinder.call(
+      magic_card: card.magic_card, deck: @deck, user: current_user
+    )
+    render partial: 'deck_builder/find_replacements_modal', locals: {
+      card: card, deck: @deck, roles: result[:roles], candidates: result[:candidates]
+    }
+  end
+
   def view_card_modal
     card = @deck.collection_magic_cards.find(params[:card_id])
     magic_card = card.magic_card

@@ -52,4 +52,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def profile_card_roles
+    ProfileCardRolesJob.perform_later
+
+    redirect_to '/jobs'
+  end
 end

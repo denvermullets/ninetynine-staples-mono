@@ -42,6 +42,7 @@
               data-context-menu-view-combos-url-value="<%= combos_deck_builder_path(deck, card: card.magic_card.scryfall_oracle_id) %>"
             <% end %>
             <% if is_owner %>
+              data-context-menu-find-replacements-url-value="<%= find_replacements_modal_deck_builder_path(deck, card_id: card.id) %>"
               <% if can_set_commander %>
                 data-context-menu-set-commander-url-value="<%= set_commander_deck_builder_path(deck, card_id: card.id) %>"
               <% end %>
@@ -251,6 +252,17 @@
               <% end %>
 
               <% if is_owner %>
+                <button
+                  type="button"
+                  data-action="click->context-menu#findReplacements"
+                  class="
+                    block w-full px-4 py-2 text-left text-sm
+                    text-grey-text hover:bg-background hover:text-white
+                    transition cursor-pointer whitespace-nowrap
+                  "
+                >
+                  Find Replacements
+                </button>
                 <% if can_set_commander %>
                   <button
                     type="button"
