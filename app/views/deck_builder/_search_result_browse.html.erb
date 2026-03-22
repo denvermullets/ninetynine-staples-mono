@@ -1,0 +1,31 @@
+<div
+  class="
+    p-3 border border-dashed rounded-lg border-highlight/70
+    hover:border-accent-50/50 transition bg-background/30
+  "
+>
+  <div class="flex items-center gap-3">
+    <div class="flex items-center justify-center w-12 h-12 rounded bg-highlight/50">
+      <svg class="w-5 h-5 text-grey-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <h4 class="font-medium text-grey-text truncate">
+        <%= result[:card].name %>
+      </h4>
+
+      <p class="text-xs text-grey-text/70">
+        Many printings available
+      </p>
+
+      <%= link_to choose_printing_modal_deck_builder_path(deck, magic_card_id: result[:card].id),
+          data: { turbo_frame: "deck_modal" },
+          class: "inline-block mt-1 text-xs text-accent-50 hover:text-accent-100 hover:underline" do %>
+        Browse all printings &rarr;
+      <% end %>
+    </div>
+  </div>
+</div>

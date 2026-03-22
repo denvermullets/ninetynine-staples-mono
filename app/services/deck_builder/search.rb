@@ -27,7 +27,9 @@ module DeckBuilder
         results.concat(latest_results.first(@limit - results.size))
       end
 
-      results.first(@limit)
+      capped = results.first(@limit)
+      append_browse_entries(capped)
+      capped
     end
 
     def search_owned_only
@@ -104,6 +106,28 @@ module DeckBuilder
         already_in_deck: deck_card.present?,
         deck_card_planned: deck_card&.planned?
       }
+    end
+
+    def append_browse_entries(results)
+      card_names_with_latest = results.select { |r| r[:type] == :latest }.to_set { |r| r[:card].name }
+      card_names_in_results = results.map { |r| r[:card].name }.uniq
+
+      card_names_in_results.each do |name|
+        next if card_names_with_latest.include?(name)
+
+        card = newest_card_for_name(name)
+        next unless card
+
+        results << { type: :browse, card: card }
+      end
+    end
+
+    def newest_card_for_name(name)
+      MagicCard
+        .joins(:boxset)
+        .where(is_token: false, name: name)
+        .order('boxsets.release_date DESC')
+        .first
     end
 
     def calculate_available_quantities(cmc)

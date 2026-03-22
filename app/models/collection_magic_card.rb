@@ -50,7 +50,7 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def real_value
-    (quantity * magic_card.normal_price) + (foil_quantity * magic_card.foil_price)
+    (quantity * magic_card.normal_price.to_f) + (foil_quantity * magic_card.foil_price.to_f)
   end
 
   def proxy_value
@@ -65,7 +65,7 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   def staged_real_value
-    (staged_quantity * magic_card.normal_price) + (staged_foil_quantity * magic_card.foil_price)
+    (staged_quantity * magic_card.normal_price.to_f) + (staged_foil_quantity * magic_card.foil_price.to_f)
   end
 
   def staged_proxy_value
@@ -87,6 +87,17 @@ class CollectionMagicCard < ApplicationRecord
 
   def display_quantity
     staged? ? total_staged : (total_regular + total_foil)
+  end
+
+  def display_quantity_breakdown
+    raw = if staged?
+            { regular: staged_quantity, foil: staged_foil_quantity,
+              proxy: staged_proxy_quantity, proxy_foil: staged_proxy_foil_quantity }
+          else
+            { regular: quantity, foil: foil_quantity,
+              proxy: proxy_quantity || 0, proxy_foil: proxy_foil_quantity || 0 }
+          end
+    raw.select { |_, v| v.positive? }
   end
 
   def available_swap?(user)
