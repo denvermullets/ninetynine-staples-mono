@@ -10,6 +10,7 @@ class Collection < ApplicationRecord
   has_many :sourced_deck_cards, class_name: 'CollectionMagicCard', foreign_key: :source_collection_id
   has_many :collection_tags, dependent: :destroy
   has_many :tags, through: :collection_tags
+  has_many :tracked_decks, dependent: :nullify
   has_many :deck_combos, dependent: :destroy
   has_many :combos, through: :deck_combos
 

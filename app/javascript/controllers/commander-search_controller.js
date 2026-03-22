@@ -73,6 +73,13 @@ export default class extends Controller {
     this.hideResults();
     this.showSelected();
     this.hideInputContainer();
+
+    this.element.dispatchEvent(
+      new CustomEvent("commander:changed", {
+        bubbles: true,
+        detail: { id: commanderId },
+      })
+    );
   }
 
   clear() {
@@ -86,6 +93,13 @@ export default class extends Controller {
     this.hideSelected();
     this.showInputContainer();
     this.inputTarget.focus();
+
+    this.element.dispatchEvent(
+      new CustomEvent("commander:changed", {
+        bubbles: true,
+        detail: { id: null },
+      })
+    );
   }
 
   showResults() {
