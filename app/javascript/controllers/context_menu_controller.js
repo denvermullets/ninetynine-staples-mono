@@ -25,6 +25,24 @@ export default class extends Controller {
     document.addEventListener("contextmenu", this.boundCloseMenu);
   }
 
+  // Appends current view state (grouping, sort, view mode) to a URL
+  // so turbo stream responses preserve the user's selections
+  urlWithViewState(url) {
+    const deckBuilder = document.querySelector("[data-controller~='deck-builder']");
+    if (!deckBuilder) return url;
+
+    const parsed = new URL(url, window.location.origin);
+    const grouping = deckBuilder.dataset.deckBuilderGroupingValue;
+    const sortBy = deckBuilder.dataset.deckBuilderSortByValue;
+    const viewMode = deckBuilder.dataset.deckBuilderViewModeValue;
+
+    if (grouping) parsed.searchParams.set("grouping", grouping);
+    if (sortBy) parsed.searchParams.set("sort_by", sortBy);
+    if (viewMode) parsed.searchParams.set("view_mode", viewMode);
+
+    return parsed.toString();
+  }
+
   disconnect() {
     document.removeEventListener("click", this.boundCloseMenu);
     document.removeEventListener("contextmenu", this.boundCloseMenu);
@@ -86,12 +104,13 @@ export default class extends Controller {
 
   setCommander(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.setCommanderUrlValue;
     if (!url) return;
 
-    fetch(url, {
+    fetch(this.urlWithViewState(url), {
       method: "PATCH",
       headers: {
         "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
@@ -114,12 +133,13 @@ export default class extends Controller {
 
   removeCommander(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.removeCommanderUrlValue;
     if (!url) return;
 
-    fetch(url, {
+    fetch(this.urlWithViewState(url), {
       method: "PATCH",
       headers: {
         "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
@@ -142,12 +162,13 @@ export default class extends Controller {
 
   removeCard(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.removeUrlValue;
     if (!url) return;
 
-    fetch(url, {
+    fetch(this.urlWithViewState(url), {
       method: "DELETE",
       headers: {
         "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
@@ -259,13 +280,16 @@ export default class extends Controller {
 
   changeCardType(event) {
     event.preventDefault();
+    event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
     const url = this.changeCardTypeUrlValue;
     const cardType = event.currentTarget.dataset.cardType;
     if (!url || !cardType) return;
 
-    fetch(`${url}&card_type=${cardType}`, {
+    const fullUrl = this.urlWithViewState(url);
+    const separator = fullUrl.includes("?") ? "&" : "?";
+    fetch(`${fullUrl}${separator}card_type=${cardType}`, {
       method: "PATCH",
       headers: {
         "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
