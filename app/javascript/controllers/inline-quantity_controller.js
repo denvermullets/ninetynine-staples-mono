@@ -22,6 +22,23 @@ export default class extends Controller {
     this.displayTarget.classList.remove("hidden");
   }
 
+  viewStateParams() {
+    const deckBuilder = document.querySelector("[data-controller~='deck-builder']");
+    if (!deckBuilder) return "";
+
+    const params = new URLSearchParams();
+    const grouping = deckBuilder.dataset.deckBuilderGroupingValue;
+    const sortBy = deckBuilder.dataset.deckBuilderSortByValue;
+    const viewMode = deckBuilder.dataset.deckBuilderViewModeValue;
+
+    if (grouping) params.set("grouping", grouping);
+    if (sortBy) params.set("sort_by", sortBy);
+    if (viewMode) params.set("view_mode", viewMode);
+
+    const str = params.toString();
+    return str ? `&${str}` : "";
+  }
+
   async save(event) {
     if (event) {
       event.preventDefault();
@@ -38,7 +55,7 @@ export default class extends Controller {
 
     try {
       const response = await fetch(
-        `/deck-builder/${this.deckIdValue}/update_quantity?card_id=${this.cardIdValue}`,
+        `/deck-builder/${this.deckIdValue}/update_quantity?card_id=${this.cardIdValue}${this.viewStateParams()}`,
         {
           method: "PATCH",
           headers: {

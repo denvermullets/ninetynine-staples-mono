@@ -25,6 +25,23 @@ export default class extends Controller {
     window.addEventListener("printing:selected", this.handlePrintingSelected);
   }
 
+  viewStateParams() {
+    const deckBuilder = document.querySelector("[data-controller~='deck-builder']");
+    if (!deckBuilder) return "";
+
+    const params = new URLSearchParams();
+    const grouping = deckBuilder.dataset.deckBuilderGroupingValue;
+    const sortBy = deckBuilder.dataset.deckBuilderSortByValue;
+    const viewMode = deckBuilder.dataset.deckBuilderViewModeValue;
+
+    if (grouping) params.set("grouping", grouping);
+    if (sortBy) params.set("sort_by", sortBy);
+    if (viewMode) params.set("view_mode", viewMode);
+
+    const str = params.toString();
+    return str ? `?${str}` : "";
+  }
+
   disconnect() {
     window.removeEventListener("printing:selected", this.handlePrintingSelected);
   }
@@ -278,7 +295,7 @@ export default class extends Controller {
     formData.append("quantity", quantity);
 
     try {
-      const response = await fetch(`/deck-builder/${this.deckIdValue}/add_new_card`, {
+      const response = await fetch(`/deck-builder/${this.deckIdValue}/add_new_card${this.viewStateParams()}`, {
         method: "POST",
         headers: {
           "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
@@ -319,7 +336,7 @@ export default class extends Controller {
     }
 
     try {
-      const response = await fetch(`/deck-builder/${this.deckIdValue}/add_card`, {
+      const response = await fetch(`/deck-builder/${this.deckIdValue}/add_card${this.viewStateParams()}`, {
         method: "POST",
         headers: {
           "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
