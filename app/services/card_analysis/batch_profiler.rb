@@ -46,7 +46,8 @@ module CardAnalysis
         keywords: card.keywords.map(&:keyword),
         subtypes: card.sub_types.map(&:name),
         mana_value: card.mana_value,
-        power: card.power
+        power: card.power,
+        layout: card.layout
       ).map do |result|
         {
           scryfall_oracle_id: card.scryfall_oracle_id,

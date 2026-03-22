@@ -16,6 +16,7 @@ module CardAnalysis
 
       candidate_oracle_ids = find_candidate_oracle_ids
       scored = score_candidates(candidate_oracle_ids)
+      blend_edhrec_rank(scored)
       ownership = load_ownership(scored.keys)
       sorted = sort_and_limit(scored, ownership)
       cards = load_cards(sorted.map(&:first))
@@ -66,6 +67,10 @@ module CardAnalysis
       entry = scores[candidate_role.scryfall_oracle_id]
       entry[:score] += candidate_role.confidence * source.confidence
       entry[:matched_roles] << { role: candidate_role.role, effect: candidate_role.effect }
+    end
+
+    def blend_edhrec_rank(scores)
+      EdhrecRankBlender.new(scores).blend
     end
 
     def load_ownership(oracle_ids)

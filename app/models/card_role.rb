@@ -2,6 +2,7 @@ class CardRole < ApplicationRecord
   ROLES = %w[
     ramp removal card_draw tutor protection recursion tokens
     lifegain pump evasion finisher lands_matter sacrifice mill
+    manabase stax blink copy wheels graveyard_hate group_hug voltron
   ].freeze
 
   EFFECTS = {
@@ -18,7 +19,16 @@ class CardRole < ApplicationRecord
     'finisher' => %w[extra_turns alt_wincon big_beater],
     'lands_matter' => %w[extra_land_drop landfall_payoff land_recursion land_animation],
     'sacrifice' => %w[sacrifice_outlet death_trigger aristocrat_payoff],
-    'mill' => %w[mill self_mill mill_payoff]
+    'mill' => %w[mill self_mill mill_payoff],
+    'manabase' => %w[dual_land fetch_land shock_land pain_land check_land filter_land bounce_land
+                     utility_land tri_land mana_confluence basic_land mdfc_land],
+    'stax' => %w[tax_effect resource_denial static_stax rule_of_law],
+    'blink' => %w[flicker etb_payoff blink_repeatable],
+    'copy' => %w[clone copy_spell],
+    'wheels' => %w[wheel_effect windfall_effect],
+    'graveyard_hate' => %w[exile_graveyard graveyard_prevention],
+    'group_hug' => %w[group_draw group_ramp group_lifegain],
+    'voltron' => %w[double_strike protection_from]
   }.freeze
 
   validates :scryfall_oracle_id, presence: true

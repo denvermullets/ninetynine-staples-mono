@@ -320,6 +320,314 @@ RSpec.describe CardAnalysis::RoleProfiler, type: :service do
     end
   end
 
+  describe 'stax detection' do
+    it 'detects tax_effect from cost increase' do
+      results = profile(
+        oracle_text: 'Noncreature spells cost {2} more to cast.',
+        card_type: 'Creature - Human Soldier'
+      )
+      expect(roles_from(results)).to include(%w[stax tax_effect])
+    end
+
+    it 'detects tax_effect from Rhystic Study style' do
+      results = profile(
+        oracle_text: 'Whenever an opponent casts a spell, you may draw a card unless that player pays {1}.',
+        card_type: 'Enchantment'
+      )
+      expect(roles_from(results)).to include(%w[stax tax_effect])
+    end
+
+    it 'detects rule_of_law' do
+      results = profile(
+        oracle_text: "Each player can't cast more than one spell each turn.",
+        card_type: 'Enchantment'
+      )
+      expect(roles_from(results)).to include(%w[stax rule_of_law])
+    end
+
+    it 'detects resource_denial' do
+      results = profile(
+        oracle_text: "Artifacts your opponents control don't untap during their untap steps.",
+        card_type: 'Artifact'
+      )
+      expect(roles_from(results)).to include(%w[stax resource_denial])
+    end
+
+    it 'detects static_stax' do
+      results = profile(
+        oracle_text: "Your opponents can't search libraries.",
+        card_type: 'Creature - Human Wizard'
+      )
+      expect(roles_from(results)).to include(%w[stax static_stax])
+    end
+  end
+
+  describe 'blink detection' do
+    it 'detects flicker from Cloudshift style' do
+      results = profile(
+        oracle_text: 'Exile target creature you control, then return that card to the battlefield under your control.',
+        card_type: 'Instant'
+      )
+      expect(roles_from(results)).to include(%w[blink flicker])
+    end
+
+    it 'detects etb_payoff' do
+      results = profile(
+        oracle_text: 'Whenever another creature enters the battlefield under your control, draw a card.',
+        card_type: 'Creature - Beast'
+      )
+      expect(roles_from(results)).to include(%w[blink etb_payoff])
+    end
+  end
+
+  describe 'copy detection' do
+    it 'detects clone' do
+      results = profile(
+        oracle_text: 'You may have Clone enter the battlefield as a copy of any creature on the battlefield.',
+        card_type: 'Creature - Shapeshifter'
+      )
+      expect(roles_from(results)).to include(%w[copy clone])
+    end
+
+    it 'detects copy_spell' do
+      results = profile(
+        oracle_text: 'Copy target instant or sorcery spell. You may choose new targets for the copy.',
+        card_type: 'Instant'
+      )
+      expect(roles_from(results)).to include(%w[copy copy_spell])
+    end
+  end
+
+  describe 'wheels detection' do
+    it 'detects wheel_effect' do
+      results = profile(
+        oracle_text: 'Each player discards their hand, then draws seven cards.',
+        card_type: 'Sorcery'
+      )
+      expect(roles_from(results)).to include(%w[wheels wheel_effect])
+    end
+  end
+
+  describe 'graveyard_hate detection' do
+    it 'detects exile_graveyard' do
+      results = profile(
+        oracle_text: "Exile target player's graveyard.",
+        card_type: 'Instant'
+      )
+      expect(roles_from(results)).to include(%w[graveyard_hate exile_graveyard])
+    end
+
+    it 'detects graveyard_prevention' do
+      results = profile(
+        oracle_text: "If a card would be put into an opponent's graveyard from anywhere, exile that card instead.",
+        card_type: 'Enchantment'
+      )
+      expect(roles_from(results)).to include(%w[graveyard_hate graveyard_prevention])
+    end
+  end
+
+  describe 'group_hug detection' do
+    it 'detects group_draw' do
+      results = profile(
+        oracle_text: 'Each player draws two cards.',
+        card_type: 'Sorcery'
+      )
+      expect(roles_from(results)).to include(%w[group_hug group_draw])
+    end
+
+    it 'detects group_ramp' do
+      results = profile(
+        oracle_text: 'Each player may search their library for a basic land card, ' \
+                     'put it onto the battlefield tapped, then shuffle.',
+        card_type: 'Sorcery'
+      )
+      expect(roles_from(results)).to include(%w[group_hug group_ramp])
+    end
+  end
+
+  describe 'voltron detection' do
+    it 'detects double_strike from oracle text' do
+      results = profile(
+        oracle_text: 'Double strike',
+        card_type: 'Creature - Human Knight'
+      )
+      expect(roles_from(results)).to include(%w[voltron double_strike])
+    end
+
+    it 'detects double_strike from keyword' do
+      results = profile(
+        oracle_text: '',
+        card_type: 'Creature - Human Knight',
+        keywords: ['Double Strike']
+      )
+      ds = results.find { |r| r[:role] == 'voltron' && r[:effect] == 'double_strike' }
+      expect(ds).to be_present
+      expect(ds[:confidence]).to eq(0.5)
+      expect(ds[:source]).to eq('keyword')
+    end
+
+    it 'detects protection_from' do
+      results = profile(
+        oracle_text: 'Protection from black and from red',
+        card_type: 'Creature - Angel'
+      )
+      expect(roles_from(results)).to include(%w[voltron protection_from])
+    end
+  end
+
+  describe 'improved sacrifice detection' do
+    it 'detects sacrifice_outlet without colon (broad pattern)' do
+      results = profile(
+        oracle_text: 'Whenever you sacrifice a creature, create a Food token.',
+        card_type: 'Enchantment'
+      )
+      expect(roles_from(results)).to include(%w[sacrifice sacrifice_outlet])
+    end
+
+    it 'detects sacrifice_outlet from additional cost' do
+      results = profile(
+        oracle_text: 'As an additional cost to cast this spell, sacrifice a creature. Draw two cards.',
+        card_type: 'Instant'
+      )
+      expect(roles_from(results)).to include(%w[sacrifice sacrifice_outlet])
+    end
+
+    it 'detects sacrifice_outlet from you may sacrifice' do
+      results = profile(
+        oracle_text: 'At the beginning of your end step, you may sacrifice a creature. If you do, draw a card.',
+        card_type: 'Enchantment'
+      )
+      expect(roles_from(results)).to include(%w[sacrifice sacrifice_outlet])
+    end
+
+    it 'detects aristocrat_payoff from whenever is sacrificed' do
+      results = profile(
+        oracle_text: 'Whenever an artifact is sacrificed, you gain 1 life.',
+        card_type: 'Creature - Human Artificer'
+      )
+      expect(roles_from(results)).to include(%w[sacrifice aristocrat_payoff])
+    end
+  end
+
+  describe 'manabase detection' do
+    it 'detects fetch_land' do
+      results = profile(
+        oracle_text: '{T}, Pay 1 life, Sacrifice Polluted Delta: Search your library ' \
+                     'for an island or swamp card, put it onto the battlefield, then shuffle.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase fetch_land])
+    end
+
+    it 'detects shock_land' do
+      results = profile(
+        oracle_text: 'As Watery Grave enters the battlefield, you may pay 2 life. ' \
+                     "If you don't, it enters the battlefield tapped. {T}: Add {U} or {B}.",
+        card_type: 'Land - Island Swamp'
+      )
+      expect(roles_from(results)).to include(%w[manabase shock_land])
+    end
+
+    it 'detects pain_land' do
+      results = profile(
+        oracle_text: '{T}: Add {C}. {T}: Add {W} or {B}. Underground River deals 1 damage to you.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase pain_land])
+    end
+
+    it 'detects check_land' do
+      results = profile(
+        oracle_text: 'Drowned Catacomb enters the battlefield tapped unless you control ' \
+                     'an island or a swamp. {T}: Add {U} or {B}.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase check_land])
+    end
+
+    it 'detects bounce_land' do
+      results = profile(
+        oracle_text: 'Dimir Aqueduct enters the battlefield tapped. When it enters, ' \
+                     "return a land you control to its owner's hand. {T}: Add {U}{B}.",
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase bounce_land])
+    end
+
+    it 'detects utility_land' do
+      results = profile(
+        oracle_text: '{T}: Add {C}. {2}, {T}: Draw a card.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase utility_land])
+    end
+
+    it 'detects tri_land' do
+      results = profile(
+        oracle_text: '{T}: Add {W}, {U}, or {B}.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase tri_land])
+    end
+
+    it 'detects generic dual_land' do
+      results = profile(
+        oracle_text: '{T}: Add {G} or {U}.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase dual_land])
+    end
+
+    it 'does not detect manabase for non-land cards' do
+      results = profile(
+        oracle_text: '{T}: Add {G} or {U}.',
+        card_type: 'Artifact'
+      )
+      manabase = results.select { |r| r[:role] == 'manabase' }
+      expect(manabase).to be_empty
+    end
+
+    it 'detects dual_land from subtypes' do
+      results = profile(
+        oracle_text: '{T}: Add {U} or {B}.',
+        card_type: 'Land - Island Swamp',
+        subtypes: %w[Island Swamp]
+      )
+      dual = results.find { |r| r[:role] == 'manabase' && r[:effect] == 'dual_land' && r[:source] == 'subtype' }
+      expect(dual).to be_present
+      expect(dual[:confidence]).to eq(0.9)
+    end
+
+    it 'detects basic_land from subtypes and type' do
+      results = profile(
+        oracle_text: '{T}: Add {G}.',
+        card_type: 'Basic Land - Forest',
+        subtypes: %w[Forest]
+      )
+      expect(roles_from(results)).to include(%w[manabase basic_land])
+    end
+
+    it 'detects mdfc_land from layout' do
+      results = profile(
+        oracle_text: '{T}: Add {B}.',
+        card_type: 'Land',
+        layout: 'modal_dfc'
+      )
+      expect(roles_from(results)).to include(%w[manabase mdfc_land])
+    end
+  end
+
+  describe 'multi-role overlap' do
+    it 'wheel cards get both wheels and group_hug roles' do
+      results = profile(
+        oracle_text: 'Each player discards their hand, then draws seven cards.',
+        card_type: 'Sorcery'
+      )
+      expect(roles_from(results)).to include(%w[wheels wheel_effect])
+      expect(roles_from(results)).to include(%w[group_hug group_draw])
+    end
+  end
+
   describe 'edge cases' do
     it 'returns empty array for vanilla creature' do
       results = profile(

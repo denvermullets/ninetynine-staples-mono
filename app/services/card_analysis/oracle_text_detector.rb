@@ -73,6 +73,9 @@ module CardAnalysis
       detect_recursion(results)
       detect_tokens_and_pump(results)
       detect_lands_extra(results)
+      ArchetypeDetector.call(text: @text, results: results)
+      SacrificeDetector.call(text: @text, results: results)
+      ManabaseDetector.call(text: @text, card_type: @card_type, results: results)
     end
 
     private
