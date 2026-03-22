@@ -2,6 +2,7 @@ class TrackedDeck < ApplicationRecord
   belongs_to :user
   belongs_to :commander, class_name: 'MagicCard'
   belongs_to :partner_commander, class_name: 'MagicCard', optional: true
+  belongs_to :collection, optional: true
 
   has_many :commander_games, dependent: :destroy
 
@@ -9,6 +10,7 @@ class TrackedDeck < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :user_id }
   validates :status, inclusion: { in: STATUSES }
+  validate :collection_must_be_own_commander_deck, if: :collection_id?
 
   scope :active, -> { where(status: 'active') }
   scope :retired, -> { where(status: 'retired') }
@@ -67,5 +69,13 @@ class TrackedDeck < ApplicationRecord
 
   def status_badge_class
     STATUS_BADGE_CLASSES[status]
+  end
+
+  private
+
+  def collection_must_be_own_commander_deck
+    return if collection&.user_id == user_id && collection&.commander_deck?
+
+    errors.add(:collection, 'must be one of your commander decks')
   end
 end

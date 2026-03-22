@@ -141,6 +141,7 @@ Rails.application.routes.draw do
     resources :tracked_decks, path: 'decks', only: %i[new create edit update destroy], controller: 'game_tracker/tracked_decks' do
       collection do
         get :search_commanders
+        get :matching_collections
       end
     end
 

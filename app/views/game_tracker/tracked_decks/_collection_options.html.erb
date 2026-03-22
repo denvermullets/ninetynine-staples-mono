@@ -1,0 +1,24 @@
+<% if collections.any? %>
+  <select
+    name="tracked_deck[collection_id]"
+    data-collection-link-target="select"
+    class="w-full border text-grey-text rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-4 py-3"
+  >
+    <option value="">None (don't link to a deck)</option>
+
+    <% collections.each do |collection| %>
+      <% if collection.id == selected_id %>
+        <option value="<%= collection.id %>" selected>
+          <%= collection.name %>
+        </option>
+      <% else %>
+        <option value="<%= collection.id %>">
+          <%= collection.name %>
+        </option>
+      <% end %>
+    <% end %>
+  </select>
+<% else %>
+  <p class="text-grey-text/70 text-sm">No matching commander decks found in your collection.</p>
+  <input type="hidden" name="tracked_deck[collection_id]" value="">
+<% end %>

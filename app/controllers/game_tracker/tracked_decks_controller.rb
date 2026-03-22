@@ -1,6 +1,6 @@
 module GameTracker
   class TrackedDecksController < BaseController
-    before_action :authenticate_user!, only: %i[new create edit update destroy search_commanders]
+    before_action :authenticate_user!, only: %i[new create edit update destroy search_commanders matching_collections]
     before_action :set_tracked_deck, only: %i[show edit update destroy]
     before_action :ensure_owner, only: %i[edit update destroy]
 
@@ -54,6 +54,23 @@ module GameTracker
       render partial: 'commander_results', locals: { commanders: @commanders }
     end
 
+    def matching_collections
+      commander = MagicCard.find_by(id: params[:commander_id])
+      collections = if commander
+                      current_user.collections
+                                  .where(collection_type: 'commander_deck')
+                                  .joins(collection_magic_cards: :magic_card)
+                                  .where(collection_magic_cards: { board_type: 'commander' })
+                                  .where(magic_cards: { scryfall_oracle_id: commander.scryfall_oracle_id })
+                                  .distinct
+                    else
+                      Collection.none
+                    end
+
+      selected_id = params[:selected_id].presence&.to_i
+      render partial: 'collection_options', locals: { collections: collections, selected_id: selected_id }
+    end
+
     private
 
     def set_tracked_deck
@@ -72,7 +89,7 @@ module GameTracker
 
     def tracked_deck_params
       params.require(:tracked_deck).permit(
-        :name, :commander_id, :partner_commander_id, :notes,
+        :name, :commander_id, :partner_commander_id, :collection_id, :notes,
         :status, :last_tweaked_at
       )
     end
