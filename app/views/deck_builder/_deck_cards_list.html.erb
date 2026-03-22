@@ -23,6 +23,7 @@
         <% cards.each do |card| %>
           <% current_qty = card.staged? ? card.staged_quantity : card.quantity
             current_foil_qty = card.staged? ? card.staged_foil_quantity : card.foil_quantity
+            has_mixed_quantities = card.display_quantity_breakdown.size > 1
             can_set_commander = is_owner && !card.commander? && card.magic_card.can_be_commander
             is_commander = is_owner && card.commander?
             is_staged_owned = card.staged? && card.from_owned_collection?
@@ -73,12 +74,24 @@
             data-card-name="<%= card.magic_card.name %>"
           >
             <!-- Quantity (inline editable for owner) -->
-            <% if is_owner %>
+            <% if is_owner && is_staged_owned %>
+              <%= link_to edit_staged_modal_deck_builder_path(deck, card_id: card.id),
+                  data: { turbo_frame: "deck_modal" },
+                  class: "w-8 shrink-0 block text-right text-grey-text/75 hover:text-accent-50 cursor-pointer" do %>
+                <%= card.display_quantity %>
+              <% end %>
+            <% elsif is_owner %>
+              <%
+                breakdown = card.display_quantity_breakdown
+                primary_type = breakdown.keys.first || :regular
+                primary_qty = breakdown.values.first || 0
+              %>
               <div
                 class="w-8 shrink-0"
                 data-controller="inline-quantity"
                 data-inline-quantity-deck-id-value="<%= deck.id %>"
                 data-inline-quantity-card-id-value="<%= card.id %>"
+                data-inline-quantity-primary-type-value="<%= primary_type %>"
               >
                 <span
                   data-inline-quantity-target="display"
@@ -96,7 +109,7 @@
                   autocomplete="off"
                   data-inline-quantity-target="input"
                   data-action="keydown->inline-quantity#handleKeydown blur->inline-quantity#save"
-                  value="<%= current_qty %>"
+                  value="<%= primary_qty %>"
                   min="1"
                   class="
                     hidden w-8 px-1 text-xs text-center border rounded

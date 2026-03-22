@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_20_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_22_134024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -541,6 +541,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_20_200000) do
   end
 
   create_table "tracked_decks", force: :cascade do |t|
+    t.bigint "collection_id"
     t.bigint "commander_id", null: false
     t.datetime "created_at", null: false
     t.date "last_tweaked_at"
@@ -550,6 +551,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_20_200000) do
     t.string "status", default: "active"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["collection_id"], name: "index_tracked_decks_on_collection_id"
     t.index ["commander_id"], name: "index_tracked_decks_on_commander_id"
     t.index ["partner_commander_id"], name: "index_tracked_decks_on_partner_commander_id"
     t.index ["status"], name: "index_tracked_decks_on_status"
@@ -600,6 +602,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_20_200000) do
   add_foreign_key "magic_card_variations", "magic_cards", column: "variation_id"
   add_foreign_key "precon_deck_cards", "magic_cards"
   add_foreign_key "precon_deck_cards", "precon_decks"
+  add_foreign_key "tracked_decks", "collections"
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"
   add_foreign_key "tracked_decks", "users"

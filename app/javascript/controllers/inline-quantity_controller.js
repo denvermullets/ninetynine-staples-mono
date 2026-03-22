@@ -6,6 +6,7 @@ export default class extends Controller {
   static values = {
     deckId: Number,
     cardId: Number,
+    primaryType: { type: String, default: "regular" },
   };
 
   edit(event) {
@@ -44,14 +45,19 @@ export default class extends Controller {
       event.preventDefault();
     }
 
-    const quantity = parseInt(this.inputTarget.value) || 0;
+    const newValue = parseInt(this.inputTarget.value) || 0;
     const foilQuantity = this.hasFoilInputTarget
       ? parseInt(this.foilInputTarget.value) || 0
       : 0;
 
     const formData = new FormData();
-    formData.append("quantity", quantity);
-    formData.append("foil_quantity", foilQuantity);
+    if (this.primaryTypeValue === "foil") {
+      formData.append("quantity", 0);
+      formData.append("foil_quantity", newValue);
+    } else {
+      formData.append("quantity", newValue);
+      formData.append("foil_quantity", foilQuantity);
+    }
 
     try {
       const response = await fetch(

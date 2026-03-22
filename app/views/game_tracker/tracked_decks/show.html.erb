@@ -29,9 +29,20 @@
         </span>
       </div>
 
-      <p class="text-grey-text mb-4">
+      <p class="text-grey-text mb-2">
         <%= @tracked_deck.commander_display_name %>
       </p>
+
+      <% if @tracked_deck.collection.present? %>
+        <p class="text-sm mb-4">
+          <span class="text-grey-text/70">Linked deck:</span>
+          <%= link_to @tracked_deck.collection.name,
+              deck_show_path(@tracked_deck.user.username, @tracked_deck.collection_id),
+              class: 'text-accent-50 hover:text-accent-100' %>
+        </p>
+      <% else %>
+        <div class="mb-4"></div>
+      <% end %>
 
       <% if @is_owner %>
         <div class="flex flex-wrap gap-3">
