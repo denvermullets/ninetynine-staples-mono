@@ -1,6 +1,6 @@
 module DeckBuilder
   class GroupCards < Service
-    GROUPING_OPTIONS = %w[type mana_value color color_identity rarity set none].freeze
+    GROUPING_OPTIONS = %w[type mana_value color color_identity rarity set real_vs_proxy none].freeze
     SORT_OPTIONS = %w[name mana_value price rarity edhrec salt].freeze
 
     TYPE_ORDER = %w[
@@ -68,6 +68,16 @@ module DeckBuilder
       card.magic_card.boxset&.name || 'Unknown'
     end
 
+    def group_by_real_vs_proxy(card)
+      is_proxy = if card.staged?
+                   card.staged_proxy_quantity.positive? || card.staged_proxy_foil_quantity.positive?
+                 else
+                   card.proxy_quantity.positive? || card.proxy_foil_quantity.positive?
+                 end
+
+      is_proxy ? 'Proxy' : 'Real'
+    end
+
     def group_by_none(_card)
       'All Cards'
     end
@@ -83,6 +93,8 @@ module DeckBuilder
         ->(k) { [TYPE_ORDER.index(k) || 999, k] }
       when 'mana_value'
         ->(k) { k == 'X' ? 999 : k.to_i }
+      when 'real_vs_proxy'
+        ->(k) { k == 'Real' ? 0 : 1 }
       else
         lambda(&:to_s)
       end
