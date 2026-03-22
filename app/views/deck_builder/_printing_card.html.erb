@@ -30,5 +30,8 @@
 </p>
 
 <p class="text-xs text-grey-text/75">
-  <%= number_to_currency(printing.normal_price) %>
+  <%= number_to_currency(printing.display_price) %>
+  <% unless printing.non_foil_available? %>
+    <span class="text-accent-50">(Foil)</span>
+  <% end %>
 </p>
