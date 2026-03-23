@@ -5,6 +5,7 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
   let(:deck) { create(:collection, user: user, collection_type: 'commander_deck') }
   let(:other_collection) { create(:collection, user: user, name: 'Binder') }
 
+  let(:commander_legality) { Legality.find_or_create_by!(name: 'commander') }
   let(:source_oracle_id) { SecureRandom.uuid }
   let(:source_card) do
     create(:magic_card, scryfall_oracle_id: source_oracle_id, card_side: nil)
@@ -14,8 +15,15 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
     create(:collection_magic_card, collection: deck, magic_card: source_card)
   end
 
+  def make_commander_legal(card)
+    MagicCardLegality.find_or_create_by!(
+      magic_card: card, legality: commander_legality, status: 'Legal'
+    )
+  end
+
   def create_card_with_roles(oracle_id:, roles:, card_side: nil)
     card = create(:magic_card, scryfall_oracle_id: oracle_id, card_side: card_side)
+    make_commander_legal(card)
     roles.each do |role, effect, confidence|
       CardRole.create!(
         scryfall_oracle_id: oracle_id,

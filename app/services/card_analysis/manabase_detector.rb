@@ -15,10 +15,11 @@ module CardAnalysis
       detect_check_land
       detect_bounce_land
       detect_filter_land
-      detect_mana_confluence
+      detect_any_color_land
       detect_utility_land
       detect_tri_land
       detect_generic_dual_land
+      detect_mana_producer
     end
 
     private
@@ -43,7 +44,7 @@ module CardAnalysis
     end
 
     def detect_shock_land
-      return unless (match?(/pay 2 life/) && match?(/enters .* tapped/)) ||
+      return unless (match?(/pay 2 life/) && match?(/enters .*tapped/)) ||
                     match?(/you may pay 2 life.*if you don't.*enters.*tapped/)
 
       add(role: 'manabase', effect: 'shock_land', confidence: 0.95)
@@ -56,14 +57,14 @@ module CardAnalysis
     end
 
     def detect_check_land
-      check_re = /enters .* tapped unless you control (a|an) (plains|island|swamp|mountain|forest)/i
+      check_re = /enters .*tapped unless you control (a|an) (plains|island|swamp|mountain|forest)/i
       return unless match?(check_re)
 
       add(role: 'manabase', effect: 'check_land', confidence: 0.9)
     end
 
     def detect_bounce_land
-      return unless match?(/enters .* tapped/) && match?(/return a land you control/)
+      return unless match?(/enters .*tapped/) && match?(/return a land you control/)
 
       add(role: 'manabase', effect: 'bounce_land', confidence: 0.9)
     end
@@ -74,11 +75,15 @@ module CardAnalysis
       add(role: 'manabase', effect: 'filter_land', confidence: 0.9)
     end
 
-    def detect_mana_confluence
-      return unless match?(/add one mana of any color/i) &&
-                    match?(/deals? \d+ damage to you|pay 1 life|lose 1 life/)
+    def detect_any_color_land
+      any_color_re = /add one mana of any (color|type)|add .* mana .* of that color/i
+      return unless match?(any_color_re)
 
-      add(role: 'manabase', effect: 'mana_confluence', confidence: 0.9)
+      if match?(/deals? \d+ damage to you|pay .* life|lose .* life/)
+        add(role: 'manabase', effect: 'mana_confluence', confidence: 0.9)
+      end
+
+      add(role: 'manabase', effect: 'any_color_land', confidence: 0.85)
     end
 
     def detect_utility_land
@@ -100,6 +105,14 @@ module CardAnalysis
       return unless @text.match?(/add /i) && mana_colors.size >= 2
 
       add(role: 'manabase', effect: 'dual_land', confidence: 0.7)
+    end
+
+    def detect_mana_producer
+      has_manabase_role = @results.keys.any? { |role, _| role == 'manabase' }
+      return if has_manabase_role
+      return unless match?(/\{t\}/) && match?(/add /i)
+
+      add(role: 'manabase', effect: 'mana_producer', confidence: 0.6)
     end
   end
 end

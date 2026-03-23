@@ -21,7 +21,8 @@ class CardRole < ApplicationRecord
     'sacrifice' => %w[sacrifice_outlet death_trigger aristocrat_payoff],
     'mill' => %w[mill self_mill mill_payoff],
     'manabase' => %w[dual_land fetch_land shock_land pain_land check_land filter_land bounce_land
-                     utility_land tri_land mana_confluence basic_land mdfc_land],
+                     utility_land tri_land mana_confluence basic_land mdfc_land any_color_land
+                     mana_producer],
     'stax' => %w[tax_effect resource_denial static_stax rule_of_law],
     'blink' => %w[flicker etb_payoff blink_repeatable],
     'copy' => %w[clone copy_spell],

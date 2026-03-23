@@ -578,6 +578,39 @@ RSpec.describe CardAnalysis::RoleProfiler, type: :service do
       expect(roles_from(results)).to include(%w[manabase dual_land])
     end
 
+    it 'detects any_color_land from Command Tower style' do
+      results = profile(
+        oracle_text: "{T}: Add one mana of any color in your commander's color identity.",
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase any_color_land])
+    end
+
+    it 'detects any_color_land with mana_confluence when life cost' do
+      results = profile(
+        oracle_text: '{T}, Pay 1 life: Add one mana of any color.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase any_color_land])
+      expect(roles_from(results)).to include(%w[manabase mana_confluence])
+    end
+
+    it 'detects mana_producer as fallback for Cabal Coffers style' do
+      results = profile(
+        oracle_text: '{2}, {T}: Add {B} for each Swamp you control.',
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase mana_producer])
+    end
+
+    it 'detects mana_producer for Reliquary Tower style' do
+      results = profile(
+        oracle_text: "You have no maximum hand size.\n{T}: Add {C}.",
+        card_type: 'Land'
+      )
+      expect(roles_from(results)).to include(%w[manabase mana_producer])
+    end
+
     it 'does not detect manabase for non-land cards' do
       results = profile(
         oracle_text: '{T}: Add {G} or {U}.',

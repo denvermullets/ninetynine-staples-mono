@@ -3,7 +3,7 @@ module CardAnalysis
     CARD_TYPES = %i[regular foil proxy proxy_foil].freeze
     TYPE_LABELS = { regular: 'Regular', foil: 'Foil', proxy: 'Proxy', proxy_foil: 'Foil Proxy' }.freeze
 
-    def initialize(magic_card:, deck:, user:, limit: 20)
+    def initialize(magic_card:, deck:, user:, limit: nil)
       @magic_card = magic_card
       @deck = deck
       @user = user
@@ -33,10 +33,21 @@ module CardAnalysis
       excluded = excluded_oracle_ids
       combined = build_role_conditions
 
-      CardRole.where(combined)
-              .where.not(scryfall_oracle_id: excluded.to_a)
-              .distinct
-              .pluck(:scryfall_oracle_id)
+      oracle_ids = CardRole.where(combined)
+                           .where.not(scryfall_oracle_id: excluded.to_a)
+                           .distinct
+                           .pluck(:scryfall_oracle_id)
+
+      filter_commander_legal(oracle_ids)
+    end
+
+    def filter_commander_legal(oracle_ids)
+      legal_ids = MagicCardLegality.joins(:legality)
+                                   .where(legalities: { name: 'commander' }, status: 'Legal')
+                                   .select(:magic_card_id)
+
+      MagicCard.where(id: legal_ids, scryfall_oracle_id: oracle_ids, card_side: [nil, 'a'])
+               .distinct.pluck(:scryfall_oracle_id)
     end
 
     def excluded_oracle_ids
@@ -104,9 +115,11 @@ module CardAnalysis
     def sort_and_limit(scored, ownership)
       filtered = filter_by_color_identity(scored)
 
-      filtered.sort_by do |oid, data|
+      sorted = filtered.sort_by do |oid, data|
         [ownership.key?(oid) ? 0 : 1, -data[:score]]
-      end.first(@limit)
+      end
+
+      @limit ? sorted.first(@limit) : sorted
     end
 
     def filter_by_color_identity(scored)
