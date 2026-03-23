@@ -5,6 +5,7 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
   let(:deck) { create(:collection, user: user, collection_type: 'commander_deck') }
   let(:other_collection) { create(:collection, user: user, name: 'Binder') }
 
+  let(:commander_legality) { Legality.find_or_create_by!(name: 'commander') }
   let(:source_oracle_id) { SecureRandom.uuid }
   let(:source_card) do
     create(:magic_card, scryfall_oracle_id: source_oracle_id, card_side: nil)
@@ -14,8 +15,15 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
     create(:collection_magic_card, collection: deck, magic_card: source_card)
   end
 
+  def make_commander_legal(card)
+    MagicCardLegality.find_or_create_by!(
+      magic_card: card, legality: commander_legality, status: 'Legal'
+    )
+  end
+
   def create_card_with_roles(oracle_id:, roles:, card_side: nil)
     card = create(:magic_card, scryfall_oracle_id: oracle_id, card_side: card_side)
+    make_commander_legal(card)
     roles.each do |role, effect, confidence|
       CardRole.create!(
         scryfall_oracle_id: oracle_id,
@@ -296,6 +304,60 @@ RSpec.describe CardAnalysis::ReplacementFinder, type: :service do
         )
         oracle_ids = result[:candidates].map { |c| c[:magic_card].scryfall_oracle_id }
         expect(oracle_ids).to include(red_oid)
+      end
+    end
+
+    context 'EDHREC rank blending' do
+      before do
+        CardRole.create!(
+          scryfall_oracle_id: source_oracle_id,
+          role: 'removal', effect: 'targeted_removal',
+          confidence: 0.9, source: 'test'
+        )
+      end
+
+      it 'boosts score for higher-ranked (lower edhrec_rank) cards' do
+        popular_oid = SecureRandom.uuid
+        popular_card = create_card_with_roles(
+          oracle_id: popular_oid,
+          roles: [['removal', 'targeted_removal', 0.8]]
+        )
+        popular_card.update!(edhrec_rank: 100)
+
+        unpopular_oid = SecureRandom.uuid
+        unpopular_card = create_card_with_roles(
+          oracle_id: unpopular_oid,
+          roles: [['removal', 'targeted_removal', 0.8]]
+        )
+        unpopular_card.update!(edhrec_rank: 50_000)
+
+        result = described_class.call(
+          magic_card: source_card, deck: deck, user: user
+        )
+        popular_candidate = result[:candidates].find { |c| c[:magic_card].scryfall_oracle_id == popular_oid }
+        unpopular_candidate = result[:candidates].find { |c| c[:magic_card].scryfall_oracle_id == unpopular_oid }
+
+        expect(popular_candidate[:score]).to be > unpopular_candidate[:score]
+      end
+
+      it 'handles candidates with nil edhrec_rank gracefully' do
+        no_rank_oid = SecureRandom.uuid
+        create_card_with_roles(
+          oracle_id: no_rank_oid,
+          roles: [['removal', 'targeted_removal', 0.8]]
+        )
+
+        ranked_oid = SecureRandom.uuid
+        ranked_card = create_card_with_roles(
+          oracle_id: ranked_oid,
+          roles: [['removal', 'targeted_removal', 0.8]]
+        )
+        ranked_card.update!(edhrec_rank: 500)
+
+        result = described_class.call(
+          magic_card: source_card, deck: deck, user: user
+        )
+        expect(result[:candidates].size).to eq(2)
       end
     end
 

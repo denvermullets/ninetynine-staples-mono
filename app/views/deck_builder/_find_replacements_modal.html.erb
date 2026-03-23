@@ -213,6 +213,14 @@
         <% end %>
       </div>
 
+      <!-- Pagination -->
+      <% if pagy && pagy.pages > 1 %>
+        <div class="flex flex-row items-center justify-between w-full pt-4 mt-2 border-t border-highlight shrink-0">
+          <%== pagy.info_tag() %>
+          <%== pagy.series_nav() %>
+        </div>
+      <% end %>
+
       <!-- Footer -->
       <div class="flex justify-end pt-4 mt-4 border-t border-highlight shrink-0">
         <button
