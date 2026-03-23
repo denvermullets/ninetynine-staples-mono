@@ -5,6 +5,8 @@ module CardAnalysis
       @oracle_text = (oracle_text || '').downcase
       @card_type = (card_type || '').downcase
       @keywords = (options[:keywords] || []).map(&:downcase)
+      @subtypes = (options[:subtypes] || []).map(&:downcase)
+      @layout = options[:layout]
       @power = options[:power]
     end
 
@@ -14,6 +16,7 @@ module CardAnalysis
       OracleTextDetector.new(@oracle_text, @card_type).detect(results)
       detect_keyword_roles(results)
       detect_type_line_roles(results)
+      detect_land_subtypes(results)
 
       results.values
     end
@@ -29,7 +32,8 @@ module CardAnalysis
         'ward' => { role: 'protection', effect: 'ward_grant', confidence: 0.5 },
         'hexproof' => { role: 'protection', effect: 'hexproof_grant', confidence: 0.5 },
         'indestructible' => { role: 'protection', effect: 'indestructible_grant', confidence: 0.5 },
-        'mill' => { role: 'mill', effect: 'mill', confidence: 0.5 }
+        'mill' => { role: 'mill', effect: 'mill', confidence: 0.5 },
+        'double strike' => { role: 'voltron', effect: 'double_strike', confidence: 0.5 }
       }
 
       @keywords.each do |kw|
@@ -53,6 +57,34 @@ module CardAnalysis
       return unless @card_type.include?('creature') && @power.to_i >= 6
 
       add_result(results, role: 'finisher', effect: 'big_beater', confidence: 0.6, source: 'type')
+    end
+
+    def detect_land_subtypes(results)
+      return unless @card_type.include?('land')
+
+      detect_land_by_basic_types(results)
+      detect_mdfc_land(results)
+    end
+
+    def detect_land_by_basic_types(results)
+      basic_types = %w[plains island swamp mountain forest]
+      land_basics = @subtypes & basic_types
+
+      if land_basics.size >= 3
+        add_result(results, role: 'manabase', effect: 'tri_land', confidence: 0.9, source: 'subtype')
+      elsif land_basics.size >= 2
+        add_result(results, role: 'manabase', effect: 'dual_land', confidence: 0.9, source: 'subtype')
+      end
+
+      return unless land_basics.size == 1 && @card_type.include?('basic')
+
+      add_result(results, role: 'manabase', effect: 'basic_land', confidence: 0.95, source: 'subtype')
+    end
+
+    def detect_mdfc_land(results)
+      return unless @layout == 'modal_dfc'
+
+      add_result(results, role: 'manabase', effect: 'mdfc_land', confidence: 0.85, source: 'type')
     end
 
     def add_result(results, role:, effect:, confidence:, source:)

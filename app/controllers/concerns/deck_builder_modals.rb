@@ -85,9 +85,9 @@ module DeckBuilderModals
     result = CardAnalysis::ReplacementFinder.call(
       magic_card: card.magic_card, deck: @deck, user: current_user
     )
-    render partial: 'deck_builder/find_replacements_modal', locals: {
-      card: card, deck: @deck, roles: result[:roles], candidates: result[:candidates]
-    }
+    pagy_obj, paginated = pagy(:offset, result[:candidates], limit: 21)
+    render partial: 'deck_builder/find_replacements_modal',
+           locals: { card: card, deck: @deck, roles: result[:roles], candidates: paginated, pagy: pagy_obj }
   end
 
   def view_card_modal
