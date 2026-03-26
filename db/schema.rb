@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_22_134024) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_26_185145) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -435,6 +435,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_22_134024) do
     t.string "card_side"
     t.string "card_type"
     t.string "card_uuid"
+    t.decimal "ck_buylist_foil_price", precision: 12, scale: 2, default: "0.0"
+    t.decimal "ck_buylist_normal_price", precision: 12, scale: 2, default: "0.0"
     t.decimal "converted_mana_cost", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.integer "edhrec_rank"

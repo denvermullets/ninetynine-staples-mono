@@ -24,16 +24,33 @@ class IngestPrices < ApplicationJob
   def ingest_prices(all_info)
     all_info.each do |key, value|
       price_info = value.dig('paper', 'tcgplayer', 'retail')
-      next unless price_info.present?
+      ck_buylist_info = value.dig('paper', 'cardkingdom', 'buylist')
+      next unless price_info.present? || ck_buylist_info.present?
 
       puts "#{key}, #{price_info}"
-      update_card(key, price_info)
+      update_card(key, price_info, ck_buylist_info)
     end
   end
 
-  def update_card(card_uuid, price_info)
+  def update_card(card_uuid, price_info, ck_buylist_info)
     card = MagicCard.find_by(card_uuid:)
     return unless card.present?
+
+    tcg_attrs = tcgplayer_attributes(card, price_info)
+    ck_attrs = ck_buylist_attributes(card, ck_buylist_info)
+
+    card.update(**tcg_attrs, **ck_attrs)
+    UpdateCollections.perform_later(card) if CollectionMagicCard.exists?(magic_card_id: card.id)
+  end
+
+  private
+
+  def tcgplayer_attributes(card, price_info)
+    unless price_info
+      return { normal_price: card.normal_price, foil_price: card.foil_price,
+               price_history: card.price_history, price_change_weekly_normal: card.price_change_weekly_normal,
+               price_change_weekly_foil: card.price_change_weekly_foil }
+    end
 
     normal_price = find_price(card.normal_price, price_info['normal']) || 0
     foil_price = find_price(card.foil_price, price_info['foil']) || 0
@@ -41,17 +58,21 @@ class IngestPrices < ApplicationJob
     price_change_weekly_normal, price_change_weekly_foil = calculate_price_changes_weekly(
       price_history, normal_price, foil_price
     )
-    card.update(
-      normal_price:,
-      foil_price:,
-      price_history:,
-      price_change_weekly_normal:,
-      price_change_weekly_foil:
-    )
-    UpdateCollections.perform_later(card) if CollectionMagicCard.exists?(magic_card_id: card.id)
+
+    { normal_price:, foil_price:, price_history:, price_change_weekly_normal:, price_change_weekly_foil: }
   end
 
-  private
+  def ck_buylist_attributes(card, ck_buylist_info)
+    unless ck_buylist_info
+      return { ck_buylist_normal_price: card.ck_buylist_normal_price,
+               ck_buylist_foil_price: card.ck_buylist_foil_price }
+    end
+
+    {
+      ck_buylist_normal_price: find_price(card.ck_buylist_normal_price, ck_buylist_info['normal']) || 0,
+      ck_buylist_foil_price: find_price(card.ck_buylist_foil_price, ck_buylist_info['foil']) || 0
+    }
+  end
 
   def find_price(existing_price, new_price)
     return nil if new_price.nil?

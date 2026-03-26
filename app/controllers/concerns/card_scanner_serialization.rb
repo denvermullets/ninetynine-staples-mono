@@ -30,6 +30,8 @@ module CardScannerSerialization
       image_large: card.image_large,
       normal_price: card.normal_price.to_f,
       foil_price: card.foil_price.to_f,
+      ck_buylist_normal_price: card.ck_buylist_normal_price.to_f,
+      ck_buylist_foil_price: card.ck_buylist_foil_price.to_f,
       has_foil: card.foil_available?,
       has_non_foil: card.non_foil_available?
     }
