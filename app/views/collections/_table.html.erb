@@ -1,7 +1,7 @@
 <% visible_column_count = %w[card_number name type mana regular_price foil_price salt sell_regular sell_foil].count { |k| column_visible?(k, 'collections') } %>
 
 <!-- Mobile Card View -->
-<div class="md:hidden mb-24 max-w-full">
+<div class="lg:hidden mb-24 max-w-full">
   <% magic_cards.each do |card| %>
     <%= render partial: 'shared/cards/mobile_card', locals: { card: card, is_owner: is_owner, collections: collections || [], collection: collection } %>
   <% end %>
@@ -23,7 +23,7 @@
 </div>
 
 <!-- Desktop Table View -->
-<div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
+<div class="hidden lg:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
