@@ -317,6 +317,27 @@
         <% end %>
       </div>
 
+      <% show_ck_normal = has_normal_in_collection && card.ck_buylist_normal_price.to_f.positive? %>
+      <% show_ck_foil = has_foil_in_collection && card.ck_buylist_foil_price.to_f.positive? %>
+      <% if show_ck_normal || show_ck_foil %>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <% if show_ck_normal %>
+            <div class="flex flex-col">
+              <span class="text-xs text-grey-text">Sell Regular</span>
+              <span class="text-lg font-medium text-nine-white"><%= number_to_currency(card.ck_buylist_normal_price) %></span>
+              <span class="text-xs text-grey-text">Credit: <%= number_to_currency(card.ck_buylist_normal_price * 1.3) %></span>
+            </div>
+          <% end %>
+          <% if show_ck_foil %>
+            <div class="flex flex-col">
+              <span class="text-xs text-grey-text">Sell Foil</span>
+              <span class="text-lg font-medium text-yellow-400"><%= number_to_currency(card.ck_buylist_foil_price) %></span>
+              <span class="text-xs text-yellow-400">Credit: <%= number_to_currency(card.ck_buylist_foil_price * 1.3) %></span>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
       <!-- Price History Toggle -->
       <% if card.price_history.present? %>
         <button
@@ -424,7 +445,7 @@
               class="
                 w-full px-4 py-2.5 text-sm font-medium rounded-lg border
                 border-highlight text-grey-text hover:bg-background
-                hover:text-nine-white transition-colors
+                hover:text-nine-white hover:border-accent-50 transition-colors
               "
             >
               Transfer
@@ -440,12 +461,27 @@
               class="
                 w-full px-4 py-2.5 text-sm font-medium rounded-lg border
                 border-highlight text-grey-text hover:bg-background
-                hover:text-nine-white transition-colors
+                hover:text-nine-white hover:border-accent-50 transition-colors
               "
             >
               Adjust Quantity
             </button>
           <% end %>
+        <% end %>
+
+        <% if show_ck_normal || show_ck_foil %>
+          <a
+            href="https://www.cardkingdom.com/purchasing/mtg_singles?filter%5Bsort%5D=price_desc&filter%5Bsearch%5D=mtg_advanced&filter%5Bname%5D=<%= CGI.escape(card.name) %>&filter%5Bedition%5D=&filter%5Bformat%5D=&filter%5Bfoils%5D=1&filter%5Bsingles%5D=1&filter%5Bprice_op%5D=&filter%5Bprice%5D="
+            target="_blank"
+            rel="noopener noreferrer"
+            class="
+              block w-full px-4 py-2.5 text-sm font-medium text-center rounded-lg
+              border border-highlight text-grey-text hover:bg-background
+              hover:text-nine-white hover:border-accent-50 transition-colors
+            "
+          >
+            Sell to Card Kingdom
+          </a>
         <% end %>
 
         <!-- Render modals -->

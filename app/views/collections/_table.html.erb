@@ -1,4 +1,4 @@
-<% visible_column_count = %w[card_number name type mana regular_price foil_price salt].count { |k| column_visible?(k, 'collections') } %>
+<% visible_column_count = %w[card_number name type mana regular_price foil_price salt sell_regular sell_foil].count { |k| column_visible?(k, 'collections') } %>
 
 <!-- Mobile Card View -->
 <div class="md:hidden mb-24 max-w-full">
@@ -90,6 +90,28 @@
             "
           >
             Foil
+          </th>
+        <% end %>
+
+        <% if column_visible?('sell_regular', 'collections') %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Sell Regular
+          </th>
+        <% end %>
+
+        <% if column_visible?('sell_foil', 'collections') %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Sell Foil
           </th>
         <% end %>
 
@@ -201,6 +223,22 @@
                     </span>
                   <% end %>
                 </div>
+              <% end %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('sell_regular', 'collections') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <% if has_normal_in_collection && card.ck_buylist_normal_price.to_f.positive? %>
+                <%= number_to_currency(card.ck_buylist_normal_price) %>
+              <% end %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('sell_foil', 'collections') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <% if has_foil_in_collection && card.ck_buylist_foil_price.to_f.positive? %>
+                <%= number_to_currency(card.ck_buylist_foil_price) %>
               <% end %>
             </td>
           <% end %>

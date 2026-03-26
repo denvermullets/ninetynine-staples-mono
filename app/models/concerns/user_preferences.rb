@@ -3,7 +3,8 @@ module UserPreferences
 
   DEFAULT_COLUMN_VISIBILITY = {
     'card_number' => true, 'name' => true, 'type' => true, 'mana' => true,
-    'regular_price' => true, 'foil_price' => true, 'salt' => false
+    'regular_price' => true, 'foil_price' => true, 'salt' => false,
+    'sell_regular' => false, 'sell_foil' => false
   }.freeze
 
   DEFAULT_PREFERENCES = {
@@ -13,7 +14,7 @@ module UserPreferences
     'theme' => 'dark'
   }.freeze
 
-  COLUMN_KEYS = %w[card_number name type mana regular_price foil_price salt].freeze
+  COLUMN_KEYS = %w[card_number name type mana regular_price foil_price salt sell_regular sell_foil].freeze
 
   def effective_preferences
     DEFAULT_PREFERENCES.deep_merge(preferences || {})
