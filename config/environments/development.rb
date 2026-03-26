@@ -31,9 +31,6 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
-
   # Use Brevo SMTP in development if credentials are set, otherwise use :test
   if ENV['BREVO_SMTP_USERNAME'].present? && ENV['BREVO_SMTP_PASSWORD'].present?
     config.action_mailer.delivery_method = :smtp
