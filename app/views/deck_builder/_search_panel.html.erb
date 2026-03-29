@@ -43,16 +43,16 @@
     <%= form_with url: search_deck_builder_path(deck), method: :get, local: false,
       data: { action: "submit->deck-search#submit", deck_search_target: "form" },
       class: "relative" do |f| %>
-      <div class="flex">
+      <div class="flex overflow-hidden">
         <%= f.text_field :q,
           placeholder: "Search cards...",
           data: { deck_search_target: "input" },
-          class: "flex-1 px-4 py-2 border rounded-l-lg bg-background border-highlight text-white placeholder-grey-text focus:border-accent-50 focus:outline-none" %>
+          class: "flex-1 min-w-0 px-4 py-2 border rounded-l-lg bg-background border-highlight text-white placeholder-grey-text focus:border-accent-50 focus:outline-none" %>
 
         <%= f.hidden_field :scope, value: search_scope, data: { deck_search_target: "scopeField" } %>
 
         <%= f.submit "Search",
-          class: "px-4 py-2 bg-background text-grey-text rounded-r-lg border border-l-0 border-highlight hover:bg-highlight cursor-pointer transition" %>
+          class: "shrink-0 px-4 py-2 bg-background text-grey-text rounded-r-lg border border-l-0 border-highlight hover:bg-highlight cursor-pointer transition" %>
       </div>
 
       <div
