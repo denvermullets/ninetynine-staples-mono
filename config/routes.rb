@@ -90,6 +90,8 @@ Rails.application.routes.draw do
   resources :collections, only: %w[new create update destroy] do
     member do
       get :edit_collection_modal
+      get :confirm_destroy_deck
+      delete :destroy_deck
     end
   end
   get 'collections/:username/overview', to: 'collections#overview', as: :collections_overview

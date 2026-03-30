@@ -42,8 +42,9 @@
           is_owner: @is_owner,
           edit_url: edit_deck_modal_deck_builder_path(deck),
           frame_id: 'deck_modal',
-          show_proxy_value: true
-        }.merge(@is_owner && deck.deletable? ? { delete_url: collection_path(deck) } : {}) %>
+          show_proxy_value: true,
+          destroy_deck_url: @is_owner ? confirm_destroy_deck_collection_path(deck) : nil
+        } %>
       <% end %>
     </div>
   <% else %>

@@ -1,26 +1,24 @@
 class CollectionsController < ApplicationController
-  before_action :authenticate_user!, only: %i[edit_collection_modal update destroy]
-  before_action :set_collection, only: %i[edit_collection_modal update destroy]
-  before_action :ensure_owner, only: %i[edit_collection_modal update destroy]
+  before_action :authenticate_user!, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
+  before_action :set_collection, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
+  before_action :ensure_owner, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
+  before_action :set_user_and_ownership, only: %i[show show_decks overview]
+  before_action :enforce_visibility, only: %i[show show_decks]
 
   def new
     @collection = Collection.new
-
     render :new
   end
 
   def create
     collection = Collection.new(collection_params)
-
-    if collection.save
-      if Collection.deck_type?(collection.collection_type)
-        redirect_to decks_index_path(current_user.username)
-      else
-        redirect_to root_path
-      end
-    else
+    unless collection.save
       render :new, status: :unprocessable_entity
+      return
     end
+
+    path = Collection.deck_type?(collection.collection_type) ? decks_index_path(current_user.username) : root_path
+    redirect_to path
   end
 
   def edit_collection_modal
@@ -51,9 +49,24 @@ class CollectionsController < ApplicationController
     end
   end
 
+  def confirm_destroy_deck
+    render partial: 'deck_builder/confirm_modal', locals: {
+      title: 'Delete Deck', confirm_text: 'Delete Deck', turbo_frame: 'deck_modal', danger: true,
+      message: 'Are you sure? This will permanently delete this deck and all cards in it from your collection.',
+      confirm_url: destroy_deck_collection_path(@collection), confirm_method: :delete
+    }
+  end
+
+  def destroy_deck
+    DestroyDeckJob.perform_later(@collection.id, current_user.id)
+    toast_html = ApplicationController.render(
+      partial: 'shared/broadcast_toast',
+      locals: { message: "\"#{@collection.name}\" queued for deletion", type: 'success' }
+    )
+    render turbo_stream: [turbo_stream.replace('deck_modal', ''), turbo_stream.append('toasts', toast_html)]
+  end
+
   def overview
-    @user = User.find_by!(username: params[:username])
-    @is_owner = current_user&.id == @user.id
     @collections = if @is_owner
                      current_user.ordered_collections
                    else
@@ -63,43 +76,14 @@ class CollectionsController < ApplicationController
   end
 
   def show
-    @user = User.find_by!(username: params[:username])
-    @is_owner = current_user&.id == @user.id
-
-    if params[:collection_id].present?
-      collection = Collection.find_by(id: params[:collection_id])
-      if collection&.hidden? && !@is_owner
-        redirect_to root_path, alert: 'This collection is private'
-        return
-      end
-    end
-
-    @collection_type = nil
-    setup_collections(@collection_type)
-    search_magic_cards
-    setup_view_mode
-
-    render 'index'
+    setup_collections(nil)
+    search_and_setup_view
   end
 
   def show_decks
-    @user = User.find_by!(username: params[:username])
-    @is_owner = current_user&.id == @user.id
-
-    if params[:collection_id].present?
-      collection = Collection.find_by(id: params[:collection_id])
-      if collection&.hidden? && !@is_owner
-        redirect_to root_path, alert: 'This deck is private'
-        return
-      end
-    end
-
     @collection_type = 'deck'
     setup_collections(nil, use_deck_scope: true)
-    search_magic_cards
-    setup_view_mode
-
-    render 'index'
+    search_and_setup_view
   end
 
   def load
@@ -119,7 +103,28 @@ class CollectionsController < ApplicationController
 
   private
 
-  def setup_collections(collection_type = nil, use_deck_scope: false)
+  def set_user_and_ownership
+    @user = User.find_by!(username: params[:username])
+    @is_owner = current_user&.id == @user.id
+  end
+
+  def enforce_visibility
+    return unless params[:collection_id].present?
+
+    collection = Collection.find_by(id: params[:collection_id])
+    return unless collection&.hidden? && !@is_owner
+
+    alert = Collection.deck_type?(collection.collection_type) ? 'This deck is private' : 'This collection is private'
+    redirect_to root_path, alert: alert
+  end
+
+  def search_and_setup_view
+    search_magic_cards
+    setup_view_mode
+    render 'index'
+  end
+
+  def setup_collections(collection_type, use_deck_scope: false)
     result = Collections::Setup.call(
       user: @user, current_user: current_user, collection_id: params[:collection_id],
       collection_type: collection_type, use_deck_scope: use_deck_scope
@@ -142,9 +147,7 @@ class CollectionsController < ApplicationController
     @filtered_cards = CollectionQuery::Filter.call(cards: searched, params: params)
   end
 
-  def set_collection
-    @collection = Collection.find(params[:id])
-  end
+  def set_collection = @collection = Collection.find(params[:id])
 
   def ensure_owner
     redirect_to root_path, alert: 'Access denied' unless @collection.user_id == current_user.id
@@ -159,27 +162,19 @@ class CollectionsController < ApplicationController
   end
 
   def setup_view_mode
-    @view_mode = params[:view_mode] || 'table'
-    @grouping = params[:grouping] || 'none'
-    @grouping_allowed = params[:code].present?
-
-    unless @filtered_cards.present?
-      @magic_cards = []
-      return
-    end
-
-    paginate_cards
-    load_visual_mode_data if @view_mode == 'visual'
-  end
-
-  def paginate_cards
-    skip = @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
-    @pagy, @magic_cards = skip ? [nil, @filtered_cards.to_a] : pagy(:offset, @filtered_cards)
-  end
-
-  def load_visual_mode_data
-    result = Collections::VisualModeSetup.call(cards: @magic_cards, user: @user, grouping: @grouping)
+    view = Collections::ViewMode.new(filtered_cards: @filtered_cards, user: @user, params: params)
+    result = view.call
+    @view_mode = result[:view_mode]
+    @grouping = result[:grouping]
+    @grouping_allowed = result[:grouping_allowed]
     @aggregated_quantities = result[:aggregated_quantities]
     @grouped_cards = result[:grouped_cards]
+
+    if result[:magic_cards].empty? || view.skip_pagination?
+      @pagy = nil
+      @magic_cards = result[:magic_cards].empty? ? [] : @filtered_cards.to_a
+    else
+      @pagy, @magic_cards = pagy(:offset, @filtered_cards)
+    end
   end
 end
