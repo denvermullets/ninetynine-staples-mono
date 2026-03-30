@@ -16,6 +16,7 @@ export default class extends Controller {
     findReplacementsUrl: String,
     changeCardTypeUrl: String,
     deleteUrl: String,
+    destroyDeckUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -350,5 +351,19 @@ export default class extends Controller {
       .catch((error) => {
         console.error("Error deleting deck:", error);
       });
+  }
+
+  destroyDeck(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.menuTarget.classList.add("hidden");
+
+    const url = this.destroyDeckUrlValue;
+    if (!url) return;
+
+    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
+    if (frame) {
+      frame.src = url;
+    }
   }
 }
