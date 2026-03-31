@@ -13,7 +13,7 @@ class CollectionImportsController < ApplicationController
 
     redirect_to collection_show_path(current_user.username, collection.id),
                 notice: "Import started! #{result[:rows_queued]} cards queued for processing."
-  rescue ArgumentError, ActiveRecord::RecordInvalid => e
+  rescue ArgumentError, ActiveRecord::RecordInvalid, CSV::MalformedCSVError => e
     redirect_to new_collection_import_path, alert: e.message
   end
 
