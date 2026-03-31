@@ -12,7 +12,7 @@ module CollectionImporter
     end
 
     def call
-      rows = CSV.parse(@csv_data, headers: true, header_converters: ->(h) { h&.strip })
+      rows = CSV.parse(@csv_data, headers: true, liberal_parsing: true, header_converters: ->(h) { h&.strip })
 
       @header_map = build_header_map(rows.headers)
       validate_headers!(@header_map)
