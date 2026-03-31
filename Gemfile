@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "bcrypt", "~> 3.1.21"
+gem "bcrypt", "~> 3.1.22"
 gem "bootsnap", require: false
 gem 'dotenv-rails'
 gem "httparty"
@@ -11,9 +11,9 @@ gem "pg", "~> 1.6.3"
 gem "pry"
 gem "puma", ">= 7.2.0"
 gem "rack-attack"
-gem "rails", "~> 8.1.2"
+gem "rails", "~> 8.1.3"
 gem "solid_cable"
-gem "solid_queue", "~> 1.3.2"
+gem "solid_queue", "~> 1.4.0"
 gem "sprockets-rails"
 gem "stimulus-rails"
 gem "tailwindcss-rails", "~> 4.4.0"
