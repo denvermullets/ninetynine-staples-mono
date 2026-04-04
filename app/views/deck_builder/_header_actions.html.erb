@@ -9,14 +9,20 @@
       <%= link_to 'Bulk Import', bulk_import_deck_builder_path(deck),
           class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
           data: { turbo_frame: '_top' } %>
+      <%= link_to 'Export', export_modal_deck_builder_path(deck),
+          class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
+          data: { turbo_frame: 'deck_modal' } %>
     <% end %>
     <%= link_to 'Edit', edit_deck_modal_deck_builder_path(deck),
         class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
         data: { turbo_frame: 'deck_modal' } %>
-    <%= link_to 'Exit', deck_show_path(username: current_user.username, collection_id: deck.id),
-        class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
-        data: { turbo_frame: '_top' } %>
+
   <% else %>
+    <% if deck.deck? || deck.commander_deck? %>
+      <%= link_to 'Export', export_modal_deck_builder_path(deck),
+          class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
+          data: { turbo_frame: 'deck_modal' } %>
+    <% end %>
     <%= link_to 'Back to Decks', decks_index_path(username: deck.user.username),
         class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer' %>
   <% end %>

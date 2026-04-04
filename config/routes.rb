@@ -129,6 +129,7 @@ Rails.application.routes.draw do
       patch :update_staged
       get :find_replacements_modal
       get :view_card_modal
+      get :export_modal
       get :bulk_import
       get :bulk_import_search
       get :combos

@@ -33,15 +33,8 @@ module DeckBuilderModals
 
   def swap_printing_modal
     card = @deck.collection_magic_cards.find(params[:card_id])
-    printings = MagicCard.where(scryfall_oracle_id: card.magic_card.scryfall_oracle_id)
-                         .where(card_side: [nil, 'a'])
-                         .includes(:boxset)
-                         .order('boxsets.release_date DESC')
-    render partial: 'deck_builder/swap_printing_modal', locals: {
-      card: card,
-      deck: @deck,
-      printings: printings
-    }
+    printings = printings_for(card.magic_card.scryfall_oracle_id)
+    render partial: 'deck_builder/swap_printing_modal', locals: { card: card, deck: @deck, printings: printings }
   end
 
   def swap_source_modal
@@ -56,15 +49,9 @@ module DeckBuilderModals
 
   def choose_printing_modal
     magic_card = MagicCard.find(params[:magic_card_id])
-    printings = MagicCard.where(scryfall_oracle_id: magic_card.scryfall_oracle_id)
-                         .where(card_side: [nil, 'a'])
-                         .includes(:boxset)
-                         .order('boxsets.release_date DESC')
-    render partial: 'deck_builder/choose_printing_modal', locals: {
-      magic_card: magic_card,
-      deck: @deck,
-      printings: printings
-    }
+    printings = printings_for(magic_card.scryfall_oracle_id)
+    render partial: 'deck_builder/choose_printing_modal',
+           locals: { magic_card: magic_card, deck: @deck, printings: printings }
   end
 
   def edit_staged_modal
@@ -103,7 +90,17 @@ module DeckBuilderModals
     }
   end
 
+  def export_modal
+    export_text = DeckBuilder::ExportDeck.call(deck: @deck)
+    render partial: 'deck_builder/export_modal', locals: { deck: @deck, export_text: export_text }
+  end
+
   private
+
+  def printings_for(oracle_id)
+    MagicCard.where(scryfall_oracle_id: oracle_id, card_side: [nil, 'a'])
+             .includes(:boxset).order('boxsets.release_date DESC')
+  end
 
   def calculate_max_quantities(card, available)
     {

@@ -1,0 +1,63 @@
+<%= turbo_frame_tag "deck_modal" do %>
+  <dialog
+    class="
+      m-auto p-0 border rounded-lg bg-foreground border-highlight
+      backdrop:bg-black/50
+    "
+    data-controller="modal export-deck"
+    data-action="click->modal#closeOnBackdrop keydown.esc->modal#close"
+  >
+    <div class="w-[32rem] max-w-[90vw] p-6" data-modal-target="content">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-nine-white">
+          Export Deck
+        </h3>
+
+        <button
+          type="button"
+          data-action="click->modal#close"
+          class="text-grey-text hover:text-nine-white cursor-pointer"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <p class="mb-3 text-sm text-grey-text">
+        Copy the list below to import into Archidekt, Moxfield, or other tools.
+      </p>
+
+      <textarea
+        data-export-deck-target="textarea"
+        readonly
+        rows="16"
+        class="
+          w-full p-3 text-sm font-mono rounded-lg bg-background border border-highlight
+          text-grey-text focus:outline-none focus:border-accent-50 resize-y
+        "
+      ><%= export_text %></textarea>
+
+      <div class="flex items-center justify-end gap-3 mt-4">
+        <span
+          data-export-deck-target="status"
+          class="text-sm text-accent-400 hidden"
+        >
+          Copied!
+        </span>
+
+        <button
+          type="button"
+          data-action="click->export-deck#copy"
+          class="
+            px-4 py-2 text-sm font-medium transition rounded-md bg-accent-50
+            text-foreground border border-accent-50 hover:bg-foreground
+            hover:text-accent-50 cursor-pointer
+          "
+        >
+          Copy to Clipboard
+        </button>
+      </div>
+    </div>
+  </dialog>
+<% end %>
