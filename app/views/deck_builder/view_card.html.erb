@@ -1,0 +1,286 @@
+<div class="flex flex-col min-h-screen bg-background">
+  <!-- Header -->
+  <div class="px-4 py-4 border-b border-highlight bg-foreground">
+    <div class="flex items-center gap-4">
+      <%= link_to deck_builder_path(@deck), class: "text-accent-50 hover:text-accent-400 transition text-sm flex items-center gap-1" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      <% end %>
+
+      <div>
+        <h1 class="text-xl font-semibold text-white flex items-center gap-2">
+          <%= @magic_card.name %>
+          <% if @magic_card.game_changer.present? %>
+            <span class="px-1.5 py-0.5 text-xs font-bold rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+              &#9733; Game Changer
+            </span>
+          <% end %>
+        </h1>
+        <p class="text-sm text-grey-text"><%= @magic_card.boxset&.name %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="flex-1 p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <!-- Left Column: Card Image -->
+        <div class="md:col-span-1 flex flex-col items-center">
+          <% if @magic_card.double_faced? %>
+            <% other_card = @magic_card.other_face %>
+            <div
+              data-controller="card-flip"
+              data-action="click->card-flip#flip"
+              class="flip-container cursor-pointer w-full max-w-sm"
+            >
+              <div data-card-flip-target="card" class="flip-card">
+                <div class="flip-card-front">
+                  <%= image_tag (@magic_card.image_large.presence || @magic_card.image_medium.presence || ""),
+                    class: "w-full h-auto rounded-3xl",
+                    alt: @magic_card.name %>
+                </div>
+                <div class="flip-card-back">
+                  <%= image_tag (other_card&.image_large.presence || other_card&.image_medium.presence || ""),
+                    class: "w-full h-auto rounded-3xl",
+                    alt: other_card&.name %>
+                </div>
+              </div>
+            </div>
+            <p class="mt-2 text-sm text-grey-text">Click card to see other side</p>
+          <% else %>
+            <%= image_tag (@magic_card.image_large.presence || @magic_card.image_medium.presence || ""),
+              alt: @magic_card.name,
+              class: "w-full max-w-sm h-auto rounded-3xl" %>
+          <% end %>
+
+          <!-- Current Prices (below image) -->
+          <div class="w-full max-w-sm mt-4 p-3 rounded-lg border border-highlight bg-foreground">
+            <div class="grid grid-cols-2 gap-3 text-center">
+              <div>
+                <span class="text-xs text-grey-text/75 block">Normal</span>
+                <span class="text-lg font-semibold text-nine-white"><%= number_to_currency(@magic_card.normal_price) %></span>
+              </div>
+              <% if @magic_card.foil_available? %>
+                <div>
+                  <span class="text-xs text-grey-text/75 block">Foil</span>
+                  <span class="text-lg font-semibold text-nine-white"><%= number_to_currency(@magic_card.foil_price) %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Card Details -->
+        <div class="md:col-span-2 space-y-4">
+          <!-- 90-Day Price Summary -->
+          <% if @price_extremes.present? %>
+            <div class="p-4 rounded-lg border border-highlight bg-foreground">
+              <h4 class="text-sm font-semibold text-grey-text mb-3">90-Day Price Range</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <% if @price_extremes[:normal] %>
+                  <div class="text-center">
+                    <span class="text-xs text-grey-text/75 block">Normal High</span>
+                    <span class="text-sm font-semibold text-green-400">
+                      <%= number_to_currency(@price_extremes[:normal][:high]) %>
+                    </span>
+                  </div>
+                  <div class="text-center">
+                    <span class="text-xs text-grey-text/75 block">Normal Low</span>
+                    <span class="text-sm font-semibold text-red-400">
+                      <%= number_to_currency(@price_extremes[:normal][:low]) %>
+                    </span>
+                  </div>
+                <% end %>
+                <% if @price_extremes[:foil] %>
+                  <div class="text-center">
+                    <span class="text-xs text-grey-text/75 block">Foil High</span>
+                    <span class="text-sm font-semibold text-green-400">
+                      <%= number_to_currency(@price_extremes[:foil][:high]) %>
+                    </span>
+                  </div>
+                  <div class="text-center">
+                    <span class="text-xs text-grey-text/75 block">Foil Low</span>
+                    <span class="text-sm font-semibold text-red-400">
+                      <%= number_to_currency(@price_extremes[:foil][:low]) %>
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <!-- Your Copies -->
+          <% if @user_copies.any? %>
+            <div class="p-4 rounded-lg border border-highlight bg-foreground">
+              <h4 class="text-sm font-semibold text-grey-text mb-3">Your Copies (All Printings)</h4>
+              <div class="space-y-2">
+                <% @user_copies.each do |copy| %>
+                  <div class="flex items-center justify-between text-sm py-1 border-b border-highlight/50 last:border-0">
+                    <div>
+                      <span class="text-accent-50"><%= copy.collection.name %></span>
+                      <span class="text-grey-text/75 text-xs ml-1">(<%= copy.magic_card.boxset&.code&.upcase %>)</span>
+                    </div>
+                    <div class="text-grey-text text-xs">
+                      <% parts = []
+                        parts << "#{copy.quantity} regular" if copy.quantity > 0
+                        parts << "#{copy.foil_quantity} foil" if copy.foil_quantity > 0
+                        parts << "#{copy.proxy_quantity} proxy" if (copy.proxy_quantity || 0) > 0
+                        parts << "#{copy.proxy_foil_quantity} foil proxy" if (copy.proxy_foil_quantity || 0) > 0 %>
+                      <%= parts.join(', ') %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% else %>
+            <div class="p-4 rounded-lg border border-highlight/50 bg-foreground/50">
+              <p class="text-sm text-grey-text/75">You don't own any copies of this card.</p>
+            </div>
+          <% end %>
+
+          <% if @magic_card.game_changer.present? && @magic_card.game_changer.reason.present? %>
+            <div class="p-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10">
+              <h4 class="text-sm font-semibold text-yellow-400 mb-1">&#9733; Game Changer</h4>
+              <span class="text-sm text-grey-text"><%= @magic_card.game_changer.reason %></span>
+            </div>
+          <% end %>
+
+          <!-- Card Info -->
+          <div class="p-4 rounded-lg border border-highlight bg-foreground space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="text-xs text-grey-text/75 w-16 shrink-0 pt-0.5">Type:</span>
+              <span class="text-sm text-grey-text"><%= @magic_card.card_type %></span>
+            </div>
+
+            <% if @magic_card.mana_cost.present? %>
+              <div class="flex items-start gap-3">
+                <span class="text-xs text-grey-text/75 w-16 shrink-0 pt-0.5">Mana:</span>
+                <span class="text-sm text-grey-text flex items-center gap-1">
+                  <%= mana_symbols(@magic_card.mana_cost) %>
+                  <span class="text-grey-text/75 ml-1">(CMC: <%= @magic_card.converted_mana_cost&.to_i || @magic_card.mana_value&.to_i %>)</span>
+                </span>
+              </div>
+            <% end %>
+
+            <% if @magic_card.text.present? %>
+              <div class="flex items-start gap-3">
+                <span class="text-xs text-grey-text/75 w-16 shrink-0 pt-0.5">Text:</span>
+                <span class="text-sm text-grey-text"><%= card_text_with_symbols(@magic_card.text) %></span>
+              </div>
+            <% end %>
+
+            <% if @magic_card.power.present? || @magic_card.toughness.present? %>
+              <div class="flex items-start gap-3">
+                <span class="text-xs text-grey-text/75 w-16 shrink-0 pt-0.5">P/T:</span>
+                <span class="text-sm text-grey-text"><%= @magic_card.power %>/<%= @magic_card.toughness %></span>
+              </div>
+            <% end %>
+
+            <% if @magic_card.flavor_text.present? %>
+              <div class="flex items-start gap-3">
+                <span class="text-xs text-grey-text/75 w-16 shrink-0 pt-0.5">Flavor:</span>
+                <span class="text-sm text-grey-text/75 italic"><%= @magic_card.flavor_text %></span>
+              </div>
+            <% end %>
+
+            <% if @magic_card.keywords.any? %>
+              <div class="flex items-start gap-3">
+                <span class="text-xs text-grey-text/75 w-16 shrink-0 pt-0.5">Keywords:</span>
+                <div class="flex flex-wrap gap-1">
+                  <% @magic_card.keywords.each do |kw| %>
+                    <span class="px-2 py-0.5 text-xs rounded bg-accent-50/10 text-accent-50 border border-accent-50/20">
+                      <%= kw.keyword %>
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Set & Pricing -->
+          <div class="p-4 rounded-lg border border-highlight bg-foreground">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div>
+                <span class="text-grey-text/75 block text-xs">Set</span>
+                <span class="text-grey-text"><%= @magic_card.boxset&.name %></span>
+              </div>
+              <div>
+                <span class="text-grey-text/75 block text-xs">Code</span>
+                <span class="text-grey-text"><%= @magic_card.boxset&.code&.upcase %></span>
+              </div>
+              <div>
+                <span class="text-grey-text/75 block text-xs">Rarity</span>
+                <span class="text-grey-text capitalize"><%= @magic_card.rarity %></span>
+              </div>
+              <div>
+                <span class="text-grey-text/75 block text-xs">Number</span>
+                <span class="text-grey-text">#<%= @magic_card.card_number %></span>
+              </div>
+              <% if @magic_card.edhrec_rank.present? %>
+                <div>
+                  <span class="text-grey-text/75 block text-xs">EDHREC Rank</span>
+                  <span class="text-grey-text">#<%= number_with_delimiter(@magic_card.edhrec_rank) %></span>
+                </div>
+              <% end %>
+              <% if @magic_card.edhrec_saltiness.present? %>
+                <div>
+                  <span class="text-grey-text/75 block text-xs">Salt Score</span>
+                  <span class="text-grey-text"><%= format('%.2f', @magic_card.edhrec_saltiness.to_f) %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Price History Chart -->
+          <% if @magic_card.price_history.present? %>
+            <%= render partial: 'magic_cards/price_history', locals: { history: @magic_card.price_history } %>
+          <% end %>
+
+          <!-- Legalities -->
+          <% legalities = @magic_card.magic_card_legalities.includes(:legality) %>
+          <% if legalities.any? %>
+            <div class="p-4 rounded-lg border border-highlight bg-foreground">
+              <h4 class="text-sm font-semibold text-grey-text mb-3">Legalities</h4>
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <% legalities.each do |mcl| %>
+                  <div class="flex items-center gap-2 text-xs">
+                    <% if mcl.status == 'Legal' %>
+                      <span class="w-2 h-2 rounded-full bg-green-400 shrink-0"></span>
+                    <% elsif mcl.status == 'Banned' %>
+                      <span class="w-2 h-2 rounded-full bg-red-400 shrink-0"></span>
+                    <% elsif mcl.status == 'Restricted' %>
+                      <span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span>
+                    <% else %>
+                      <span class="w-2 h-2 rounded-full bg-grey-text/30 shrink-0"></span>
+                    <% end %>
+                    <span class="text-grey-text"><%= mcl.legality.name %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <!-- Rulings -->
+          <% rulings = @magic_card.rulings %>
+          <% if rulings.any? %>
+            <div class="p-4 rounded-lg border border-highlight bg-foreground">
+              <h4 class="text-sm font-semibold text-grey-text mb-3">Rulings</h4>
+              <div class="space-y-3">
+                <% rulings.each do |ruling| %>
+                  <div class="border-b border-highlight/50 pb-2 last:border-0 last:pb-0">
+                    <p class="text-sm text-grey-text"><%= ruling.ruling %></p>
+                    <span class="text-xs text-grey-text/50"><%= ruling.ruling_date %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

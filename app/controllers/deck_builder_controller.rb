@@ -3,11 +3,12 @@ class DeckBuilderController < ApplicationController
   include DeckBuilderBulkImport
   include DeckBuilderCardActions
   include DeckBuilderRendering
+  include DeckBuilderViewCard
 
   before_action :set_deck
-  before_action :authenticate_user!, except: %i[show view_card_modal combos violations]
-  before_action :ensure_owner, except: %i[show view_card_modal combos violations]
-  before_action :ensure_visible, only: %i[view_card_modal combos violations]
+  before_action :authenticate_user!, except: %i[show view_card combos violations export_modal]
+  before_action :ensure_owner, except: %i[show view_card combos violations export_modal]
+  before_action :ensure_visible, only: %i[view_card combos violations export_modal]
 
   def show
     if @deck.hidden? && !@is_owner
