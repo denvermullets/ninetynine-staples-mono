@@ -258,11 +258,7 @@ export default class extends Controller {
     const url = this.viewCardUrlValue;
     if (!url) return;
 
-    // Open the view card modal via Turbo frame
-    const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
-    if (frame) {
-      frame.src = url;
-    }
+    Turbo.visit(url);
   }
 
   findReplacements(event) {

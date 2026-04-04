@@ -77,19 +77,6 @@ module DeckBuilderModals
            locals: { card: card, deck: @deck, roles: result[:roles], candidates: paginated, pagy: pagy_obj }
   end
 
-  def view_card_modal
-    card = @deck.collection_magic_cards.find(params[:card_id])
-    magic_card = card.magic_card
-    user_copies = current_user ? DeckBuilder::FindUserCopies.call(magic_card: magic_card, user: current_user) : []
-
-    render partial: 'deck_builder/view_card_modal', locals: {
-      card: card,
-      deck: @deck,
-      magic_card: magic_card,
-      user_copies: user_copies
-    }
-  end
-
   def export_modal
     export_text = DeckBuilder::ExportDeck.call(deck: @deck)
     render partial: 'deck_builder/export_modal', locals: { deck: @deck, export_text: export_text }
