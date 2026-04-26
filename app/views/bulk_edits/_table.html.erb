@@ -1,0 +1,233 @@
+<div class="flex justify-end mb-3">
+  <button
+    type="button"
+    data-bulk-edit-target="saveButton"
+    data-action="click->bulk-edit#save"
+    class="
+      px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border rounded-lg
+      border-highlight text-grey-text hover:bg-foreground
+      hover:text-accent-50 hover:border-accent-50 transition cursor-pointer
+      disabled:opacity-50 disabled:cursor-not-allowed
+    "
+  >
+    Save changes
+  </button>
+</div>
+
+<div class="mb-3 overflow-x-auto border rounded-3xl border-highlight">
+  <table class="min-w-full divide-y table-auto divide-background">
+    <thead class="bg-background">
+      <tr>
+        <% if column_visible?('card_number', 'bulk_edit') %>
+          <th
+            class="
+              py-3 pl-4 pr-0 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            #
+          </th>
+        <% end %>
+
+        <% if column_visible?('name', 'bulk_edit') %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Name
+          </th>
+        <% end %>
+
+        <th
+          class="
+            px-4 py-2 text-xs font-normal tracking-wider text-left
+            normal-case text-grey-text
+          "
+        >
+          From
+        </th>
+
+        <th
+          class="
+            px-4 py-2 text-xs font-normal tracking-wider text-left
+            normal-case text-grey-text
+          "
+        >
+          To
+        </th>
+
+        <th
+          class="
+            px-4 py-2 text-xs font-normal tracking-wider text-left
+            normal-case text-grey-text
+          "
+        >
+          Move
+          <span class="block text-[10px] text-grey-text/70">qty / foil / proxy / proxy foil</span>
+        </th>
+
+        <% if column_visible?('mana', 'bulk_edit') %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Mana
+          </th>
+        <% end %>
+
+        <% if column_visible?('regular_price', 'bulk_edit') %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Regular
+          </th>
+        <% end %>
+
+        <% if column_visible?('foil_price', 'bulk_edit') %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Foil
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody class="bg-background">
+      <% magic_cards.each do |card| %>
+        <tr
+          data-bulk-edit-target="row"
+          data-magic-card-id="<%= card.id %>"
+          data-card-uuid="<%= card.card_uuid %>"
+          class="border border-background text-grey-text bg-foreground"
+        >
+          <% if column_visible?('card_number', 'bulk_edit') %>
+            <td class="pl-4 pr-0 text-sm py-4 whitespace-nowrap">
+              <%= card.card_number %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('name', 'bulk_edit') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code&.downcase} ss-#{card.rarity&.downcase || 'common'} ss-fw ss-2x mr-4" %>"></i>
+
+              <% if card.card_side == 'a' %>
+                <%= card.name.split('//')[0] %>
+              <% else %>
+                <%= card.name %>
+              <% end %>
+            </td>
+          <% end %>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <select
+              data-collection-role="from"
+              class="
+                w-36 px-2 py-1 text-xs border rounded border-highlight
+                bg-background text-grey-text focus:border-accent-50
+                focus:ring-accent-50
+              "
+            >
+              <option
+                value="<%= CollectionRecord::BulkApply::BRAND_NEW %>"
+                selected
+              >
+                Brand new
+              </option>
+
+              <% collections.each do |c| %>
+                <option value="<%= c.id %>"><%= c.name %></option>
+              <% end %>
+            </select>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <select
+              data-collection-role="to"
+              class="
+                w-36 px-2 py-1 text-xs border rounded border-highlight
+                bg-background text-grey-text focus:border-accent-50
+                focus:ring-accent-50
+              "
+            >
+              <option value="">—</option>
+
+              <% collections.each do |c| %>
+                <option value="<%= c.id %>"><%= c.name %></option>
+              <% end %>
+            </select>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <div class="flex items-center gap-1">
+              <% %i[quantity foil_quantity proxy_quantity proxy_foil_quantity].each do |variant| %>
+                <input
+                  type="number"
+                  min="0"
+                  value="0"
+                  data-variant="<%= variant %>"
+                  class="
+                    w-14 px-2 py-1 text-sm border rounded border-highlight
+                    bg-background text-grey-text focus:border-accent-50
+                    focus:ring-accent-50
+                  "
+                  title="<%= variant.to_s.humanize %>"
+                >
+              <% end %>
+            </div>
+          </td>
+
+          <% if column_visible?('mana', 'bulk_edit') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <div class="flex items-center m-0 space-x-1">
+                <%= mana_symbols(card.mana_cost) %>
+              </div>
+            </td>
+          <% end %>
+
+          <% if column_visible?('regular_price', 'bulk_edit') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <% if card.non_foil_available? %>
+                <%= number_to_currency(card.normal_price) %>
+              <% end %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('foil_price', 'bulk_edit') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <% if card.foil_available? %>
+                <%= number_to_currency(card.foil_price) %>
+              <% end %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="flex justify-end mb-24">
+  <button
+    type="button"
+    data-bulk-edit-target="saveButton"
+    data-action="click->bulk-edit#save"
+    class="
+      px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border rounded-lg
+      border-highlight text-grey-text hover:bg-foreground
+      hover:text-accent-50 hover:border-accent-50 transition cursor-pointer
+      disabled:opacity-50 disabled:cursor-not-allowed
+    "
+  >
+    Save changes
+  </button>
+</div>

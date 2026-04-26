@@ -68,6 +68,9 @@ Rails.application.routes.draw do
   resources :collection_imports, only: %i[new create], path: 'import-collection'
 
   get 'load_boxset', to: 'boxsets#load_boxset', as: :load_boxset
+  get 'bulk-edit', to: 'bulk_edits#index', as: :bulk_edit
+  get 'bulk-edit/table', to: 'bulk_edits#load_table', as: :bulk_edit_load_table
+  post 'bulk-edit/save', to: 'bulk_edits#save', as: :bulk_edit_save
   get 'commanders', to: 'commanders#index', as: :commanders
   get 'load_commanders', to: 'commanders#load_commanders', as: :load_commanders
   get 'load_collection', to: 'collections#load', as: :load_collection
