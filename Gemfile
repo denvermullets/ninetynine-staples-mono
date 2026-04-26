@@ -9,7 +9,7 @@ gem "mission_control-jobs"
 gem "pagy"
 gem "pg", "~> 1.6.3"
 gem "pry"
-gem "puma", ">= 7.2.0"
+gem "puma", ">= 8.0.0"
 gem "rack-attack"
 gem "rails", "~> 8.1.3"
 gem "solid_cable"
@@ -19,12 +19,6 @@ gem "stimulus-rails"
 gem "tailwindcss-rails", "~> 4.4.0"
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[windows jruby]
-
-# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
-# gem "kredis"
-
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
 
 group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
