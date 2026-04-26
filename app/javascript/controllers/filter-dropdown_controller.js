@@ -166,6 +166,7 @@ export default class extends Controller {
     // handling if there's params on the url and then push the history
     const currentParams = new URLSearchParams(window.location.search);
     const isCommandersPage = window.location.pathname.includes("/commanders");
+    const isBulkEditPage = window.location.pathname.includes("/bulk-edit");
 
     const queryParams = new URLSearchParams({
       code,
@@ -211,6 +212,8 @@ export default class extends Controller {
         let basePath;
         if (isCommandersPage) {
           basePath = `/commanders`;
+        } else if (isBulkEditPage) {
+          basePath = `/bulk-edit`;
         } else if (this.usernameValue) {
           basePath = `/collections/${this.usernameValue}`;
         } else {

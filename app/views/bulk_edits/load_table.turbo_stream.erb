@@ -1,0 +1,9 @@
+<%= turbo_stream.update 'table-container' do %>
+  <% if @magic_cards.present? %>
+    <%= render partial: 'table', locals: { magic_cards: @magic_cards, collections: @collections } %>
+  <% else %>
+    <div class="p-8 mt-6 text-center border rounded-3xl border-highlight bg-background">
+      <p class="text-lg text-grey-text">No cards match the current filters.</p>
+    </div>
+  <% end %>
+<% end %>

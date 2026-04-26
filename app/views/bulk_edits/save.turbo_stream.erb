@@ -1,0 +1,33 @@
+<%= turbo_stream.update 'bulk-edit-results' do %>
+  <% errors = (@result[:results] || []).select { |r| r[:error].present? }
+    processed = @result[:processed_count] || 0 %>
+
+  <div
+    class="
+      p-4 border rounded-xl bg-foreground border-highlight text-grey-text
+      space-y-2
+    "
+  >
+    <% if @result[:success] && processed.zero? %>
+      <p class="font-semibold text-grey-text/80">
+        Nothing to save — pick FROM, TO, and a quantity on at least one row.
+      </p>
+    <% elsif @result[:success] %>
+      <p class="font-semibold">
+        Saved <%= processed %> change<%= processed == 1 ? '' : 's' %>.
+      </p>
+    <% else %>
+      <p class="font-semibold text-accent-100">
+        Save rolled back — <%= errors.size %>
+        error<%= errors.size == 1 ? '' : 's' %>.
+      </p>
+      <ul class="text-sm space-y-1">
+        <% errors.each do |row| %>
+          <li class="text-accent-100">
+            Card <%= row[:magic_card_id] %>: <%= row[:error] %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+<% end %>
