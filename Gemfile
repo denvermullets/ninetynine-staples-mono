@@ -20,12 +20,6 @@ gem "tailwindcss-rails", "~> 4.4.0"
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
-# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
-# gem "kredis"
-
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
-
 group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
