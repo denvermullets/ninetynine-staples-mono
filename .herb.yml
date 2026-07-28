@@ -11,7 +11,7 @@
 # GitHub Repo: https://github.com/marcoroth/herb
 #
 
-version: 0.9.0
+version: 0.10.2
 
 # files:
 #   # Additional patterns beyond the defaults (**.html, **.rhtml, **.html.erb, etc.)
@@ -29,7 +29,13 @@ linter:
   # # Exit with error code when diagnostics of this severity or higher are present
   # # Valid values: error (default), warning, info, hint
   failLevel: error
-
+  rules:
+    erb-prefer-direct-output:
+      enabled: false
+    html-no-unknown-tag:
+      enabled: false
+    html-require-script-nonce:
+      enabled: false
   # # Additional patterns beyond the defaults for linting
   # include:
   #   - '**/*.xml.erb'

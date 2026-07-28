@@ -4,24 +4,11 @@
     <h1 class="mb-6 text-sm text-center">Start making your dreams come true</h1>
 
     <%= form_with model: @user, url: sign_up_path, class: "space-y-4", data: { turbo: false } do |form| %>
-      <% password_error = nil %>
-      <% password_conf_error = nil %>
-      <% username_error = nil %>
-      <% email_error = nil %>
-
-      <% if form.object.errors.any? %>
-        <% form.object.errors.full_messages.each do |message| %>
-          <p><%= message %></p>
-
-          <% if message == "Password confirmation doesn't match Password" %>
-            <% password_conf_error = "Password confirmation doesn't match Password" %>
-          <% end %>
-
-          <% if message == "Password is too short (minimum is 10 characters)" %>
-            <% 'Password is too short (minimum is 12 characters)' %>
-          <% end %>
-        <% end %>
-      <% end %>
+      <% errors = form.object.errors %>
+      <% email_error = errors.full_messages_for(:email).first %>
+      <% username_error = errors.full_messages_for(:username).first %>
+      <% password_error = errors.full_messages_for(:password).first %>
+      <% password_conf_error = errors.full_messages_for(:password_confirmation).first %>
 
       <div class="space-y-2">
         <%= form.label :email %>
