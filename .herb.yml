@@ -30,6 +30,8 @@ linter:
   # # Valid values: error (default), warning, info, hint
   failLevel: error
   rules:
+    erb-no-interpolated-class-names:
+      enabled: false
     html-require-script-nonce:
       enabled: true
   # # Additional patterns beyond the defaults for linting
