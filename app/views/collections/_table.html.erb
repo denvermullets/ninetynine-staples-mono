@@ -150,7 +150,7 @@
 
           <% if column_visible?('name', 'collections') %>
             <td class="px-4 py-2 text-sm whitespace-nowrap">
-              <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code.downcase} ss-#{card.rarity.downcase} ss-fw ss-2x mr-4" %>"></i>
+              <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code.downcase %> ss-<%= card.rarity.downcase %> ss-fw ss-2x mr-4"></i>
               <%= card.name %>
 
               <% if card.etched_finish? %>

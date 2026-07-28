@@ -119,7 +119,7 @@
 
           <% if column_visible?('name', 'bulk_edit') %>
             <td class="px-4 py-2 text-sm whitespace-nowrap">
-              <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code&.downcase} ss-#{card.rarity&.downcase || 'common'} ss-fw ss-2x mr-4" %>"></i>
+              <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
 
               <% if card.card_side == 'a' %>
                 <%= card.name.split('//')[0] %>

@@ -30,12 +30,8 @@ linter:
   # # Valid values: error (default), warning, info, hint
   failLevel: error
   rules:
-    erb-prefer-direct-output:
-      enabled: false
-    html-no-unknown-tag:
-      enabled: false
     html-require-script-nonce:
-      enabled: false
+      enabled: true
   # # Additional patterns beyond the defaults for linting
   # include:
   #   - '**/*.xml.erb'
