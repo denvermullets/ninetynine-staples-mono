@@ -5,6 +5,17 @@
 
 module Search
   class Collection < Service
+    # Highest price among the finishes the user actually owns. A printing owned only in
+    # foil sorts on foil_price, and vice versa; a proxy-only row (no quantities) falls to 0.
+    OWNED_PRICE_SQL = <<~SQL.squish.freeze
+      GREATEST(
+        CASE WHEN SUM(COALESCE(collection_magic_cards.quantity, 0)) > 0
+             THEN COALESCE(magic_cards.normal_price, 0) ELSE 0 END,
+        CASE WHEN SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) > 0
+             THEN COALESCE(magic_cards.foil_price, 0) ELSE 0 END
+      )
+    SQL
+
     def initialize(cards:, search_term:, sort_by:, code: nil, collection_id: nil)
       @cards = cards
       @search_term = search_term
@@ -53,9 +64,9 @@ module Search
       when :price
         # A card can exist in multiple collections so we GROUP BY to deduplicate
         # and SUM quantities across all collection_magic_cards rows.
-        # The view uses quantity/foil_quantity to decide which price columns to show.
-        # We sort by card price directly (indexed) rather than computing
-        # SUM(quantity * price) which forces Postgres to aggregate all rows before sorting.
+        # The view uses quantity/foil_quantity to decide which price columns to show,
+        # so we sort by the highest price of the finishes actually owned - otherwise a
+        # foil-only printing would be ranked by a normal_price that's never displayed.
         @cards
           .joins(:collection_magic_cards)
           .select(
@@ -64,7 +75,7 @@ module Search
              SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) AS foil_quantity"
           )
           .group('magic_cards.id')
-          .order('magic_cards.normal_price DESC')
+          .order(Arel.sql("#{OWNED_PRICE_SQL} DESC NULLS LAST"))
       end
     end
   end
