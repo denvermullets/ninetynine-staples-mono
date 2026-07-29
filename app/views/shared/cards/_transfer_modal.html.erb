@@ -40,6 +40,11 @@
 
     <%= form_with url: transfer_collection_magic_cards_path, method: :post, class: "flex flex-col gap-4", data: { turbo: true } do |f| %>
       <%= f.hidden_field :magic_card_id, value: magic_card.id %>
+      <% if local_assigns[:refresh_card_id].present? %>
+        <%# this modal edits a different printing than the expanded row, so refresh that row instead %>
+        <%= f.hidden_field :refresh_card_id, value: local_assigns[:refresh_card_id] %>
+        <%= f.hidden_field :show_other_printings, value: true %>
+      <% end %>
       <%= f.hidden_field :from_collection_id, data: { card_locations_target: 'fromCollectionId' } %>
       <%= f.hidden_field :to_collection_id, data: { card_locations_target: 'toCollectionId' } %>
 

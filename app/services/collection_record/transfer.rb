@@ -2,10 +2,9 @@
 module CollectionRecord
   # Transfer service handles complex card movement between collections with quantity validation,
   # price calculations, and atomic updates. The logic is cohesive and further extraction would
-  # reduce clarity. Price calculations and card details loading have already been extracted.
+  # reduce clarity. Price calculations have already been extracted.
   class Transfer < Service
     include PriceCalculator
-    include CardDetailsLoader
 
     def initialize(params:)
       @magic_card = MagicCard.find(params[:magic_card_id])
@@ -139,7 +138,7 @@ module CollectionRecord
     def success_response
       {
         success: true, card_id: @magic_card.id, name: @magic_card.name, from_collection: @from_collection.name,
-        to_collection: @to_collection.name, locals: reload_card_details(@magic_card, @from_collection)
+        to_collection: @to_collection.name
       }
     end
   end

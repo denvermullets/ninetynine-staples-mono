@@ -37,4 +37,52 @@ RSpec.describe 'CollectionMagicCards', type: :request do
       expect(response.parsed_body.values).to all(eq(0))
     end
   end
+
+  describe 'POST /collection_magic_cards/adjust' do
+    let(:oracle_id) { SecureRandom.uuid }
+    let(:expanded_card) { create(:magic_card, scryfall_oracle_id: oracle_id) }
+    let(:other_printing) do
+      create(:magic_card, scryfall_oracle_id: oracle_id, boxset: create(:boxset))
+    end
+
+    before { post login_path, params: { email: user.email, password: 'password123' } }
+
+    it 'refreshes the frame of the card that was adjusted' do
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 3 },
+           as: :turbo_stream
+
+      expect(response.body).to include("card_details_#{expanded_card.id}")
+    end
+
+    it 'refreshes the expanded row when adjusting a different printing' do
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: other_printing.id, quantity: 3,
+                     refresh_card_id: expanded_card.id, show_other_printings: true },
+           as: :turbo_stream
+
+      expect(response.body).to include("card_details_#{expanded_card.id}")
+      expect(response.body).not_to include("card_details_#{other_printing.id}")
+    end
+
+    it 'renders the other printings table with a hover preview on that table only' do
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: other_printing.id, quantity: 3,
+                     refresh_card_id: expanded_card.id, show_other_printings: true },
+           as: :turbo_stream
+
+      expect(response.body).to include('Other Printings You Own')
+      expect(response.body.scan('data-controller="card-hover"').size).to eq(1)
+    end
+
+    it 'omits the other printings table when the flag is not set' do
+      create(:collection_magic_card, collection: collection, magic_card: other_printing)
+
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 3 },
+           as: :turbo_stream
+
+      expect(response.body).not_to include('Other Printings You Own')
+    end
+  end
 end

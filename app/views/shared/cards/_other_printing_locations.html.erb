@@ -1,0 +1,189 @@
+<%
+  # Same filter as shared/cards/_card_locations: 0/0/0/0 rows are typically staged deck records
+  rows = if current_user_admin?
+    other_printing_locations.to_a
+  else
+    other_printing_locations.reject { |loc| loc.quantity.zero? && loc.foil_quantity.zero? && (loc.proxy_quantity || 0).zero? && (loc.proxy_foil_quantity || 0).zero? }
+  end
+
+  has_proxies = rows.sum { |loc| (loc.proxy_quantity || 0) + (loc.proxy_foil_quantity || 0) }.positive?
+%>
+
+<% if rows.any? %>
+  <div class="flex flex-col w-full gap-4 mt-6">
+    <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text">
+      Other Printings You Own
+    </h4>
+
+    <div class="overflow-hidden border rounded-lg border-highlight">
+      <table class="min-w-full divide-y divide-highlight">
+        <thead class="bg-background">
+          <tr>
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Printing
+            </th>
+
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Location
+            </th>
+
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Regular
+            </th>
+
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Foil
+            </th>
+
+            <% if has_proxies %>
+              <th
+                class="
+                  px-4 py-3 text-xs font-normal tracking-wider text-left
+                  normal-case text-grey-text
+                "
+              >
+                Proxy
+              </th>
+              <th
+                class="
+                  px-4 py-3 text-xs font-normal tracking-wider text-left
+                  normal-case text-grey-text
+                "
+              >
+                Proxy Foil
+              </th>
+            <% end %>
+
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Quick actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y bg-foreground divide-highlight">
+          <% rows.each do |location| %>
+            <% printing = location.magic_card %>
+
+            <tr class="text-grey-text hover:bg-menu">
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <span
+                  class="inline-flex items-center"
+                  data-controller="card-hover"
+                  data-card-hover-image-value="<%= printing.image_medium %>"
+                  data-card-hover-name-value="<%= printing.name %>"
+                  data-action="
+                    mouseenter->card-hover#show mouseleave->card-hover#hide
+                    mousemove->card-hover#move
+                  "
+                >
+                  <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= printing.boxset.keyrune_code&.downcase %> ss-<%= printing.rarity&.downcase || 'common' %> ss-fw ss-2x mr-3"></i>
+
+                  <%= printing.boxset.name %>
+
+                  <span class="ml-2 text-xs text-grey-text">
+                    #<%= printing.card_number %>
+                  </span>
+                </span>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= location.collection.name %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= location.quantity %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= location.foil_quantity %>
+              </td>
+
+              <% if has_proxies %>
+                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <%= location.proxy_quantity || 0 %>
+                </td>
+                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <%= location.proxy_foil_quantity || 0 %>
+                </td>
+              <% end %>
+
+              <%# each row gets its own card-locations scope so its buttons resolve to its own %>
+              <%# modals - the transfer/adjust modals are hard-bound to a single printing %>
+              <td
+                class="px-4 py-3 text-sm whitespace-nowrap"
+                data-controller="card-locations"
+              >
+                <% if editable %>
+                  <div class="flex gap-2">
+                    <button
+                      data-action="click->card-locations#openTransferModal"
+                      data-collection-id="<%= location.collection_id %>"
+                      data-collection-name="<%= location.collection.name %>"
+                      data-regular-qty="<%= location.quantity %>"
+                      data-foil-qty="<%= location.foil_quantity %>"
+                      data-proxy-qty="<%= location.proxy_quantity %>"
+                      data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
+                      class="
+                        px-3 py-1 text-xs transition border rounded-md
+                        border-highlight text-grey-text hover:bg-background
+                        hover:text-nine-white
+                      "
+                    >
+                      Transfer
+                    </button>
+
+                    <button
+                      data-action="click->card-locations#openAdjustModal"
+                      data-collection-id="<%= location.collection_id %>"
+                      data-collection-name="<%= location.collection.name %>"
+                      data-regular-qty="<%= location.quantity %>"
+                      data-foil-qty="<%= location.foil_quantity %>"
+                      data-proxy-qty="<%= location.proxy_quantity %>"
+                      data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
+                      class="
+                        px-3 py-1 text-xs transition border rounded-md
+                        border-highlight text-grey-text hover:bg-background
+                        hover:text-nine-white
+                      "
+                    >
+                      Adjust
+                    </button>
+                  </div>
+                  <%= render partial: 'shared/cards/transfer_modal', locals: { magic_card: printing, collections:, refresh_card_id: magic_card.id } %>
+                  <%= render partial: 'shared/cards/adjust_modal', locals: { magic_card: printing, refresh_card_id: magic_card.id } %>
+                <% else %>
+                  <span class="text-xs text-grey-text">—</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

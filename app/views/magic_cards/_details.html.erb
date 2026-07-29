@@ -102,6 +102,13 @@
       <% if card&.card_side == 'a' || card&.card_side.nil? %>
         <%= render partial: 'shared/cards/card_locations', locals: { card_locations:, magic_card: card, collections:, editable: } %>
 
+        <%= render partial: 'shared/cards/other_printing_locations', locals: {
+          other_printing_locations: local_assigns[:other_printing_locations] || CollectionMagicCard.none,
+          magic_card: card,
+          collections:,
+          editable:
+        } %>
+
         <% if card.price_history.present? %>
           <div class="flex flex-row w-full mt-4">
             <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>

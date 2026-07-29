@@ -259,7 +259,7 @@
         >
           <td colspan="<%= visible_column_count %>">
             <%= turbo_frame_tag "card_details_#{card.id}",
-                src: boxset_magic_card_path(card.id, collection_id: params[:collection_id] || nil, username: params[:username]),
+                src: boxset_magic_card_path(card.id, collection_id: params[:collection_id] || nil, username: params[:username], show_other_printings: true),
                 loading: :lazy %>
           </td>
         </tr>

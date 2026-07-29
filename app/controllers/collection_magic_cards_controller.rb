@@ -49,11 +49,13 @@ class CollectionMagicCardsController < ApplicationController
 
   def render_transfer_success(result)
     flash.now[:type] = 'success'
+    card_id = refresh_card_id(result[:card_id])
+
     render turbo_stream: [
       turbo_stream.replace(
-        "card_details_#{result[:card_id]}",
+        "card_details_#{card_id}",
         partial: 'magic_cards/details',
-        locals: result[:locals]
+        locals: reload_card_details(card_id)
       ),
       render_success_toast(transfer_message(result))
     ]
@@ -61,14 +63,22 @@ class CollectionMagicCardsController < ApplicationController
 
   def render_adjust_success(result)
     flash.now[:type] = 'success'
+    card_id = refresh_card_id(params[:magic_card_id])
+
     render turbo_stream: [
       turbo_stream.replace(
-        "card_details_#{params[:magic_card_id]}",
+        "card_details_#{card_id}",
         partial: 'magic_cards/details',
-        locals: reload_card_details(params[:magic_card_id])
+        locals: reload_card_details(card_id)
       ),
       render_success_toast(adjust_message(result))
     ]
+  end
+
+  # Edits made from the "other printings" table mutate a printing whose expanded row isn't on
+  # screen; refresh the row the user actually has open instead.
+  def refresh_card_id(mutated_card_id)
+    params[:refresh_card_id].presence || mutated_card_id
   end
 
   def render_success_toast(message)
@@ -118,7 +128,12 @@ class CollectionMagicCardsController < ApplicationController
     collections = user&.collections
     card_locations = user ? card.collection_magic_cards.joins(:collection).where(collections: { user_id: user.id }) : []
     editable = user ? true : false
+    other_printing_locations = if params[:show_other_printings].present?
+                                 card.other_printing_locations(user)
+                               else
+                                 CollectionMagicCard.none
+                               end
 
-    { card:, collections: collections || [], card_locations:, editable: }
+    { card:, collections: collections || [], card_locations:, other_printing_locations:, editable: }
   end
 end

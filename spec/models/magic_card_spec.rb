@@ -178,6 +178,68 @@ RSpec.describe MagicCard, type: :model do
     end
   end
 
+  describe '#other_printing_locations' do
+    let(:oracle_id) { SecureRandom.uuid }
+    let(:user) { create(:user) }
+    let(:collection) { create(:collection, user: user) }
+    let(:card) { create(:magic_card, scryfall_oracle_id: oracle_id) }
+
+    it 'returns an empty relation when user is nil' do
+      expect(card.other_printing_locations(nil)).to be_empty
+    end
+
+    it 'returns an empty relation when the card has no oracle id' do
+      no_oracle = create(:magic_card, scryfall_oracle_id: nil)
+      expect(no_oracle.other_printing_locations(user)).to be_empty
+    end
+
+    it 'includes another printing of the same card held by the user' do
+      reprint = create(:magic_card, scryfall_oracle_id: oracle_id, boxset: create(:boxset))
+      location = create(:collection_magic_card, magic_card: reprint, collection: collection)
+
+      expect(card.other_printing_locations(user)).to include(location)
+    end
+
+    it 'excludes the printing being viewed' do
+      create(:collection_magic_card, magic_card: card, collection: collection)
+
+      expect(card.other_printing_locations(user)).to be_empty
+    end
+
+    it 'excludes printings held only by a different user' do
+      reprint = create(:magic_card, scryfall_oracle_id: oracle_id, boxset: create(:boxset))
+      other_collection = create(:collection, user: create(:user))
+      create(:collection_magic_card, magic_card: reprint, collection: other_collection)
+
+      expect(card.other_printing_locations(user)).to be_empty
+    end
+
+    it 'excludes cards with a different oracle id' do
+      unrelated = create(:magic_card, scryfall_oracle_id: SecureRandom.uuid, boxset: create(:boxset))
+      create(:collection_magic_card, magic_card: unrelated, collection: collection)
+
+      expect(card.other_printing_locations(user)).to be_empty
+    end
+
+    it 'excludes back faces of double faced printings' do
+      back_face = create(:magic_card, scryfall_oracle_id: oracle_id, card_side: 'b', boxset: create(:boxset))
+      create(:collection_magic_card, magic_card: back_face, collection: collection)
+
+      expect(card.other_printing_locations(user)).to be_empty
+    end
+
+    it 'orders newest printing first' do
+      old_printing = create(:magic_card, scryfall_oracle_id: oracle_id,
+                                         boxset: create(:boxset, release_date: '1998-10-12'))
+      new_printing = create(:magic_card, scryfall_oracle_id: oracle_id,
+                                         boxset: create(:boxset, release_date: '2018-12-07'))
+      create(:collection_magic_card, magic_card: old_printing, collection: collection)
+      create(:collection_magic_card, magic_card: new_printing, collection: collection)
+
+      expect(card.other_printing_locations(user).map(&:magic_card_id)).to eq([new_printing.id, old_printing.id])
+    end
+  end
+
   describe '#price_change' do
     it 'delegates to the price trend service' do
       card = build(:magic_card)
