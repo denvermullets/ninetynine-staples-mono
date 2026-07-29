@@ -11,8 +11,10 @@ class MagicCardsController < ApplicationController
     card = MagicCard.find(params[:id])
     user_data = determine_user_and_permissions
     card_locations = fetch_card_locations(card, user_data[:user])
+    other_printing_locations = fetch_other_printing_locations(card, user_data[:user])
 
-    render partial: 'magic_cards/details', locals: card_details_locals(card, user_data, card_locations)
+    render partial: 'magic_cards/details',
+           locals: card_details_locals(card, user_data, card_locations, other_printing_locations)
   end
 
   def destroy
@@ -61,11 +63,19 @@ class MagicCardsController < ApplicationController
     card.collection_magic_cards.joins(:collection).where(collections: { user_id: user.id })
   end
 
-  def card_details_locals(card, user_data, card_locations)
+  # Only the collections view asks for this; boxset/commander expanded rows opt out.
+  def fetch_other_printing_locations(card, user)
+    return CollectionMagicCard.none if params[:show_other_printings].blank?
+
+    card.other_printing_locations(user)
+  end
+
+  def card_details_locals(card, user_data, card_locations, other_printing_locations)
     {
       card:,
       collections: user_data[:collections] || [],
       card_locations:,
+      other_printing_locations:,
       editable: user_data[:editable]
     }
   end

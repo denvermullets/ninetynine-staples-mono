@@ -64,7 +64,7 @@
             normal-case text-grey-text
           "
         >
-          Move
+          Quantity
           <span class="block text-[10px] text-grey-text/70">qty / foil / proxy / proxy foil</span>
         </th>
 
@@ -109,6 +109,10 @@
           data-bulk-edit-target="row"
           data-magic-card-id="<%= card.id %>"
           data-card-uuid="<%= card.card_uuid %>"
+          data-controller="bulk-edit-row"
+          data-bulk-edit-row-quantity-path-value="<%= collection_quantity_path %>"
+          data-bulk-edit-row-magic-card-id-value="<%= card.id %>"
+          data-bulk-edit-row-card-uuid-value="<%= card.card_uuid %>"
           class="border border-background text-grey-text bg-foreground"
         >
           <% if column_visible?('card_number', 'bulk_edit') %>
@@ -119,19 +123,31 @@
 
           <% if column_visible?('name', 'bulk_edit') %>
             <td class="px-4 py-2 text-sm whitespace-nowrap">
-              <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code&.downcase} ss-#{card.rarity&.downcase || 'common'} ss-fw ss-2x mr-4" %>"></i>
+              <span
+                class="inline-flex items-center"
+                data-controller="card-hover"
+                data-card-hover-image-value="<%= card.image_medium %>"
+                data-card-hover-name-value="<%= card.name %>"
+                data-action="
+                  mouseenter->card-hover#show mouseleave->card-hover#hide
+                  mousemove->card-hover#move
+                "
+              >
+                <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
 
-              <% if card.card_side == 'a' %>
-                <%= card.name.split('//')[0] %>
-              <% else %>
-                <%= card.name %>
-              <% end %>
+                <% if card.card_side == 'a' %>
+                  <%= card.name.split('//')[0] %>
+                <% else %>
+                  <%= card.name %>
+                <% end %>
+              </span>
             </td>
           <% end %>
 
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <select
               data-collection-role="from"
+              data-action="change->bulk-edit-row#refresh"
               class="
                 w-36 px-2 py-1 text-xs border rounded border-highlight
                 bg-background text-grey-text focus:border-accent-50
@@ -154,6 +170,7 @@
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <select
               data-collection-role="to"
+              data-action="change->bulk-edit-row#refresh"
               class="
                 w-36 px-2 py-1 text-xs border rounded border-highlight
                 bg-background text-grey-text focus:border-accent-50
@@ -177,6 +194,7 @@
                   value="0"
                   autocomplete="off"
                   data-variant="<%= variant %>"
+                  data-bulk-edit-row-target="input"
                   class="
                     w-14 px-2 py-1 text-sm border rounded border-highlight
                     bg-background text-grey-text focus:border-accent-50
@@ -186,6 +204,11 @@
                 >
               <% end %>
             </div>
+
+            <span
+              data-bulk-edit-row-target="hint"
+              class="block mt-1 text-[10px] text-grey-text/70"
+            ></span>
           </td>
 
           <% if column_visible?('mana', 'bulk_edit') %>

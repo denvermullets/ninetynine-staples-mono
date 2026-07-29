@@ -1,8 +1,8 @@
-<% deck.tags.each do |tag| %>
+<% deck.tags.each do |deck_tag| %>
   <span
-    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
-    style="background-color: <%= tag.color %>;"
+    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(deck_tag.color) %>"
+    style="background-color: <%= deck_tag.color %>;"
   >
-    <%= tag.name %>
+    <%= deck_tag.name %>
   </span>
 <% end %>

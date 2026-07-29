@@ -76,7 +76,8 @@ module DeckBuilderCardActions
   def execute_transfer(card, to_collection)
     CollectionRecord::Transfer.call(
       params: {
-        magic_card_id: card.magic_card_id, from_collection_id: @deck.id, to_collection_id: to_collection.id,
+        magic_card_id: card.magic_card_id, card_uuid: card.card_uuid,
+        from_collection_id: @deck.id, to_collection_id: to_collection.id,
         quantity: card.quantity, foil_quantity: card.foil_quantity,
         proxy_quantity: card.proxy_quantity, proxy_foil_quantity: card.proxy_foil_quantity
       }

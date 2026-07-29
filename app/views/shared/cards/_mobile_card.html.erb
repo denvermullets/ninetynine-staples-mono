@@ -52,7 +52,7 @@
     "
   >
     <!-- Rarity Icon -->
-    <i class="<%= "drop-shadow-nine py-1 rounded-xl ss ss-grad ss-#{card.boxset.keyrune_code&.downcase} ss-#{card.rarity&.downcase || 'common'} ss-fw ss-2x flex-shrink-0" %>"></i>
+    <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x flex-shrink-0"></i>
 
     <!-- Card Info -->
     <div class="flex-1 min-w-0">

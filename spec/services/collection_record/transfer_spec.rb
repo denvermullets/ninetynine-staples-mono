@@ -102,4 +102,51 @@ RSpec.describe CollectionRecord::Transfer, type: :service do
       expect(subject[:error]).to eq('Not enough cards to transfer')
     end
   end
+
+  # rows are keyed by (collection, magic_card, card_uuid), so one collection can hold more than
+  # one row for the same magic card. Without a card_uuid the source lookup picks an arbitrary row.
+  context 'when the collection holds two rows for the same magic card' do
+    let(:quantity) { 1 }
+    let(:foil_quantity) { 0 }
+
+    let!(:other_row) do
+      create(:collection_magic_card,
+             collection: from_collection,
+             magic_card: magic_card,
+             card_uuid: 'second-uuid',
+             quantity: 2,
+             foil_quantity: 0,
+             proxy_quantity: 0,
+             proxy_foil_quantity: 0)
+    end
+
+    it 'debits the row matching the given card_uuid' do
+      described_class.call(params: params.merge(card_uuid: 'second-uuid'))
+
+      expect(other_row.reload.quantity).to eq(1)
+      expect(source_card.reload.quantity).to eq(4)
+    end
+
+    it 'stamps the destination row with the requested printing' do
+      described_class.call(params: params.merge(card_uuid: 'second-uuid'))
+
+      expect(to_collection.collection_magic_cards.pluck(:card_uuid)).to eq(['second-uuid'])
+    end
+
+    it 'transfers from the requested row even when the other row is empty' do
+      source_card.update!(quantity: 0, foil_quantity: 0)
+
+      result = described_class.call(params: params.merge(card_uuid: 'second-uuid'))
+
+      expect(result[:success]).to be true
+      expect(other_row.reload.quantity).to eq(1)
+    end
+
+    it 'falls back to the oldest row when no card_uuid is given' do
+      described_class.call(params: params)
+
+      expect(source_card.reload.quantity).to eq(3)
+      expect(other_row.reload.quantity).to eq(2)
+    end
+  end
 end

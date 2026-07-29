@@ -29,6 +29,30 @@ RSpec.describe Search::Collection, type: :service do
       result = described_class.call(cards: cards, search_term: '', sort_by: :price)
       expect(result.first.name).to eq('Lightning Bolt')
     end
+
+    it 'ranks a foil-only printing by its foil price' do
+      foil_card = create(:magic_card, name: 'Mystical Archive', normal_price: 1.0, foil_price: 70.55)
+      create(:collection_magic_card, collection: collection, magic_card: foil_card, quantity: 0, foil_quantity: 1)
+
+      result = described_class.call(cards: cards, search_term: '', sort_by: :price)
+      expect(result.first.name).to eq('Mystical Archive')
+    end
+
+    it 'ignores the foil price of a printing owned only in regular' do
+      pricey_foil = create(:magic_card, name: 'Cheap Normal', normal_price: 1.0, foil_price: 500.0)
+      create(:collection_magic_card, collection: collection, magic_card: pricey_foil, quantity: 1, foil_quantity: 0)
+
+      result = described_class.call(cards: cards, search_term: '', sort_by: :price)
+      expect(result.map(&:name)).to eq(['Lightning Bolt', 'Dark Ritual', 'Cheap Normal'])
+    end
+
+    it 'sorts a printing with no normal price by its foil price' do
+      no_normal = create(:magic_card, name: 'Foil Only', normal_price: nil, foil_price: 7.5)
+      create(:collection_magic_card, collection: collection, magic_card: no_normal, quantity: 0, foil_quantity: 2)
+
+      result = described_class.call(cards: cards, search_term: '', sort_by: :price)
+      expect(result.map(&:name)).to eq(['Lightning Bolt', 'Foil Only', 'Dark Ritual'])
+    end
   end
 
   context 'sorting by card number' do

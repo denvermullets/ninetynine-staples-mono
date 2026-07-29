@@ -14,7 +14,7 @@
 
     <% if @tags.any? %>
       <div class="space-y-3">
-        <% @tags.each do |tag| %>
+        <% @tags.each do |tag_record| %>
           <div
             class="
               flex items-center justify-between p-4 border rounded-lg
@@ -23,26 +23,26 @@
           >
             <div class="flex items-center gap-3">
               <span
-                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= tag_text_color_class(tag.color) %>"
-                style="background-color: <%= tag.color %>;"
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= tag_text_color_class(tag_record.color) %>"
+                style="background-color: <%= tag_record.color %>;"
               >
-                <%= tag.name %>
+                <%= tag_record.name %>
               </span>
 
-              <% if tag.description.present? %>
+              <% if tag_record.description.present? %>
                 <span class="text-sm text-grey-text/70">
-                  <%= tag.description %>
+                  <%= tag_record.description %>
                 </span>
               <% end %>
             </div>
 
             <div class="flex items-center gap-2">
-              <%= link_to 'Edit', edit_admin_tag_path(tag),
+              <%= link_to 'Edit', edit_admin_tag_path(tag_record),
                   class: 'px-3 py-1 text-sm border rounded-md border-highlight text-grey-text hover:border-accent-50 hover:text-accent-50 transition' %>
 
-              <%= button_to 'Delete', admin_tag_path(tag),
+              <%= button_to 'Delete', admin_tag_path(tag_record),
                   method: :delete,
-                  data: { turbo_confirm: "Delete tag '#{tag.name}'?" },
+                  data: { turbo_confirm: "Delete tag '#{tag_record.name}'?" },
                   class: 'px-3 py-1 text-sm border rounded-md border-highlight text-grey-text hover:border-red-500 hover:text-red-500 transition cursor-pointer' %>
             </div>
           </div>

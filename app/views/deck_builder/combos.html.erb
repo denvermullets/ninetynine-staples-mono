@@ -149,14 +149,14 @@
 
             <% if result_tags.any? %>
               <div class="flex flex-wrap gap-1.5">
-                <% result_tags.each do |tag| %>
+                <% result_tags.each do |result_tag| %>
                   <span
                     class="
                       px-2 py-0.5 text-xs rounded-full bg-accent-50/10
                       text-accent-50/75 border border-accent-50/20
                     "
                   >
-                    &infin; <%= tag.strip %>
+                    &infin; <%= result_tag.strip %>
                   </span>
                 <% end %>
               </div>

@@ -81,6 +81,22 @@ class MagicCard < ApplicationRecord
       .includes(:collection)
   end
 
+  # Rows in the user's collections holding a different printing of this same card.
+  # magic_cards rows are per-printing, so the expanded card row would otherwise give
+  # no hint that the same card is sitting in another location under a different set.
+  def other_printing_locations(user)
+    return CollectionMagicCard.none if user.nil? || scryfall_oracle_id.blank?
+
+    CollectionMagicCard
+      .joins(:collection)
+      .joins(magic_card: :boxset)
+      .where(collections: { user_id: user.id })
+      .where(magic_cards: { scryfall_oracle_id: scryfall_oracle_id, card_side: [nil, 'a'] })
+      .where.not(magic_card_id: id)
+      .preload(:collection, magic_card: :boxset)
+      .order('boxsets.release_date DESC NULLS LAST, collections.name ASC')
+  end
+
   def primary_type
     types = %w[Creature Artifact Enchantment Instant Sorcery Land Planeswalker Battle]
     types.find { |t| card_type&.include?(t) } || card_type&.split(' - ')&.first

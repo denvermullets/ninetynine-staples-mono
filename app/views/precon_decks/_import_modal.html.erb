@@ -153,7 +153,7 @@
         </div>
       <% end %>
 
-      <script>
+      <script nonce="<%= request.content_security_policy_nonce %>">
       function toggleNewCollectionFields(collectionId) {
         const isNewCollection = collectionId === '';
         document.getElementById('new-collection-name').disabled = !isNewCollection;

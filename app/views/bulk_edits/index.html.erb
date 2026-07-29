@@ -20,8 +20,6 @@
     <%= render partial: 'shared/cards/search', locals: { search_path: bulk_edit_load_table_path, show_price_filter: true } %>
   </div>
 
-  <div id="bulk-edit-results" data-bulk-edit-target="results"></div>
-
   <%= turbo_frame_tag 'bulk_edit_content' do %>
     <div id="table-container" class="min-w-full">
       <% if @magic_cards.present? %>

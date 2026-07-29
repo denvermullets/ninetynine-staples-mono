@@ -128,12 +128,12 @@
         <% end %>
 
         <div class="flex flex-wrap gap-1 min-h-6 mt-2">
-          <% collection.tags.each do |tag| %>
+          <% collection.tags.each do |collection_tag| %>
             <span
-              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(tag.color) %>"
-              style="background-color: <%= tag.color %>;"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= tag_text_color_class(collection_tag.color) %>"
+              style="background-color: <%= collection_tag.color %>;"
             >
-              <%= tag.name %>
+              <%= collection_tag.name %>
             </span>
           <% end %>
         </div>
