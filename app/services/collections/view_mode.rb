@@ -11,7 +11,9 @@ module Collections
     def call
       result = { view_mode: @view_mode, grouping: @grouping, grouping_allowed: @grouping_allowed }
 
-      unless @filtered_cards.present?
+      # exists? rather than present? - present? calls records.blank?, which loads the
+      # entire relation (every card, every column) before pagination ever gets a chance.
+      unless @filtered_cards.exists?
         return result.merge(magic_cards: [], pagy: nil, aggregated_quantities: nil, grouped_cards: nil)
       end
 

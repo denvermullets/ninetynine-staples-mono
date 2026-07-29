@@ -130,7 +130,6 @@
 
     <tbody class="bg-background" data-controller="expandable-row">
       <% magic_cards.each do |card| %>
-        <% trends = card.price_trend %>
         <% has_foil_in_collection = card.respond_to?(:foil_quantity) && card.foil_quantity.to_i > 0 %>
         <% has_normal_in_collection = card.respond_to?(:quantity) && card.quantity.to_i > 0 %>
 
