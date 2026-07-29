@@ -14,6 +14,7 @@ module CollectionRecord
       @foil_quantity = [params[:foil_quantity].to_i, 0].max
       @proxy_quantity = [params[:proxy_quantity].to_i, 0].max
       @proxy_foil_quantity = [params[:proxy_foil_quantity].to_i, 0].max
+      @card_uuid = params[:card_uuid]
     end
 
     def call
@@ -41,8 +42,13 @@ module CollectionRecord
       @quantity.zero? && @foil_quantity.zero? && @proxy_quantity.zero? && @proxy_foil_quantity.zero?
     end
 
+    # rows are keyed by printing too, so narrow when the caller knows which one it wants.
+    # order(:id) keeps the fallback deterministic for callers that don't pass a card_uuid.
     def find_source_card
-      CollectionMagicCard.find_by(collection: @from_collection, magic_card: @magic_card)
+      records = CollectionMagicCard.where(collection: @from_collection, magic_card: @magic_card)
+      records = records.where(card_uuid: @card_uuid) if @card_uuid.present?
+
+      records.order(:id).first
     end
 
     def sufficient_quantity?(from_card)

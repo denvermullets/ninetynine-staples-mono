@@ -78,7 +78,8 @@ module CollectionRecord
 
     def apply_transfer(row, amounts, from_id, to_id)
       result = Transfer.call(params: amounts.merge(
-        magic_card_id: row[:magic_card_id], from_collection_id: from_id, to_collection_id: to_id
+        magic_card_id: row[:magic_card_id], card_uuid: row[:card_uuid],
+        from_collection_id: from_id, to_collection_id: to_id
       ))
       base_row(row, action: result[:success] ? :transferred : :error, error: result[:success] ? nil : result[:error])
     end
