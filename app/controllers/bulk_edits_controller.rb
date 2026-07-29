@@ -25,6 +25,8 @@ class BulkEditsController < ApplicationController
   def save
     rows = parsed_rows
     @result = CollectionRecord::BulkApply.call(rows: rows, user: current_user)
+    # lets the client decide whether to re-seed the rows it just submitted
+    response.set_header('X-Bulk-Edit-Success', @result[:success].to_s)
 
     respond_to(&:turbo_stream)
   end

@@ -103,10 +103,13 @@ class CollectionMagicCardsController < ApplicationController
   end
 
   def load_collection_record
-    CollectionMagicCard.where(
+    records = CollectionMagicCard.where(
       collection_id: collection_params[:collection_id],
       magic_card_id: collection_params[:magic_card_id]
     )
+    # records are keyed by printing too, so narrow when the caller knows which one it wants
+    card_uuid = collection_params[:card_uuid]
+    card_uuid.present? ? records.where(card_uuid: card_uuid) : records
   end
 
   def reload_card_details(card_id)
