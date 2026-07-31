@@ -1,0 +1,11 @@
+<%# Clickable table heading. Turbo fetches the stream, table-sort#sort keeps the browser %>
+<%# URL in sync so the search/filter/view controllers don't drop the sort. %>
+<%= link_to load_collection_path(sort_config.link_params(column)),
+      data: { turbo_stream: true, action: 'click->table-sort#sort' },
+      class: 'flex items-center gap-1 hover:text-white' do %>
+  <%= label %>
+
+  <% if sort_config.indicator(column) %>
+    <span class="text-accent-50"><%= sort_config.indicator(column) %></span>
+  <% end %>
+<% end %>

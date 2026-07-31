@@ -4,11 +4,15 @@
 #
 module CollectionQuery
   class ColumnSort < Service
-    NUMERIC_COLUMNS = %w[edhrec_rank edhrec_saltiness mana_value normal_price foil_price].freeze
+    NUMERIC_COLUMNS = %w[
+      edhrec_rank edhrec_saltiness mana_value normal_price foil_price
+      ck_buylist_normal_price ck_buylist_foil_price
+    ].freeze
     # Allowlist of valid column names to prevent SQL injection
     ALLOWED_COLUMNS = %w[
       name card_type mana_value edhrec_rank edhrec_saltiness
-      normal_price foil_price release_date code deck_type
+      normal_price foil_price ck_buylist_normal_price ck_buylist_foil_price
+      release_date code deck_type
     ].freeze
 
     def initialize(records:, column:, direction: 'asc', table_name: nil)

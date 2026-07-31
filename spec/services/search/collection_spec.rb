@@ -62,6 +62,13 @@ RSpec.describe Search::Collection, type: :service do
     end
   end
 
+  context 'with an unknown sort_by' do
+    it 'returns the relation rather than nil' do
+      result = described_class.call(cards: cards, search_term: '', sort_by: :nonsense)
+      expect(result.map(&:name)).to contain_exactly('Lightning Bolt', 'Dark Ritual')
+    end
+  end
+
   context 'filtering by boxset code' do
     it 'returns only cards from that set' do
       result = described_class.call(cards: cards, search_term: '', sort_by: :price, code: 'TST')

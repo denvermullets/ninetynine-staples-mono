@@ -28,6 +28,22 @@ RSpec.describe CollectionQuery::ColumnSort, type: :service do
     end
   end
 
+  context 'sorting by buylist price' do
+    let!(:card_a) { create(:magic_card, name: 'Alpha', ck_buylist_normal_price: 3.0, ck_buylist_foil_price: nil) }
+    let!(:card_b) { create(:magic_card, name: 'Beta', ck_buylist_normal_price: nil, ck_buylist_foil_price: 9.0) }
+    let!(:card_c) { create(:magic_card, name: 'Gamma', ck_buylist_normal_price: 7.0, ck_buylist_foil_price: 2.0) }
+
+    it 'sorts by the regular buylist price with nulls last on desc' do
+      result = described_class.call(records: records, column: 'ck_buylist_normal_price', direction: 'desc')
+      expect(result.map(&:name)).to eq(%w[Gamma Alpha Beta])
+    end
+
+    it 'sorts by the foil buylist price with nulls last on desc' do
+      result = described_class.call(records: records, column: 'ck_buylist_foil_price', direction: 'desc')
+      expect(result.map(&:name)).to eq(%w[Beta Gamma Alpha])
+    end
+  end
+
   context 'with invalid column' do
     it 'returns records unmodified' do
       result = described_class.call(records: records, column: 'invalid')

@@ -67,6 +67,7 @@ module Search
         # The view uses quantity/foil_quantity to decide which price columns to show,
         # so we sort by the highest price of the finishes actually owned - otherwise a
         # foil-only printing would be ranked by a normal_price that's never displayed.
+        # CollectionQuery::CollectionSort reorders this relation when the user picks a column.
         @cards
           .joins(:collection_magic_cards)
           .select(
@@ -76,6 +77,8 @@ module Search
           )
           .group('magic_cards.id')
           .order(Arel.sql("#{OWNED_PRICE_SQL} DESC NULLS LAST"))
+      else
+        @cards
       end
     end
   end
