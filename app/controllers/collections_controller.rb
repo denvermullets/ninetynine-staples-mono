@@ -1,4 +1,6 @@
 class CollectionsController < ApplicationController
+  include CollectionSorting
+
   before_action :authenticate_user!, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
   before_action :set_collection, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
   before_action :ensure_owner, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
@@ -144,7 +146,7 @@ class CollectionsController < ApplicationController
       cards: cards, search_term: params[:search], code: params[:code],
       sort_by: :price, collection_id: params[:collection_id]
     )
-    @filtered_cards = CollectionQuery::Filter.call(cards: searched, params: params)
+    @filtered_cards = CollectionQuery::Filter.call(cards: apply_sort(searched), params: params)
   end
 
   def set_collection = @collection = Collection.find(params[:id])
