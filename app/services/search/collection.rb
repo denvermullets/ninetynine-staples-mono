@@ -49,7 +49,7 @@ module Search
 
     def handle_search
       @cards = if @search_term.present? && @boxset_id.nil? && @collection_id.nil?
-                 MagicCard.where('name ILIKE ?', "%#{@search_term}%")
+                 MagicCard.where('magic_cards.name ILIKE ?', "%#{@search_term}%")
                elsif @search_term.present? && @boxset_id.present?
                  @cards.where('magic_cards.name ILIKE ? AND magic_cards.boxset_id = ?', "%#{@search_term}%", @boxset_id)
                else
