@@ -16,6 +16,8 @@ module MagicCards
     end
 
     def price_change
+      return {} unless @price_history.present?
+
       price_changes = {}
 
       %w[foil normal].each do |type|
@@ -25,7 +27,8 @@ module MagicCards
         old_price = prices.first.values.first
         new_price = prices.last.values.first
         price_changes[type] = {
-          old_price: old_price, new_price: new_price, change: (new_price - old_price).round(2)
+          old_price: old_price, new_price: new_price, change: (new_price - old_price).round(2),
+          date: prices.last.keys.first
         }
       end
 

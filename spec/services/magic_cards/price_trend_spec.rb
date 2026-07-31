@@ -48,6 +48,12 @@ RSpec.describe MagicCards::PriceTrend, type: :service do
       result = described_class.new({ 'normal' => [{ '2026-02-01' => 5.0 }] }).price_change
       expect(result).to eq({})
     end
+
+    # cards that only ever had buylist data carry a nil price_history, and
+    # UpdateCollections asks every one of them for a price change
+    it 'returns empty hash when price_history is nil' do
+      expect(described_class.new(nil).price_change).to eq({})
+    end
   end
 
   describe '#trend' do

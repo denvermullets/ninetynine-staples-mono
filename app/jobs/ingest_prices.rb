@@ -17,22 +17,22 @@ class IngestPrices < ApplicationJob
     return if price_date == admin_user.prices_last_updated_at
 
     puts 'prices out of date, updating prices'
-    ingest_prices(json_data['data'])
+    ingest_prices(json_data['data'], price_date)
     admin_user.update(prices_last_updated_at: price_date)
   end
 
-  def ingest_prices(all_info)
+  def ingest_prices(all_info, price_date = nil)
     all_info.each do |key, value|
       price_info = value.dig('paper', 'tcgplayer', 'retail')
       ck_buylist_info = value.dig('paper', 'cardkingdom', 'buylist')
       next unless price_info.present? || ck_buylist_info.present?
 
       puts "#{key}, #{price_info}"
-      update_card(key, price_info, ck_buylist_info)
+      update_card(key, price_info, ck_buylist_info, price_date)
     end
   end
 
-  def update_card(card_uuid, price_info, ck_buylist_info)
+  def update_card(card_uuid, price_info, ck_buylist_info, price_date = nil)
     card = MagicCard.find_by(card_uuid:)
     return unless card.present?
 
@@ -40,7 +40,9 @@ class IngestPrices < ApplicationJob
     ck_attrs = ck_buylist_attributes(card, ck_buylist_info)
 
     card.update(**tcg_attrs, **ck_attrs)
-    UpdateCollections.perform_later(card) if CollectionMagicCard.exists?(magic_card_id: card.id)
+    return unless CollectionMagicCard.exists?(magic_card_id: card.id)
+
+    UpdateCollections.perform_later(card, price_date)
   end
 
   private
@@ -74,28 +76,24 @@ class IngestPrices < ApplicationJob
     }
   end
 
+  # missing pricing data doesn't mean the card is worthless - hang onto the last
+  # known price instead of cratering it to 0
   def find_price(existing_price, new_price)
-    return nil if new_price.nil?
+    return existing_price if new_price.nil?
 
     new_value = new_price.values.first
     new_value&.zero? || new_value.nil? ? existing_price : new_value
   end
 
+  # normal and foil are tracked independently. intersecting their dates used to
+  # drop the day's entry whenever the other finish had no data, which froze the
+  # history for good and left price_change replaying the same stale delta
   def update_price_history(price_history, new_daily_price)
-    price_history = { normal: [], foil: [] } if price_history.nil?
-    normal = check_existing(price_history['normal'], new_daily_price['normal'])
-    foil = check_existing(price_history['foil'], new_daily_price['foil'])
+    price_history ||= {}
 
-    sync_price_dates(normal, foil)
-  end
-
-  def sync_price_dates(normal, foil)
-    return { normal:, foil: } unless normal.any? && foil.any?
-
-    common_dates = normal.to_set { |entry| entry.keys.first } & foil.to_set { |entry| entry.keys.first }
     {
-      normal: normal.select { |entry| common_dates.include?(entry.keys.first) },
-      foil: foil.select { |entry| common_dates.include?(entry.keys.first) }
+      normal: check_existing(price_history['normal'] || [], new_daily_price['normal']),
+      foil: check_existing(price_history['foil'] || [], new_daily_price['foil'])
     }
   end
 

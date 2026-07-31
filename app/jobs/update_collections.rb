@@ -2,8 +2,8 @@
 class UpdateCollections < ApplicationJob
   queue_as :collection_updates
 
-  def perform(card)
-    price_change = card.price_change.deep_symbolize_keys
+  def perform(card, price_date = nil)
+    price_change = fresh_changes(card.price_change.deep_symbolize_keys, price_date)
     return if price_change_is_zero?(price_change)
 
     CollectionMagicCard.where(magic_card_id: card.id)
@@ -26,6 +26,15 @@ class UpdateCollections < ApplicationJob
                                                         total_price_change])
       end
     end
+  end
+
+  # only deltas produced by this run's price date count. a card whose history has
+  # stalled still reports a change between its last two entries, and without this
+  # that same change gets subtracted again on every single ingest
+  def fresh_changes(price_change, price_date)
+    return price_change if price_date.blank?
+
+    price_change.select { |_type, data| data[:date] == price_date }
   end
 
   def price_change_is_zero?(price_change)
