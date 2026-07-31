@@ -63,7 +63,7 @@ class MagicCardsController < ApplicationController
     card.collection_magic_cards.joins(:collection).where(collections: { user_id: user.id })
   end
 
-  # Only the collections view asks for this; boxset/commander expanded rows opt out.
+  # The collections and boxsets views ask for this; commander expanded rows opt out.
   def fetch_other_printing_locations(card, user)
     return CollectionMagicCard.none if params[:show_other_printings].blank?
 

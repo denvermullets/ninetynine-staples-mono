@@ -91,8 +91,10 @@
 
             <tr class="text-grey-text hover:bg-menu">
               <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%# set code instead of the full set name - the name blows the table width out %>
                 <span
                   class="inline-flex items-center"
+                  title="<%= printing.boxset.name %>"
                   data-controller="card-hover"
                   data-card-hover-image-value="<%= printing.image_medium %>"
                   data-card-hover-name-value="<%= printing.name %>"
@@ -103,7 +105,7 @@
                 >
                   <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= printing.boxset.keyrune_code&.downcase %> ss-<%= printing.rarity&.downcase || 'common' %> ss-fw ss-2x mr-3"></i>
 
-                  <%= printing.boxset.name %>
+                  <%= printing.boxset.code&.upcase %>
 
                   <span class="ml-2 text-xs text-grey-text">
                     #<%= printing.card_number %>
