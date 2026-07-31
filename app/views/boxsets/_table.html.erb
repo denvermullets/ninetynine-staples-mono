@@ -225,7 +225,9 @@
           class="hidden border border-background"
         >
           <td colspan="<%= visible_column_count %>">
-            <%= turbo_frame_tag "card_details_#{card.id}", src: boxset_magic_card_path(card.id), loading: :lazy %>
+            <%= turbo_frame_tag "card_details_#{card.id}",
+                src: boxset_magic_card_path(card.id, show_other_printings: true),
+                loading: :lazy %>
           </td>
         </tr>
       <% end %>
