@@ -1,0 +1,12 @@
+<%#
+  shared/_toast is html-only, and a partial rendered from a turbo_stream template is
+  looked up with turbo_stream formats, so the markup is inlined here instead
+%>
+<%= turbo_stream.append 'toasts' do %>
+  <div
+    data-controller="toast"
+    class="p-4 rounded-lg shadow-lg text-menu bg-accent-100"
+  >
+    <%= message %>
+  </div>
+<% end %>

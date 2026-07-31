@@ -24,6 +24,20 @@ RSpec.describe CollectionQuery::Search, type: :service do
     end
   end
 
+  context 'when a color filter is applied to the search results' do
+    # the unscoped search branch builds a fresh relation, so an unqualified `name`
+    # in its WHERE goes ambiguous once Filter joins colors (which also has `name`)
+    it 'does not raise on the ambiguous name column' do
+      white = Color.create!(name: 'W')
+      MagicCardColor.create!(magic_card: card_a, color: white)
+
+      searched = described_class.call(cards: cards, search_term: 'Lightning')
+      result = CollectionQuery::Filter.call(cards: searched, colors: ['W'])
+
+      expect(result).to contain_exactly(card_a)
+    end
+  end
+
   context 'without a search term' do
     it 'returns the original cards' do
       result = described_class.call(cards: cards, search_term: nil)

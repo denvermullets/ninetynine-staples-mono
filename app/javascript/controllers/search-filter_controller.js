@@ -95,8 +95,15 @@ export default class extends Controller {
         Accept: "text/vnd.turbo-stream.html",
       },
     })
-      .then((response) => response.text())
-      .then((html) => {
+      .then((response) => response.text().then((html) => ({ ok: response.ok, html })))
+      .then(({ ok, html }) => {
+        // an error response is a toast stream - inserting it anywhere runs it, and
+        // leaving table-container alone keeps the results the user already had
+        if (!ok) {
+          document.body.insertAdjacentHTML("beforeend", html);
+          return;
+        }
+
         document.querySelector("[id='table-container']").innerHTML = html;
 
         const usernameValue = currentParams.get("username");
