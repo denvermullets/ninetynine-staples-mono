@@ -6,7 +6,7 @@
   <div class="px-4 py-4 border-b border-highlight bg-foreground">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <%= link_to deck_builder_path(@deck), class: "text-accent-50 hover:text-accent-400 transition text-sm flex items-center gap-1" do %>
+        <%= link_to deck_builder_path(@deck, **deck_view_state), class: "text-accent-50 hover:text-accent-400 transition text-sm flex items-center gap-1" do %>
           <svg
             class="w-4 h-4"
             fill="none"

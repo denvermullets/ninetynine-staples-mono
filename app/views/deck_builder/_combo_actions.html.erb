@@ -2,7 +2,7 @@
 
 <% if has_combos && !deck_cards_changed %>
   <%= link_to combos_deck_builder_path(deck),
-    data: { turbo_frame: "_top" },
+    data: { turbo_frame: "_top", action: "click->deck-builder#navigate" },
     class: "px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border rounded-lg border-highlight
       text-grey-text hover:bg-foreground hover:text-accent-50
       hover:border-accent-50 transition cursor-pointer" do %>

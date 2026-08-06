@@ -180,19 +180,85 @@ RSpec.describe CollectionMagicCard, type: :model do
     end
   end
 
+  describe '#foil_only?' do
+    it 'returns true when every copy is foil' do
+      card = create(:collection_magic_card, quantity: 0, foil_quantity: 2)
+      expect(card.foil_only?).to be true
+    end
+
+    it 'returns true when the only copies are foil proxies' do
+      card = create(:collection_magic_card, quantity: 0, proxy_foil_quantity: 2)
+      expect(card.foil_only?).to be true
+    end
+
+    it 'returns false when the row mixes regular and foil copies' do
+      card = create(:collection_magic_card, quantity: 1, foil_quantity: 1)
+      expect(card.foil_only?).to be false
+    end
+
+    it 'returns false when non-foil proxies are present' do
+      card = create(:collection_magic_card, quantity: 0, foil_quantity: 1, proxy_quantity: 1)
+      expect(card.foil_only?).to be false
+    end
+
+    it 'returns false when the row has no copies' do
+      card = create(:collection_magic_card, quantity: 0)
+      expect(card.foil_only?).to be false
+    end
+
+    it 'reads staged quantities for staged cards' do
+      card = create(:collection_magic_card, staged: true, quantity: 3, staged_quantity: 0, staged_foil_quantity: 2)
+      expect(card.foil_only?).to be true
+    end
+  end
+
+  describe '#display_unit_price' do
+    it 'uses foil_price when every copy is foil' do
+      card = create(:collection_magic_card, quantity: 0, foil_quantity: 2)
+      expect(card.display_unit_price).to eq(10.0)
+    end
+
+    it 'uses normal_price when every copy is regular' do
+      card = create(:collection_magic_card, quantity: 2)
+      expect(card.display_unit_price).to eq(5.0)
+    end
+
+    it 'uses normal_price for rows mixing regular and foil copies' do
+      card = create(:collection_magic_card, quantity: 1, foil_quantity: 1)
+      expect(card.display_unit_price).to eq(5.0)
+    end
+
+    it 'falls back to display_price when the card has no foil price' do
+      magic_card = create(:magic_card, normal_price: 5.0, foil_price: 0.0)
+      card = create(:collection_magic_card, magic_card: magic_card, quantity: 0, foil_quantity: 2)
+      expect(card.display_unit_price).to eq(5.0)
+    end
+
+    it 'uses foil_price for foil-only cards with no normal price' do
+      magic_card = create(:magic_card, normal_price: 0.0, foil_price: 15.0)
+      card = create(:collection_magic_card, magic_card: magic_card, quantity: 2)
+      expect(card.display_unit_price).to eq(15.0)
+    end
+  end
+
   describe '#display_value' do
-    it 'returns display_quantity * display_price for non-staged cards' do
+    it 'sums each finish at its own price for non-staged cards' do
       card = create(:collection_magic_card, quantity: 2, foil_quantity: 1, proxy_quantity: 1, proxy_foil_quantity: 1)
-      expect(card.display_value).to eq(5 * 5.0)
+      expect(card.display_value).to eq((2 * 5.0) + (1 * 10.0) + (1 * 5.0) + (1 * 10.0))
+    end
+
+    it 'agrees with real_value plus proxy_value' do
+      card = create(:collection_magic_card, quantity: 2, foil_quantity: 1, proxy_quantity: 1, proxy_foil_quantity: 1)
+      expect(card.display_value).to eq(card.real_value + card.proxy_value)
     end
 
     context 'when card is staged' do
-      it 'uses staged display_quantity * display_price' do
+      it 'sums the staged quantities per finish' do
         card = create(:collection_magic_card,
                       staged: true,
                       staged_quantity: 2, staged_foil_quantity: 1,
                       staged_proxy_quantity: 1, staged_proxy_foil_quantity: 1)
-        expect(card.display_value).to eq(5 * 5.0)
+        expect(card.display_value).to eq((2 * 5.0) + (1 * 10.0) + (1 * 5.0) + (1 * 10.0))
       end
     end
 

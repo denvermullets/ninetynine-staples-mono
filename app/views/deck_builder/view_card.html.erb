@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="px-4 py-4 border-b border-highlight bg-foreground">
     <div class="flex items-center gap-4">
-      <%= link_to deck_builder_path(@deck), class: "text-accent-50 hover:text-accent-400 transition text-sm flex items-center gap-1" do %>
+      <%= link_to deck_builder_path(@deck, **deck_view_state), class: "text-accent-50 hover:text-accent-400 transition text-sm flex items-center gap-1" do %>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>

@@ -58,7 +58,7 @@
                 <%= render 'deck_builder/printing_card', printing: printing, is_current: is_current %>
               </div>
             <% else %>
-              <%= form_with url: swap_printing_deck_builder_path(deck, card_id: card.id, new_magic_card_id: printing.id),
+              <%= form_with url: swap_printing_deck_builder_path(deck, card_id: card.id, new_magic_card_id: printing.id, **deck_view_state),
                   method: :post,
                   class: "contents" do |f| %>
                 <button

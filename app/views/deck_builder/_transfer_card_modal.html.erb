@@ -82,13 +82,13 @@
           </button>
 
           <%= button_to "Remove from Deck",
-              remove_card_deck_builder_path(deck, card_id: card.id),
+              remove_card_deck_builder_path(deck, card_id: card.id, **deck_view_state),
               method: :delete,
               class: "px-4 py-2 text-sm transition rounded-md bg-red-500 text-grey-text border border-red-500 hover:bg-foreground hover:text-red-500 cursor-pointer",
               data: { turbo_frame: "_top" } %>
         </div>
       <% else %>
-        <%= form_with url: transfer_card_deck_builder_path(deck, card_id: card.id), method: :post, class: "space-y-4" do |f| %>
+        <%= form_with url: transfer_card_deck_builder_path(deck, card_id: card.id, **deck_view_state), method: :post, class: "space-y-4" do |f| %>
           <div>
             <label class="block text-sm font-medium text-grey-text mb-2">
               Transfer to:
@@ -114,7 +114,7 @@
             </button>
 
             <%= link_to "Delete",
-                delete_card_deck_builder_path(deck, card_id: card.id),
+                delete_card_deck_builder_path(deck, card_id: card.id, **deck_view_state),
                 class: "px-4 py-2 text-sm transition rounded-md border border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer",
                 data: { turbo_method: :delete, turbo_confirm: "Delete this card from your collection? This cannot be undone." } %>
 

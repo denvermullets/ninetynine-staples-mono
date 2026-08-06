@@ -7,7 +7,7 @@
   <div class="px-4 py-4 border-b border-highlight bg-foreground">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <%= link_to deck_builder_path(@deck), class: "text-accent-50 hover:text-accent-400 transition text-sm flex items-center gap-1" do %>
+        <%= link_to deck_builder_path(@deck, **deck_view_state), class: "text-accent-50 hover:text-accent-400 transition text-sm flex items-center gap-1" do %>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
@@ -103,7 +103,7 @@
     <div data-bulk-import-target="summaryPhase" class="hidden">
       <div data-bulk-import-target="summaryContainer"></div>
 
-      <%= link_to "Back to Deck", deck_builder_path(@deck),
+      <%= link_to "Back to Deck", deck_builder_path(@deck, **deck_view_state),
         class: "
           mt-4 block text-center w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-accent-50
           text-foreground border border-accent-50 hover:bg-foreground

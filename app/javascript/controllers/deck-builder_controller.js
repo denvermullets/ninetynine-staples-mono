@@ -73,6 +73,23 @@ export default class extends Controller {
     }
   }
 
+  // Links to the standalone pages (bulk import, combos) live in partials that
+  // aren't re-rendered when the sort dropdown changes, so their hrefs would go
+  // stale. Append the live view state at click time instead.
+  navigate(event) {
+    const href = event.currentTarget.getAttribute("href");
+    if (!href) return;
+
+    event.preventDefault();
+
+    const url = new URL(href, window.location.origin);
+    url.searchParams.set("view_mode", this.viewModeValue);
+    url.searchParams.set("grouping", this.groupingValue);
+    url.searchParams.set("sort_by", this.sortByValue);
+
+    Turbo.visit(url.toString());
+  }
+
   async refreshDeckDisplay() {
     const url = new URL(window.location.href);
     url.searchParams.set("view_mode", this.viewModeValue);

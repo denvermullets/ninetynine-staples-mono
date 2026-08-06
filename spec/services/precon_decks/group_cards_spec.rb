@@ -57,4 +57,37 @@ RSpec.describe PreconDecks::GroupCards, type: :service do
       expect(result).to eq({})
     end
   end
+
+  context 'when sorting by price' do
+    let(:cheap_card) { create(:magic_card, name: 'Cheap', normal_price: 1.0, foil_price: 2.0, boxset: boxset) }
+    let(:pricey_foil_card) do
+      create(:magic_card, name: 'Pricey Foil', normal_price: 2.0, foil_price: 50.0, boxset: boxset)
+    end
+
+    let(:price_deck) { PreconDeck.create!(code: 'PRC', file_name: 'price_deck', name: 'Price Deck') }
+
+    let!(:cheap_pdc) do
+      PreconDeckCard.create!(precon_deck: price_deck, magic_card: cheap_card,
+                             board_type: 'mainBoard', quantity: 1)
+    end
+
+    let!(:pricey_foil_pdc) do
+      PreconDeckCard.create!(precon_deck: price_deck, magic_card: pricey_foil_card,
+                             board_type: 'mainBoard', is_foil: true, quantity: 1)
+    end
+
+    it 'ranks a foil card by its foil price rather than its normal price' do
+      result = described_class.call(cards: [pricey_foil_pdc, cheap_pdc], grouping: 'none', sort_by: 'price')
+      names = result['All Cards'].map { |c| c.magic_card.name }
+      expect(names).to eq(['Cheap', 'Pricey Foil'])
+    end
+  end
+
+  context 'when sorting by name' do
+    it 'orders alphabetically within a group' do
+      result = described_class.call(cards: cards, grouping: 'none', sort_by: 'name')
+      names = result['All Cards'].map { |c| c.magic_card.name }
+      expect(names).to eq(names.sort)
+    end
+  end
 end
