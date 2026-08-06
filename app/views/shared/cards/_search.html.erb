@@ -14,7 +14,7 @@
       <div class="flex flex-row space-x-0">
         <%= form.text_field :search,
               value: params[:search],
-              placeholder: 'Enter card name or type',
+              placeholder: local_assigns[:advanced_syntax] ? 'Name, or c:b t:creature r:uncommon' : 'Enter card name or type',
               onfocus: "this.select();",
               class: 'w-full border text-grey-text rounded-l-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50' %>
 
@@ -34,7 +34,17 @@
               class: 'p-2 bg-background text-grey-text rounded-r-md border border-highlight hover:cursor-pointer hover:bg-gray-700' %>
       </div>
 
-      <p class="mt-2 text-xs text-grey-text">Search for a card</p>
+      <% if local_assigns[:advanced_syntax] %>
+        <% ignored = local_assigns[:card_query]&.ignored %>
+        <% if ignored.present? %>
+          <p class="mt-2 text-xs text-red-400">
+            Ignored (unusable value): <%= ignored.join(', ') %>
+          </p>
+        <% end %>
+        <%= render 'shared/cards/search_syntax_help' %>
+      <% else %>
+        <p class="mt-2 text-xs text-grey-text">Search for a card</p>
+      <% end %>
     </div>
   </div>
 
