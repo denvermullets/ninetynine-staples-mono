@@ -75,7 +75,7 @@
           >
             <!-- Quantity (inline editable for owner) -->
             <% if is_owner && is_staged_owned %>
-              <%= link_to edit_staged_modal_deck_builder_path(deck, card_id: card.id),
+              <%= link_to edit_staged_modal_deck_builder_path(deck, card_id: card.id, **deck_view_state),
                   data: { turbo_frame: "deck_modal" },
                   class: "w-8 shrink-0 block text-right text-grey-text/75 hover:text-accent-50 cursor-pointer" do %>
                 <%= card.display_quantity %>
@@ -230,7 +230,7 @@
 
             <!-- Price -->
             <span class="shrink-0 text-xs sm:text-sm text-right text-grey-text/75 w-12 sm:w-16">
-              <%= number_to_currency(card.magic_card.display_price) %>
+              <%= number_to_currency(card.display_unit_price) %>
             </span>
 
             <!-- Context Menu -->

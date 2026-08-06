@@ -8,7 +8,7 @@
     <% if deck.deck? || deck.commander_deck? %>
       <%= link_to 'Bulk Import', bulk_import_deck_builder_path(deck),
           class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
-          data: { turbo_frame: '_top' } %>
+          data: { turbo_frame: '_top', action: 'click->deck-builder#navigate' } %>
       <%= link_to 'Export', export_modal_deck_builder_path(deck),
           class: 'px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer',
           data: { turbo_frame: 'deck_modal' } %>

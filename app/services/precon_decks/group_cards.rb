@@ -80,14 +80,16 @@ module PreconDecks
       (GROUP_SORTERS[@grouping] || lambda(&:to_s)).call(key)
     end
 
-    def sort_cards(cards) = cards.sort_by { |c| [sort_value_for(c.magic_card), c.magic_card.name.downcase] }
+    # Sorters take the precon deck card rather than the magic card so price
+    # sorting can account for the finish the card is printed in
+    def sort_cards(cards) = cards.sort_by { |c| [sort_value_for(c), c.magic_card.name.downcase] }
 
     def sort_value_for(card) = send("sort_by_#{@sort_by}", card)
-    def sort_by_name(card) = card.name.downcase
-    def sort_by_mana_value(card) = card.mana_value || 99
-    def sort_by_price(card) = (card.normal_price || 0).to_f
-    def sort_by_rarity(card) = RARITY_ORDER.index(card.rarity) || 99
-    def sort_by_edhrec(card) = card.edhrec_rank || 999_999
-    def sort_by_salt(card) = -(card.edhrec_saltiness || 0).to_f
+    def sort_by_name(card) = card.magic_card.name.downcase
+    def sort_by_mana_value(card) = card.magic_card.mana_value || 99
+    def sort_by_price(card) = card.unit_price
+    def sort_by_rarity(card) = RARITY_ORDER.index(card.magic_card.rarity) || 99
+    def sort_by_edhrec(card) = card.magic_card.edhrec_rank || 999_999
+    def sort_by_salt(card) = -(card.magic_card.edhrec_saltiness || 0).to_f
   end
 end

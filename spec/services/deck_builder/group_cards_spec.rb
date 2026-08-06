@@ -124,4 +124,62 @@ RSpec.describe DeckBuilder::GroupCards, type: :service do
       expect(result.keys).to include('Creature', 'Instant', 'Land')
     end
   end
+
+  context 'when sorting by price' do
+    let(:cheap_card) { create(:magic_card, name: 'Cheap', normal_price: 1.0, foil_price: 2.0, boxset: create(:boxset)) }
+    let(:pricey_foil_card) do
+      create(:magic_card, name: 'Pricey Foil', normal_price: 2.0, foil_price: 50.0, boxset: create(:boxset))
+    end
+
+    let!(:cmc_cheap) do
+      create(:collection_magic_card, collection: deck, magic_card: cheap_card,
+                                     staged: false, needed: false, quantity: 1, foil_quantity: 0)
+    end
+
+    let!(:cmc_pricey_foil) do
+      create(:collection_magic_card, collection: deck, magic_card: pricey_foil_card,
+                                     staged: false, needed: false, quantity: 0, foil_quantity: 1)
+    end
+
+    subject do
+      described_class.call(cards: [cmc_pricey_foil, cmc_cheap], grouping: 'none', sort_by: 'price')
+    end
+
+    it 'ranks a foil row by its foil price rather than its normal price' do
+      names = subject['All Cards'].map { |c| c.magic_card.name }
+      expect(names).to eq(['Cheap', 'Pricey Foil'])
+    end
+  end
+
+  context 'when sorting a group' do
+    subject { described_class.call(cards: cards, grouping: 'none', sort_by: sort_key) }
+
+    def sorted_names = subject['All Cards'].map { |c| c.magic_card.name }
+
+    context 'by name' do
+      let(:sort_key) { 'name' }
+
+      it 'orders alphabetically' do
+        expect(sorted_names).to eq(sorted_names.sort)
+      end
+    end
+
+    context 'by mana value' do
+      let(:sort_key) { 'mana_value' }
+
+      it 'orders cheapest mana value first' do
+        mana_values = subject['All Cards'].map { |c| c.magic_card.mana_value }
+        expect(mana_values).to eq([0, 1, 3])
+      end
+    end
+
+    context 'by rarity' do
+      let(:sort_key) { 'rarity' }
+
+      it 'orders rare before common' do
+        rarities = subject['All Cards'].map { |c| c.magic_card.rarity }
+        expect(rarities.first).to eq('rare')
+      end
+    end
+  end
 end

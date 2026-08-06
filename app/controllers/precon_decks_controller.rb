@@ -108,7 +108,7 @@ class PreconDecksController < ApplicationController
   def build_stats(cards)
     {
       total: cards.sum(&:quantity),
-      value: cards.sum { |c| c.quantity * (c.magic_card.normal_price || 0).to_f }
+      value: cards.sum(&:value)
     }
   end
 

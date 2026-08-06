@@ -104,43 +104,38 @@ module DeckBuilder
       cards.sort_by { |c| card_sort_key(c) }
     end
 
+    # Sorters take the collection card rather than the magic card so price
+    # sorting can account for the finish actually in the deck
     def card_sort_key(card)
-      magic_card = card.magic_card
-      name = magic_card.name.downcase
-
-      sort_key_for(magic_card, name)
+      [sort_value_for(card), card.magic_card.name.downcase]
     end
 
-    def sort_key_for(magic_card, name)
-      [sort_value_for(magic_card), name]
+    def sort_value_for(card)
+      send("sort_by_#{@sort_by}", card)
     end
 
-    def sort_value_for(magic_card)
-      send("sort_by_#{@sort_by}", magic_card)
+    def sort_by_name(card)
+      card.magic_card.name.downcase
     end
 
-    def sort_by_name(magic_card)
-      magic_card.name.downcase
+    def sort_by_mana_value(card)
+      card.magic_card.mana_value || 99
     end
 
-    def sort_by_mana_value(magic_card)
-      magic_card.mana_value || 99
+    def sort_by_price(card)
+      card.display_unit_price
     end
 
-    def sort_by_price(magic_card)
-      magic_card.display_price
+    def sort_by_rarity(card)
+      RARITY_ORDER.index(card.magic_card.rarity) || 99
     end
 
-    def sort_by_rarity(magic_card)
-      RARITY_ORDER.index(magic_card.rarity) || 99
+    def sort_by_edhrec(card)
+      card.magic_card.edhrec_rank || 999_999
     end
 
-    def sort_by_edhrec(magic_card)
-      magic_card.edhrec_rank || 999_999
-    end
-
-    def sort_by_salt(magic_card)
-      -(magic_card.edhrec_saltiness || 0).to_f
+    def sort_by_salt(card)
+      -(card.magic_card.edhrec_saltiness || 0).to_f
     end
   end
 end

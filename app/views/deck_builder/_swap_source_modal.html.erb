@@ -123,7 +123,7 @@
                 </p>
               </div>
             <% else %>
-              <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: source[:collection_id], magic_card_id: mc.id),
+              <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: source[:collection_id], magic_card_id: mc.id, **deck_view_state),
                   method: :post,
                   class: "contents" do |f| %>
                 <button
@@ -170,7 +170,7 @@
               Or convert to a planned card:
             </p>
 
-            <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: nil),
+            <%= form_with url: swap_source_deck_builder_path(deck, card_id: card.id, source_collection_id: nil, **deck_view_state),
                 method: :post,
                 class: "contents" do |f| %>
               <button

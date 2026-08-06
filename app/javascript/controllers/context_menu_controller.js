@@ -99,7 +99,7 @@ export default class extends Controller {
     // Use Turbo's native frame loading for proper modal behavior
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
-      frame.src = url;
+      frame.src = this.urlWithViewState(url);
     }
   }
 
@@ -201,7 +201,7 @@ export default class extends Controller {
     // Open the transfer modal via Turbo frame
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
-      frame.src = url;
+      frame.src = this.urlWithViewState(url);
     }
   }
 
@@ -216,7 +216,7 @@ export default class extends Controller {
     // Open the swap printing modal via Turbo frame
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
-      frame.src = url;
+      frame.src = this.urlWithViewState(url);
     }
   }
 
@@ -231,7 +231,7 @@ export default class extends Controller {
     // Open the swap source modal via Turbo frame
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
-      frame.src = url;
+      frame.src = this.urlWithViewState(url);
     }
   }
 
@@ -246,7 +246,7 @@ export default class extends Controller {
     // Open the edit staged modal via Turbo frame
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
-      frame.src = url;
+      frame.src = this.urlWithViewState(url);
     }
   }
 
@@ -258,7 +258,7 @@ export default class extends Controller {
     const url = this.viewCardUrlValue;
     if (!url) return;
 
-    Turbo.visit(url);
+    Turbo.visit(this.urlWithViewState(url));
   }
 
   findReplacements(event) {
@@ -271,7 +271,7 @@ export default class extends Controller {
 
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
-      frame.src = url;
+      frame.src = this.urlWithViewState(url);
     }
   }
 
@@ -315,7 +315,7 @@ export default class extends Controller {
     const url = this.viewCombosUrlValue;
     if (!url) return;
 
-    Turbo.visit(url);
+    Turbo.visit(this.urlWithViewState(url));
   }
 
   deleteDeck(event) {
@@ -359,7 +359,7 @@ export default class extends Controller {
 
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
     if (frame) {
-      frame.src = url;
+      frame.src = this.urlWithViewState(url);
     }
   }
 }

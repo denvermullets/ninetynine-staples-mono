@@ -6,9 +6,12 @@ class DeckBuilderController < ApplicationController
   include DeckBuilderViewCard
 
   before_action :set_deck
+  before_action :set_deck_view_defaults
   before_action :authenticate_user!, except: %i[show view_card combos violations export_modal]
   before_action :ensure_owner, except: %i[show view_card combos violations export_modal]
   before_action :ensure_visible, only: %i[view_card combos violations export_modal]
+
+  helper_method :deck_view_state
 
   def show
     if @deck.hidden? && !@is_owner
@@ -16,9 +19,6 @@ class DeckBuilderController < ApplicationController
       return
     end
 
-    @view_mode = params[:view_mode] || 'list'
-    @grouping = params[:grouping] || 'type'
-    @sort_by = params[:sort_by] || 'mana_value'
     @search_scope = params[:search_scope] || 'all'
     load_deck_cards
     load_combo_data
@@ -174,6 +174,13 @@ class DeckBuilderController < ApplicationController
     @view_mode = @view_mode || params[:view_mode] || 'list'
     @grouping = @grouping || params[:grouping] || 'type'
     @sort_by = @sort_by || params[:sort_by] || 'mana_value'
+  end
+
+  # Card mutations happen through modals and standalone pages that would otherwise
+  # come back without the user's sort/grouping choices. Every path they build gets
+  # this merged in so the deck renders exactly as it did before the action.
+  def deck_view_state
+    { view_mode: @view_mode, grouping: @grouping, sort_by: @sort_by }
   end
 
   def deck_params = params.permit(:name, :description, :collection_type, :is_public, :bracket_level, tag_ids: [])

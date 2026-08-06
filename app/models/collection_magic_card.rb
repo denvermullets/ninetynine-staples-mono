@@ -58,10 +58,27 @@ class CollectionMagicCard < ApplicationRecord
       ((proxy_foil_quantity || 0) * magic_card.proxy_foil_price)
   end
 
-  # Value for deck builder display - uses display_price to stay consistent
-  # with the per-row price shown in the deck list template
+  # True when every copy on this row is a foil (regular or proxy)
+  def foil_only?
+    breakdown = display_quantity_breakdown
+    breakdown.any? && breakdown.keys.all? { |finish| finish.to_s.end_with?('foil') }
+  end
+
+  # Price shown in the deck list. Rows holding only foils price as foil; mixed
+  # rows fall back to the regular price since the quantity breakdown already
+  # shows the split.
+  def display_unit_price
+    return magic_card.foil_price.to_f if foil_only? && magic_card.foil_price.to_f.positive?
+
+    magic_card.display_price.to_f
+  end
+
+  # Value for deck builder display - summed per finish so group subtotals
+  # agree with the foil-aware deck totals
   def display_value
-    display_quantity * magic_card.display_price.to_f
+    display_quantity_breakdown.sum do |finish, qty|
+      qty * unit_price_for(finish)
+    end
   end
 
   def staged_real_value
@@ -106,5 +123,20 @@ class CollectionMagicCard < ApplicationRecord
 
   def commander?
     board_type == 'commander'
+  end
+
+  private
+
+  def unit_price_for(finish)
+    case finish
+    when :foil then foil_price_with_fallback
+    when :proxy then magic_card.proxy_normal_price
+    when :proxy_foil then magic_card.proxy_foil_price
+    else magic_card.display_price.to_f
+    end
+  end
+
+  def foil_price_with_fallback
+    magic_card.foil_price.to_f.positive? ? magic_card.foil_price.to_f : magic_card.display_price.to_f
   end
 end
