@@ -1,7 +1,7 @@
 # Filters and sorts a card relation for the collections view.
 # Called on every page load (not just searches) — sort_by: :price is the default.
-# The first branch in handle_search drops user scoping intentionally
-# for the boxsets view, where cards aren't scoped to a user.
+# Only handles the plain name portion of a search; CardQuery::Builder applies any
+# Scryfall-style terms to the relation this returns.
 
 module Search
   class Collection < Service
@@ -47,10 +47,11 @@ module Search
       end
     end
 
+    # Always narrows the relation it was handed. Rebuilding from MagicCard here used to drop
+    # the caller's user scope, so searching the "all cards" view - where neither a boxset nor
+    # a collection is selected - returned every user's cards.
     def handle_search
-      @cards = if @search_term.present? && @boxset_id.nil? && @collection_id.nil?
-                 MagicCard.where('magic_cards.name ILIKE ?', "%#{@search_term}%")
-               elsif @search_term.present? && @boxset_id.present?
+      @cards = if @search_term.present? && @boxset_id.present?
                  @cards.where('magic_cards.name ILIKE ? AND magic_cards.boxset_id = ?', "%#{@search_term}%", @boxset_id)
                else
                  @cards.where('magic_cards.name ILIKE ?', "%#{@search_term}%")

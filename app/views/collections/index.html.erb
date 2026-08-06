@@ -50,7 +50,7 @@
   >
     <%= render partial: 'view_toggle', locals: { view_mode: @view_mode } %>
     <%= render partial: 'grouping_dropdown', locals: { view_mode: @view_mode, grouping_allowed: @grouping_allowed, grouping: @grouping } %>
-    <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type) } %>
+    <%= render partial: 'shared/cards/search', locals: { search_path: load_collection_path(collection_type: @collection_type), advanced_syntax: true, card_query: @card_query } %>
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_collection_path(collection_type: @collection_type) } %>
 
     <!-- Show Proxies Toggle -->
