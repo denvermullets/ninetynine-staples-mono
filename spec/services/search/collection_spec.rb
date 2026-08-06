@@ -22,6 +22,17 @@ RSpec.describe Search::Collection, type: :service do
       expect(result.map(&:name)).to include('Lightning Bolt')
       expect(result.map(&:name)).not_to include('Dark Ritual')
     end
+
+    # this used to rebuild the relation from MagicCard when neither a boxset nor a collection
+    # was selected, which handed back every user's cards on the "all cards" view
+    it 'keeps the scope it was given when no boxset or collection is set' do
+      stranger = create(:magic_card, name: 'Lightning Helix')
+      create(:collection_magic_card, collection: create(:collection), magic_card: stranger, quantity: 1)
+
+      result = described_class.call(cards: cards, search_term: 'Lightning', sort_by: :price)
+
+      expect(result.map(&:name)).to contain_exactly('Lightning Bolt')
+    end
   end
 
   context 'sorting by price' do

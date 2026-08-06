@@ -1,0 +1,166 @@
+<% fields = [
+    ['c:', 'id:', 'color, color identity'],
+    ['t:', nil, 'card type, subtype or supertype'],
+    ['r:', nil, 'rarity'],
+    ['o:', nil, 'oracle text'],
+    ['n:', 'm:', 'name, mana cost'],
+    ['mv:', nil, 'mana value'],
+    ['pow:', 'tou:', 'power, toughness'],
+    ['s:', nil, 'set code'],
+    ['kw:', 'a:', 'keyword, artist'],
+    ['f:', 'banned:', 'legal in / banned in a format'],
+    ['is:', nil, 'commander, token, reprint, dfc, colorless, foil, etched'],
+    ['qty:', 'needed:', 'copies you own, cards marked needed'],
+    ['foil:', 'proxy:', 'true or false'],
+    ['usd:', 'change:', 'price, weekly price change']
+  ]
+
+  operators = [
+    [':', 'contains or matches part of', 't:goblin'],
+    ['=', 'is exactly', 't=creature'],
+    ['!=', 'is not exactly', 'r!=rare'],
+    ['>= <= > <', 'compares', 'mv<=3'],
+    ['-', 'excludes', '-t:legendary'],
+    ['" "', 'groups a phrase', 'o:"draw a card"']
+  ]
+
+  examples = [
+    ['c:b t:creature r:uncommon', 'black uncommon creatures'],
+    ['t:goblin -t:legendary mv<=3', 'cheap non-legendary goblins'],
+    ['o:"draw a card" c>=wu', 'azorius cantrips'],
+    ['f:commander pow>=5 kw:flying', 'big commander-legal fliers'],
+    ['r>=rare usd>=20 qty>=4', 'rares worth $20+ you own a playset of'],
+    ['c:c t:artifact foil:true', 'colorless artifacts you own in foil']
+  ] %>
+
+<div data-controller="dialog" class="mt-2">
+  <p class="text-xs text-grey-text">
+    Search by name, or
+    <button
+      type="button"
+      data-action="click->dialog#open"
+      class="underline cursor-pointer text-accent-50 hover:text-nine-white"
+    >
+      use advanced syntax
+    </button>
+  </p>
+
+  <dialog
+    data-dialog-target="dialog"
+    data-action="click->dialog#closeOnBackdrop keydown.esc->dialog#close"
+    class="
+      fixed p-0 m-0 border rounded-lg top-1/2 left-1/2 -translate-x-1/2
+      -translate-y-1/2 bg-foreground border-highlight backdrop:bg-black/50
+    "
+  >
+    <div class="w-[52rem] max-w-[92vw] max-h-[85vh] p-6 overflow-y-auto">
+      <div class="flex items-start justify-between mb-1">
+        <h3 class="text-lg font-semibold text-nine-white">Advanced search</h3>
+
+        <button
+          type="button"
+          data-action="click->dialog#close"
+          class="cursor-pointer text-grey-text hover:text-nine-white"
+          aria-label="Close"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <p class="mb-5 text-sm text-grey-text">
+        Terms combine with AND, so
+        <code class="text-accent-50">c:b t:creature</code> finds black
+        creatures. Anything that isn't a term is matched against the card name.
+      </p>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <div>
+          <h4
+            class="
+              mb-2 text-xs font-semibold tracking-wide uppercase
+              text-nine-white
+            "
+          >
+            Fields
+          </h4>
+
+          <dl class="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 text-sm">
+            <% fields.each do |key, alt, description| %>
+              <dt class="font-mono whitespace-nowrap text-accent-50">
+                <%= key %>
+
+                <% if alt %>
+                  <span class="text-grey-text">/</span>
+                  <%= alt %>
+                <% end %>
+              </dt>
+
+              <dd class="text-grey-text"><%= description %></dd>
+            <% end %>
+          </dl>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <div>
+            <h4
+              class="
+                mb-2 text-xs font-semibold tracking-wide uppercase
+                text-nine-white
+              "
+            >
+              Operators
+            </h4>
+
+            <dl class="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 text-sm">
+              <% operators.each do |symbol, meaning, sample| %>
+                <dt class="font-mono whitespace-nowrap text-accent-50">
+                  <%= symbol %>
+                </dt>
+
+                <dd class="text-grey-text">
+                  <%= meaning %>
+                  <span class="font-mono text-xs">— <%= sample %></span>
+                </dd>
+              <% end %>
+            </dl>
+          </div>
+
+          <div>
+            <h4
+              class="
+                mb-2 text-xs font-semibold tracking-wide uppercase
+                text-nine-white
+              "
+            >
+              Examples
+            </h4>
+
+            <ul class="flex flex-col gap-2 text-sm">
+              <% examples.each do |query, description| %>
+                <li>
+                  <span class="font-mono text-accent-50"><%= query %></span>
+
+                  <span class="block text-xs text-grey-text">
+                    <%= description %>
+                  </span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</div>
