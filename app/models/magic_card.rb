@@ -106,16 +106,23 @@ class MagicCard < ApplicationRecord
     magic_card_color_idents.includes(:color).map { |mci| mci.color.name }.sort.join
   end
 
+  # exists? ignores an already-loaded :finishes association and re-queries on every call, so a card
+  # row paid one query per predicate per call site. Reading the names off the association means a
+  # preload - or failing that, the first call - covers every later check on the same card.
+  def finish_names
+    finishes.map(&:name)
+  end
+
   def foil_available?
-    finishes.exists?(name: %w[foil etched])
+    finish_names.intersect?(%w[foil etched])
   end
 
   def non_foil_available?
-    finishes.exists?(name: 'nonfoil')
+    finish_names.include?('nonfoil')
   end
 
   def etched_finish?
-    finishes.exists?(name: 'etched')
+    finish_names.include?('etched')
   end
 
   # Returns the best available price for display purposes

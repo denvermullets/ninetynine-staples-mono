@@ -174,7 +174,9 @@ class CollectionsController < ApplicationController
       @pagy = nil
       @magic_cards = total.zero? ? [] : @filtered_cards.to_a
     else
-      @pagy, @magic_cards = pagy(:offset, @filtered_cards, count: total)
+      # preload after pagy slices the relation, not inside CardSearch - preloading the filtered
+      # relation would drag every owned row's associations into memory
+      @pagy, @magic_cards = pagy(:offset, @filtered_cards.preload(:boxset, :finishes), count: total)
     end
   end
 end

@@ -269,4 +269,68 @@ RSpec.describe MagicCard, type: :model do
       expect(mock_service).to have_received(:trend).with(days: 30, threshold_percent: 10.0)
     end
   end
+
+  describe 'finish predicates' do
+    def card_with_finishes(*names)
+      create(:magic_card).tap do |card|
+        names.each { |name| MagicCardFinish.create!(magic_card: card, finish: Finish.create!(name: name)) }
+      end
+    end
+
+    describe '#foil_available?' do
+      it 'is true for a foil printing' do
+        expect(card_with_finishes('nonfoil', 'foil').foil_available?).to be(true)
+      end
+
+      it 'is true for an etched-only printing' do
+        expect(card_with_finishes('etched').foil_available?).to be(true)
+      end
+
+      it 'is false for a nonfoil-only printing' do
+        expect(card_with_finishes('nonfoil').foil_available?).to be(false)
+      end
+
+      it 'is false when the card has no finishes' do
+        expect(create(:magic_card).foil_available?).to be(false)
+      end
+    end
+
+    describe '#non_foil_available?' do
+      it 'is true for a nonfoil printing' do
+        expect(card_with_finishes('nonfoil').non_foil_available?).to be(true)
+      end
+
+      it 'is false for a foil-only printing' do
+        expect(card_with_finishes('foil').non_foil_available?).to be(false)
+      end
+    end
+
+    describe '#etched_finish?' do
+      it 'is true for an etched printing' do
+        expect(card_with_finishes('etched').etched_finish?).to be(true)
+      end
+
+      it 'is false for a foil printing' do
+        expect(card_with_finishes('foil').etched_finish?).to be(false)
+      end
+    end
+
+    # the collection table renders these predicates a dozen times per row, so they have to read the
+    # preloaded association rather than re-query - exists? ignored the preload entirely
+    it 'issues no queries when :finishes is preloaded' do
+      card_with_finishes('nonfoil', 'foil')
+      cards = MagicCard.preload(:finishes).to_a
+
+      queries = []
+      subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+        queries << payload[:sql] unless payload[:name].in?(%w[SCHEMA TRANSACTION])
+      end
+
+      cards.each { |card| [card.foil_available?, card.non_foil_available?, card.etched_finish?] }
+
+      expect(queries).to be_empty
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+  end
 end
