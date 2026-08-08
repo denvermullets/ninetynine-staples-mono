@@ -166,20 +166,21 @@ class CollectionsController < ApplicationController
     end
   end
 
+  # counted once here: it answers ViewMode's "did anything match" and pagy takes it as :count,
+  # which stops pagy counting the grouped relation itself - see CollectionQuery::TotalCount
   def setup_view_mode
-    view = Collections::ViewMode.new(filtered_cards: @filtered_cards, user: @user, params: params)
+    total = CollectionQuery::TotalCount.call(cards: @filtered_cards)
+    view = Collections::ViewMode.new(filtered_cards: @filtered_cards, user: @user, params: params,
+                                     total_count: total)
     result = view.call
-    @view_mode = result[:view_mode]
-    @grouping = result[:grouping]
-    @grouping_allowed = result[:grouping_allowed]
-    @aggregated_quantities = result[:aggregated_quantities]
-    @grouped_cards = result[:grouped_cards]
+    @view_mode, @grouping, @grouping_allowed, @aggregated_quantities, @grouped_cards =
+      result.values_at(:view_mode, :grouping, :grouping_allowed, :aggregated_quantities, :grouped_cards)
 
-    if result[:magic_cards].empty? || view.skip_pagination?
+    if total.zero? || view.skip_pagination?
       @pagy = nil
-      @magic_cards = result[:magic_cards].empty? ? [] : @filtered_cards.to_a
+      @magic_cards = total.zero? ? [] : @filtered_cards.to_a
     else
-      @pagy, @magic_cards = pagy(:offset, @filtered_cards)
+      @pagy, @magic_cards = pagy(:offset, @filtered_cards, count: total)
     end
   end
 end

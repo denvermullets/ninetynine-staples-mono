@@ -1,19 +1,20 @@
 module Collections
   class ViewMode < Service
-    def initialize(filtered_cards:, user:, params:)
+    def initialize(filtered_cards:, user:, params:, total_count:)
       @filtered_cards = filtered_cards
       @user = user
       @view_mode = params[:view_mode] || 'table'
       @grouping = params[:grouping] || 'none'
       @grouping_allowed = params[:code].present?
+      @total_count = total_count
     end
 
     def call
       result = { view_mode: @view_mode, grouping: @grouping, grouping_allowed: @grouping_allowed }
 
-      # exists? rather than present? - present? calls records.blank?, which loads the
-      # entire relation (every card, every column) before pagination ever gets a chance.
-      unless @filtered_cards.exists?
+      # the caller already counted the relation to hand pagy an explicit count, so reuse it rather
+      # than asking the database again - this used to be an exists? on the same grouped relation
+      if @total_count.zero?
         return result.merge(magic_cards: [], pagy: nil, aggregated_quantities: nil, grouped_cards: nil)
       end
 
@@ -28,7 +29,7 @@ module Collections
       @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
     end
 
-    attr_reader :filtered_cards, :view_mode
+    attr_reader :filtered_cards, :view_mode, :total_count
 
     private
 
