@@ -138,18 +138,12 @@ class CollectionsController < ApplicationController
     @options = Collections::BoxsetOptions.call(collections: @user.collections, collection_id: params[:collection_id])
   end
 
-  # The search box doubles as a Scryfall-style query box: CardQuery::Parser pulls out any
-  # recognized terms and leaves the rest as the name search, so a query with none behaves as before
   def search_magic_cards
     return if @user.nil?
 
-    @card_query = CardQuery::Parser.call(query: params[:search])
-    cards = MagicCard.joins(collection_magic_cards: :collection).where(collections: { user_id: @user.id })
-    searched = Search::Collection.call(cards: cards, search_term: @card_query.free_text,
-                                       code: params[:code], sort_by: :price,
-                                       collection_id: params[:collection_id])
-    advanced = CardQuery::Builder.call(cards: apply_sort(searched), terms: @card_query.terms)
-    @filtered_cards = CollectionQuery::Filter.call(cards: advanced, params: params)
+    result = Collections::CardSearch.call(user: @user, params: params, sort_config: sort_config)
+    @card_query = result[:card_query]
+    @filtered_cards = result[:cards]
   end
 
   def set_collection = @collection = Collection.find(params[:id])

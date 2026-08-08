@@ -25,13 +25,6 @@ module CollectionSorting
 
   private
 
-  # reorders the grouped relation Search::Collection returns to match the clicked heading
-  def apply_sort(cards)
-    CollectionQuery::CollectionSort.call(
-      cards: cards, column: sort_config.column, direction: sort_config.direction
-    )
-  end
-
   def sort_config
     @sort_config ||= CollectionQuery::SortConfig.new(
       params: params,

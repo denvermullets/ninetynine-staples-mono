@@ -16,14 +16,17 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
     MagicCardColor.create!(magic_card: ritual, color: Color.find_or_create_by!(name: 'B'))
   end
 
-  # mirrors CollectionsController#search_magic_cards so the count is exercised against the
-  # relation the app actually paginates, not a simplified stand-in
-  def filtered_cards(search: nil, **filter_params)
-    query = CardQuery::Parser.call(query: search)
-    cards = MagicCard.joins(collection_magic_cards: :collection).where(collections: { user_id: user.id })
-    searched = Search::Collection.call(cards: cards, search_term: query.free_text, sort_by: :price)
-    advanced = CardQuery::Builder.call(cards: searched, terms: query.terms)
-    CollectionQuery::Filter.call(cards: advanced, **filter_params)
+  def sort_config(params)
+    CollectionQuery::SortConfig.new(
+      params: params,
+      allowed_columns: CollectionSorting::SORT_COLUMNS,
+      default_column: CollectionQuery::CollectionSort::DEFAULT_COLUMN
+    )
+  end
+
+  # the relation the controller actually paginates, built by the same service it uses
+  def filtered_cards(**params)
+    Collections::CardSearch.call(user: user, params: params, sort_config: sort_config(params))[:cards]
   end
 
   # the property that matters: whatever pagy would have computed the slow way, we compute the
@@ -62,15 +65,16 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
                                      quantity: 0, foil_quantity: 0, proxy_quantity: 4)
     end
 
-    it 'excludes proxy-only cards when hide_proxies is on' do
-      relation = filtered_cards(hide_proxies: true)
+    # hide_proxies is the default - only the literal string 'false' turns it off
+    it 'excludes proxy-only cards by default' do
+      relation = filtered_cards
 
       expect(described_class.call(cards: relation)).to eq(2)
       expect_parity(relation)
     end
 
     it 'includes proxy-only cards when hide_proxies is off' do
-      relation = filtered_cards(hide_proxies: false)
+      relation = filtered_cards(hide_proxies: 'false')
 
       expect(described_class.call(cards: relation)).to eq(3)
       expect_parity(relation)
@@ -79,7 +83,7 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
 
   context 'with column filters' do
     it 'counts a rarity filter' do
-      relation = filtered_cards(rarities: ['rare'])
+      relation = filtered_cards(rarity: ['rare'])
 
       expect(described_class.call(cards: relation)).to eq(1)
       expect_parity(relation)
@@ -88,7 +92,7 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
     it 'counts a price change filter' do
       bolt.update_column(:price_change_weekly_normal, 15.0)
       ritual.update_column(:price_change_weekly_normal, 2.0)
-      relation = filtered_cards(price_change_min: 10.0, price_change_max: 20.0)
+      relation = filtered_cards(price_change_range: '10.0,20.0')
 
       expect(described_class.call(cards: relation)).to eq(1)
       expect_parity(relation)
@@ -97,7 +101,7 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
     # the colors filter is the one that adds .distinct on top of the GROUP BY, so the count
     # query becomes SELECT DISTINCT COUNT(*) OVER () - still one row, still the group total
     it 'counts a colors filter that adds distinct' do
-      relation = filtered_cards(colors: ['R'])
+      relation = filtered_cards(mana: ['R'])
 
       expect(relation.distinct_value).to be(true)
       expect(described_class.call(cards: relation)).to eq(1)
@@ -121,15 +125,13 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
     end
   end
 
-  context 'with a sorted relation' do
-    # the card_number sort aliases an expression into the SELECT and orders by that alias;
-    # pick replaces the select list, so the count has to drop the ORDER BY or Postgres errors
-    it 'counts a relation ordered by the card number alias' do
-      relation = CollectionQuery::CollectionSort.call(cards: filtered_cards, column: 'card_number')
+  # the card_number sort aliases an expression into the SELECT and orders by that alias;
+  # pick replaces the select list, so the count has to drop the ORDER BY or Postgres errors
+  it 'counts a relation ordered by the card number alias' do
+    relation = filtered_cards(sort: 'card_number', direction: 'asc')
 
-      expect { described_class.call(cards: relation) }.not_to raise_error
-      expect(described_class.call(cards: relation)).to eq(2)
-    end
+    expect { described_class.call(cards: relation) }.not_to raise_error
+    expect(described_class.call(cards: relation)).to eq(2)
   end
 
   context 'without a GROUP BY' do
