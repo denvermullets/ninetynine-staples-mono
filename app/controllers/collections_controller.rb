@@ -160,23 +160,33 @@ class CollectionsController < ApplicationController
     end
   end
 
-  # counted once here: it answers ViewMode's "did anything match" and pagy takes it as :count,
-  # which stops pagy counting the grouped relation itself - see CollectionQuery::TotalCount
+  # counted once here: pagy takes it as :count, which stops pagy counting the grouped relation
+  # itself - see CollectionQuery::TotalCount
   def setup_view_mode
-    total = CollectionQuery::TotalCount.call(cards: @filtered_cards)
-    view = Collections::ViewMode.new(filtered_cards: @filtered_cards, user: @user, params: params,
-                                     total_count: total)
-    result = view.call
-    @view_mode, @grouping, @grouping_allowed, @aggregated_quantities, @grouped_cards =
-      result.values_at(:view_mode, :grouping, :grouping_allowed, :aggregated_quantities, :grouped_cards)
+    view = Collections::ViewMode.new(params: params)
+    @view_mode, @grouping, @grouping_allowed = view.call.values_at(:view_mode, :grouping, :grouping_allowed)
 
-    if total.zero? || view.skip_pagination?
-      @pagy = nil
-      @magic_cards = total.zero? ? [] : @filtered_cards.to_a
-    else
-      # preload after pagy slices the relation, not inside CardSearch - preloading the filtered
-      # relation would drag every owned row's associations into memory
-      @pagy, @magic_cards = pagy(:offset, @filtered_cards.preload(:boxset, :finishes), count: total)
-    end
+    total = CollectionQuery::TotalCount.call(cards: @filtered_cards)
+    @pagy, @magic_cards = total.zero? ? [nil, []] : paginate_cards(total, view)
+    setup_visual_data(view)
+  end
+
+  # preload after pagy slices the relation, not inside CardSearch - preloading the filtered
+  # relation would drag every owned row's associations into memory
+  # :colors is only read by GroupCards' color grouping, so it stays off every other load
+  def paginate_cards(total, view)
+    preloads = view.visual? && @grouping == 'color' ? %i[boxset finishes colors] : %i[boxset finishes]
+    pagy(:offset, @filtered_cards.preload(*preloads), count: total)
+  end
+
+  # built from the paginated page, never the full relation: aggregating ids off an unpaginated
+  # relation instantiated the user's entire collection to render 50 cards
+  def setup_visual_data(view)
+    return unless view.visual? && @magic_cards.any?
+
+    result = Collections::VisualModeSetup.call(cards: @magic_cards, user: @user, grouping: @grouping,
+                                               collection_id: params[:collection_id])
+    @aggregated_quantities = result[:aggregated_quantities]
+    @grouped_cards = result[:grouped_cards]
   end
 end
