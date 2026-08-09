@@ -18,9 +18,9 @@ module CollectionQuery
       return @cards.size if @cards.is_a?(Array)
       return @cards.count unless @cards.respond_to?(:group_values) && @cards.group_values.present?
 
-      # unscope(:order) - the owned-price ordering is pure overhead for a count, and it drops
-      # CollectionSort's card_number_numeric reference along with it (pick replaces the select
-      # list, so the alias it points at would be gone). pick returns nil when nothing matches.
+      # unscope(:order) - sorting 20k grouped rows to count them is pure overhead, and pick
+      # replaces the select list, so nothing the ORDER BY might lean on survives anyway.
+      # pick returns nil when nothing matches.
       @cards.unscope(:order).pick(Arel.sql('COUNT(*) OVER ()')).to_i
     end
   end

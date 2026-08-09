@@ -84,18 +84,21 @@ module CollectionQuery
       end
     end
 
+    # an IN subquery rather than a join, for the same reason filter_by_exact_colors uses one:
+    # joining magic_card_colors fans a card out to one row per color, and the collections relation
+    # is grouped, so SUM(quantity) counted a two-color card twice. DISTINCT does not help - it runs
+    # after aggregation - and it made the aggregate owned-price ORDER BY illegal on top of that.
     def filter_by_any_colors(cards)
-      cards.joins(magic_card_colors: :color)
-           .where(colors: { name: @colors })
-           .distinct
+      cards.where(
+        id: MagicCard.joins(magic_card_colors: :color).where(colors: { name: @colors }).select(:id)
+      )
     end
 
     def exclude_proxy_only(cards)
       return cards unless cards.respond_to?(:group_values) && cards.group_values.present?
 
       cards.having(
-        'SUM(COALESCE(collection_magic_cards.quantity, 0)) + ' \
-        'SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) > 0'
+        "#{::Search::Collection::QUANTITY_SQL} + #{::Search::Collection::FOIL_QUANTITY_SQL} > 0"
       )
     end
 
