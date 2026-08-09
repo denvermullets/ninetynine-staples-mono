@@ -1,9 +1,12 @@
 module Collections
   class VisualModeSetup < Service
-    def initialize(cards:, user:, grouping: 'none')
+    # cards is the paginated page, already loaded - the caller must not hand this an unpaginated
+    # relation, or aggregating the ids instantiates the user's entire collection
+    def initialize(cards:, user:, grouping: 'none', collection_id: nil)
       @cards = cards
       @user = user
       @grouping = grouping
+      @collection_id = collection_id
     end
 
     def call
@@ -16,7 +19,8 @@ module Collections
     private
 
     def aggregate_quantities
-      Collections::AggregateQuantities.call(magic_cards: @cards, user: @user)
+      Collections::AggregateQuantities.call(magic_card_ids: @cards.map(&:id), user: @user,
+                                            collection_id: @collection_id)
     end
 
     def group_cards
