@@ -98,12 +98,12 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
       expect_parity(relation)
     end
 
-    # the colors filter is the one that adds .distinct on top of the GROUP BY, so the count
-    # query becomes SELECT DISTINCT COUNT(*) OVER () - still one row, still the group total
-    it 'counts a colors filter that adds distinct' do
+    # the colors filter is an IN subquery rather than a join, so it narrows the group without
+    # adding DISTINCT - the count stays a plain COUNT(*) OVER () over the same groups
+    it 'counts a colors filter' do
       relation = filtered_cards(mana: ['R'])
 
-      expect(relation.distinct_value).to be(true)
+      expect(relation.distinct_value).to be_falsey
       expect(described_class.call(cards: relation)).to eq(1)
       expect_parity(relation)
     end
@@ -125,9 +125,9 @@ RSpec.describe CollectionQuery::TotalCount, type: :service do
     end
   end
 
-  # the card_number sort aliases an expression into the SELECT and orders by that alias;
-  # pick replaces the select list, so the count has to drop the ORDER BY or Postgres errors
-  it 'counts a relation ordered by the card number alias' do
+  # pick replaces the select list, so the count has to drop the card_number sort's ORDER BY
+  # expression along with it
+  it 'counts a relation ordered by card number' do
     relation = filtered_cards(sort: 'card_number', direction: 'asc')
 
     expect { described_class.call(cards: relation) }.not_to raise_error

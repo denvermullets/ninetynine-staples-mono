@@ -2,9 +2,12 @@
 # reorders the grouped relation Search::Collection builds for the collections table
 #
 # The relation arrives already ordered by owned price and already grouped by magic_cards.id,
-# with the quantity/foil_quantity aggregate aliases the table view reads. We only ever swap
-# the ORDER BY - dropping the select or the grouping would blank out the price columns and
-# silently disable CollectionQuery::Filter#exclude_proxy_only.
+# with the quantity/foil_quantity aggregate aliases the table view reads. We only ever swap the
+# ORDER BY - dropping the grouping would silently disable CollectionQuery::Filter#exclude_proxy_only,
+# and dropping the aggregates would blank out the table's price columns.
+#
+# Nothing here adds to the SELECT: CollectionQuery::PageRows narrows it to ids plus the aggregates
+# before the page is fetched, so an ORDER BY that referenced a select alias would not survive.
 #
 module CollectionQuery
   class CollectionSort < Service
@@ -12,9 +15,7 @@ module CollectionQuery
     DEFAULT_COLUMN = 'owned_price'.freeze
 
     # card_number is a string ("12a", "T5"), so pull the digits out to sort numerically and
-    # push the ones with no digits to the end. Aliased into the SELECT rather than dropped
-    # straight into ORDER BY - the color filter can add DISTINCT, and Postgres then requires
-    # ORDER BY expressions to appear in the select list.
+    # push the ones with no digits to the end.
     CARD_NUMBER_SQL = "NULLIF(REGEXP_REPLACE(magic_cards.card_number, '\\D', '', 'g'), '')::integer".freeze
 
     def initialize(cards:, column: nil, direction: nil)
@@ -38,13 +39,14 @@ module CollectionQuery
       end
     end
 
+    # the expression goes straight into ORDER BY rather than through a select alias - the relation
+    # is grouped by the primary key, so Postgres accepts it, and PageRows can then narrow the SELECT
     def sort_by_card_number
       direction = @direction == 'desc' ? 'DESC' : 'ASC'
 
       @cards
-        .reorder(nil)
-        .select("#{CARD_NUMBER_SQL} AS card_number_numeric")
-        .order(Arel.sql("card_number_numeric #{direction} NULLS LAST"), 'magic_cards.card_number' => @direction)
+        .reorder(Arel.sql("#{CARD_NUMBER_SQL} #{direction} NULLS LAST"))
+        .order('magic_cards.card_number' => @direction)
     end
 
     # ColumnSort drops an unrecognized column silently, which would leave us with no ORDER BY

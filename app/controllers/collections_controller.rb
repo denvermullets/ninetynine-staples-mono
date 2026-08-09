@@ -171,12 +171,14 @@ class CollectionsController < ApplicationController
     setup_visual_data(view)
   end
 
-  # preload after pagy slices the relation, not inside CardSearch - preloading the filtered
-  # relation would drag every owned row's associations into memory
+  # pagy only slices the relation - CollectionQuery::PageRows runs it, narrowing the SELECT so the
+  # owned-price sort doesn't spill full rows to disk, then fetching the page by id and preloading
   # :colors is only read by GroupCards' color grouping, so it stays off every other load
   def paginate_cards(total, view)
     preloads = view.visual? && @grouping == 'color' ? %i[boxset finishes colors] : %i[boxset finishes]
-    pagy(:offset, @filtered_cards.preload(*preloads), count: total)
+    pagy, page = pagy(:offset, @filtered_cards, count: total)
+
+    [pagy, CollectionQuery::PageRows.call(cards: page, preloads: preloads)]
   end
 
   # built from the paginated page, never the full relation: aggregating ids off an unpaginated
