@@ -80,15 +80,24 @@ RSpec.describe CollectionQuery::CollectionSort, type: :service do
   end
 
   context 'with a color filter applied on top' do
-    it 'survives the DISTINCT the filter adds' do
-      red = Color.create!(name: 'R')
-      MagicCardColor.create!(magic_card: card_a, color: red)
+    before { MagicCardColor.create!(magic_card: card_a, color: Color.find_or_create_by!(name: 'R')) }
 
+    it 'narrows a card_number sort without adding DISTINCT' do
       filtered = CollectionQuery::Filter.call(
         cards: described_class.call(cards: cards, column: 'card_number', direction: 'asc'),
         colors: ['R']
       )
 
+      expect(filtered.distinct_value).to be_falsey
+      expect(filtered.map(&:name)).to eq(['Lightning Bolt'])
+    end
+
+    # the default sort orders by the aggregate owned-price expression, which a DISTINCT would
+    # have made illegal - Postgres wants ORDER BY expressions in the select list under DISTINCT
+    it 'narrows the default owned price sort' do
+      filtered = CollectionQuery::Filter.call(cards: described_class.call(cards: cards, column: nil), colors: ['R'])
+
+      expect { filtered.load }.not_to raise_error
       expect(filtered.map(&:name)).to eq(['Lightning Bolt'])
     end
   end

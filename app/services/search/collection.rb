@@ -5,13 +5,19 @@
 
 module Search
   class Collection < Service
+    # a card can sit in several of the user's collections, so the owned totals are sums over the
+    # grouped collection_magic_cards rows. Shared with CollectionQuery::PageRows, which reselects
+    # them when it fetches a page - the two have to agree or the table's quantity column drifts.
+    QUANTITY_SQL = 'SUM(COALESCE(collection_magic_cards.quantity, 0))'.freeze
+    FOIL_QUANTITY_SQL = 'SUM(COALESCE(collection_magic_cards.foil_quantity, 0))'.freeze
+
     # Highest price among the finishes the user actually owns. A printing owned only in
     # foil sorts on foil_price, and vice versa; a proxy-only row (no quantities) falls to 0.
     OWNED_PRICE_SQL = <<~SQL.squish.freeze
       GREATEST(
-        CASE WHEN SUM(COALESCE(collection_magic_cards.quantity, 0)) > 0
+        CASE WHEN #{QUANTITY_SQL} > 0
              THEN COALESCE(magic_cards.normal_price, 0) ELSE 0 END,
-        CASE WHEN SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) > 0
+        CASE WHEN #{FOIL_QUANTITY_SQL} > 0
              THEN COALESCE(magic_cards.foil_price, 0) ELSE 0 END
       )
     SQL
@@ -71,11 +77,7 @@ module Search
         # CollectionQuery::CollectionSort reorders this relation when the user picks a column.
         @cards
           .joins(:collection_magic_cards)
-          .select(
-            "magic_cards.*,
-             SUM(COALESCE(collection_magic_cards.quantity, 0)) AS quantity,
-             SUM(COALESCE(collection_magic_cards.foil_quantity, 0)) AS foil_quantity"
-          )
+          .select("magic_cards.*, #{QUANTITY_SQL} AS quantity, #{FOIL_QUANTITY_SQL} AS foil_quantity")
           .group('magic_cards.id')
           .order(Arel.sql("#{OWNED_PRICE_SQL} DESC NULLS LAST"))
       else
