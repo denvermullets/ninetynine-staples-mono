@@ -2,7 +2,33 @@ import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="search-filter"
 export default class extends Controller {
-  static targets = ["form", "exactColorButton"];
+  static targets = ["form", "exactColorButton", "searchInput"];
+
+  connect() {
+    this.boundHandleShortcut = this.handleShortcut.bind(this);
+    document.addEventListener("keydown", this.boundHandleShortcut);
+  }
+
+  disconnect() {
+    document.removeEventListener("keydown", this.boundHandleShortcut);
+  }
+
+  // "/" jumps focus into the card search field
+  handleShortcut(event) {
+    if (event.key !== "/") return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (!this.hasSearchInputTarget) return;
+
+    // don't hijack typing, and don't steal focus out of an open modal
+    const active = document.activeElement;
+    if (active && (active.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName))) {
+      return;
+    }
+    if (document.querySelector("dialog[open]")) return;
+
+    event.preventDefault(); // otherwise "/" lands in the field
+    this.searchInputTarget.focus();
+  }
 
   toggleExactColor(event) {
     event.preventDefault();
