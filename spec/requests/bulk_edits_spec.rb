@@ -21,6 +21,58 @@ RSpec.describe 'BulkEdits', type: :request do
     }.merge(overrides)
   end
 
+  # two sets, so the boxset lookup is a real N+1 rather than identical queries the per-request
+  # query cache collapses into one. No finish factory exists - MagicCardFinish is joined by hand,
+  # same as spec/requests/boxsets_spec.rb
+  def card_with_finishes(boxset, number, *finish_names)
+    create(:magic_card, boxset: boxset, card_number: number).tap do |card|
+      finish_names.each do |name|
+        MagicCardFinish.create!(magic_card: card, finish: Finish.find_or_create_by!(name: name))
+      end
+    end
+  end
+
+  def queries_for(params)
+    queries = []
+    subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+      queries << payload[:sql] unless payload[:name].in?(%w[SCHEMA TRANSACTION])
+    end
+
+    get bulk_edit_load_table_path, params: params, as: :turbo_stream
+
+    queries
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  # the table renders card.boxset.keyrune_code and both price predicates per row, and load_cards
+  # doesn't paginate - without the preload every row cost its own finishes query
+  describe 'GET /bulk-edit/table' do
+    let(:alpha_set) { create(:boxset, code: 'ALP', name: 'Alpha Set') }
+    let(:beta_set) { create(:boxset, code: 'BET', name: 'Beta Set') }
+
+    before do
+      card_with_finishes(alpha_set, '1', 'nonfoil', 'foil')
+      card_with_finishes(alpha_set, '2', 'etched')
+      card_with_finishes(beta_set, '3', 'nonfoil')
+      card_with_finishes(beta_set, '4', 'foil', 'etched')
+    end
+
+    it 'loads finishes once for the whole table' do
+      expect(queries_for(code: 'all').grep(/FROM "finishes"/).size).to eq(1)
+    end
+
+    it 'does not look up boxsets one row at a time' do
+      expect(queries_for(code: 'all').grep(/"boxsets"\."id" = /)).to be_empty
+    end
+
+    it 'renders' do
+      queries_for(code: 'all')
+
+      expect(response).to have_http_status(:success)
+    end
+  end
+
   describe 'POST /bulk-edit/save' do
     context 'when the batch applies cleanly' do
       it 'appends a success toast and flags success for the client' do

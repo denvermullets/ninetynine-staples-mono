@@ -45,6 +45,11 @@ RSpec.configure do |config|
 
   # adding factorybot
   config.include FactoryBot::Syntax::Methods
+
+  # Rack::Attack keeps its throttle counters in a process-wide MemoryStore, so they accumulate
+  # across examples - the suite as a whole would blow past login/ip's 10-per-15-minutes and later
+  # specs would get a 429 instead of a session. Clearing per example keeps each one isolated
+  config.before { Rack::Attack.cache.store.clear }
   # You can uncomment this line to turn off ActiveRecord support entirely.
   # config.use_active_record = false
 

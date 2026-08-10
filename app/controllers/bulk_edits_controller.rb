@@ -49,9 +49,12 @@ class BulkEditsController < ApplicationController
     load_cards
   end
 
+  # every row reads card.boxset.keyrune_code and the finish predicates, so without this the table
+  # paid a finishes query per row. This table has no pagination to preload after, so the preload
+  # goes on the relation itself - bounding that set is its own problem, see STA-262
   def load_cards
     cards = search_magic_cards
-    @magic_cards = cards.to_a
+    @magic_cards = cards.preload(:boxset, :finishes).to_a
   end
 
   def search_magic_cards

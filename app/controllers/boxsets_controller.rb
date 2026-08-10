@@ -96,7 +96,7 @@ class BoxsetsController < ApplicationController
     cards = search_magic_cards
 
     if skip_pagination?
-      @magic_cards = cards.to_a
+      @magic_cards = preload_grouped(cards).to_a
       @grouped_cards = Collections::GroupCards.call(cards: @magic_cards, grouping: @grouping)
       @pagy = nil
     else
@@ -107,6 +107,15 @@ class BoxsetsController < ApplicationController
 
   def skip_pagination?
     @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
+  end
+
+  # the visual card reads no associations, so this branch only pays for what GroupCards itself
+  # touches - grouping by color calls card.colors per card, and on an unloaded association each
+  # empty?/size/first is its own query. Grouping by rarity just reads a column
+  def preload_grouped(cards)
+    return cards unless @grouping == 'color'
+
+    cards.preload(:colors)
   end
 
   # preloaded on the page, never on the filtered relation - preloading before pagy would
