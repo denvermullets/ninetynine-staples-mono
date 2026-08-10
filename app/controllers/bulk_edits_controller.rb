@@ -98,7 +98,7 @@ class BulkEditsController < ApplicationController
   def fetch_boxset(code)
     return if code.nil?
 
-    Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: code)
+    Boxset.find_by(code: code)
   end
 
   def handle_empty_params

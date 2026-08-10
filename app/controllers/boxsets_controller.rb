@@ -59,7 +59,7 @@ class BoxsetsController < ApplicationController
   def fetch_boxset(code)
     return if code.nil?
 
-    Boxset.includes(magic_cards: { magic_card_color_idents: :color }).find_by(code: code)
+    Boxset.find_by(code: code)
   end
 
   def filter_by_price
