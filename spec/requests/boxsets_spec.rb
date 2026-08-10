@@ -15,6 +15,13 @@ RSpec.describe 'Boxsets', type: :request do
     end
   end
 
+  # no color factory either - MagicCardColorIdent is the association :colors actually resolves to
+  def color_ident(card, *color_names)
+    color_names.each do |name|
+      MagicCardColorIdent.create!(magic_card: card, color: Color.find_or_create_by!(name: name))
+    end
+  end
+
   def queries_for(params)
     queries = []
     subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
@@ -57,6 +64,40 @@ RSpec.describe 'Boxsets', type: :request do
   describe 'GET load_boxset in visual view' do
     it 'does not preload finishes' do
       expect(queries_for(code: 'all', view_mode: 'visual').grep(/FROM "finishes"/)).to be_empty
+    end
+  end
+
+  # this branch skips pagination and hands the whole set to GroupCards, which reads card.colors per
+  # card when grouping by color - on an unloaded association empty?/size/first each cost a query.
+  # Grouping needs a specific boxset selected, so these pass a real code rather than 'all'
+  describe 'GET load_boxset grouped in visual view' do
+    before do
+      alpha_set.magic_cards.each { |card| color_ident(card, 'White') }
+    end
+
+    it 'loads colors once for the whole group instead of per card' do
+      queries = queries_for(code: 'ALP', view_mode: 'visual', grouping: 'color')
+
+      expect(queries.grep(/FROM "colors"/).size).to eq(1)
+    end
+
+    it 'does not count or check colors one card at a time' do
+      queries = queries_for(code: 'ALP', view_mode: 'visual', grouping: 'color')
+
+      expect(queries.grep(/COUNT\(\*\).*"magic_card_color_idents"/)).to be_empty
+    end
+
+    it 'renders the grouped view' do
+      queries_for(code: 'ALP', view_mode: 'visual', grouping: 'color')
+
+      expect(response).to have_http_status(:success)
+    end
+
+    # rarity is a plain column, so grouping by it shouldn't drag colors in
+    it 'skips the colors preload when grouping by rarity' do
+      queries = queries_for(code: 'ALP', view_mode: 'visual', grouping: 'rarity')
+
+      expect(queries.grep(/FROM "colors"/)).to be_empty
     end
   end
 end
