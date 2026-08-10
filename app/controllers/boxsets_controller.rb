@@ -43,6 +43,8 @@ class BoxsetsController < ApplicationController
     @cards = @cards.where("card_side IS NULL OR card_side != 'b'")
     @cards = filter_by_price if params[:valuable_only] == 'true' # Apply price filter before color filtering
     @cards = filter_cards
+    # Sort returns a relation, not an Array - keep it that way so pagy can push the LIMIT/OFFSET
+    # down to Postgres instead of us instantiating every row in the set to render one page
     CollectionQuery::Sort.call(cards: @cards, sort_by: :id)
   end
 
@@ -98,12 +100,23 @@ class BoxsetsController < ApplicationController
       @grouped_cards = Collections::GroupCards.call(cards: @magic_cards, grouping: @grouping)
       @pagy = nil
     else
-      @pagy, @magic_cards = pagy(:offset, cards, items: 50)
+      @pagy, page = pagy(:offset, cards, items: 50)
+      @magic_cards = preload_page(page)
     end
   end
 
   def skip_pagination?
     @view_mode == 'visual' && @grouping != 'none' && @grouping_allowed
+  end
+
+  # preloaded on the page, never on the filtered relation - preloading before pagy would
+  # instantiate the whole set to render 50 rows. The table and its mobile partial read
+  # card.boxset.keyrune_code and the finish predicates on every row; the visual card reads
+  # neither, so it doesn't pay for it
+  def preload_page(page)
+    return page if @view_mode == 'visual'
+
+    page.preload(:boxset, :finishes)
   end
 
   def handle_empty_params
