@@ -16,6 +16,7 @@
               value: params[:search],
               placeholder: local_assigns[:advanced_syntax] ? 'Name, or c:b t:creature r:uncommon' : 'Enter card name or type',
               onfocus: "this.select();",
+              data: { search_filter_target: 'searchInput' },
               class: 'w-full border text-grey-text rounded-l-md bg-background border-highlight focus:border-accent-50 focus:ring-accent-50' %>
 
         <%= form.hidden_field :username, value: params[:username] %>
@@ -43,7 +44,7 @@
         <% end %>
         <%= render 'shared/cards/search_syntax_help' %>
       <% else %>
-        <p class="mt-2 text-xs text-grey-text">Search for a card</p>
+        <p class="mt-2 text-xs text-grey-text">Search for a card — press / to focus</p>
       <% end %>
     </div>
   </div>
