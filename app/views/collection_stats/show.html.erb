@@ -42,6 +42,38 @@
       title: 'Card Types', rows: @stats[:card_types][:types],
       subtext: 'A card that is both an Artifact and a Creature is counted in each row, so copies here exceed your card count.',
       footer: "#{number_with_delimiter(@stats[:card_types][:possible_commanders])} of your printings can lead a Commander deck." } %>
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <% if @stats[:colors].any? %>
+        <%= render partial: 'collection_stats/chart_panel', locals: {
+          title: 'Colour Identity',
+          subtext: 'Colour identity, counted once per card - a Golgari card is Multicolor, not one Black and one Green.',
+          chart_type: 'doughnut',
+          height: 300,
+          labels: @stats[:colors].map { |color| color[:label] },
+          series: @stats[:colors].map { |color| color[:copies] },
+          palette: @stats[:colors].map { |color| color[:label].downcase },
+          legend: @stats[:colors].map { |color| {
+            label: color[:label],
+            icon: color[:swatch] && "no-tailwind ms ms-cost #{color[:swatch]}",
+            copies: color[:copies] } },
+          tooltips: @stats[:colors].map { |color|
+            "#{number_with_delimiter(color[:copies])} copies · #{number_to_currency(color[:value])} · #{color[:share]}%" } } %>
+      <% end %>
+
+      <%= render partial: 'collection_stats/chart_panel', locals: {
+        title: 'Mana Curve',
+        height: 320,
+        subtext: 'Lands and tokens excluded. X is a card with no recorded mana value, not a card that costs {X}.',
+        chart_type: 'bar',
+        labels: @stats[:mana_curve][:buckets].map { |mv| mv[:label] },
+        series: @stats[:mana_curve][:buckets].map { |mv| mv[:copies] },
+        tooltips: @stats[:mana_curve][:buckets].map { |mv|
+          "#{number_with_delimiter(mv[:copies])} copies · #{number_to_currency(mv[:value])}" },
+        footer: "Average mana value #{@stats[:mana_curve][:average]}." } %>
+    </div>
+
+    <%= render partial: 'collection_stats/sets', locals: { sets: @stats[:sets] } %>
+
     <% if @stats[:history].present? %>
       <div class="flex flex-col gap-2">
         <h2 class="text-xl font-bold text-grey-text">Value Over Time</h2>

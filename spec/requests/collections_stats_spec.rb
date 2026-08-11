@@ -65,6 +65,21 @@ RSpec.describe 'Collection analytics', type: :request do
       expect(response.body).not_to include('1,234.56')
     end
 
+    # the only guard against a typo'd local in the chart partials - no service spec renders ERB
+    it 'renders the chart panels once there is something to chart' do
+      boxset = create(:boxset, name: 'Alpha', release_date: '2020-01-01')
+      card = create(:magic_card, boxset: boxset, mana_value: 3, normal_price: 5)
+      MagicCardColorIdent.create!(magic_card: card, color: Color.find_or_create_by!(name: 'G'))
+      create(:collection_magic_card, collection: public_collection, magic_card: card, quantity: 2)
+
+      get collections_stats_path(user.username)
+
+      expect(response.body).to include('data-controller="stats-chart"')
+      expect(response.body).to include('Colour Identity')
+      expect(response.body).to include('Mana Curve')
+      expect(response.body).to include('Set Timeline')
+    end
+
     it 'redirects when handed a collection id belonging to another user' do
       theirs = create(:collection, user: stranger, is_public: true)
 

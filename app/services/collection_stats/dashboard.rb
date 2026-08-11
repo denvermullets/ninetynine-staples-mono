@@ -29,7 +29,10 @@ module CollectionStats
         overview: Overview.call(collection_ids: ids),
         rarity: Rarity.call(collection_ids: ids),
         price_tiers: PriceTiers.call(collection_ids: ids),
-        card_types: CardTypes.call(collection_ids: ids)
+        card_types: CardTypes.call(collection_ids: ids),
+        colors: Colors.call(collection_ids: ids),
+        mana_curve: ManaCurve.call(collection_ids: ids),
+        sets: Sets.call(collection_ids: ids)
       }
     end
   end
