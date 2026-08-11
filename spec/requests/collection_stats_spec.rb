@@ -4,38 +4,17 @@ require 'rails_helper'
 # What is worth pinning down is the seam between them - who is allowed to ask for a tab, what a tab
 # request costs, and what happens to a URL that was only ever meant for a frame. The panels' own
 # answers are covered by the service specs.
+# Nothing here renders the shell. A request spec that renders the full layout needs a built
+# tailwind.css, which CI does not have, so the shell's behaviour is covered where it does not need a
+# view: the query budget and the unknown-section fallback both live in
+# spec/services/collection_stats/dashboard_spec.rb. Every example below either gets a bare partial
+# back (frame requests render no layout), a 404, or a redirect.
 RSpec.describe 'CollectionStats', type: :request do
   let(:user) { create(:user, username: 'owner') }
   let!(:collection) { create(:collection, user: user, is_public: true) }
   let(:frame) { { 'Turbo-Frame' => 'stats_panel' } }
 
   before { create(:collection_magic_card, collection: collection, quantity: 1) }
-
-  def queries_for(path, headers: {})
-    queries = []
-    subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
-      queries << payload[:sql] unless payload[:name].in?(%w[SCHEMA TRANSACTION])
-    end
-    get path, headers: headers
-    queries
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
-  end
-
-  describe 'the shell' do
-    it 'renders without running a single panel aggregate beyond the headline one' do
-      queries = queries_for(collections_stats_path(user.username))
-
-      expect(response).to have_http_status(:ok)
-      expect(queries.grep(/FROM "collection_magic_cards"/).size).to eq(1)
-    end
-
-    it 'still renders when a stale bookmark names a section that no longer exists' do
-      get collections_stats_path(user.username, section: 'made_up')
-
-      expect(response).to have_http_status(:ok)
-    end
-  end
 
   describe 'a section' do
     it 'serves each tab to a frame request' do
