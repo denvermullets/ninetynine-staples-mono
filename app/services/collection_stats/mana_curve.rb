@@ -71,7 +71,7 @@ module CollectionStats
         .where(magic_cards: { is_token: false })
         .where(NOT_A_LAND)
         .group(Arel.sql(BUCKET))
-        .pluck(Arel.sql(BUCKET), Arel.sql("SUM(#{TOTAL_QTY})"), Arel.sql("SUM(#{TOTAL_VALUE})"),
+        .pluck(Arel.sql(BUCKET), Arel.sql("SUM(#{TOTAL_QTY})"), Arel.sql("SUM(#{REAL_VALUE})"),
                Arel.sql("SUM(COALESCE(magic_cards.mana_value, 0) * #{TOTAL_QTY})"))
         .to_h { |label, copies, value, mv| [label, row(label, copies, value, mv)] }
     end

@@ -49,14 +49,15 @@ RSpec.describe CollectionStats::Rarity, type: :service do
       expect(rare[:printings]).to eq(2)
     end
 
-    it 'counts every finish, not just non-foil copies' do
+    # copies count all four finishes; value counts the two real ones - 1 + 2, not 1 + 2 + 1 + 2
+    it 'counts every finish but values real copies only' do
       card = create(:magic_card, rarity: 'mythic', normal_price: 1, foil_price: 2)
       create(:collection_magic_card, collection: collection, magic_card: card,
                                      quantity: 1, foil_quantity: 1,
                                      proxy_quantity: 1, proxy_foil_quantity: 1)
 
       expect(rows.first[:copies]).to eq(4)
-      expect(rows.first[:value]).to eq(6)
+      expect(rows.first[:value]).to eq(3)
     end
 
     it 'gives each rarity its share of total value' do

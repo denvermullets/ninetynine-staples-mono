@@ -48,13 +48,15 @@ RSpec.describe CollectionStats::PriceTiers, type: :service do
       expect(tier('$20-50')[:value]).to eq(30)
     end
 
-    it 'bands a proxy on its fallback price, not zero' do
+    # a proxy has no price, so it has no band - not even the bottom one, which would read as
+    # "you own a worthless card" rather than "you own a card this panel cannot price"
+    it 'leaves proxies out of every band' do
       card = create(:magic_card, normal_price: 0, foil_price: 40)
       create(:collection_magic_card, collection: collection, magic_card: card,
-                                     quantity: 0, proxy_quantity: 1)
+                                     quantity: 0, proxy_quantity: 1, proxy_foil_quantity: 1)
 
-      expect(tier('$20-50')[:copies]).to eq(1)
-      expect(tier('<$1')[:copies]).to eq(0)
+      expect(result[:tiers].sum { |row| row[:copies] }).to eq(0)
+      expect(result[:tiers].sum { |row| row[:value] }).to eq(0)
     end
   end
 

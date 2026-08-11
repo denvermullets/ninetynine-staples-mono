@@ -1,12 +1,16 @@
 # Value distribution across price bands.
 #
 # This is the one panel that cannot be a plain grouped aggregate. A single collection_magic_cards
-# row can hold copies at four DIFFERENT unit prices - a $0.50 non-foil and a $30 foil of the same
+# row can hold copies at two DIFFERENT unit prices - a $0.50 non-foil and a $30 foil of the same
 # printing belong in two different bands - so bucketing has to happen per copy, not per row.
 #
-# CROSS JOIN LATERAL (VALUES ...) unpivots the four buckets into four priced rows and buckets
-# them in a single pass. The alternatives are worse: 6 tiers x 4 finishes of conditional
-# aggregates, or four separate queries stitched together in Ruby.
+# CROSS JOIN LATERAL (VALUES ...) unpivots the priced buckets into one row each and bands them in a
+# single pass. The alternatives are worse: 6 tiers x N finishes of conditional aggregates, or a
+# query per finish stitched together in Ruby.
+#
+# Proxies are not here at all. Both columns this panel reports are statements about price - which
+# band a copy falls in, and how much value sits in that band - and a proxy has no price to answer
+# either with. So its copies and its value both foot to the real totals in the KPI grid.
 #
 # Written as raw SQL rather than through the Base CTE helpers because the LATERAL has no
 # ActiveRecord expression, and half-building it would be more confusing than writing it out.
@@ -91,6 +95,13 @@ module CollectionStats
       SQL
     end
 
+    # Built from Sql::PRICED_BUCKETS rather than spelled out, so the bands and the bulk split on the
+    # KPI row can only ever be reading the same buckets at the same prices. That list is real copies
+    # only - a proxy has no price and so has no band to sit in.
+    def bucket_values
+      Sql::PRICED_BUCKETS.map { |qty, price| "(#{qty}, #{price})" }.join(",\n")
+    end
+
     def sql
       <<~SQL.squish
         #{owned_cte}
@@ -100,10 +111,7 @@ module CollectionStats
           FROM owned
           JOIN magic_cards ON magic_cards.id = owned.magic_card_id
           CROSS JOIN LATERAL (VALUES
-            (owned.qty, COALESCE(magic_cards.normal_price, 0)),
-            (owned.foil_qty, COALESCE(magic_cards.foil_price, 0)),
-            (owned.proxy_qty, (#{Sql::PROXY_NORMAL})),
-            (owned.proxy_foil_qty, (#{Sql::PROXY_FOIL}))
+            #{bucket_values}
           ) AS priced(copies, unit_price)
           WHERE priced.copies > 0
         ) banded

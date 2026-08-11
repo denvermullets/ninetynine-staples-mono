@@ -37,6 +37,29 @@ RSpec.describe CollectionStats::TopCards, type: :service do
       expect(result[:by_copies]).not_to be_empty
     end
 
+    # "your most valuable card" has to mean a card you could sell, or the list is a ranking of what
+    # you chose to proxy - which is exactly the expensive stuff, so it would take over the whole list
+    it 'ranks on real copies, so a proxy-only card never places by value' do
+      real = create(:magic_card, name: 'Sol Ring', normal_price: 5)
+      create(:collection_magic_card, collection: collection, magic_card: real, quantity: 1)
+      proxied = create(:magic_card, name: 'Underground Sea', normal_price: 900)
+      create(:collection_magic_card, collection: collection, magic_card: proxied,
+                                     quantity: 0, proxy_quantity: 4)
+
+      expect(names(:by_value)).to eq(['Sol Ring'])
+      expect(result[:by_value].first[:value]).to eq(5)
+    end
+
+    # the copies list is a count question, so the proxies it dropped from the value list stay here
+    it 'still counts proxy copies in the hoard list' do
+      card = create(:magic_card, name: 'Underground Sea', normal_price: 900)
+      create(:collection_magic_card, collection: collection, magic_card: card,
+                                     quantity: 0, proxy_quantity: 4)
+
+      expect(names(:by_copies)).to eq(['Underground Sea'])
+      expect(result[:by_copies].first[:copies]).to eq(4)
+    end
+
     it 'lets one card place in both lists' do
       add('Sol Ring', price: 50, quantity: 9)
       add('Forest', price: 0.1, quantity: 2)

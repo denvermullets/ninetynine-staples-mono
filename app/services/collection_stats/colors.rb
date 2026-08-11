@@ -66,7 +66,7 @@ module CollectionStats
         .with(card_colors: Arel.sql(CARD_COLORS))
         .joins('LEFT JOIN card_colors ON card_colors.magic_card_id = magic_cards.id')
         .group(Arel.sql(BUCKET))
-        .pluck(Arel.sql(BUCKET), Arel.sql("SUM(#{TOTAL_QTY})"), Arel.sql("SUM(#{TOTAL_VALUE})"))
+        .pluck(Arel.sql(BUCKET), Arel.sql("SUM(#{TOTAL_QTY})"), Arel.sql("SUM(#{REAL_VALUE})"))
         .map { |bucket, copies, value| build_row(bucket, copies, value) }
         .reject { |row| row[:copies].zero? }
     end

@@ -110,14 +110,15 @@ RSpec.describe CollectionStats::ManaCurve, type: :service do
       expect(bucket('2')[:value]).to eq(40)
     end
 
-    it 'counts every finish, not just non-foil copies' do
+    # copies count all four finishes; value counts the two real ones - 1 + 2, not 1 + 2 + 1 + 2
+    it 'counts every finish but values real copies only' do
       card = create(:magic_card, mana_value: 4, normal_price: 1, foil_price: 2)
       create(:collection_magic_card, collection: collection, magic_card: card,
                                      quantity: 1, foil_quantity: 1,
                                      proxy_quantity: 1, proxy_foil_quantity: 1)
 
       expect(bucket('4')[:copies]).to eq(4)
-      expect(bucket('4')[:value]).to eq(6)
+      expect(bucket('4')[:value]).to eq(3)
     end
 
     it 'averages mana value across copies, not across printings' do

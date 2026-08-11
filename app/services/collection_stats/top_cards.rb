@@ -49,12 +49,12 @@ module CollectionStats
              boxsets.name AS set_name,
              boxsets.keyrune_code AS keyrune_code,
              #{TOTAL_QTY} AS copies,
-             #{TOTAL_VALUE} AS value,
+             #{REAL_VALUE} AS value,
              #{BASIC_LAND} AS basic_land,
-             ROW_NUMBER() OVER (ORDER BY #{TOTAL_VALUE} DESC, magic_cards.id) AS value_rank,
+             ROW_NUMBER() OVER (ORDER BY #{REAL_VALUE} DESC, magic_cards.id) AS value_rank,
              ROW_NUMBER() OVER (ORDER BY #{BASIC_LAND} ASC, #{TOTAL_QTY} DESC,
                                          magic_cards.id) AS copies_rank,
-             SUM(#{TOTAL_VALUE}) OVER () AS collection_value
+             SUM(#{REAL_VALUE}) OVER () AS collection_value
       FROM owned
       JOIN magic_cards ON magic_cards.id = owned.magic_card_id
       LEFT JOIN boxsets ON boxsets.id = magic_cards.boxset_id

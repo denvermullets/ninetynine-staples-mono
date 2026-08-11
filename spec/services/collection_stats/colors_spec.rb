@@ -77,7 +77,8 @@ RSpec.describe CollectionStats::Colors, type: :service do
   end
 
   describe 'figures' do
-    it 'counts every finish, not just non-foil copies' do
+    # copies count all four finishes; value counts the two real ones - 1 + 2, not 1 + 2 + 1 + 2
+    it 'counts every finish but values real copies only' do
       card = create(:magic_card, normal_price: 1, foil_price: 2)
       MagicCardColorIdent.create!(magic_card: card, color: Color.find_or_create_by!(name: 'R'))
       create(:collection_magic_card, collection: collection, magic_card: card,
@@ -85,7 +86,7 @@ RSpec.describe CollectionStats::Colors, type: :service do
                                      proxy_quantity: 1, proxy_foil_quantity: 1)
 
       expect(row('Red')[:copies]).to eq(4)
-      expect(row('Red')[:value]).to eq(6)
+      expect(row('Red')[:value]).to eq(3)
     end
 
     it 'gives each colour its share of total copies' do

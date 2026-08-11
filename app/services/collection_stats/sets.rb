@@ -31,7 +31,7 @@ module CollectionStats
 
     COLUMNS = [
       'GROUPING(boxsets.id)', 'boxsets.name', 'boxsets.keyrune_code', "#{YEAR}::int",
-      "SUM(#{TOTAL_QTY})", "SUM(#{TOTAL_VALUE})", 'COUNT(*)'
+      "SUM(#{TOTAL_QTY})", "SUM(#{REAL_VALUE})", 'COUNT(*)'
     ].freeze
 
     def call

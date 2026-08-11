@@ -30,7 +30,7 @@ module CollectionStats
       owned_cards
         .group('magic_cards.rarity')
         .pluck(Arel.sql('magic_cards.rarity'), Arel.sql("SUM(#{TOTAL_QTY})"),
-               Arel.sql("SUM(#{TOTAL_VALUE})"), Arel.sql('COUNT(*)'))
+               Arel.sql("SUM(#{REAL_VALUE})"), Arel.sql('COUNT(*)'))
         .map { |rarity, copies, value, printings| build_row(rarity, copies, value, printings) }
     end
 
