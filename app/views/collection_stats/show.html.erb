@@ -22,7 +22,18 @@
     <%= render partial: 'collection_stats/empty', locals: { owner: @stats[:owner] } %>
   <% else %>
     <%= render partial: 'collection_stats/kpi_grid', locals: { overview: @stats[:overview] } %>
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <%#
+        priced vs bulk goes first: it is the "how much of this is chaff" question, and it is the one
+        split of the three that is priced per copy - see CollectionStats::Overview#bulk
+      %>
+      <%= render partial: 'collection_stats/split_bar', locals: {
+        title: "#{number_to_currency(CollectionStats::Overview::BULK_CEILING, precision: 0)}+ vs Bulk",
+        left_label: "#{number_to_currency(CollectionStats::Overview::BULK_CEILING, precision: 0)} and up",
+        left_count: @stats[:overview][:priced_cards], left_value: @stats[:overview][:priced_value],
+        right_label: 'Bulk', right_count: @stats[:overview][:bulk_cards],
+        right_value: @stats[:overview][:bulk_value] } %>
+
       <%= render partial: 'collection_stats/split_bar', locals: {
         title: 'Foil vs Non-Foil',
         left_label: 'Non-Foil', left_count: @stats[:overview][:nonfoil_cards], left_value: @stats[:overview][:nonfoil_value],

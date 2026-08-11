@@ -4,11 +4,21 @@
 # the real/proxy split are all sums over the same joined set, so splitting them into three
 # services would mean three identical scans of collection_magic_cards for no benefit.
 #
-# Foil-vs-nonfoil and real-vs-proxy are treated as two independent axes over the same pile of
-# cards, not as four mutually exclusive groups - "how much of my collection is foil" is a
-# question about proxies too.
+# Foil-vs-nonfoil, real-vs-proxy and bulk-vs-not are treated as three independent axes over the
+# same pile of cards, not as mutually exclusive groups - "how much of my collection is foil" is a
+# question about proxies too, and both foils and proxies can be bulk.
+#
+# The bulk axis is the one that has to be priced per COPY rather than per printing: a 40c non-foil
+# and its $30 foil are one row here, and calling that row "bulk" or "not" would be wrong either
+# way. Sql.copies_where_price splits the row's four quantity buckets on their own prices, and the
+# threshold is read off PriceTiers' first tier so this number and the Price Buckets panel cannot
+# drift apart.
 module CollectionStats
   class Overview < Base
+    # whatever PriceTiers calls its bottom tier is what bulk means, here and there
+    BULK_TIER = PriceTiers::TIERS.first
+    BULK_CEILING = BULK_TIER[:ceiling]
+
     COLUMNS = {
       unique_printings: 'COUNT(*)',
       unique_sets: 'COUNT(DISTINCT magic_cards.boxset_id)',
@@ -21,7 +31,9 @@ module CollectionStats
       proxy_value: "SUM(owned.proxy_qty * (#{Sql::PROXY_NORMAL}))",
       proxy_foil_value: "SUM(owned.proxy_foil_qty * (#{Sql::PROXY_FOIL}))",
       buylist_value: "SUM(#{Sql::BUYLIST_VALUE})",
-      weekly_delta: "SUM(#{Sql::WEEKLY_DELTA})"
+      weekly_delta: "SUM(#{Sql::WEEKLY_DELTA})",
+      bulk_qty: Sql.copies_where_price("< #{BULK_CEILING}"),
+      bulk_value: Sql.value_where_price("< #{BULK_CEILING}")
     }.freeze
 
     EMPTY = COLUMNS.keys.index_with(0).freeze
@@ -29,7 +41,7 @@ module CollectionStats
     def call
       raw = no_collections? ? EMPTY : fetch
 
-      counts(raw).merge(values(raw)).merge(shares(raw))
+      counts(raw).merge(values(raw)).merge(shares(raw)).merge(bulk(raw))
     end
 
     private
@@ -76,6 +88,23 @@ module CollectionStats
         proxy_share: share(proxy_cards(raw), total),
         # what you would actually get back selling the real copies to Card Kingdom
         buylist_ratio: share(raw[:buylist_value], real_value(raw))
+      }
+    end
+
+    # Kept apart from counts and values because it is the one split priced per copy rather than per
+    # printing, and because both of its sides are derived from one aggregate instead of two.
+    def bulk(raw)
+      cards = real_cards(raw) + proxy_cards(raw)
+      value = real_value(raw) + proxy_value(raw)
+
+      {
+        bulk_cards: raw[:bulk_qty].to_i,
+        bulk_value: to_money(raw[:bulk_value]),
+        # subtracted rather than summed a second time, so the two sides always add up to the totals
+        # sitting beside them however the price expressions change
+        priced_cards: (cards - raw[:bulk_qty]).to_i,
+        priced_value: to_money(value - raw[:bulk_value]),
+        priced_share: share(cards - raw[:bulk_qty], cards)
       }
     end
 

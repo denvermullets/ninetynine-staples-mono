@@ -38,6 +38,38 @@ module CollectionStats
 
     REAL_QTY = '(owned.qty + owned.foil_qty)'.freeze
 
+    # The four quantity buckets paired with the unit price each bucket's copies are actually worth.
+    #
+    # This is the same pairing PriceTiers unpivots through its LATERAL, and it lives here so it is the
+    # same pairing. Anything that asks a question about individual copies has to price them off this
+    # list, or two panels end up disagreeing about what a card is worth - a $0.40 non-foil sitting
+    # next to its $30 foil is one printing at two prices, and a per-printing average answers neither.
+    PRICED_BUCKETS = [
+      ['owned.qty', 'COALESCE(magic_cards.normal_price, 0)'],
+      ['owned.foil_qty', 'COALESCE(magic_cards.foil_price, 0)'],
+      ['owned.proxy_qty', "(#{PROXY_NORMAL})"],
+      ['owned.proxy_foil_qty', "(#{PROXY_FOIL})"]
+    ].freeze
+
+    # ELSE 0 rather than a WHERE: PriceTiers can filter copies > 0 because it made a row per bucket,
+    # but these are conditional sums over one row per printing, so an empty bucket has to contribute
+    # nothing instead of dropping the printing's other three buckets with it.
+    def self.copies_where_price(comparison)
+      terms = PRICED_BUCKETS.map do |qty, price|
+        "CASE WHEN #{price} #{comparison} THEN #{qty} ELSE 0 END"
+      end
+
+      "SUM(#{terms.join(' + ')})"
+    end
+
+    def self.value_where_price(comparison)
+      terms = PRICED_BUCKETS.map do |qty, price|
+        "CASE WHEN #{price} #{comparison} THEN #{qty} * #{price} ELSE 0 END"
+      end
+
+      "SUM(#{terms.join(' + ')})"
+    end
+
     # what Card Kingdom would actually hand you for the real copies - proxies have no buylist
     BUYLIST_VALUE = <<~SQL.squish.freeze
       ((owned.qty * COALESCE(magic_cards.ck_buylist_normal_price, 0))

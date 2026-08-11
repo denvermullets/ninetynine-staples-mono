@@ -56,6 +56,90 @@ RSpec.describe CollectionStats::Overview, type: :service do
     end
   end
 
+  describe 'the bulk split' do
+    # the whole reason this is priced per copy: one printing, two prices, one on each side
+    it 'splits a printing whose finishes fall on either side of the threshold' do
+      card = create(:magic_card, normal_price: 0.4, foil_price: 30)
+      create(:collection_magic_card, collection: collection, magic_card: card,
+                                     quantity: 5, foil_quantity: 2)
+
+      expect(overview[:bulk_cards]).to eq(5)
+      expect(overview[:bulk_value]).to eq(2)
+      expect(overview[:priced_cards]).to eq(2)
+      expect(overview[:priced_value]).to eq(60)
+    end
+
+    it 'counts a copy priced exactly at the threshold as priced, not bulk' do
+      card = create(:magic_card, normal_price: 1, foil_price: 0.99)
+      create(:collection_magic_card, collection: collection, magic_card: card,
+                                     quantity: 1, foil_quantity: 1)
+
+      expect(overview[:priced_cards]).to eq(1)
+      expect(overview[:bulk_cards]).to eq(1)
+    end
+
+    # proxies are bucketed on the same fallback price they are valued at, so a proxy of a foil-only
+    # $20 card is not filed as chaff
+    it 'buckets proxies on the price they fall back to' do
+      card = create(:magic_card, normal_price: 0, foil_price: 20)
+      create(:collection_magic_card, collection: collection, magic_card: card,
+                                     quantity: 0, proxy_quantity: 1)
+
+      expect(overview[:priced_cards]).to eq(1)
+      expect(overview[:bulk_cards]).to eq(0)
+    end
+
+    it 'treats an unpriced card as bulk' do
+      card = create(:magic_card, normal_price: nil, foil_price: nil)
+      create(:collection_magic_card, collection: collection, magic_card: card, quantity: 3)
+
+      expect(overview[:bulk_cards]).to eq(3)
+      expect(overview[:priced_cards]).to eq(0)
+    end
+
+    it 'reports the priced side as a share of every copy' do
+      cheap = create(:magic_card, normal_price: 0.1)
+      dear = create(:magic_card, normal_price: 40)
+      create(:collection_magic_card, collection: collection, magic_card: cheap, quantity: 3)
+      create(:collection_magic_card, collection: collection, magic_card: dear, quantity: 1)
+
+      expect(overview[:priced_share]).to eq(25.0)
+    end
+
+    it 'has both sides add up to the totals beside them' do
+      [0.25, 0.99, 1, 7.5, 250].each_with_index do |price, index|
+        card = create(:magic_card, normal_price: price, foil_price: price * 2)
+        create(:collection_magic_card, collection: collection, magic_card: card,
+                                       quantity: index + 1, foil_quantity: 1, proxy_quantity: 2)
+      end
+
+      expect(overview[:bulk_cards] + overview[:priced_cards]).to eq(overview[:total_cards])
+      expect(overview[:bulk_value] + overview[:priced_value]).to eq(overview[:total_value])
+    end
+
+    # the number would be worse than useless if it disagreed with the panel it summarises
+    it 'agrees with the bottom tier of the Price Buckets panel' do
+      [0.25, 0.99, 1, 7.5, 250].each_with_index do |price, index|
+        card = create(:magic_card, normal_price: price, foil_price: price * 2)
+        create(:collection_magic_card, collection: collection, magic_card: card,
+                                       quantity: index + 1, foil_quantity: 1, proxy_quantity: 2)
+      end
+      under = CollectionStats::PriceTiers.call(collection_ids: [collection.id])[:tiers].first
+
+      expect(under[:label]).to eq(described_class::BULK_TIER[:label])
+      expect(overview[:bulk_cards]).to eq(under[:copies])
+      expect(overview[:bulk_value]).to eq(under[:value])
+    end
+
+    it 'reports zeroes rather than dividing by nothing on an empty scope' do
+      result = described_class.call(collection_ids: [])
+
+      expect(result[:bulk_cards]).to eq(0)
+      expect(result[:priced_cards]).to eq(0)
+      expect(result[:priced_share]).to eq(0.0)
+    end
+  end
+
   describe 'row scope' do
     let(:card) { create(:magic_card, normal_price: 5) }
 
