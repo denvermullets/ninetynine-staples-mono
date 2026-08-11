@@ -98,6 +98,7 @@ Rails.application.routes.draw do
     end
   end
   get 'collections/:username/overview', to: 'collections#overview', as: :collections_overview
+  get 'collections/:username/stats', to: 'collection_stats#show', as: :collections_stats
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index

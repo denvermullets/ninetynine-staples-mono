@@ -1,0 +1,33 @@
+<%# locals: overview %>
+<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+  <%= render partial: 'collection_stats/kpi', locals: {
+    label: 'Total Value', tone: :accent,
+    value: number_to_currency(overview[:total_value]),
+    sub: "#{number_to_currency(overview[:real_value])} real" } %>
+
+  <%= render partial: 'collection_stats/kpi', locals: {
+    label: 'Weekly Change',
+    tone: overview[:weekly_delta].negative? ? :negative : :positive,
+    value: "#{overview[:weekly_delta].negative? ? '-' : '+'}#{number_to_currency(overview[:weekly_delta].abs)}",
+    sub: 'across real copies' } %>
+
+  <%= render partial: 'collection_stats/kpi', locals: {
+    label: 'Total Cards',
+    value: number_with_delimiter(overview[:total_cards]),
+    sub: "#{number_with_delimiter(overview[:unique_printings])} unique printings" } %>
+
+  <%= render partial: 'collection_stats/kpi', locals: {
+    label: 'Avg Card Value',
+    value: number_to_currency(overview[:avg_card_value]),
+    sub: 'per real copy' } %>
+
+  <%= render partial: 'collection_stats/kpi', locals: {
+    label: 'Buylist Value',
+    value: number_to_currency(overview[:buylist_value]),
+    sub: "#{overview[:buylist_ratio]}% of market" } %>
+
+  <%= render partial: 'collection_stats/kpi', locals: {
+    label: 'Sets Represented',
+    value: number_with_delimiter(overview[:unique_sets]),
+    sub: "#{overview[:proxy_share]}% proxy" } %>
+</div>

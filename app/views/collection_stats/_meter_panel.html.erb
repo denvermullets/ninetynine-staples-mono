@@ -1,0 +1,47 @@
+<%# locals: title, rows; optional: subtext, footer %>
+<%# rows: [{ label:, copies:, value:, share:, bar_class:, icon: }] %>
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <h2 class="text-xl font-bold text-grey-text"><%= title %></h2>
+
+  <% if local_assigns[:subtext].present? %>
+    <p class="mt-1 text-sm text-grey-text/50"><%= subtext %></p>
+  <% end %>
+
+  <div class="mt-4 space-y-3">
+    <% rows.each do |row| %>
+      <div class="flex items-center gap-3">
+        <span
+          class="
+            flex items-center gap-2 shrink-0 w-28 md:w-40 text-sm truncate
+            text-grey-text
+          "
+        >
+          <% if row[:icon].present? %>
+            <i class="<%= row[:icon] %>" aria-hidden="true"></i>
+          <% end %>
+
+          <%= row[:label] %>
+        </span>
+
+        <div class="flex-1 h-5 overflow-hidden rounded-full bg-background">
+          <div
+            class="h-full rounded-full <%= row[:bar_class] || 'bg-accent-50' %>"
+            style="width: <%= row[:share] %>%"
+          ></div>
+        </div>
+
+        <span class="w-14 text-sm text-right text-grey-text">
+          <%= number_with_delimiter(row[:copies]) %>
+        </span>
+
+        <span class="w-24 text-sm text-right text-grey-text/70">
+          <%= number_to_currency(row[:value]) %>
+        </span>
+      </div>
+    <% end %>
+  </div>
+
+  <% if local_assigns[:footer].present? %>
+    <p class="mt-4 text-sm text-grey-text/70"><%= footer %></p>
+  <% end %>
+</div>

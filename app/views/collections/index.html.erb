@@ -82,6 +82,10 @@
       </button>
     </div>
 
+    <%= link_to 'View Analytics',
+      collections_stats_path(params[:username], collection_id: params[:collection_id]),
+      class: 'px-4 py-2 text-sm text-center border rounded-lg border-highlight text-grey-text hover:bg-background hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+
     <div class="flex flex-col space-y-4">
       <% if current_user %>
         <%= render partial: 'binder',
