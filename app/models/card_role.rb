@@ -32,6 +32,10 @@ class CardRole < ApplicationRecord
     'voltron' => %w[double_strike protection_from]
   }.freeze
 
+  # below this the pattern rules start guessing - the 0.5 scry -> card_selection rule alone would
+  # bend a collection-wide count out of shape
+  HIGH_CONFIDENCE = 0.7
+
   validates :scryfall_oracle_id, presence: true
   validates :role, presence: true, inclusion: { in: ROLES }
   validates :effect, presence: true
@@ -40,5 +44,5 @@ class CardRole < ApplicationRecord
 
   scope :for_oracle_id, ->(oid) { where(scryfall_oracle_id: oid) }
   scope :for_role, ->(role) { where(role: role) }
-  scope :high_confidence, -> { where('confidence >= ?', 0.7) }
+  scope :high_confidence, -> { where('confidence >= ?', HIGH_CONFIDENCE) }
 end

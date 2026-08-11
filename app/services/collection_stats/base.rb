@@ -39,6 +39,36 @@ module CollectionStats
       MagicCard.with(owned: owned_rows).joins('JOIN owned ON owned.magic_card_id = magic_cards.id')
     end
 
+    # `owned` is one row per printing; card_roles is one row per *card*, keyed by oracle id. Joining
+    # roles straight onto `owned` would count a card held in five printings five times, so this
+    # rolls copies and value up to the oracle id first and roles join against that instead.
+    #
+    # The cast sits on the magic_cards side (uuid) rather than the card_roles side (string) on
+    # purpose: casting the card_roles column would make index_card_roles_on_scryfall_oracle_id
+    # unusable and turn every role lookup into a sequential scan of the table.
+    #
+    # Printings with no oracle id stay in. They can never match a role, but they are still cards
+    # somebody owns and they belong in the coverage denominator.
+    def owned_by_oracle_rows
+      MagicCard
+        .joins('JOIN owned ON owned.magic_card_id = magic_cards.id')
+        .group('magic_cards.scryfall_oracle_id')
+        .select(<<~SQL.squish)
+          magic_cards.scryfall_oracle_id::text AS scryfall_oracle_id,
+          SUM(#{TOTAL_QTY}) AS copies,
+          SUM(#{TOTAL_VALUE}) AS value,
+          COUNT(*) AS printings
+        SQL
+    end
+
+    # Both CTEs, in order: owned_by_oracle is written against `owned` and cannot be declared
+    # without it. FROM is the CTE rather than magic_cards - the printings are already rolled up.
+    def owned_oracles
+      MagicCard
+        .with(owned: owned_rows, owned_by_oracle: owned_by_oracle_rows)
+        .from('owned_by_oracle')
+    end
+
     # fdiv, not /, because these totals are often BigDecimal and BigDecimal division returns a
     # BigDecimal that renders as "0.145e2" the moment it reaches a view
     def share(part, total)

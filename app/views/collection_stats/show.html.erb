@@ -90,6 +90,14 @@
       rows: @stats[:price_movers],
       empty_text: 'Nothing you own moved enough to register this week.',
       footer: "Your real copies are #{@stats[:overview][:weekly_delta].negative? ? 'down' : 'up'} #{number_to_currency(@stats[:overview][:weekly_delta].abs)} across the whole collection." } %>
+    <%= render partial: 'collection_stats/meter_panel', locals: {
+      title: 'What Your Cards Do', rows: @stats[:roles][:roles],
+      subtext: 'Roles are per card, not per printing - four printings of the same removal spell are one removal card. A card that does three things appears in all three rows.',
+      footer: "Roles detected for #{@stats[:roles][:coverage_share]}% of your printings (#{number_with_delimiter(@stats[:roles][:covered_printings])} of #{number_with_delimiter(@stats[:roles][:total_printings])})." } %>
+
+    <%= render partial: 'collection_stats/chips', locals: {
+      title: 'Notable Effects', rows: @stats[:roles][:effects],
+      subtext: 'Copies and value of the effects worth counting. Same rules as above: once per card, and only high-confidence matches.' } %>
     <% if @stats[:history].present? %>
       <div class="flex flex-col gap-2">
         <h2 class="text-xl font-bold text-grey-text">Value Over Time</h2>
