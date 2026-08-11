@@ -1,0 +1,30 @@
+<%# locals: stats %>
+<%#
+  the "% of value in $100+ cards" line that used to close the Most Valuable footer is gone: the
+  Price Buckets panel already states it, and keeping it here meant this tab running PriceTiers to
+  render one redundant sentence
+%>
+<div class="flex flex-col space-y-8">
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <%= render partial: 'collection_stats/card_list', locals: {
+      title: 'Most Valuable Cards',
+      subtext: 'Your biggest holdings, each priced across every copy and finish you own.',
+      rows: stats[:top_cards][:by_value],
+      footer: "These #{stats[:top_cards][:by_value].size} cards are #{stats[:top_cards][:top_value_share]}% of your collection value." } %>
+
+    <%= render partial: 'collection_stats/card_list', locals: {
+      title: 'Most Copies',
+      subtext: 'What you are hoarding. Every finish counts and proxies are included, but basic lands sit this one out.',
+      rows: stats[:top_cards][:by_copies] } %>
+  </div>
+
+  <%#
+    no footer either - the collection-wide weekly move is the KPI grid's "Weekly Change" tile, which
+    stays on the shell above this frame
+  %>
+  <%= render partial: 'collection_stats/card_list', locals: {
+    title: 'Weekly Price Movers',
+    subtext: 'The biggest dollar moves of the week, gainers and losers ranked together. Proxy copies sit this one out - a proxy price did not move, so you did not gain anything.',
+    rows: stats[:price_movers],
+    empty_text: 'Nothing you own moved enough to register this week.' } %>
+</div>

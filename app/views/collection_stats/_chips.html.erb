@@ -1,0 +1,31 @@
+<%# locals: title, rows; optional: subtext, footer %>
+<%# rows: [{ label:, copies:, value: }] %>
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <h2 class="text-xl font-bold text-grey-text"><%= title %></h2>
+
+  <% if local_assigns[:subtext].present? %>
+    <p class="mt-1 text-sm text-grey-text/50"><%= subtext %></p>
+  <% end %>
+
+  <div class="grid grid-cols-2 gap-3 mt-4 sm:grid-cols-3 xl:grid-cols-4">
+    <% rows.each do |row| %>
+      <div class="p-3 border rounded-xl bg-background border-highlight">
+        <p class="text-sm truncate text-grey-text/70" title="<%= row[:label] %>">
+          <%= row[:label] %>
+        </p>
+
+        <p class="text-2xl font-bold text-grey-text">
+          <%= number_with_delimiter(row[:copies]) %>
+        </p>
+
+        <p class="text-xs text-grey-text/50">
+          <%= number_to_currency(row[:value]) %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+  <% if local_assigns[:footer].present? %>
+    <p class="mt-4 text-sm text-grey-text/70"><%= footer %></p>
+  <% end %>
+</div>

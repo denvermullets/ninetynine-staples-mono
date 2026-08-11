@@ -1,0 +1,17 @@
+<%# locals: sets - the CollectionStats::Sets result %>
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+  <%= render partial: 'collection_stats/meter_panel', locals: {
+    title: 'Top Sets',
+    rows: sets[:top_sets],
+    subtext: 'Where your money was printed, ranked by market value.',
+    footer: "#{number_with_delimiter(sets[:set_count])} sets represented in total." } %>
+
+  <%= render partial: 'collection_stats/chart_panel', locals: {
+    title: 'Set Timeline',
+    subtext: 'Copies you own from each printing year. Sets with no recorded release date sit under Unknown.',
+    chart_type: 'bar',
+    labels: sets[:years].map { |year| year[:label] },
+    series: sets[:years].map { |year| year[:copies] },
+    tooltips: sets[:years].map { |year|
+      "#{number_with_delimiter(year[:copies])} copies · #{number_to_currency(year[:value])}" } } %>
+</div>

@@ -1,0 +1,77 @@
+<%# locals: title, rows %>
+<%# optional: subtext, footer, empty_text %>
+<%# rows: [{ name:, set_name:, icon:, image:, image_large:, copies:, value: }] %>
+<%# optional per row: delta, percent, delta_class - present only on the movers list %>
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <h2 class="text-xl font-bold text-grey-text"><%= title %></h2>
+
+  <% if local_assigns[:subtext].present? %>
+    <p class="mt-1 text-sm text-grey-text/50"><%= subtext %></p>
+  <% end %>
+
+  <% if rows.empty? %>
+    <p class="mt-4 text-sm text-grey-text/70">
+      <%= local_assigns[:empty_text] || 'Nothing to show here yet.' %>
+    </p>
+  <% else %>
+    <div class="mt-4 divide-y divide-highlight">
+      <% rows.each do |row| %>
+        <div class="flex items-center gap-3 py-2">
+          <%#
+            the thumbnail is the hover target, same wiring as game_tracker/show. A card with no
+            cached art keeps the slot so the names below it stay in one column
+          %>
+
+          <% if row[:image].present? %>
+            <%= image_tag row[:image], alt: row[:name],
+              class: 'object-cover w-8 rounded h-11 shrink-0',
+              data: {
+                controller: 'card-hover',
+                card_hover_image_value: row[:image_large],
+                card_hover_name_value: row[:name],
+                action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+              } %>
+          <% else %>
+            <span class="w-8 rounded h-11 shrink-0 bg-background"></span>
+          <% end %>
+
+          <div class="flex-1 min-w-0">
+            <p class="text-sm truncate text-grey-text"><%= row[:name] %></p>
+
+            <p class="flex items-center gap-1 text-xs truncate text-grey-text/50">
+              <% if row[:icon].present? %>
+                <i class="<%= row[:icon] %>" aria-hidden="true"></i>
+              <% end %>
+
+              <%= row[:set_name] || 'Unknown set' %>
+            </p>
+          </div>
+
+          <span class="w-12 text-sm text-right shrink-0 text-grey-text/70">
+            &times;<%= number_with_delimiter(row[:copies]) %>
+          </span>
+
+          <span class="w-20 text-sm text-right shrink-0 text-grey-text">
+            <%= number_to_currency(row[:value]) %>
+          </span>
+
+          <% if row[:delta].present? %>
+            <span class="w-20 text-right shrink-0 <%= row[:delta_class] %>">
+              <span class="block text-sm">
+                <%= row[:delta].negative? ? '-' : '+' %><%= number_to_currency(row[:delta].abs) %>
+              </span>
+
+              <span class="block text-xs opacity-70">
+                <%= row[:percent].negative? ? '' : '+' %><%= row[:percent] %>%
+              </span>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if local_assigns[:footer].present? %>
+    <p class="mt-4 text-sm text-grey-text/70"><%= footer %></p>
+  <% end %>
+</div>

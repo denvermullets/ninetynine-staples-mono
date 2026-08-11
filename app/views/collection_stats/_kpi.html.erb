@@ -1,0 +1,16 @@
+<%# locals: label, value; optional: sub, tone (:neutral, :positive, :negative, :accent) %>
+<% tone_class = {
+     positive: 'text-accent-50',
+     negative: 'text-accent-100',
+     accent: 'text-accent-50'
+   }[local_assigns[:tone]] || 'text-grey-text' %>
+
+<div class="p-4 text-center border rounded-xl bg-foreground border-highlight">
+  <p class="text-3xl font-bold truncate <%= tone_class %>"><%= value %></p>
+
+  <p class="text-sm text-grey-text/70"><%= label %></p>
+
+  <% if local_assigns[:sub].present? %>
+    <p class="text-xs text-grey-text/50"><%= sub %></p>
+  <% end %>
+</div>

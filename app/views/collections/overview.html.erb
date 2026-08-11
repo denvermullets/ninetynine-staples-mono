@@ -14,14 +14,17 @@
       gap-4
     "
   >
-    <% if @is_owner %>
-      <%= link_to new_collection_path,
-          class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' do %>
-        + New Collection
+    <div class="flex flex-wrap items-center gap-3">
+      <% if @is_owner %>
+        <%= link_to new_collection_path,
+            class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' do %>
+          + New Collection
+        <% end %>
       <% end %>
-    <% else %>
-      <div></div>
-    <% end %>
+
+      <%= link_to 'View Analytics', collections_stats_path(@user.username),
+        class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 transition cursor-pointer' %>
+    </div>
   </div>
 
   <% if @regular_collections.any? %>

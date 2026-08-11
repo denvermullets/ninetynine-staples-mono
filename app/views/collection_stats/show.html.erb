@@ -1,0 +1,71 @@
+<%#
+  The shell. One query - Overview - feeds the KPI grid and both split bars, and the history chart
+  reads a jsonb column, so this paints without touching the panel aggregates at all. Every panel
+  below arrives in the stats_panel frame, one tab at a time.
+%>
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: @stats[:collection] ? "#{@stats[:collection].name} Analytics" : "#{@stats[:user].username}'s Collection Analytics",
+    subtext: @stats[:collection] ? 'Value, composition and movement for this collection.' : 'Value, composition and movement across every collection.' } %>
+
+  <% if @stats[:collections].any? %>
+    <%= render partial: 'collection_stats/collection_picker', locals: {
+      collections: @stats[:collections], selected: @stats[:collection], username: @stats[:user].username } %>
+  <% end %>
+
+  <% if @stats[:collection_ids].empty? || @stats[:overview][:total_cards].zero? %>
+    <%= render partial: 'collection_stats/empty', locals: { owner: @stats[:owner] } %>
+  <% else %>
+    <%= render partial: 'collection_stats/kpi_grid', locals: { overview: @stats[:overview] } %>
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <%#
+        priced vs bulk goes first: it is the "how much of this is chaff" question, and it is the one
+        split of the three that is priced per copy - see CollectionStats::Overview#bulk
+      %>
+      <%= render partial: 'collection_stats/split_bar', locals: {
+        title: "#{number_to_currency(CollectionStats::Overview::BULK_CEILING, precision: 0)}+ vs Bulk",
+        left_label: "#{number_to_currency(CollectionStats::Overview::BULK_CEILING, precision: 0)} and up",
+        left_count: @stats[:overview][:priced_cards], left_value: @stats[:overview][:priced_value],
+        right_label: 'Bulk', right_count: @stats[:overview][:bulk_cards],
+        right_value: @stats[:overview][:bulk_value] } %>
+
+      <%= render partial: 'collection_stats/split_bar', locals: {
+        title: 'Foil vs Non-Foil',
+        left_label: 'Non-Foil', left_count: @stats[:overview][:nonfoil_cards], left_value: @stats[:overview][:nonfoil_value],
+        right_label: 'Foil', right_count: @stats[:overview][:foil_cards], right_value: @stats[:overview][:foil_value] } %>
+
+      <%= render partial: 'collection_stats/split_bar', locals: {
+        title: 'Real vs Proxy',
+        left_label: 'Real', left_count: @stats[:overview][:real_cards], left_value: @stats[:overview][:real_value],
+        right_label: 'Proxy', right_count: @stats[:overview][:proxy_cards], right_value: @stats[:overview][:proxy_value] } %>
+    </div>
+
+    <%#
+      history stays on the shell rather than becoming a tab: it is free, and
+      collection-history-chart_controller adds a resize listener it never removes, so it should not
+      be something a frame can mount repeatedly
+    %>
+    <% if @stats[:history].present? %>
+      <div class="flex flex-col gap-2">
+        <h2 class="text-xl font-bold text-grey-text">Value Over Time</h2>
+
+        <%= render partial: 'collections/collection_history_chart', locals: { history: @stats[:history] } %>
+      </div>
+    <% end %>
+
+    <%= turbo_frame_tag 'stats_panel',
+      src: collections_stats_section_path(@stats[:user].username, @section, collection_id: params[:collection_id]) do %>
+      <div class="flex flex-col space-y-6">
+        <%= render partial: 'collection_stats/tab_bar', locals: {
+          active: @section, username: @stats[:user].username, collection_id: params[:collection_id] } %>
+
+        <%= render partial: 'collection_stats/panel_placeholder' %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

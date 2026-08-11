@@ -1,0 +1,18 @@
+<%# locals: active, username, collection_id %>
+<%#
+  Links, not buttons. They sit inside the stats_panel frame, so Turbo swaps the frame - tab bar and
+  all - and the active state is computed here on the server rather than tracked in JS. That also
+  keeps every panel mounted in a visible container: a chart_panel initialising inside a display:none
+  tab measures zero height and Chart.js renders it squashed.
+
+  collection_id has to ride along on every link or the tab reports on every collection while the
+  shell above it reports on one.
+%>
+<div class="flex flex-wrap items-center gap-2">
+  <% CollectionStats::Dashboard::SECTIONS.each do |key, section| %>
+    <%= link_to section[:label],
+      collections_stats_section_path(username, key, collection_id: collection_id),
+      data: { turbo_action: 'advance' },
+      class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == active ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu'}" %>
+  <% end %>
+</div>

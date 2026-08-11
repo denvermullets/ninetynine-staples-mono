@@ -1,0 +1,32 @@
+<%# locals: title, left_label, left_count, left_value, right_label, right_count, right_value %>
+<% total = left_count + right_count %>
+<% left_share = total.zero? ? 0 : ((left_count.to_f / total) * 100).round(1) %>
+
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <h2 class="text-xl font-bold text-grey-text"><%= title %></h2>
+
+  <div class="flex w-full h-6 mt-4 overflow-hidden rounded-full bg-background">
+    <div class="h-full bg-accent-50" style="width: <%= left_share %>%"></div>
+    <div class="h-full bg-accent-200" style="width: <%= 100 - left_share %>%"></div>
+  </div>
+
+  <div class="flex justify-between mt-3 text-sm">
+    <div class="flex flex-col">
+      <span class="text-accent-50"><%= left_label %></span>
+
+      <span class="text-grey-text">
+        <%= number_with_delimiter(left_count) %> ·
+        <%= number_to_currency(left_value) %>
+      </span>
+    </div>
+
+    <div class="flex flex-col text-right">
+      <span class="text-accent-200"><%= right_label %></span>
+
+      <span class="text-grey-text">
+        <%= number_with_delimiter(right_count) %> ·
+        <%= number_to_currency(right_value) %>
+      </span>
+    </div>
+  </div>
+</div>
