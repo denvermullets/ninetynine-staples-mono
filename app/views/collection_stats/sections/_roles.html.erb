@@ -1,0 +1,11 @@
+<%# locals: stats %>
+<div class="flex flex-col space-y-8">
+  <%= render partial: 'collection_stats/meter_panel', locals: {
+    title: 'What Your Cards Do', rows: stats[:roles][:roles],
+    subtext: 'Roles are per card, not per printing - four printings of the same removal spell are one removal card. A card that does three things appears in all three rows.',
+    footer: "Roles detected for #{stats[:roles][:coverage_share]}% of your printings (#{number_with_delimiter(stats[:roles][:covered_printings])} of #{number_with_delimiter(stats[:roles][:total_printings])})." } %>
+
+  <%= render partial: 'collection_stats/chips', locals: {
+    title: 'Notable Effects', rows: stats[:roles][:effects],
+    subtext: 'Copies and value of the effects worth counting. Same rules as above: once per card, and only high-confidence matches.' } %>
+</div>

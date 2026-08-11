@@ -1,0 +1,18 @@
+<%# locals: stats, section, username, collection_id %>
+<%#
+  the frame id is re-declared here so the response matches the shell's frame by id, the same way
+  magic_cards/_details does for the lazily-loaded card rows
+%>
+<%= turbo_frame_tag 'stats_panel' do %>
+  <div class="flex flex-col space-y-6">
+    <%= render partial: 'collection_stats/tab_bar', locals: {
+      active: section, username: username, collection_id: collection_id } %>
+
+    <% if stats[:collection_ids].empty? %>
+      <%= render partial: 'collection_stats/empty', locals: { owner: stats[:owner] } %>
+    <% else %>
+      <%= render partial: CollectionStats::Dashboard::SECTIONS.fetch(section)[:partial],
+        locals: { stats: stats } %>
+    <% end %>
+  </div>
+<% end %>

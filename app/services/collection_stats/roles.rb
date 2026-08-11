@@ -12,6 +12,11 @@
 #
 # Coverage is partial and reported rather than hidden. Not every card has a detected role, so the
 # panel says "roles detected for N% of your cards" instead of implying the rest do nothing.
+#
+# What is left on the table: all three queries build owned_by_oracle, and that group-by costs ~42ms
+# at 20k printings, so the panel pays it three times. Folding them into one statement over a shared
+# CTE would take the panel from ~170ms to ~90ms, at the price of a UNION ALL whose columns mean
+# different things per branch. Not worth it while Roles is a tab of its own.
 module CollectionStats
   class Roles < Base
     # Curated, unlike the role panel: these are the questions people actually ask of a collection
@@ -34,10 +39,24 @@ module CollectionStats
         effects: %w[fetch_land shock_land dual_land] }
     ].freeze
 
-    HAS_ROLE = <<~SQL.squish.freeze
-      EXISTS (SELECT 1 FROM card_roles
-              WHERE card_roles.scryfall_oracle_id = owned_by_oracle.scryfall_oracle_id
-                AND card_roles.confidence >= #{CardRole::HIGH_CONFIDENCE})
+    # Both queries below reach card_roles through `owned`, never the other way round. Left
+    # unscoped, a DISTINCT over card_roles reads all 34k rows of it before the join throws most of
+    # them away; joining owned_by_oracle inside the subquery collapses it to the oracle ids somebody
+    # actually owns first. The reference is legal because every statement this is inlined into
+    # declares that CTE - see Base#owned_oracles.
+    OWNED_ORACLE_JOIN = <<~SQL.squish.freeze
+      JOIN owned_by_oracle
+        ON owned_by_oracle.scryfall_oracle_id = card_roles.scryfall_oracle_id
+    SQL
+
+    # Coverage cannot use the join above - it has to keep the printings that matched nothing - so it
+    # gets the roled oracle ids as a CTE and LEFT JOINs them. That was an EXISTS correlated to
+    # owned_by_oracle, which Postgres re-ran once per oracle id. DISTINCT makes the join 1:1, so
+    # SUM(printings) still counts each printing once.
+    ROLED = <<~SQL.squish.freeze
+      SELECT DISTINCT card_roles.scryfall_oracle_id
+      FROM card_roles
+      WHERE card_roles.confidence >= #{CardRole::HIGH_CONFIDENCE}
     SQL
 
     EMPTY = { roles: [], effects: [], covered_printings: 0, total_printings: 0,
@@ -100,12 +119,14 @@ module CollectionStats
     # one row per oracle id per bucket, so SUM cannot double count a card that matched twice
     def distinct_roles
       CardRole.high_confidence
+              .joins(OWNED_ORACLE_JOIN)
               .select('DISTINCT card_roles.scryfall_oracle_id, card_roles.role')
     end
 
     def distinct_chips
       notable
         .high_confidence
+        .joins(OWNED_ORACLE_JOIN)
         .select("DISTINCT card_roles.scryfall_oracle_id, #{chip_case} AS chip_id")
     end
 
@@ -149,10 +170,15 @@ module CollectionStats
     # printings, not cards: "roles detected for N% of your cards" is a claim about what is on the
     # shelf, and the denominator has to include the printings that matched nothing
     def coverage
-      total, covered = owned_oracles.pick(
-        Arel.sql('COALESCE(SUM(owned_by_oracle.printings), 0)'),
-        Arel.sql("COALESCE(SUM(owned_by_oracle.printings) FILTER (WHERE #{HAS_ROLE}), 0)")
-      )
+      total, covered = owned_oracles
+                       .with(roled: Arel.sql(ROLED))
+                       .joins('LEFT JOIN roled ON roled.scryfall_oracle_id = ' \
+                              'owned_by_oracle.scryfall_oracle_id')
+                       .pick(
+                         Arel.sql('COALESCE(SUM(owned_by_oracle.printings), 0)'),
+                         Arel.sql('COALESCE(SUM(owned_by_oracle.printings) ' \
+                                  'FILTER (WHERE roled.scryfall_oracle_id IS NOT NULL), 0)')
+                       )
 
       { covered_printings: covered.to_i, total_printings: total.to_i,
         coverage_share: share(covered.to_i, total.to_i) }

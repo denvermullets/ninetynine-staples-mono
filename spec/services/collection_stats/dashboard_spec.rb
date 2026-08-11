@@ -17,11 +17,40 @@ RSpec.describe CollectionStats::Dashboard, type: :service do
   end
 
   describe 'what it returns' do
-    it 'builds every panel the dashboard renders' do
+    # the shell is deliberately not "everything": it is the one panel show.html.erb cannot defer,
+    # because it decides between the empty state and the dashboard
+    it 'builds only the shell panel when no section is asked for' do
       result = described_class.call(username: user.username, viewer: user)
 
-      expect(result.keys).to include(:overview, :rarity, :price_tiers, :card_types, :colors,
-                                     :mana_curve, :sets, :top_cards, :price_movers, :roles)
+      expect(result).to have_key(:overview)
+      expect(result.keys).not_to include(:rarity, :price_tiers, :card_types, :colors, :mana_curve,
+                                         :sets, :top_cards, :price_movers, :roles)
+    end
+
+    it 'builds exactly the panels belonging to the section asked for' do
+      described_class::SECTIONS.each do |section, config|
+        result = described_class.call(username: user.username, viewer: user, section: section)
+
+        expect(result.slice(*described_class::PANELS.keys).keys).to eq(config[:panels])
+      end
+    end
+
+    # between them the sections have to account for every panel, or one is unreachable
+    it 'covers every panel across the shell and the sections' do
+      covered = described_class::SHELL + described_class::SECTIONS.values.flat_map { |s| s[:panels] }
+
+      expect(covered.sort).to eq(described_class::PANELS.keys.sort)
+      expect(covered.tally.values).to all(eq(1))
+    end
+
+    it 'opens on a section that exists' do
+      expect(described_class.section?(described_class::DEFAULT_SECTION)).to be(true)
+    end
+
+    it 'refuses a section it does not know' do
+      expect(described_class.section?('made_up')).to be(false)
+      expect { described_class.call(username: user.username, viewer: user, section: 'made_up') }
+        .to raise_error(KeyError)
     end
 
     # the panels are skipped entirely rather than run against an empty id list - a missing scope
@@ -51,7 +80,9 @@ RSpec.describe CollectionStats::Dashboard, type: :service do
     before { 3.times { create(:collection_magic_card, collection: public_collection, quantity: 1) } }
 
     it 'never falls back to per-card lookups' do
-      queries = queries_for(username: user.username, viewer: user)
+      queries = described_class::SECTIONS.keys.flat_map do |section|
+        queries_for(username: user.username, viewer: user, section: section)
+      end
 
       expect(queries.grep(/FROM "magic_cards" WHERE "magic_cards"\."id" = /)).to be_empty
     end
@@ -61,7 +92,16 @@ RSpec.describe CollectionStats::Dashboard, type: :service do
 
       queries = queries_for(username: user.username, viewer: user)
 
-      expect(queries.grep(/FROM "collection_magic_cards"/).size).to be <= 14
+      expect(queries.grep(/FROM "collection_magic_cards"/).size).to eq(1)
+    end
+
+    # the whole point of the split: no single request pays for all ten panels
+    it 'keeps every section down to a handful of scans' do
+      described_class::SECTIONS.each_key do |section|
+        queries = queries_for(username: user.username, viewer: user, section: section)
+
+        expect(queries.grep(/FROM "collection_magic_cards"/).size).to be <= 4
+      end
     end
   end
 end

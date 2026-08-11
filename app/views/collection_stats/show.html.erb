@@ -1,3 +1,8 @@
+<%#
+  The shell. One query - Overview - feeds the KPI grid and both split bars, and the history chart
+  reads a jsonb column, so this paints without touching the panel aggregates at all. Every panel
+  below arrives in the stats_panel frame, one tab at a time.
+%>
 <div
   class="
     flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
@@ -28,81 +33,27 @@
         left_label: 'Real', left_count: @stats[:overview][:real_cards], left_value: @stats[:overview][:real_value],
         right_label: 'Proxy', right_count: @stats[:overview][:proxy_cards], right_value: @stats[:overview][:proxy_value] } %>
     </div>
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <%= render partial: 'collection_stats/meter_panel', locals: {
-        title: 'Rarity', rows: @stats[:rarity],
-        subtext: 'Copies and market value held at each rarity.' } %>
 
-      <%= render partial: 'collection_stats/meter_panel', locals: {
-        title: 'Price Buckets', rows: @stats[:price_tiers][:tiers],
-        subtext: 'Every copy priced individually, so a cheap non-foil and its pricey foil land in different bands.',
-        footer: "#{@stats[:price_tiers][:top_tier_share]}% of your value sits in cards worth $100 or more." } %>
-    </div>
-    <%= render partial: 'collection_stats/meter_panel', locals: {
-      title: 'Card Types', rows: @stats[:card_types][:types],
-      subtext: 'A card that is both an Artifact and a Creature is counted in each row, so copies here exceed your card count.',
-      footer: "#{number_with_delimiter(@stats[:card_types][:possible_commanders])} of your printings can lead a Commander deck." } %>
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <% if @stats[:colors].any? %>
-        <%= render partial: 'collection_stats/chart_panel', locals: {
-          title: 'Colour Identity',
-          subtext: 'Colour identity, counted once per card - a Golgari card is Multicolor, not one Black and one Green.',
-          chart_type: 'doughnut',
-          height: 300,
-          labels: @stats[:colors].map { |color| color[:label] },
-          series: @stats[:colors].map { |color| color[:copies] },
-          palette: @stats[:colors].map { |color| color[:label].downcase },
-          legend: @stats[:colors].map { |color| {
-            label: color[:label],
-            icon: color[:swatch] && "no-tailwind ms ms-cost #{color[:swatch]}",
-            copies: color[:copies] } },
-          tooltips: @stats[:colors].map { |color|
-            "#{number_with_delimiter(color[:copies])} copies · #{number_to_currency(color[:value])} · #{color[:share]}%" } } %>
-      <% end %>
-
-      <%= render partial: 'collection_stats/chart_panel', locals: {
-        title: 'Mana Curve',
-        height: 320,
-        subtext: 'Lands and tokens excluded. X is a card with no recorded mana value, not a card that costs {X}.',
-        chart_type: 'bar',
-        labels: @stats[:mana_curve][:buckets].map { |mv| mv[:label] },
-        series: @stats[:mana_curve][:buckets].map { |mv| mv[:copies] },
-        tooltips: @stats[:mana_curve][:buckets].map { |mv|
-          "#{number_with_delimiter(mv[:copies])} copies · #{number_to_currency(mv[:value])}" },
-        footer: "Average mana value #{@stats[:mana_curve][:average]}." } %>
-    </div>
-    <%= render partial: 'collection_stats/sets', locals: { sets: @stats[:sets] } %>
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <%= render partial: 'collection_stats/card_list', locals: {
-        title: 'Most Valuable Cards',
-        subtext: 'Your biggest holdings, each priced across every copy and finish you own.',
-        rows: @stats[:top_cards][:by_value],
-        footer: "These #{@stats[:top_cards][:by_value].size} cards are #{@stats[:top_cards][:top_value_share]}% of your collection value, and #{@stats[:price_tiers][:top_tier_share]}% of it sits in cards worth $100 or more." } %>
-
-      <%= render partial: 'collection_stats/card_list', locals: {
-        title: 'Most Copies',
-        subtext: 'What you are hoarding. Every finish counts and proxies are included, but basic lands sit this one out.',
-        rows: @stats[:top_cards][:by_copies] } %>
-    </div>
-    <%= render partial: 'collection_stats/card_list', locals: {
-      title: 'Weekly Price Movers',
-      subtext: 'The biggest dollar moves of the week, gainers and losers ranked together. Proxy copies sit this one out - a proxy price did not move, so you did not gain anything.',
-      rows: @stats[:price_movers],
-      empty_text: 'Nothing you own moved enough to register this week.',
-      footer: "Your real copies are #{@stats[:overview][:weekly_delta].negative? ? 'down' : 'up'} #{number_to_currency(@stats[:overview][:weekly_delta].abs)} across the whole collection." } %>
-    <%= render partial: 'collection_stats/meter_panel', locals: {
-      title: 'What Your Cards Do', rows: @stats[:roles][:roles],
-      subtext: 'Roles are per card, not per printing - four printings of the same removal spell are one removal card. A card that does three things appears in all three rows.',
-      footer: "Roles detected for #{@stats[:roles][:coverage_share]}% of your printings (#{number_with_delimiter(@stats[:roles][:covered_printings])} of #{number_with_delimiter(@stats[:roles][:total_printings])})." } %>
-
-    <%= render partial: 'collection_stats/chips', locals: {
-      title: 'Notable Effects', rows: @stats[:roles][:effects],
-      subtext: 'Copies and value of the effects worth counting. Same rules as above: once per card, and only high-confidence matches.' } %>
+    <%#
+      history stays on the shell rather than becoming a tab: it is free, and
+      collection-history-chart_controller adds a resize listener it never removes, so it should not
+      be something a frame can mount repeatedly
+    %>
     <% if @stats[:history].present? %>
       <div class="flex flex-col gap-2">
         <h2 class="text-xl font-bold text-grey-text">Value Over Time</h2>
 
         <%= render partial: 'collections/collection_history_chart', locals: { history: @stats[:history] } %>
+      </div>
+    <% end %>
+
+    <%= turbo_frame_tag 'stats_panel',
+      src: collections_stats_section_path(@stats[:user].username, @section, collection_id: params[:collection_id]) do %>
+      <div class="flex flex-col space-y-6">
+        <%= render partial: 'collection_stats/tab_bar', locals: {
+          active: @section, username: @stats[:user].username, collection_id: params[:collection_id] } %>
+
+        <%= render partial: 'collection_stats/panel_placeholder' %>
       </div>
     <% end %>
   <% end %>
