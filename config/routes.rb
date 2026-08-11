@@ -98,6 +98,12 @@ Rails.application.routes.draw do
     end
   end
   get 'collections/:username/overview', to: 'collections#overview', as: :collections_overview
+  get 'collections/:username/stats', to: 'collection_stats#show', as: :collections_stats
+  # one tab of analytics panels, fetched into the dashboard's turbo frame. Unconstrained on
+  # purpose: CollectionStats::Dashboard::SECTIONS is the only list of valid sections, and a
+  # reloadable app constant cannot be referenced here without autoloading during boot.
+  get 'collections/:username/stats/:section', to: 'collection_stats#section',
+                                              as: :collections_stats_section
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index
