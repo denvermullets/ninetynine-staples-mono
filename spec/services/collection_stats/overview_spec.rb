@@ -47,6 +47,29 @@ RSpec.describe CollectionStats::Overview, type: :service do
       expect(overview[:proxy_value]).to eq(20)
     end
 
+    # the bug this whole split exists to prevent: a proxied duals pile is most of what the headline
+    # would say your collection is worth, and none of it is money you have
+    it 'keeps proxy value out of every figure except proxy_value itself' do
+      card = create(:magic_card, normal_price: 100, foil_price: 400)
+      create(:collection_magic_card, collection: collection, magic_card: card,
+                                     quantity: 1, proxy_quantity: 5, proxy_foil_quantity: 5)
+
+      expect(overview[:total_value]).to eq(100)
+      expect(overview[:real_value]).to eq(100)
+      expect(overview[:nonfoil_value] + overview[:foil_value]).to eq(100)
+      expect(overview[:proxy_value]).to eq(2500)
+    end
+
+    # counts are the other axis - a proxy is still a card on the shelf
+    it 'still counts proxies as cards' do
+      card = create(:magic_card, normal_price: 100)
+      create(:collection_magic_card, collection: collection, magic_card: card,
+                                     quantity: 1, proxy_quantity: 5)
+
+      expect(overview[:total_cards]).to eq(6)
+      expect(overview[:proxy_cards]).to eq(5)
+    end
+
     it 'treats nil prices as zero rather than blowing up' do
       card = create(:magic_card, normal_price: nil, foil_price: nil)
       create(:collection_magic_card, collection: collection, magic_card: card, quantity: 3)
@@ -78,15 +101,17 @@ RSpec.describe CollectionStats::Overview, type: :service do
       expect(overview[:bulk_cards]).to eq(1)
     end
 
-    # proxies are bucketed on the same fallback price they are valued at, so a proxy of a foil-only
-    # $20 card is not filed as chaff
-    it 'buckets proxies on the price they fall back to' do
+    # bulk-vs-priced is a question about price and a proxy has none, so it sits on neither side
+    # rather than being filed as chaff on one of them
+    it 'leaves proxies out of both sides' do
       card = create(:magic_card, normal_price: 0, foil_price: 20)
       create(:collection_magic_card, collection: collection, magic_card: card,
-                                     quantity: 0, proxy_quantity: 1)
+                                     quantity: 0, proxy_quantity: 1, proxy_foil_quantity: 1)
 
-      expect(overview[:priced_cards]).to eq(1)
+      expect(overview[:priced_cards]).to eq(0)
       expect(overview[:bulk_cards]).to eq(0)
+      expect(overview[:priced_value]).to eq(0)
+      expect(overview[:bulk_value]).to eq(0)
     end
 
     it 'treats an unpriced card as bulk' do
@@ -106,14 +131,16 @@ RSpec.describe CollectionStats::Overview, type: :service do
       expect(overview[:priced_share]).to eq(25.0)
     end
 
-    it 'has both sides add up to the totals beside them' do
+    # real copies on both axes: the proxies in this fixture belong to neither side, so the identity
+    # is against real_cards rather than total_cards
+    it 'has both sides add up to the real totals beside them' do
       [0.25, 0.99, 1, 7.5, 250].each_with_index do |price, index|
         card = create(:magic_card, normal_price: price, foil_price: price * 2)
         create(:collection_magic_card, collection: collection, magic_card: card,
                                        quantity: index + 1, foil_quantity: 1, proxy_quantity: 2)
       end
 
-      expect(overview[:bulk_cards] + overview[:priced_cards]).to eq(overview[:total_cards])
+      expect(overview[:bulk_cards] + overview[:priced_cards]).to eq(overview[:real_cards])
       expect(overview[:bulk_value] + overview[:priced_value]).to eq(overview[:total_value])
     end
 
@@ -230,13 +257,17 @@ RSpec.describe CollectionStats::Overview, type: :service do
   end
 
   describe 'agreement with the stored rollups' do
-    it 'matches total_estimated_value once the rollup has been recomputed' do
+    # against total_value, NOT total_estimated_value: the stored rollup keeps real and proxy money in
+    # separate columns and the headline is the real one, which is also what the history chart plots.
+    # Comparing against the estimate would be asserting the proxy-inclusive total this panel dropped.
+    it 'matches the stored real total_value once the rollup has been recomputed' do
       card = create(:magic_card, normal_price: 7, foil_price: 13)
       create(:collection_magic_card, collection: collection, magic_card: card,
                                      quantity: 3, foil_quantity: 2, proxy_quantity: 1)
       Collections::UpdateTotals.call(collection: collection.reload)
 
-      expect(overview[:total_value]).to eq(collection.reload.total_estimated_value)
+      expect(overview[:total_value]).to eq(collection.reload.total_value)
+      expect(overview[:proxy_value]).to eq(collection.proxy_total_value)
       expect(overview[:total_cards]).to eq(collection.total_cards)
     end
   end

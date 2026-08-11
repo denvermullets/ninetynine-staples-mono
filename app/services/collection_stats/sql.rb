@@ -5,8 +5,18 @@
 # re-derive the same CASE expressions and drift apart. These constants are the single definition,
 # and they are written against the `owned` CTE that CollectionStats::Base builds.
 #
+# PROXIES CARRY NO VALUE. A proxy is a piece of cardstock you printed; pricing it at what the real
+# card sells for inflates every money figure on the dashboard by whatever your proxy pile would
+# cost to buy for real, which for a proxied duals/fetches pile is most of the number. So value is
+# summed off REAL_VALUE everywhere, and the only proxy money on the page is the notional figure on
+# the Real vs Proxy panel, which Overview builds out of PROXY_NORMAL/PROXY_FOIL on its own.
+#
+# Counts are the other axis and they DO include proxies - "how many cards do I have" has an answer
+# that a proxy belongs in, which is why TOTAL_QTY survives next to a value expression that is real
+# copies only.
+#
 # The proxy expressions mirror MagicCard#proxy_normal_price / #proxy_foil_price - a proxy of a
-# foil-only printing still has to be worth something, so each finish falls back to the other.
+# foil-only printing still has to price off something, so each finish falls back to the other.
 # Prices are nullable despite the 0.0 default, hence COALESCE on every reference.
 module CollectionStats
   module Sql
@@ -27,28 +37,24 @@ module CollectionStats
        + (owned.foil_qty * COALESCE(magic_cards.foil_price, 0)))
     SQL
 
-    PROXY_VALUE = <<~SQL.squish.freeze
-      ((owned.proxy_qty * (#{PROXY_NORMAL}))
-       + (owned.proxy_foil_qty * (#{PROXY_FOIL})))
-    SQL
-
-    TOTAL_VALUE = "(#{REAL_VALUE} + #{PROXY_VALUE})".freeze
-
     TOTAL_QTY = '(owned.qty + owned.foil_qty + owned.proxy_qty + owned.proxy_foil_qty)'.freeze
 
     REAL_QTY = '(owned.qty + owned.foil_qty)'.freeze
 
-    # The four quantity buckets paired with the unit price each bucket's copies are actually worth.
+    # The real quantity buckets paired with the unit price each bucket's copies are actually worth.
     #
     # This is the same pairing PriceTiers unpivots through its LATERAL, and it lives here so it is the
     # same pairing. Anything that asks a question about individual copies has to price them off this
     # list, or two panels end up disagreeing about what a card is worth - a $0.40 non-foil sitting
     # next to its $30 foil is one printing at two prices, and a per-printing average answers neither.
+    #
+    # The two proxy buckets are absent on purpose. These drive the price-band panels, and putting a
+    # proxy in a band asserts it is worth that band - a proxied Underground Sea is not $400 of
+    # "$100+", it is a card you cannot sell. Panels built on this list therefore count real copies
+    # only, so their copies AND their value both foot to the real totals in the KPI grid.
     PRICED_BUCKETS = [
       ['owned.qty', 'COALESCE(magic_cards.normal_price, 0)'],
-      ['owned.foil_qty', 'COALESCE(magic_cards.foil_price, 0)'],
-      ['owned.proxy_qty', "(#{PROXY_NORMAL})"],
-      ['owned.proxy_foil_qty', "(#{PROXY_FOIL})"]
+      ['owned.foil_qty', 'COALESCE(magic_cards.foil_price, 0)']
     ].freeze
 
     # ELSE 0 rather than a WHERE: PriceTiers can filter copies > 0 because it made a row per bucket,

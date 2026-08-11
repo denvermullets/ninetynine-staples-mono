@@ -39,7 +39,7 @@ module CollectionStats
         .joins('JOIN magic_card_types ON magic_card_types.magic_card_id = magic_cards.id')
         .joins('JOIN card_types ON card_types.id = magic_card_types.card_type_id')
         .group('card_types.name')
-        .pluck(Arel.sql('card_types.name'), Arel.sql("SUM(#{TOTAL_QTY})"), Arel.sql("SUM(#{TOTAL_VALUE})"))
+        .pluck(Arel.sql('card_types.name'), Arel.sql("SUM(#{TOTAL_QTY})"), Arel.sql("SUM(#{REAL_VALUE})"))
     end
 
     def accumulate(acc, row)

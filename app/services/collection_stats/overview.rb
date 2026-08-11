@@ -4,15 +4,18 @@
 # the real/proxy split are all sums over the same joined set, so splitting them into three
 # services would mean three identical scans of collection_magic_cards for no benefit.
 #
-# Foil-vs-nonfoil, real-vs-proxy and bulk-vs-not are treated as three independent axes over the
-# same pile of cards, not as mutually exclusive groups - "how much of my collection is foil" is a
-# question about proxies too, and both foils and proxies can be bulk.
+# Foil-vs-nonfoil and real-vs-proxy are treated as independent axes over the same pile of cards,
+# not as mutually exclusive groups - "how much of my collection is foil" is a question about
+# proxies too, so their COUNTS include proxies. Their value never does.
 #
-# The bulk axis is the one that has to be priced per COPY rather than per printing: a 40c non-foil
-# and its $30 foil are one row here, and calling that row "bulk" or "not" would be wrong either
-# way. Sql.copies_where_price splits the row's four quantity buckets on their own prices, and the
-# threshold is read off PriceTiers' first tier so this number and the Price Buckets panel cannot
-# drift apart.
+# Bulk-vs-not is the odd one out: it is a question about price, and a proxy has none, so proxies
+# are off that axis entirely rather than sitting on one side of it.
+#
+# The bulk axis is also the one that has to be priced per COPY rather than per printing: a 40c
+# non-foil and its $30 foil are one row here, and calling that row "bulk" or "not" would be wrong
+# either way. Sql.copies_where_price splits the row's real quantity buckets on their own prices,
+# and the threshold is read off PriceTiers' first tier so this number and the Price Buckets panel
+# cannot drift apart.
 module CollectionStats
   class Overview < Base
     # whatever PriceTiers calls its bottom tier is what bulk means, here and there
@@ -65,17 +68,19 @@ module CollectionStats
       }
     end
 
+    # Every figure here is real copies only, total_value included - see Sql. proxy_value is the one
+    # exception and it exists for exactly one consumer, the Proxy side of the Real vs Proxy split
+    # bar, where a notional "this pile would cost you this much to buy for real" is the point of the
+    # panel. It must not be added into anything else on the page.
     def values(raw)
       {
-        total_value: to_money(real_value(raw) + proxy_value(raw)),
+        total_value: to_money(real_value(raw)),
         real_value: to_money(real_value(raw)),
         proxy_value: to_money(proxy_value(raw)),
-        nonfoil_value: to_money(raw[:normal_value] + raw[:proxy_value]),
-        foil_value: to_money(raw[:foil_value] + raw[:proxy_foil_value]),
+        nonfoil_value: to_money(raw[:normal_value]),
+        foil_value: to_money(raw[:foil_value]),
         buylist_value: to_money(raw[:buylist_value]),
         weekly_delta: to_money(raw[:weekly_delta]),
-        # divides by real copies only - proxies carry notional value and would drag down an
-        # average that is meant to answer "what is a card in here typically worth"
         avg_card_value: to_money(average_card_value(raw))
       }
     end
@@ -93,9 +98,13 @@ module CollectionStats
 
     # Kept apart from counts and values because it is the one split priced per copy rather than per
     # printing, and because both of its sides are derived from one aggregate instead of two.
+    #
+    # Real copies on BOTH axes, unlike the other two split bars. Sql::PRICED_BUCKETS dropped the
+    # proxy buckets, so bulk_qty already counts real copies only - taking the other side off a total
+    # that still had proxies in it would hand every proxy to the "$1 and up" column for free.
     def bulk(raw)
-      cards = real_cards(raw) + proxy_cards(raw)
-      value = real_value(raw) + proxy_value(raw)
+      cards = real_cards(raw)
+      value = real_value(raw)
 
       {
         bulk_cards: raw[:bulk_qty].to_i,

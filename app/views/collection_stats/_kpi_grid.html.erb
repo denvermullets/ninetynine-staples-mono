@@ -1,9 +1,14 @@
 <%# locals: overview %>
 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+  <%#
+    the sub-line names what is NOT in the number: the headline is real copies only, and a proxy-heavy
+    collection needs to be told that up front rather than working it out from the Real vs Proxy panel
+  %>
   <%= render partial: 'collection_stats/kpi', locals: {
     label: 'Total Value', tone: :accent,
     value: number_to_currency(overview[:total_value]),
-    sub: "#{number_to_currency(overview[:real_value])} real" } %>
+    sub: overview[:proxy_cards].zero? ? 'across real copies' :
+      "excludes #{number_with_delimiter(overview[:proxy_cards])} proxies" } %>
 
   <%= render partial: 'collection_stats/kpi', locals: {
     label: 'Weekly Change',

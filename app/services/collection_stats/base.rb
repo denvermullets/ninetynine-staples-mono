@@ -56,7 +56,7 @@ module CollectionStats
         .select(<<~SQL.squish)
           magic_cards.scryfall_oracle_id::text AS scryfall_oracle_id,
           SUM(#{TOTAL_QTY}) AS copies,
-          SUM(#{TOTAL_VALUE}) AS value,
+          SUM(#{REAL_VALUE}) AS value,
           COUNT(*) AS printings
         SQL
     end
