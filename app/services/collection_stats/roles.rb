@@ -96,12 +96,12 @@ module CollectionStats
     end
 
     def fetch_roles
-      aggregate(distinct_roles, 'roles', 'role')
+      aggregate(distinct_roles)
         .to_h { |role, copies, value, cards| [role, totals(copies, value, cards)] }
     end
 
     def effect_rows
-      found = aggregate(distinct_chips, 'chips', 'chip_id')
+      found = aggregate(distinct_chips)
               .to_h { |chip_id, copies, value, cards| [chip_id.to_i, totals(copies, value, cards)] }
 
       NOTABLE_EFFECTS.each_with_index.map { |chip, index| build_chip(chip, found[index]) }
@@ -116,28 +116,36 @@ module CollectionStats
       }
     end
 
-    # one row per oracle id per bucket, so SUM cannot double count a card that matched twice
+    # one row per oracle id per bucket, so SUM cannot double count a card that matched twice.
+    # Both of these alias their bucket to the same column name so #aggregate can be written without
+    # interpolating a table or column into SQL - see the note there.
     def distinct_roles
       CardRole.high_confidence
               .joins(OWNED_ORACLE_JOIN)
-              .select('DISTINCT card_roles.scryfall_oracle_id, card_roles.role')
+              .select('DISTINCT card_roles.scryfall_oracle_id, card_roles.role AS bucket')
     end
 
     def distinct_chips
       notable
         .high_confidence
         .joins(OWNED_ORACLE_JOIN)
-        .select("DISTINCT card_roles.scryfall_oracle_id, #{chip_case} AS chip_id")
+        .select("DISTINCT card_roles.scryfall_oracle_id, #{chip_case} AS bucket")
     end
 
     # COUNT(*) is a count of oracle ids, not of printings - owned_by_oracle has already collapsed
-    # those, which is the whole point of the CTE
-    def aggregate(subquery, table, column)
+    # those, which is the whole point of the CTE.
+    #
+    # The bucket arrives as a third CTE rather than as an interpolated `JOIN (#{sql}) alias`. Both
+    # spellings run the same plan - a CTE referenced once is inlined - but this one has no string
+    # interpolation in it at all, so there is nothing here for a reader or Brakeman to have to
+    # prove safe. Declared after `owned`/`owned_by_oracle` because it selects from the latter, and
+    # Postgres only lets a CTE see the ones declared before it.
+    def aggregate(subquery)
       owned_oracles
-        .joins("JOIN (#{subquery.to_sql}) #{table} " \
-               "ON #{table}.scryfall_oracle_id = owned_by_oracle.scryfall_oracle_id")
-        .group("#{table}.#{column}")
-        .pluck(Arel.sql("#{table}.#{column}"), Arel.sql('SUM(owned_by_oracle.copies)'),
+        .with(matched: subquery)
+        .joins('JOIN matched ON matched.scryfall_oracle_id = owned_by_oracle.scryfall_oracle_id')
+        .group('matched.bucket')
+        .pluck(Arel.sql('matched.bucket'), Arel.sql('SUM(owned_by_oracle.copies)'),
                Arel.sql('SUM(owned_by_oracle.value)'), Arel.sql('COUNT(*)'))
     end
 
