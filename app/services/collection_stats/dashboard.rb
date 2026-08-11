@@ -32,7 +32,9 @@ module CollectionStats
         card_types: CardTypes.call(collection_ids: ids),
         colors: Colors.call(collection_ids: ids),
         mana_curve: ManaCurve.call(collection_ids: ids),
-        sets: Sets.call(collection_ids: ids)
+        sets: Sets.call(collection_ids: ids),
+        top_cards: TopCards.call(collection_ids: ids),
+        price_movers: PriceMovers.call(collection_ids: ids)
       }
     end
   end

@@ -71,9 +71,25 @@
           "#{number_with_delimiter(mv[:copies])} copies · #{number_to_currency(mv[:value])}" },
         footer: "Average mana value #{@stats[:mana_curve][:average]}." } %>
     </div>
-
     <%= render partial: 'collection_stats/sets', locals: { sets: @stats[:sets] } %>
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <%= render partial: 'collection_stats/card_list', locals: {
+        title: 'Most Valuable Cards',
+        subtext: 'Your biggest holdings, each priced across every copy and finish you own.',
+        rows: @stats[:top_cards][:by_value],
+        footer: "These #{@stats[:top_cards][:by_value].size} cards are #{@stats[:top_cards][:top_value_share]}% of your collection value, and #{@stats[:price_tiers][:top_tier_share]}% of it sits in cards worth $100 or more." } %>
 
+      <%= render partial: 'collection_stats/card_list', locals: {
+        title: 'Most Copies',
+        subtext: 'What you are hoarding. Every finish counts and proxies are included, but basic lands sit this one out.',
+        rows: @stats[:top_cards][:by_copies] } %>
+    </div>
+    <%= render partial: 'collection_stats/card_list', locals: {
+      title: 'Weekly Price Movers',
+      subtext: 'The biggest dollar moves of the week, gainers and losers ranked together. Proxy copies sit this one out - a proxy price did not move, so you did not gain anything.',
+      rows: @stats[:price_movers],
+      empty_text: 'Nothing you own moved enough to register this week.',
+      footer: "Your real copies are #{@stats[:overview][:weekly_delta].negative? ? 'down' : 'up'} #{number_to_currency(@stats[:overview][:weekly_delta].abs)} across the whole collection." } %>
     <% if @stats[:history].present? %>
       <div class="flex flex-col gap-2">
         <h2 class="text-xl font-bold text-grey-text">Value Over Time</h2>

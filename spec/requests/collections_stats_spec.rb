@@ -80,6 +80,30 @@ RSpec.describe 'Collection analytics', type: :request do
       expect(response.body).to include('Set Timeline')
     end
 
+    # the card lists render service rows straight through, so a renamed key is a 500 here and
+    # nowhere else - the service specs never touch ERB
+    it 'renders the card lists once there is something to rank' do
+      # full URLs, the way CardIngestion writes them - a bare filename would go looking for an
+      # asset-pipeline entry that does not exist
+      card = create(:magic_card, normal_price: 110, price_change_weekly_normal: 10,
+                                 image_small: 'https://cards.scryfall.io/small/a.jpg',
+                                 image_large: 'https://cards.scryfall.io/large/a.jpg')
+      create(:collection_magic_card, collection: public_collection, magic_card: card, quantity: 2)
+
+      get collections_stats_path(user.username)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'renders the movers panel when nothing moved' do
+      card = create(:magic_card, normal_price: 5, price_change_weekly_normal: nil)
+      create(:collection_magic_card, collection: public_collection, magic_card: card, quantity: 1)
+
+      get collections_stats_path(user.username)
+
+      expect(response).to have_http_status(:ok)
+    end
+
     it 'redirects when handed a collection id belonging to another user' do
       theirs = create(:collection, user: stranger, is_public: true)
 

@@ -50,5 +50,14 @@ module CollectionStats
     def to_money(value)
       value.to_d.round(2)
     end
+
+    # no ss-grad and no rarity class, unlike the table views: an aggregate row has no rarity, and
+    # ss-grad without one renders a gradient with no colour stops. Plain, the glyph inherits
+    # currentColor from the label beside it, which is right in both themes.
+    def keyrune_icon(keyrune)
+      return if keyrune.blank?
+
+      "no-tailwind ss ss-#{keyrune.downcase} ss-fw"
+    end
   end
 end

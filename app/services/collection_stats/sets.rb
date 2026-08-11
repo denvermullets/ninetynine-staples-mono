@@ -68,7 +68,7 @@ module CollectionStats
 
     def set_row(row, total)
       { label: row[:name] || 'Unknown set', copies: row[:copies], value: row[:value],
-        share: share(row[:value], total), icon: icon(row[:keyrune]), bar_class: 'bg-accent-50',
+        share: share(row[:value], total), icon: keyrune_icon(row[:keyrune]), bar_class: 'bg-accent-50',
         year: row[:year], printings: row[:printings] }
     end
 
@@ -81,15 +81,6 @@ module CollectionStats
 
       [{ label: "#{OTHER} (#{rest.size})", copies: rest.sum { |row| row[:copies] },
          value: value, share: share(value, total), icon: nil, bar_class: 'bg-highlight' }]
-    end
-
-    # no ss-grad and no rarity class, unlike the table views: a set aggregate has no rarity,
-    # and ss-grad without one renders a gradient with no colour stops. Plain, the glyph
-    # inherits currentColor from the panel's label, which is right in both themes.
-    def icon(keyrune)
-      return if keyrune.blank?
-
-      "no-tailwind ss ss-#{keyrune.downcase} ss-fw"
     end
 
     # release_date is nullable, so a year row can come back with no year. It keeps its own
