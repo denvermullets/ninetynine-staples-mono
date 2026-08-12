@@ -22,21 +22,36 @@ export default class extends Controller {
     this.renderChart();
   }
 
-  // we want the curve to be sorta in the middle of the graph
-  getSuggestedMin(minPrice) {
-    if (minPrice < 1) {
-      return Math.max(0, minPrice - 0.05);
-    } else {
-      return Math.max(0, minPrice - 1);
+  // we want the curve to be sorta in the middle of the graph. pad relative to
+  // the span so a $1.62 card doesn't get an axis that runs to $3.00 - a flat
+  // dollar of headroom eats half the plot once prices climb past $1
+  getAxisBounds(minPrice, maxPrice) {
+    if (!Number.isFinite(minPrice) || !Number.isFinite(maxPrice)) {
+      return { min: 0, max: 1 };
     }
+
+    // a card that never moves has no span to pad against, so fall back to a
+    // slice of the price itself and finally to a few cents for penny cards
+    const pad = Math.max((maxPrice - minPrice) * 0.15, maxPrice * 0.05, 0.05);
+
+    return { min: Math.max(0, minPrice - pad), max: maxPrice + pad };
   }
 
-  getSuggestedMax(maxPrice) {
-    if (maxPrice < 1) {
-      return maxPrice + 0.05;
-    } else {
-      return maxPrice + 1;
+  // chart.js drops a tick on each hard bound, which would label the axis with
+  // whatever the padding worked out to ($0.09, $2.14). build the ticks ourselves
+  // so the bounds stay tight but every label is a round number
+  buildPriceTicks(min, max) {
+    const rough = (max - min) / 6;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
+    const normalized = rough / magnitude;
+    const step = (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
+
+    const ticks = [];
+    for (let value = Math.ceil(min / step) * step; value <= max + step / 1000; value += step) {
+      ticks.push({ value: Math.round(value / step) * step });
     }
+
+    return ticks;
   }
 
   processDate(date) {
@@ -95,8 +110,10 @@ export default class extends Controller {
 
     const uniqueLabels = [...new Set(labels)];
 
-    const minPrice = Math.min(...foilPrices, ...normalPrices);
-    const maxPrice = Math.max(...foilPrices, ...normalPrices);
+    const priceBounds = this.getAxisBounds(
+      Math.min(...foilPrices, ...normalPrices),
+      Math.max(...foilPrices, ...normalPrices)
+    );
 
     // Fix canvas height before initializing a new chart
     const canvas = this.cardPriceChartTarget;
@@ -161,8 +178,14 @@ export default class extends Controller {
         },
         scales: {
           y: {
-            suggestedMin: this.getSuggestedMin(minPrice),
-            suggestedMax: this.getSuggestedMax(maxPrice),
+            // hard bounds, not suggested - suggestedMin/Max let chart.js round
+            // outward to the next nice tick, which is what pinned the floor to
+            // $0.00 and the ceiling a full dollar above the highest price
+            min: priceBounds.min,
+            max: priceBounds.max,
+            afterBuildTicks: (axis) => {
+              axis.ticks = this.buildPriceTicks(axis.min, axis.max);
+            },
             border: {
               display: true,
             },
