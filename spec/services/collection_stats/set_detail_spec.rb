@@ -121,6 +121,60 @@ RSpec.describe CollectionStats::SetDetail, type: :service do
     end
   end
 
+  # A separate metric, not a component of completion. Somebody chasing the set in foil is answering
+  # a different question from somebody chasing the set, and folding the two together would tell a
+  # collector with a finished non-foil run that they are at 40%.
+  describe 'foils' do
+    def with_finish(magic_card, name)
+      MagicCardFinish.create!(magic_card: magic_card, finish: Finish.find_or_create_by!(name: name))
+      magic_card
+    end
+
+    it 'counts the foils you hold against the printings that have one' do
+      own(with_finish(card(1), 'foil'), quantity: 0, foil_quantity: 1)
+      with_finish(card(2), 'foil')
+
+      expect(result[:foils]).to include(owned: 1, total: 2, missing: 1, share: 50.0)
+    end
+
+    # a card never sold in foil is not a foil you are missing, so it stays out of the denominator
+    it 'leaves a printing with no foil out of both sides' do
+      own(with_finish(card(1), 'foil'), quantity: 0, foil_quantity: 1)
+      with_finish(card(2), 'nonfoil')
+
+      expect(result[:foils]).to include(owned: 1, total: 1, share: 100.0)
+    end
+
+    it 'does not count a non-foil copy as having the foil' do
+      own(with_finish(card(1), 'foil'), quantity: 4, foil_quantity: 0)
+
+      expect(result[:foils]).to include(owned: 0, total: 1)
+    end
+
+    it 'does not count a proxied foil as having the foil' do
+      own(with_finish(card(1), 'foil'), quantity: 1, foil_quantity: 0, proxy_foil_quantity: 3)
+
+      expect(result[:foils]).to include(owned: 0, missing: 1)
+    end
+
+    it 'prices the foils still outstanding' do
+      own(with_finish(card(1), 'foil'), quantity: 0, foil_quantity: 1)
+      with_finish(card(2, foil_price: 14), 'foil')
+
+      expect(result[:foils][:cost]).to eq(14)
+    end
+
+    # the whole reason it is a separate tile
+    it 'leaves the completion numbers exactly where they were' do
+      own(with_finish(card(1), 'foil'), quantity: 1, foil_quantity: 0)
+      own(with_finish(card(2), 'foil'), quantity: 1, foil_quantity: 0)
+
+      expect(result).to include(owned: 2, total: 2, share: 100.0, missing: 0)
+      expect(result[:cost_to_complete]).to eq(0)
+      expect(result[:foils]).to include(owned: 0, share: 0.0)
+    end
+  end
+
   describe 'what is left, by rarity' do
     it 'counts the missing cards in the run and ranks the expensive end first' do
       set.update!(base_set_size: 4, total_set_size: 5)

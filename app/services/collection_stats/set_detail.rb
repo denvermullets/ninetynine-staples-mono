@@ -22,6 +22,15 @@ module CollectionStats
 
     UNOWNED = 'owned.magic_card_id IS NULL'.freeze
 
+    # Foils are a SEPARATE metric, not a component of the one above. Completion asks whether you
+    # have the card; this asks whether you have it in foil, and a collector who wants the set in
+    # foil is answering a different question from one who wants the set. Folding the two together
+    # would move this page's percentage off the completion panel row it was opened from, and would
+    # tell somebody with a complete non-foil run that they are at 40%.
+    MISSING_FOIL = "#{FOIL_AVAILABLE} AND NOT (#{FOIL_OWNED})".freeze
+
+    FOIL_PRICE = 'COALESCE(magic_cards.foil_price, 0)'.freeze
+
     # The basis is not known until the counts come back, so both are measured and the row picks one
     # afterwards. Cheaper than it looks - it is another FILTER over rows already being scanned, and
     # the alternative is a second round trip to ask the same question a different way.
@@ -31,6 +40,18 @@ module CollectionStats
       "COALESCE(SUM(#{REAL_VALUE}), 0)",
       "COALESCE(SUM(#{COPY_PRICE}) FILTER (WHERE #{UNOWNED}), 0)",
       "COALESCE(SUM(#{COPY_PRICE}) FILTER (WHERE #{UNOWNED} AND #{IN_BASE}), 0)"
+    ].freeze
+
+    # Measured on the same basis as the headline, so "245 / 281" and "30 / 275" sit next to each
+    # other and mean comparable things. The denominator is the printings that HAVE a foil, not every
+    # printing - a card never sold in foil is not one you are missing the foil of.
+    FOIL_COLUMNS = [
+      "COUNT(*) FILTER (WHERE #{FOIL_AVAILABLE})",
+      "COUNT(*) FILTER (WHERE #{FOIL_AVAILABLE} AND #{IN_BASE})",
+      "COUNT(*) FILTER (WHERE #{FOIL_AVAILABLE} AND #{FOIL_OWNED})",
+      "COUNT(*) FILTER (WHERE #{FOIL_AVAILABLE} AND #{FOIL_OWNED} AND #{IN_BASE})",
+      "COALESCE(SUM(#{FOIL_PRICE}) FILTER (WHERE #{MISSING_FOIL}), 0)",
+      "COALESCE(SUM(#{FOIL_PRICE}) FILTER (WHERE #{MISSING_FOIL} AND #{IN_BASE}), 0)"
     ].freeze
 
     def initialize(collection_ids:, boxset:)
@@ -44,22 +65,40 @@ module CollectionStats
 
       headline(base ? owned_base.to_i : owned_all.to_i, base ? total_base.to_i : total_all.to_i)
         .merge(set_identity)
-        .merge(basis: base ? :base : :all,
-               variant_owned: owned_all.to_i, variant_total: total_all.to_i,
-               variant_share: share(owned_all.to_i, total_all.to_i),
-               value: to_money(value), cost_to_complete: to_money(base ? cost_base : cost_all),
-               missing_by_rarity: missing_by_rarity(base))
+        .merge(variants(base, owned_all.to_i, total_all.to_i))
+        .merge(value: to_money(value), cost_to_complete: to_money(base ? cost_base : cost_all),
+               foils: foils(base), missing_by_rarity: missing_by_rarity(base))
     end
 
     private
+
+    # The pair the bar is NOT drawn from, kept beside the one it is so a reader who collects the
+    # variants can see where they stand without the page having to pick a side
+    def variants(base, owned_all, total_all)
+      { basis: base ? :base : :all, variant_owned: owned_all, variant_total: total_all,
+        variant_share: share(owned_all, total_all) }
+    end
 
     def set_identity
       { label: @boxset.name || 'Unknown set', code: @boxset.code,
         icon: keyrune_icon(@boxset.keyrune_code), year: @boxset.release_date&.year }
     end
 
+    # One row, both groups. The foil counters are more FILTERs over rows this query is already
+    # scanning, so asking for them separately would be a second pass for nothing.
+    def row
+      @row ||= cards.pick(*(COLUMNS + FOIL_COLUMNS).map { |column| Arel.sql(column) })
+    end
+
     def counters
-      cards.pick(*COLUMNS.map { |column| Arel.sql(column) })
+      row.first(COLUMNS.size)
+    end
+
+    def foils(base)
+      total_all, total_base, owned_all, owned_base, cost_all, cost_base = row.last(FOIL_COLUMNS.size)
+
+      headline(base ? owned_base.to_i : owned_all.to_i, base ? total_base.to_i : total_all.to_i)
+        .merge(cost: to_money(base ? cost_base : cost_all))
     end
 
     # Ordered here rather than in the view, and by rarity rather than by count, so the chips read the

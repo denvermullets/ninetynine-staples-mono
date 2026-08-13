@@ -63,6 +63,12 @@
           #<%= printing[:number] %> &middot; <%= label %>
         </p>
 
+        <% if (chip = foil_chip(printing)) %>
+          <span class="inline-block mt-1 px-1.5 py-0.5 text-xs border rounded <%= chip[:class] %>">
+            <%= chip[:label] %>
+          </span>
+        <% end %>
+
         <p class="text-xs text-grey-text/50">
           <% if printing[:normal_price].to_f.positive? %>
             <%= number_to_currency(printing[:normal_price]) %>

@@ -1,18 +1,26 @@
-<%# locals: rows - CollectionStats::SetCards groups, pagy %>
+<%# locals: slots - CollectionStats::SetCards rows at unit 'printing', labels, pagy %>
 <%#
-  The set as cards rather than as rows. One tile per card, the printing the set numbers it by, and
-  the ones you do not have greyed out - so a page of this reads as the gaps in a binder instead of a
-  list you have to compare against one.
+  The set as a checklist. One tile per SLOT - a printing in a finish - so the regular Ancestral
+  Katana and the foil Ancestral Katana are two tiles, because they are two cards to go and find.
+  NEO is 514 printings and just over a thousand slots.
 
-  The tile is deliberately not clickable. In the table a row opens onto its printings and its price
-  history; here the hover preview is the whole interaction, and a grid where every tile expands
-  something underneath it stops being a grid.
+  The same art appears twice, which is the honest answer rather than a shortcut: Scryfall has one
+  scan per printing and a foil is that same picture. What separates the two tiles is the chip, the
+  price and whether it is greyed.
+
+  Tiles are per printing, not per card, for the same reason - Jin-Gitaxias is seven printings in NEO
+  and the borderless one is a different object to want than the soft-glow showcase one. The table is
+  where a card is a card; here a card is a picture.
+
+  Deliberately not clickable. In the table a row opens onto its printings and its price history;
+  here the hover preview is the whole interaction, and a grid where every tile expands something
+  underneath it stops being a grid.
 %>
 
 <div class="mb-24">
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-    <% rows.each do |row| %>
-      <% card = row[:primary] %>
+    <% slots.each do |slot| %>
+      <% label = labels[slot[:id]]&.join(" ")&.presence || (slot[:in_base] ? "base run" : "variant") %>
 
       <div
         class="
@@ -20,15 +28,15 @@
           hover:scale-105
         "
         data-controller="card-hover"
-        data-card-hover-image-value="<%= card[:image_large] %>"
-        data-card-hover-name-value="<%= row[:name] %>"
+        data-card-hover-image-value="<%= slot[:image_large] %>"
+        data-card-hover-name-value="<%= slot[:name] %>"
         data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
       >
-        <% if card[:image].present? %>
-          <%= image_tag card[:image],
-            alt: row[:name],
+        <% if slot[:image].present? %>
+          <%= image_tag slot[:image],
+            alt: "#{slot[:name]} - #{label} #{slot[:finish]}",
             loading: "lazy",
-            class: "w-full rounded-xl shadow-lg #{"grayscale opacity-40" unless row[:owned]}" %>
+            class: "w-full rounded-xl shadow-lg #{"grayscale opacity-40" unless slot[:owned]}" %>
         <% else %>
           <div
             class="
@@ -36,24 +44,21 @@
               rounded-xl bg-background text-grey-text aspect-5/7
             "
           >
-            <%= row[:name] %>
+            <%= slot[:name] %>
           </div>
         <% end %>
 
-        <%# the printings count only earns its space on a card that has more than one %>
-        <% if row[:total_printings] > 1 %>
-          <span
-            class="
-              absolute px-1.5 py-0.5 text-xs rounded top-1 left-1
-              bg-black/70 text-grey-text
-            "
-          >
-            <%= row[:owned_printings] %>/<%= row[:total_printings] %>
-          </span>
-        <% end %>
+        <span
+          class="
+            absolute px-1.5 py-0.5 text-xs rounded top-1 left-1 bg-black/70
+            text-grey-text
+          "
+        >
+          #<%= slot[:number] %>
+        </span>
 
-        <span class="absolute px-1.5 py-0.5 text-xs rounded top-1 right-1 <%= row[:owned] ? "bg-accent-50 text-badge-text" : "bg-black/70 text-grey-text" %>">
-          <%= owned_marker(row[:owned_qty], row[:owned_foil_qty]) || "missing" %>
+        <span class="absolute px-1.5 py-0.5 text-xs rounded top-1 right-1 <%= slot[:owned] ? "bg-accent-50 text-badge-text" : "bg-black/70 text-grey-text" %>">
+          <%= slot[:owned] ? "x#{slot[:copies]}" : "missing" %>
         </span>
 
         <div
@@ -63,19 +68,21 @@
           "
         >
           <div class="font-medium truncate text-nine-white">
-            <%= row[:name].to_s.split("//").first %>
+            <%= slot[:name].to_s.split("//").first %>
           </div>
 
-          <div class="flex justify-between mt-1">
-            <span class="text-grey-text">
-              <%= number_to_currency(card[:normal_price]) %>
+          <div class="truncate text-grey-text/60" title="<%= label %>">
+            <%= label %>
+          </div>
+
+          <div class="flex items-center justify-between gap-1 mt-1">
+            <span class="px-1 border rounded shrink-0 <%= finish_chip_class(slot[:finish]) %>">
+              <%= slot[:finish] %>
             </span>
 
-            <% if card[:foil_price].to_f.positive? %>
-              <span class="text-yellow-400">
-                <%= number_to_currency(card[:foil_price]) %>
-              </span>
-            <% end %>
+            <span class="text-grey-text">
+              <%= number_to_currency(slot[:price]) %>
+            </span>
           </div>
         </div>
       </div>

@@ -8,25 +8,45 @@
   time somebody changed the filter, which is exactly when they care about it least.
 %>
 
-<div class="flex flex-wrap items-center justify-between gap-2">
-  <div class="flex flex-wrap items-center gap-2">
-    <% { "all" => "All", "owned" => "Owned", "missing" => "Missing" }.each do |key, label| %>
-      <%= link_to collection_set_path(username, boxset.code, filter: key, view: view, collection_id: collection_id),
-        class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == filter ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
-        <%= label %>
+<div class="flex flex-col gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "All", "owned" => "Owned", "missing" => "Missing", "foils" => "Foils" }.each do |key, label| %>
+        <%= link_to collection_set_path(username, boxset.code, filter: key, view: view, collection_id: collection_id),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == filter ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+          <%= label %>
 
-        <span class="ml-1 text-xs opacity-60">
-          <%= number_with_delimiter(counts[key.to_sym]) %>
-        </span>
+          <span class="ml-1 text-xs opacity-60">
+            <%= number_with_delimiter(counts[key.to_sym]) %>
+          </span>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <% { "table" => "Table", "visual" => "Visual" }.each do |key, label| %>
+        <%= link_to label,
+          collection_set_path(username, boxset.code, filter: filter, view: key, collection_id: collection_id),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == view ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+    </div>
   </div>
 
-  <div class="flex items-center gap-2">
-    <% { "table" => "Table", "visual" => "Visual" }.each do |key, label| %>
-      <%= link_to label,
-        collection_set_path(username, boxset.code, filter: filter, view: key, collection_id: collection_id),
-        class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == view ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+  <%#
+    The counts move when the view does, because the thing being counted moves with it. Saying which
+    it is beats letting somebody wonder why Missing went from 137 to 254 when they clicked Visual.
+  %>
+
+  <p class="text-xs text-grey-text/50">
+    <% if filter == "foils" %>
+      Foils you are still short - printings whose foil version you do not own.
+      Its own question, so it never moves the completion numbers above.
+    <% elsif view == "visual" %>
+      Counting printings - every variant is its own card here, so a showcase you
+      do not have is missing even when you have the card.
+    <% else %>
+      Counting cards - owned is a card you have in any printing, missing is one
+      you are still short a printing of, so a card at 1 of 7 is both.
     <% end %>
-  </div>
+  </p>
 </div>
