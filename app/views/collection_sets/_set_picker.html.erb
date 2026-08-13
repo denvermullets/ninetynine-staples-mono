@@ -1,0 +1,95 @@
+<%# locals: sets, boxset, filter, view, username, collection_id %>
+<%#
+  Flipping between sets without going back to the dashboard. Scoped to the sets this collection has
+  a real card from - the same membership the completion panel uses - so the picker never offers a
+  set that panel does not list.
+
+  The current filter and view ride along on every link. Somebody comparing what they are missing
+  across three sets should not have to re-pick Missing and Visual each time they change set.
+%>
+
+<div class="relative w-fit" data-controller="dropdown">
+  <button
+    type="button"
+    data-dropdown-target="button"
+    data-action="click->dropdown#toggle"
+    class="
+      flex items-center gap-2 px-4 py-2 border rounded-lg border-highlight
+      bg-foreground text-grey-text hover:border-accent-50 hover:text-accent-50
+      cursor-pointer
+    "
+  >
+    <% if boxset.keyrune_code.present? %>
+      <i
+        class="no-tailwind ss ss-<%= boxset.keyrune_code.downcase %> ss-fw"
+        aria-hidden="true"
+      ></i>
+    <% end %>
+
+    <span class="truncate max-w-56"><%= boxset.name %></span>
+
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M19 9l-7 7-7-7"
+      />
+    </svg>
+  </button>
+
+  <div
+    data-dropdown-target="menu"
+    class="
+      absolute left-0 z-30 hidden mt-2 border rounded-lg shadow-lg w-72
+      bg-foreground border-highlight
+    "
+  >
+    <div class="p-2 border-b border-highlight">
+      <input
+        type="text"
+        autocomplete="off"
+        placeholder="Filter sets"
+        data-dropdown-target="filter"
+        data-action="input->dropdown#filter"
+        class="
+          w-full text-sm border rounded-md border-highlight bg-background
+          text-grey-text focus:border-accent-50 focus:ring-accent-50
+        "
+      >
+    </div>
+
+    <div class="overflow-y-auto max-h-80">
+      <% sets.each do |option| %>
+        <%= link_to collection_set_path(username, option.code, filter: filter, view: view, collection_id: collection_id),
+          data: { dropdown_target: "item", search: "#{option.name} #{option.code}".downcase },
+          class: "flex items-center gap-2 px-4 py-2 text-sm hover:bg-background #{option.id == boxset.id ? "text-accent-50" : "text-grey-text"}" do %>
+          <% if option.keyrune_code.present? %>
+            <i
+              class="no-tailwind ss ss-<%= option.keyrune_code.downcase %> ss-fw shrink-0"
+              aria-hidden="true"
+            ></i>
+          <% end %>
+
+          <span class="truncate"><%= option.name %></span>
+
+          <span class="ml-auto text-xs shrink-0 text-grey-text/50">
+            <%= option.code %>
+          </span>
+        <% end %>
+      <% end %>
+
+      <% if sets.empty? %>
+        <p class="px-4 py-3 text-sm text-grey-text/50">
+          No other sets with cards in them yet.
+        </p>
+      <% end %>
+    </div>
+  </div>
+</div>

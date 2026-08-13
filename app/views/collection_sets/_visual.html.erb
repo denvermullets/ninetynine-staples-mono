@@ -20,6 +20,12 @@
 <div class="mb-24">
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
     <% slots.each do |slot| %>
+      <%#
+        the label is the alt text and nothing else here. On the tile it was a third line of small
+        print under a picture that already shows the frame it is describing - "enchantment" told a
+        reader nothing they could not see. The strip in the table still spells it out, because there
+        the printings sit next to each other and the wording is how you tell them apart.
+      %>
       <% label = labels[slot[:id]]&.join(" ")&.presence || (slot[:in_base] ? "base run" : "variant") %>
 
       <div
@@ -69,10 +75,6 @@
         >
           <div class="font-medium truncate text-nine-white">
             <%= slot[:name].to_s.split("//").first %>
-          </div>
-
-          <div class="truncate text-grey-text/60" title="<%= label %>">
-            <%= label %>
           </div>
 
           <div class="flex items-center justify-between gap-1 mt-1">

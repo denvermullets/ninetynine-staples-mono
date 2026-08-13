@@ -17,9 +17,14 @@
   <% if @scope[:collection_ids].empty? %>
     <%= render partial: 'collection_stats/empty', locals: { owner: @scope[:owner] } %>
   <% else %>
-    <%= render partial: 'collection_sets/summary', locals: {
-      stats: @stats, boxset: @boxset, username: @scope[:user].username,
-      collection_id: @scope[:collection]&.id } %>
+    <%#
+      outside the set_cards frame on purpose: changing set changes the whole page, headline numbers
+      and all, so these are ordinary links rather than frame navigations
+    %>
+    <%= render partial: 'collection_sets/set_picker', locals: {
+      sets: @sets, boxset: @boxset, filter: @filter, view: @view,
+      username: @scope[:user].username, collection_id: @scope[:collection]&.id } %>
+    <%= render partial: 'collection_sets/summary', locals: { stats: @stats } %>
     <%#
       turbo_action advance so the toggles and the pagination move the URL: a filter you cannot link
       to or reload back into is not a view of anything. Every link inside the frame drives the frame
