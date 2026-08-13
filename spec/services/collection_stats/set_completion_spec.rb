@@ -132,6 +132,25 @@ RSpec.describe CollectionStats::SetCompletion, type: :service do
       expect(row('Alpha')).to include(owned: 1, total: 3, variant_total: 3)
     end
 
+    # the point of the panel is what is left to buy, and a proxy is what you print because you have
+    # not bought it
+    it 'does not count a printing owned only as a proxy' do
+      set = boxset('Alpha')
+      own(card(set, 1))
+      own(card(set, 2), quantity: 0, proxy_quantity: 4)
+      own(card(set, 3), quantity: 0, proxy_foil_quantity: 1)
+
+      expect(row('Alpha')).to include(owned: 1, total: 3, missing: 2, variant_owned: 1)
+    end
+
+    it 'leaves out a set held entirely in proxies' do
+      own(card(boxset('Alpha'), 1))
+      own(card(boxset('Proxied'), 1), quantity: 0, proxy_quantity: 2)
+
+      expect(result[:sets].map { |set| set[:label] }).to eq(['Alpha'])
+      expect(result[:touched]).to eq(1)
+    end
+
     it 'ignores staged and wishlist rows, same as the rest of the dashboard' do
       set = boxset('Alpha')
       own(card(set, 1), staged: true)

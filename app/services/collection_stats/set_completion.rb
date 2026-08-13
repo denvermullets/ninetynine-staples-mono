@@ -17,6 +17,11 @@
 # card. That is the same definition the boxset browser uses (BoxsetsController#search_magic_cards),
 # and counting it this way rather than reading boxsets.total_set_size is what lets a set reach
 # exactly 100%: numerator and denominator are the same rows.
+#
+# PROXIES ARE NOT COLLECTED. Completion is the one panel that asks what you still have to acquire,
+# and a proxy is the thing you print *because* you have not acquired it - counting it as owned tells
+# you a set is finished when the missing column is exactly the list you would still have to buy. So
+# the numerator here is real copies only, unlike the card counts elsewhere on the dashboard.
 module CollectionStats
   class SetCompletion < Base
     # Collectors mean the numbered run when they say "set completion" - Bloomburrow is 281 cards, not
@@ -37,6 +42,11 @@ module CollectionStats
     HALF = 50
 
     PRINTABLE = "magic_cards.card_side IS NULL OR magic_cards.card_side = 'a'".freeze
+
+    # Rides on the join rather than sitting in the counts, so a proxy-only row never reaches this
+    # query at all: the printing goes back to being a null on the LEFT JOIN, exactly like one nobody
+    # owns, and a set held entirely in proxies drops out of owned_sets instead of showing up at 0%.
+    REAL_COPIES = "#{REAL_QTY} > 0".freeze
 
     COLUMNS = [
       'boxsets.name', 'boxsets.code', 'boxsets.keyrune_code',
@@ -62,7 +72,7 @@ module CollectionStats
         .with(owned: owned_rows, owned_sets: owned_set_ids)
         .joins(:boxset)
         .joins('JOIN owned_sets ON owned_sets.boxset_id = magic_cards.boxset_id')
-        .joins('LEFT JOIN owned ON owned.magic_card_id = magic_cards.id')
+        .joins("LEFT JOIN owned ON owned.magic_card_id = magic_cards.id AND #{REAL_COPIES}")
         .where(is_token: false)
         .where(PRINTABLE)
         .group('boxsets.id')
@@ -73,7 +83,7 @@ module CollectionStats
     # boxset_id of NULL simply never matches the join below
     def owned_set_ids
       MagicCard
-        .joins('JOIN owned ON owned.magic_card_id = magic_cards.id')
+        .joins("JOIN owned ON owned.magic_card_id = magic_cards.id AND #{REAL_COPIES}")
         .select('DISTINCT magic_cards.boxset_id AS boxset_id')
     end
 
