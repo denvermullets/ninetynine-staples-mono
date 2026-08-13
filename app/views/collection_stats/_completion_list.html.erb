@@ -9,9 +9,7 @@
     proxies count as owned, same as the card counts elsewhere on the dashboard.
   </p>
 
-  <% if sets.empty? %>
-    <p class="mt-4 text-sm text-grey-text/70">Nothing to show here yet.</p>
-  <% else %>
+  <% if sets.any? %>
     <div class="mt-4 divide-y divide-highlight">
       <% sets.each do |row| %>
         <div class="flex items-center gap-3 py-2">
@@ -58,10 +56,14 @@
         </div>
       <% end %>
     </div>
+  <% end %>
 
-    <p class="mt-4 text-sm text-grey-text/70">
+  <p class="mt-4 text-sm text-grey-text/70">
+    <% if sets.empty? %>
+      Nothing to show here yet.
+    <% else %>
       <%= number_with_delimiter(sets.sum { |row| row[:missing] }) %> cards away from finishing
       everything you have started.
-    </p>
-  <% end %>
+    <% end %>
+  </p>
 </div>
