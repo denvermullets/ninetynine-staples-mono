@@ -47,6 +47,7 @@ class CollectionSetsController < ApplicationController
   def load_set
     ids = @scope[:collection_ids]
 
+    @sets = CollectionStats::OwnedSets.call(collection_ids: ids)
     @stats = CollectionStats::SetDetail.call(collection_ids: ids, boxset: @boxset)
     cards = CollectionStats::SetCards.call(collection_ids: ids, boxset: @boxset,
                                            filter: @filter, unit: unit)
