@@ -17,6 +17,9 @@
       sub: 'you own at least one card' } %>
   </div>
 
+  <%# Scope already put the user and the selected collection on stats, so the list can link into the
+      set detail page without the section partials all having to grow a signature %>
   <%= render partial: 'collection_stats/completion_list', locals: {
-    sets: stats[:set_completion][:sets] } %>
+    sets: stats[:set_completion][:sets], username: stats[:user].username,
+    collection_id: stats[:collection]&.id } %>
 </div>

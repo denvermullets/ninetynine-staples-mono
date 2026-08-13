@@ -1,0 +1,60 @@
+<%#
+  One set, measured against one collection. The header is the completion panel's row opened up -
+  same percentage, same basis - and everything below it is the set itself, foldable between what is
+  here and what is not.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: @boxset.name,
+    subtext: @scope[:collection] ? "#{@scope[:collection].name} vs this set." : "#{@scope[:user].username}'s collection vs this set." } %>
+
+  <% if @scope[:collection_ids].empty? %>
+    <%= render partial: 'collection_stats/empty', locals: { owner: @scope[:owner] } %>
+  <% else %>
+    <%= render partial: 'collection_sets/summary', locals: {
+      stats: @stats, boxset: @boxset, username: @scope[:user].username,
+      collection_id: @scope[:collection]&.id } %>
+    <%#
+      turbo_action advance so the toggles and the pagination move the URL: a filter you cannot link
+      to or reload back into is not a view of anything. Every link inside the frame drives the frame
+      by default, so none of them needs a data attribute of its own.
+    %>
+    <%= turbo_frame_tag 'set_cards', data: { turbo_action: 'advance' } do %>
+      <div class="flex flex-col space-y-4">
+        <%= render partial: 'collection_sets/filter_toggle', locals: {
+          filter: @filter, view: @view, counts: @counts, boxset: @boxset,
+          username: @scope[:user].username, collection_id: @scope[:collection]&.id } %>
+
+        <% if @rows.empty? %>
+          <div
+            class="
+              p-12 text-center border rounded-3xl bg-foreground
+              border-highlight text-grey-text
+            "
+          >
+            <p class="text-xl font-semibold">
+              <%= @filter == 'missing' ? 'Nothing missing' : 'Nothing here yet' %>
+            </p>
+
+            <p class="mt-2 text-sm text-grey-text/70">
+              <%= @filter == 'missing' ? 'You have every card in this set.' : 'You do not own a real copy of anything in this set.' %>
+            </p>
+          </div>
+        <% elsif @view == 'visual' %>
+          <%= render partial: 'collection_sets/visual', locals: { rows: @rows, pagy: @pagy } %>
+        <% else %>
+          <%= render partial: 'collection_sets/mobile', locals: {
+            rows: @rows, labels: @labels, pagy: @pagy } %>
+          <%= render partial: 'collection_sets/table', locals: {
+            rows: @rows, labels: @labels, pagy: @pagy, boxset: @boxset } %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

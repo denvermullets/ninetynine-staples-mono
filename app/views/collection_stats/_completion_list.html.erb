@@ -1,4 +1,4 @@
-<%# locals: sets - CollectionStats::SetCompletion's ranked rows %>
+<%# locals: sets - CollectionStats::SetCompletion's ranked rows, username, collection_id %>
 <%# rows: [{ label:, code:, icon:, year:, owned:, total:, missing:, share:, basis:, variant_owned:, variant_total: }] %>
 <div class="p-6 border rounded-3xl bg-foreground border-highlight">
   <h2 class="text-xl font-bold text-grey-text">Set Completion</h2>
@@ -20,12 +20,13 @@
               <% end %>
 
               <%#
-                the set name is the way out of the panel: the boxset browser opens on a code, so a
-                row you are close to finishing is one click from the list of what is in it.
+                the set name is the way out of the panel, into the same numbers opened up: which of
+                these cards you have, which you do not, and what the rest would cost.
                 _top because this list lives inside the stats_panel frame, and a link that does not
-                break out of it would try to load the whole browser into the tab.
+                break out of it would try to load the whole page into the tab.
               %>
-              <%= link_to row[:label], root_path(code: row[:code]),
+              <%= link_to row[:label],
+                collection_set_path(username, row[:code], collection_id: collection_id),
                 data: { turbo_frame: '_top' },
                 class: 'min-w-0 truncate hover:text-accent-50', title: row[:label] %>
             </p>

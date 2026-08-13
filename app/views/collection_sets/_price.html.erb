@@ -1,0 +1,19 @@
+<%# locals: price, change %>
+<%#
+  The boxset table gates each price on the printing's finishes; the rows here are plucked hashes with
+  no finishes loaded, so a price of zero stands in for "not sold in this finish". Same outcome, one
+  fewer join per page.
+%>
+
+<% if price.to_f.positive? %>
+  <div class="flex items-center gap-2">
+    <%= number_to_currency(price) %>
+
+    <% if change.present? && change.abs >= 0.5 %>
+      <span class="px-2 py-1 text-xs rounded-full <%= change >= 0 ? 'bg-accent-50 text-badge-text' : 'bg-accent-100 text-badge-text' %>">
+        <%= change >= 0 ? '↑' : '↓' %>
+        <%= number_to_percentage(change.abs, precision: 0) %>
+      </span>
+    <% end %>
+  </div>
+<% end %>
