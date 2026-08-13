@@ -37,6 +37,19 @@ module CollectionStats
        + (owned.foil_qty * COALESCE(magic_cards.foil_price, 0)))
     SQL
 
+    # What one more copy of a printing costs to buy, which is a different question from what a copy
+    # you already own is worth: the set detail page prices the cards you are MISSING, and a
+    # foil-only printing still has a price to pay even though its normal_price is 0.
+    #
+    # The expression is the same shape as PROXY_NORMAL and deliberately not the same constant -
+    # that one prices a proxy of a card you hold, this one prices a card you do not. Merging them
+    # would tie the cost-to-finish figure to whatever the proxy panel decides to do next.
+    COPY_PRICE = <<~SQL.squish.freeze
+      CASE WHEN COALESCE(magic_cards.normal_price, 0) > 0
+           THEN magic_cards.normal_price
+           ELSE COALESCE(magic_cards.foil_price, 0) END
+    SQL
+
     TOTAL_QTY = '(owned.qty + owned.foil_qty + owned.proxy_qty + owned.proxy_foil_qty)'.freeze
 
     REAL_QTY = '(owned.qty + owned.foil_qty)'.freeze

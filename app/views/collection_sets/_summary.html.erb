@@ -1,0 +1,70 @@
+<%# locals: stats - CollectionStats::SetDetail, boxset, username, collection_id %>
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="flex items-center gap-3 text-xl font-bold text-grey-text">
+      <% if stats[:icon].present? %>
+        <i class="<%= stats[:icon] %> text-2xl" aria-hidden="true"></i>
+      <% end %>
+
+      <%= stats[:label] %>
+
+      <span class="text-sm font-normal text-grey-text/50">
+        <%= stats[:code] %> &middot; <%= stats[:year] || 'Undated' %>
+      </span>
+    </p>
+
+    <div class="flex items-center gap-4 text-sm">
+      <%= link_to 'Back to completion',
+        collections_stats_path(username, section: 'completion', collection_id: collection_id),
+        class: 'text-grey-text/70 hover:text-accent-50' %>
+
+      <%# the plain browser, for when you want the set itself rather than your half of it %>
+      <%= link_to 'Browse the set', root_path(code: boxset.code),
+        class: 'text-grey-text/70 hover:text-accent-50' %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Completion', tone: :accent,
+      value: "#{number_with_delimiter(stats[:owned])} / #{number_with_delimiter(stats[:total])}",
+      sub: "#{stats[:share]}% collected" } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'With Variants',
+      value: "#{number_with_delimiter(stats[:variant_owned])} / #{number_with_delimiter(stats[:variant_total])}",
+      sub: "#{stats[:variant_share]}% of every printing" } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Your Copies', value: number_to_currency(stats[:value]),
+      sub: 'real copies only, no proxies' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Cost to Finish', value: number_to_currency(stats[:cost_to_complete]),
+      sub: "#{number_with_delimiter(stats[:missing])} cards left" } %>
+  </div>
+
+  <div class="h-5 mt-6 overflow-hidden rounded-full bg-background">
+    <div
+      class="h-full rounded-full bg-accent-50"
+      style="width: <%= stats[:share] %>%"
+    ></div>
+  </div>
+
+  <p class="mt-2 text-sm text-grey-text/50">
+    Measured against <%= completion_basis_text(stats) %>. Proxies do not count
+    as collected, so what is missing is what you would still have to buy.
+  </p>
+
+  <% if stats[:missing_by_rarity].any? %>
+    <div class="flex flex-wrap items-center gap-2 mt-4">
+      <span class="text-xs text-grey-text/50">Still missing</span>
+
+      <% stats[:missing_by_rarity].each do |rarity, count| %>
+        <span class="px-2 py-1 text-xs border rounded-full <%= rarity_chip_class(rarity) %>">
+          <%= number_with_delimiter(count) %> <%= rarity %>
+        </span>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,97 @@
+<%# locals: rows - CollectionStats::SetCards groups, pagy %>
+<%#
+  The set as cards rather than as rows. One tile per card, the printing the set numbers it by, and
+  the ones you do not have greyed out - so a page of this reads as the gaps in a binder instead of a
+  list you have to compare against one.
+
+  The tile is deliberately not clickable. In the table a row opens onto its printings and its price
+  history; here the hover preview is the whole interaction, and a grid where every tile expands
+  something underneath it stops being a grid.
+%>
+
+<div class="mb-24">
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+    <% rows.each do |row| %>
+      <% card = row[:primary] %>
+
+      <div
+        class="
+          relative overflow-hidden transition-transform rounded-xl
+          hover:scale-105
+        "
+        data-controller="card-hover"
+        data-card-hover-image-value="<%= card[:image_large] %>"
+        data-card-hover-name-value="<%= row[:name] %>"
+        data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+      >
+        <% if card[:image].present? %>
+          <%= image_tag card[:image],
+            alt: row[:name],
+            loading: "lazy",
+            class: "w-full rounded-xl shadow-lg #{"grayscale opacity-40" unless row[:owned]}" %>
+        <% else %>
+          <div
+            class="
+              flex items-center justify-center w-full p-2 text-sm text-center
+              rounded-xl bg-background text-grey-text aspect-5/7
+            "
+          >
+            <%= row[:name] %>
+          </div>
+        <% end %>
+
+        <%# the printings count only earns its space on a card that has more than one %>
+        <% if row[:total_printings] > 1 %>
+          <span
+            class="
+              absolute px-1.5 py-0.5 text-xs rounded top-1 left-1
+              bg-black/70 text-grey-text
+            "
+          >
+            <%= row[:owned_printings] %>/<%= row[:total_printings] %>
+          </span>
+        <% end %>
+
+        <span class="absolute px-1.5 py-0.5 text-xs rounded top-1 right-1 <%= row[:owned] ? "bg-accent-50 text-badge-text" : "bg-black/70 text-grey-text" %>">
+          <%= owned_marker(row[:owned_qty], row[:owned_foil_qty]) || "missing" %>
+        </span>
+
+        <div
+          class="
+            absolute bottom-0 left-0 right-0 px-2 py-2 text-xs rounded-b-xl
+            bg-black/80
+          "
+        >
+          <div class="font-medium truncate text-nine-white">
+            <%= row[:name].to_s.split("//").first %>
+          </div>
+
+          <div class="flex justify-between mt-1">
+            <span class="text-grey-text">
+              <%= number_to_currency(card[:normal_price]) %>
+            </span>
+
+            <% if card[:foil_price].to_f.positive? %>
+              <span class="text-yellow-400">
+                <%= number_to_currency(card[:foil_price]) %>
+              </span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy %>
+    <div
+      class="
+        flex flex-col items-center justify-between w-full gap-2 p-6 mt-4
+        text-sm md:flex-row
+      "
+    >
+      <%== pagy.info_tag() %>
+
+      <div class="overflow-x-auto"><%== pagy.series_nav() %></div>
+    </div>
+  <% end %>
+</div>

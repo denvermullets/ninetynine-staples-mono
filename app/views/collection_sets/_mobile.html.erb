@@ -1,0 +1,62 @@
+<%# locals: rows, labels, pagy %>
+<%#
+  Deliberately not shared/cards/mobile_card: that partial runs its own CollectionMagicCard lookup per
+  card to print an owned count, which is the N+1 this whole page is built to avoid - the counts are
+  already on the row.
+%>
+
+<div class="max-w-full mb-24 md:hidden">
+  <div class="flex flex-col gap-2">
+    <% rows.each do |row| %>
+      <% card = row[:primary] %>
+
+      <div class="p-4 border rounded-xl bg-foreground border-highlight <%= 'opacity-60' unless row[:owned] %>">
+        <div class="flex items-start justify-between gap-2">
+          <p class="text-sm font-semibold text-grey-text">
+            <%= row[:name].to_s.split('//').first %>
+          </p>
+
+          <span class="text-xs shrink-0 <%= row[:owned] ? 'text-accent-50' : 'text-grey-text/50' %>">
+            <%= owned_marker(row[:owned_qty], row[:owned_foil_qty]) || 'missing' %>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-grey-text/50">
+          <span>#<%= card[:number] %></span>
+
+          <span>
+            <%= row[:owned_printings] %> / <%= row[:total_printings] %>
+            printings
+          </span>
+
+          <% if card[:normal_price].to_f.positive? %>
+            <span><%= number_to_currency(card[:normal_price]) %></span>
+          <% end %>
+
+          <% if card[:foil_price].to_f.positive? %>
+            <span><%= number_to_currency(card[:foil_price]) %> foil</span>
+          <% end %>
+        </div>
+
+        <% if row[:total_printings] > 1 %>
+          <p class="mt-2 text-xs text-grey-text/40">
+            <%= row[:printings].filter_map { |printing| labels[printing[:id]]&.join(' ') }.uniq.join(', ').presence %>
+          </p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy %>
+    <div
+      class="
+        flex flex-col w-full gap-2 px-4 py-3 mt-2 text-sm bg-foreground
+        rounded-xl
+      "
+    >
+      <div class="text-grey-text"><%== pagy.info_tag() %></div>
+
+      <div class="overflow-x-auto"><%== pagy.series_nav() %></div>
+    </div>
+  <% end %>
+</div>

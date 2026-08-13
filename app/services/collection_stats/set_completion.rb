@@ -13,40 +13,13 @@
 # every set that has ever been printed, most of which the viewer owns nothing from - and the panel
 # would both cost more and have to throw the empty rows away afterwards.
 #
-# A card is something you can collect if it is not a token and not the back face of a double-faced
-# card. That is the same definition the boxset browser uses (BoxsetsController#search_magic_cards),
-# and counting it this way rather than reading boxsets.total_set_size is what lets a set reach
-# exactly 100%: numerator and denominator are the same rows.
-#
-# PROXIES ARE NOT COLLECTED. Completion is the one panel that asks what you still have to acquire,
-# and a proxy is the thing you print *because* you have not acquired it - counting it as owned tells
-# you a set is finished when the missing column is exactly the list you would still have to buy. So
-# the numerator here is real copies only, unlike the card counts elsewhere on the dashboard.
+# What counts as a card, what counts as the run, and why proxies do not count as collected all live
+# in SetBasis, shared with the set detail page this panel links into.
 module CollectionStats
   class SetCompletion < Base
-    # Collectors mean the numbered run when they say "set completion" - Bloomburrow is 281 cards, not
-    # the 397 you get once showcase, borderless and promo printings are counted. The run is recovered
-    # from the collector number rather than trusted from base_set_size so it stays consistent with the
-    # rows being counted; it reproduces base_set_size exactly on every set spot-checked.
-    IN_BASE = <<~SQL.squish.freeze
-      NULLIF(regexp_replace(magic_cards.card_number, '[^0-9]', '', 'g'), '')::int
-        <= boxsets.base_set_size
-    SQL
-
-    # Some sets have no meaningful numbered run: Secret Lair Drop declares a base_set_size of 1
-    # against 2,364 printings, and the Commander decks declare only their new cards. Measuring those
-    # against their "base set" would report a collection of 26 Secret Lairs as 0% of one card, so a
-    # run that small is treated as no run at all and the set is measured across every printing.
-    BASE_RUN_MIN_SHARE = 0.5
+    include SetBasis
 
     HALF = 50
-
-    PRINTABLE = "magic_cards.card_side IS NULL OR magic_cards.card_side = 'a'".freeze
-
-    # Rides on the join rather than sitting in the counts, so a proxy-only row never reaches this
-    # query at all: the printing goes back to being a null on the LEFT JOIN, exactly like one nobody
-    # owns, and a set held entirely in proxies drops out of owned_sets instead of showing up at 0%.
-    REAL_COPIES = "#{REAL_QTY} > 0".freeze
 
     COLUMNS = [
       'boxsets.name', 'boxsets.code', 'boxsets.keyrune_code',
@@ -80,7 +53,8 @@ module CollectionStats
     end
 
     # DISTINCT rather than a GROUP BY: this only exists to name the sets worth scanning, and a
-    # boxset_id of NULL simply never matches the join below
+    # boxset_id of NULL simply never matches the join below. REAL_COPIES rides on this join too, so
+    # a set held entirely in proxies drops out here instead of showing up at 0%.
     def owned_set_ids
       MagicCard
         .joins("JOIN owned ON owned.magic_card_id = magic_cards.id AND #{REAL_COPIES}")
@@ -98,14 +72,6 @@ module CollectionStats
         .merge(label: name || 'Unknown set', code: code, icon: keyrune_icon(keyrune), year: year,
                basis: base ? :base : :all,
                variant_owned: owned_all.to_i, variant_total: total_all.to_i)
-    end
-
-    def headline(owned, total)
-      { owned: owned, total: total, missing: total - owned, share: share(owned, total) }
-    end
-
-    def base_run?(total_base, total_all)
-      total_base.positive? && total_base >= total_all * BASE_RUN_MIN_SHARE
     end
 
     # complete is counted off the raw pair rather than off share, which rounds - 280 of 281 is 99.6%

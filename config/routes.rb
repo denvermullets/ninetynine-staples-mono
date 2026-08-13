@@ -104,6 +104,8 @@ Rails.application.routes.draw do
   # reloadable app constant cannot be referenced here without autoloading during boot.
   get 'collections/:username/stats/:section', to: 'collection_stats#section',
                                               as: :collections_stats_section
+  # one set, measured against this collection - what the completion panel's rows link into
+  get 'collections/:username/sets/:code', to: 'collection_sets#show', as: :collection_set
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index

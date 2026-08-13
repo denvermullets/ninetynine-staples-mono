@@ -1,0 +1,32 @@
+<%# locals: filter, view, counts, boxset, username, collection_id %>
+<%#
+  Links inside the set_cards frame, so Turbo swaps the list and the toggles together and the active
+  state is worked out on the server. Counts come off the same pass that built the rows, so labelling
+  all three costs nothing.
+
+  Each toggle carries the other one's current value. Dropping it would quietly reset the view every
+  time somebody changed the filter, which is exactly when they care about it least.
+%>
+
+<div class="flex flex-wrap items-center justify-between gap-2">
+  <div class="flex flex-wrap items-center gap-2">
+    <% { "all" => "All", "owned" => "Owned", "missing" => "Missing" }.each do |key, label| %>
+      <%= link_to collection_set_path(username, boxset.code, filter: key, view: view, collection_id: collection_id),
+        class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == filter ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+        <%= label %>
+
+        <span class="ml-1 text-xs opacity-60">
+          <%= number_with_delimiter(counts[key.to_sym]) %>
+        </span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <% { "table" => "Table", "visual" => "Visual" }.each do |key, label| %>
+      <%= link_to label,
+        collection_set_path(username, boxset.code, filter: filter, view: key, collection_id: collection_id),
+        class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == view ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+    <% end %>
+  </div>
+</div>
