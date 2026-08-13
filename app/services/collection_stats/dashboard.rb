@@ -19,6 +19,7 @@ module CollectionStats
       colors: Colors,
       mana_curve: ManaCurve,
       sets: Sets,
+      set_completion: SetCompletion,
       top_cards: TopCards,
       price_movers: PriceMovers,
       roles: Roles
@@ -36,6 +37,8 @@ module CollectionStats
                    panels: %i[colors mana_curve] },
       'sets' => { label: 'Sets', partial: 'collection_stats/sections/sets',
                   panels: %i[sets] },
+      'completion' => { label: 'Completion', partial: 'collection_stats/sections/completion',
+                        panels: %i[set_completion] },
       'cards' => { label: 'Cards', partial: 'collection_stats/sections/cards',
                    panels: %i[top_cards price_movers] },
       'roles' => { label: 'Roles', partial: 'collection_stats/sections/roles',

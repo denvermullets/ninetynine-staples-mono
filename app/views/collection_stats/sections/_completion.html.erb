@@ -1,0 +1,22 @@
+<%# locals: stats %>
+<div class="flex flex-col space-y-6">
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Sets Complete', tone: :accent,
+      value: number_with_delimiter(stats[:set_completion][:complete]),
+      sub: 'every card in the run' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Half or Better',
+      value: number_with_delimiter(stats[:set_completion][:half]),
+      sub: '50% of the run or more' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Sets Touched',
+      value: number_with_delimiter(stats[:set_completion][:touched]),
+      sub: 'you own at least one card' } %>
+  </div>
+
+  <%= render partial: 'collection_stats/completion_list', locals: {
+    sets: stats[:set_completion][:sets] } %>
+</div>
