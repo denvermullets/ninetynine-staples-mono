@@ -48,17 +48,23 @@ class CollectionSetsController < ApplicationController
     ids = @scope[:collection_ids]
 
     @stats = CollectionStats::SetDetail.call(collection_ids: ids, boxset: @boxset)
-    cards = CollectionStats::SetCards.call(collection_ids: ids, boxset: @boxset, filter: @filter)
+    cards = CollectionStats::SetCards.call(collection_ids: ids, boxset: @boxset,
+                                           filter: @filter, unit: unit)
     @counts = cards[:counts]
     @pagy, @rows = pagy(:offset, cards[:rows], limit: PER_PAGE)
     @labels = CollectionStats::PrintingLabels.call(magic_card_ids: page_printing_ids)
   end
 
-  # The labels are looked up for the printings actually on screen, which is why this runs after pagy
-  # rather than inside SetCards. The visual grid shows one tile per card and never opens the
-  # printings strip, so it has nothing to label.
+  # The grid is a wall of art, so it is printings; the table is a list of cards you either have or
+  # do not, so it is cards and the printings live inside the row
+  def unit
+    @view == 'visual' ? 'printing' : 'card'
+  end
+
+  # Labels are looked up for the printings actually on screen, which is why this runs after pagy
+  # rather than inside SetCards - a set is a few hundred printings and a page is fifty
   def page_printing_ids
-    return [] if @view == 'visual'
+    return @rows.map { |row| row[:id] } if @view == 'visual'
 
     @rows.flat_map { |row| row[:printings].map { |printing| printing[:id] } }
   end

@@ -115,16 +115,84 @@ RSpec.describe CollectionStats::SetCards, type: :service do
       expect(call('owned')[:rows].map { |group| group[:name] }).to eq(['Have'])
     end
 
-    it 'counts a card as missing only when none of its printings is' do
+    it 'counts a card as missing while any of its printings still is' do
       expect(call('missing')[:rows].map { |group| group[:name] }).to eq(['Want'])
     end
 
-    it 'labels all three toggles off the same pass' do
-      expect(call('missing')[:counts]).to eq({ all: 2, owned: 1, missing: 1 })
+    # the shopping-list reading: a card at 1 of 3 is one you HAVE and one you are still buying, so
+    # it belongs in both lists. Filtering missing down to "you own none of it" is what hid the
+    # variants somebody opened the page to find
+    it 'lists a card you own one printing of under both owned and missing' do
+      oracle = SecureRandom.uuid
+      own(card(3, name: 'Partial', oracle: oracle))
+      card(4, name: 'Partial', oracle: oracle)
+
+      expect(call('owned')[:rows].map { |group| group[:name] }).to eq(%w[Have Partial])
+      expect(call('missing')[:rows].map { |group| group[:name] }).to eq(%w[Want Partial])
+    end
+
+    it 'labels every toggle off the same pass' do
+      expect(call('missing')[:counts]).to eq({ all: 2, owned: 1, missing: 1, foils: 0 })
     end
 
     it 'falls back to everything when asked for a filter it does not have' do
       expect(call('nonsense')[:rows].size).to eq(2)
+    end
+  end
+
+  describe 'foils' do
+    # no finish factory exists - MagicCardFinish is joined by hand, same as spec/requests/boxsets_spec.rb
+    def with_finish(magic_card, name)
+      MagicCardFinish.create!(magic_card: magic_card, finish: Finish.find_or_create_by!(name: name))
+      magic_card
+    end
+
+    it 'says the foil is outstanding on a printing you only have in non-foil' do
+      own(with_finish(card(1, name: 'Have'), 'foil'), quantity: 2, foil_quantity: 0)
+
+      expect(row('Have')[:printings].first).to include(foil_available: true, missing_foil: true)
+    end
+
+    it 'says nothing about a printing that was never sold in foil' do
+      own(with_finish(card(1, name: 'Have'), 'nonfoil'))
+
+      expect(row('Have')[:printings].first).to include(foil_available: false, missing_foil: false)
+    end
+
+    it 'counts etched as a foil, same as MagicCard#foil_available?' do
+      own(with_finish(card(1, name: 'Etched'), 'etched'), foil_quantity: 1)
+
+      expect(row('Etched')[:printings].first).to include(foil_available: true, missing_foil: false)
+    end
+
+    it 'filters to the printings whose foil you are still short' do
+      own(with_finish(card(1, name: 'Has Foil'), 'foil'), foil_quantity: 1)
+      own(with_finish(card(2, name: 'Needs Foil'), 'foil'), quantity: 1, foil_quantity: 0)
+      with_finish(card(3, name: 'No Foil Made'), 'nonfoil')
+
+      expect(call('foils')[:rows].map { |group| group[:name] }).to eq(['Needs Foil'])
+      expect(call('foils')[:counts][:foils]).to eq(1)
+    end
+
+    it 'asks the same question of a single slot in the visual grid' do
+      own(with_finish(with_finish(card(1, name: 'Needs Foil'), 'nonfoil'), 'foil'),
+          quantity: 1, foil_quantity: 0)
+      own(with_finish(with_finish(card(2, name: 'Has Foil'), 'nonfoil'), 'foil'), foil_quantity: 2)
+
+      result = described_class.call(collection_ids: [collection.id], boxset: set,
+                                    filter: 'foils', unit: 'printing')
+
+      expect(result[:rows].map { |slot| [slot[:name], slot[:finish]] })
+        .to eq([['Needs Foil', :foil]])
+    end
+
+    # the whole reason it is a separate flag: completion is about printings, and a foil you are
+    # short must not move the bar this page shares with the completion panel
+    it 'leaves the foil gap out of owned and out of missing' do
+      own(with_finish(card(1, name: 'Have'), 'foil'), quantity: 1, foil_quantity: 0)
+
+      expect(row('Have')).to include(owned: true, incomplete: false, missing_foils: 1)
+      expect(call('missing')[:rows]).to be_empty
     end
   end
 
@@ -159,6 +227,93 @@ RSpec.describe CollectionStats::SetCards, type: :service do
       card(3, name: 'Back Face', card_side: 'b')
 
       expect(rows.map { |group| group[:name] }).to eq(['Real'])
+    end
+  end
+
+  # the visual grid is a wall of art and the art is per printing, so folding them there would hide
+  # exactly what somebody opened the grid to see - NEO's Jin-Gitaxias is seven pictures, not one
+  describe 'at printing unit' do
+    subject(:printings) { call_unit[:rows] }
+
+    def call_unit(mode = filter)
+      described_class.call(collection_ids: [collection.id], boxset: set, filter: mode,
+                           unit: 'printing')
+    end
+
+    before do
+      oracle = SecureRandom.uuid
+      own(card(1, name: 'Agate Assault', oracle: oracle))
+      card(3, name: 'Agate Assault', oracle: oracle)
+      card(4, name: 'Agate Assault', oracle: oracle)
+    end
+
+    it 'gives every printing its own row instead of folding them' do
+      expect(printings.size).to eq(3)
+      expect(printings.map { |printing| printing[:number] }).to eq(%w[1 3 4])
+    end
+
+    # a slot is a printing in a finish - the thing you either have in the binder or do not - so the
+    # grid is a checklist and a foil is its own line on it
+    describe 'slots' do
+      def with_finish(magic_card, name)
+        MagicCardFinish.create!(magic_card: magic_card,
+                                finish: Finish.find_or_create_by!(name: name))
+        magic_card
+      end
+
+      it 'gives a printing sold in both finishes a tile each, priced separately' do
+        set.magic_cards.destroy_all
+        both = with_finish(with_finish(card(1, name: 'Katana', normal_price: 2, foil_price: 9),
+                                       'nonfoil'), 'foil')
+        own(both, quantity: 1, foil_quantity: 0)
+
+        expect(printings.map { |slot| [slot[:finish], slot[:price], slot[:owned]] })
+          .to eq([[:regular, 2, true], [:foil, 9, false]])
+      end
+
+      it 'gives a foil-only printing no regular slot to be missing' do
+        set.magic_cards.destroy_all
+        with_finish(card(1, name: 'Foil Only'), 'foil')
+
+        expect(printings.map { |slot| slot[:finish] }).to eq([:foil])
+      end
+
+      # dropping it would silently shrink the set
+      it 'falls back to a regular slot when the finishes were never recorded' do
+        set.magic_cards.destroy_all
+        card(1, name: 'Unknown Finishes')
+
+        expect(printings.map { |slot| slot[:finish] }).to eq([:regular])
+      end
+    end
+
+    # NEO numbers Jin-Gitaxias 59 and then 307, 371, 427, 445, 513, 514. In plain collector order
+    # its seven printings land on five different pages, which is useless to somebody scrolling for
+    # variants - the card stays in set order, its variants come with it
+    it 'keeps a card and its variants together rather than scattering them by number' do
+      other = SecureRandom.uuid
+      card(2, name: 'Bakersbane Duo', oracle: other)
+      card(5, name: 'Bakersbane Duo', oracle: other)
+
+      expect(printings.map { |printing| [printing[:name], printing[:number]] })
+        .to eq([['Agate Assault', '1'], ['Agate Assault', '3'], ['Agate Assault', '4'],
+                ['Bakersbane Duo', '2'], ['Bakersbane Duo', '5']])
+    end
+
+    # the other reading of missing: you have the card, you do not have this printing of it
+    it 'calls a variant of a card you own missing, because you do not have that one' do
+      expect(call_unit('missing')[:rows].map { |printing| printing[:number] }).to eq(%w[3 4])
+      expect(call_unit('owned')[:rows].map { |printing| printing[:number] }).to eq(['1'])
+    end
+
+    it 'counts slots, so the toggle labels what the grid is actually showing' do
+      expect(call_unit[:counts]).to eq({ all: 3, owned: 1, missing: 2, foils: 0 })
+    end
+
+    it 'falls back to folding when asked for a unit it does not have' do
+      result = described_class.call(collection_ids: [collection.id], boxset: set, unit: 'nonsense')
+
+      expect(result[:rows].size).to eq(1)
     end
   end
 

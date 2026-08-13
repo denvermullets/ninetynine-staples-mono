@@ -43,11 +43,12 @@
             </p>
 
             <p class="mt-2 text-sm text-grey-text/70">
-              <%= @filter == 'missing' ? 'You have every card in this set.' : 'You do not own a real copy of anything in this set.' %>
+              <%= @filter == 'missing' ? 'You have every printing in this set.' : 'You do not own a real copy of anything in this set.' %>
             </p>
           </div>
         <% elsif @view == 'visual' %>
-          <%= render partial: 'collection_sets/visual', locals: { rows: @rows, pagy: @pagy } %>
+          <%= render partial: 'collection_sets/visual', locals: {
+            slots: @rows, labels: @labels, pagy: @pagy } %>
         <% else %>
           <%= render partial: 'collection_sets/mobile', locals: {
             rows: @rows, labels: @labels, pagy: @pagy } %>

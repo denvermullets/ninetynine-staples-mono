@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
+  <div class="grid grid-cols-2 gap-4 mt-6 md:grid-cols-3 xl:grid-cols-5">
     <%= render partial: 'collection_stats/kpi', locals: {
       label: 'Completion', tone: :accent,
       value: "#{number_with_delimiter(stats[:owned])} / #{number_with_delimiter(stats[:total])}",
@@ -42,6 +42,17 @@
     <%= render partial: 'collection_stats/kpi', locals: {
       label: 'Cost to Finish', value: number_to_currency(stats[:cost_to_complete]),
       sub: "#{number_with_delimiter(stats[:missing])} cards left" } %>
+
+    <%#
+      Its own tile, not a component of the one on the left. Completion asks whether you have the
+      card; this asks whether you have it in foil, and somebody chasing the set in foil is answering
+      a different question from somebody chasing the set. The denominator is the printings that HAVE
+      a foil - a card never sold in one is not a foil you are missing.
+    %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Foils to Finish', value: number_to_currency(stats[:foils][:cost]),
+      sub: "#{number_with_delimiter(stats[:foils][:missing])} foils left" } %>
   </div>
 
   <div class="h-5 mt-6 overflow-hidden rounded-full bg-background">

@@ -38,6 +38,32 @@ module CollectionStats
     # nobody owns.
     REAL_COPIES = "#{Sql::REAL_QTY} > 0".freeze
 
+    # Whether the printing was ever SOLD in foil, which is not the same question as whether it has a
+    # foil price - the price column defaults to 0, so a printing with no price data yet would read
+    # as foil-less and quietly leave itself out of the denominator. This is the definition
+    # MagicCard#foil_available? uses, so the page, the chips and the boxset table agree about which
+    # cards have a foil to be missing in the first place.
+    FOIL_AVAILABLE = <<~SQL.squish.freeze
+      EXISTS (SELECT 1 FROM magic_card_finishes
+                JOIN finishes ON finishes.id = magic_card_finishes.finish_id
+              WHERE magic_card_finishes.magic_card_id = magic_cards.id
+                AND finishes.name IN ('foil', 'etched'))
+    SQL
+
+    # Its mirror. A printing sold ONLY in foil has no regular slot to be missing, and one whose
+    # finishes never got recorded has neither - which is why the caller falls back to a regular slot
+    # rather than letting a card vanish out of the grid entirely.
+    NONFOIL_AVAILABLE = <<~SQL.squish.freeze
+      EXISTS (SELECT 1 FROM magic_card_finishes
+                JOIN finishes ON finishes.id = magic_card_finishes.finish_id
+              WHERE magic_card_finishes.magic_card_id = magic_cards.id
+                AND finishes.name = 'nonfoil')
+    SQL
+
+    # A foil you hold, which is real copies only - owned.foil_qty is the real bucket and
+    # proxy_foil_quantity is its own column, so a proxied foil never reads as one you have.
+    FOIL_OWNED = 'COALESCE(owned.foil_qty, 0) > 0'.freeze
+
     private
 
     def base_run?(total_base, total_all)
