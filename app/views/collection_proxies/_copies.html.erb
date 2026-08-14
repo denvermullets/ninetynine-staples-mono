@@ -86,28 +86,13 @@
             <%= printing_label(group, labels) %>
           </p>
 
-          <%#
-            the caption is the part the art cannot say: which binder to go and open, and whether it
-            is a binder at all. A proxy sleeved in a deck is one you are playing with; a proxy in a
-            binder is a spare, and that is the difference the deck filter is asking about.
-          %>
+          <%# the caption is the part the art cannot say: which binder to go and open %>
 
           <% group[:locations].each do |location| %>
             <p
-              class="text-xs truncate <%= location[:deck] ? 'text-grey-text/70' : 'text-grey-text/50' %>"
+              class="text-xs truncate text-grey-text/50"
               title="<%= location[:collection_name] %>"
             >
-              <% if location[:deck] %>
-                <span
-                  class="text-accent-50"
-                  role="img"
-                  title="Deck"
-                  aria-label="Deck"
-                >
-                  &#9670;
-                </span>
-              <% end %>
-
               <%= location[:collection_name] %>
               <%= owned_marker(location[:qty], location[:foil_qty]) %>
             </p>

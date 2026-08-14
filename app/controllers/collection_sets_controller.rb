@@ -13,6 +13,21 @@ class CollectionSetsController < ApplicationController
 
   VIEWS = %w[table visual].freeze
 
+  # The landing page, and the only way into this area that is not a link from somewhere else. It
+  # answers the question the set page cannot until you have already picked a set: which sets am I
+  # closest to finishing?
+  #
+  # Deliberately the same panel the stats dashboard's Completion tab renders, off the same service
+  # and the same partial. It is one aggregate, and a menu entry that lands on "pick a set" would be
+  # a worse page than one that lands on the answer.
+  def index
+    @scope = CollectionStats::Scope.call(username: params[:username], viewer: current_user,
+                                         collection_id: params[:collection_id])
+    return bounce_to_index if @scope[:missing]
+
+    load_index unless @scope[:collection_ids].empty?
+  end
+
   def show
     @boxset = Boxset.find_by(code: params[:code])
     return head :not_found if @boxset.nil?
@@ -26,6 +41,18 @@ class CollectionSetsController < ApplicationController
   end
 
   private
+
+  def load_index
+    ids = @scope[:collection_ids]
+
+    @sets = CollectionStats::OwnedSets.call(collection_ids: ids)
+    @completion = CollectionStats::SetCompletion.call(collection_ids: ids)
+  end
+
+  # Dropping the collection_id rather than keeping it, or the redirect would loop
+  def bounce_to_index
+    redirect_to collection_sets_path(params[:username]), alert: 'Collection not found'
+  end
 
   # Dropping the collection_id rather than keeping it, or the redirect would loop
   def bounce_to_whole_collection

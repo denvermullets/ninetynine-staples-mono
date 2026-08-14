@@ -1,0 +1,102 @@
+<%# locals: collections, selected, path - a proc taking a collection id, or nil for "all" %>
+<%#
+  The dropdown ONLY. Pages that want a "back to cards" or "stats" button beside it render their own
+  next to this - which is what stopped this being shared the first two times, since every copy
+  differed by its trailing link rather than by the picker.
+
+  `path` is a proc rather than a route name because the callers do not agree on what else rides on
+  the link: the proxy page carries both of its filter axes, the sets index carries nothing yet, and a
+  shared partial that tried to know which would be worse than the duplication it replaced.
+
+  Type-ahead comes free - dropdown_controller filters any menu that has a filter target - and it
+  matters here because "collections" is every binder AND every deck once decks are collections too.
+%>
+
+<div class="relative" data-controller="dropdown">
+  <button
+    type="button"
+    data-dropdown-target="button"
+    data-action="click->dropdown#toggle"
+    class="
+      flex items-center gap-2 px-4 py-2 border rounded-lg border-highlight
+      bg-foreground text-grey-text hover:border-accent-50 hover:text-accent-50
+      cursor-pointer
+    "
+  >
+    <span class="truncate max-w-56">
+      <%= selected&.name || "All Collections" %>
+    </span>
+
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M19 9l-7 7-7-7"
+      />
+    </svg>
+  </button>
+
+  <div
+    data-dropdown-target="menu"
+    class="
+      absolute left-0 z-30 hidden w-64 mt-2 border rounded-lg shadow-lg
+      bg-foreground border-highlight
+    "
+  >
+    <div class="p-2 border-b border-highlight">
+      <input
+        type="text"
+        autocomplete="off"
+        placeholder="Filter collections"
+        data-dropdown-target="filter"
+        data-action="input->dropdown#filter"
+        class="
+          w-full text-sm border rounded-md border-highlight bg-background
+          text-grey-text focus:border-accent-50 focus:ring-accent-50
+        "
+      >
+    </div>
+
+    <div class="overflow-y-auto max-h-80">
+      <%#
+        "All Collections" is an item like any other, so it hides when it does not match rather than
+        sitting above a filtered list pretending to be part of it. Typing "all" still finds it.
+      %>
+
+      <%= link_to "All Collections", path.call(nil),
+        data: { dropdown_target: "item", search: "all collections" },
+        class: "block px-4 py-2 text-sm hover:bg-background #{selected ? 'text-grey-text' : 'text-accent-50'}" %>
+
+      <%#
+        the deck marker earns its place HERE rather than in the tables: you are choosing between
+        names, and which of them are decks is the thing the names alone do not say
+      %>
+
+      <% collections.each do |collection| %>
+        <%= link_to path.call(collection.id),
+          data: { dropdown_target: "item", search: "#{collection.name} #{collection.collection_type}".downcase },
+          class: "flex items-center gap-2 px-4 py-2 text-sm hover:bg-background #{selected&.id == collection.id ? 'text-accent-50' : 'text-grey-text'}" do %>
+          <% if Collection.deck_type?(collection.collection_type) %>
+            <span
+              class="text-accent-50 shrink-0"
+              role="img"
+              title="Deck"
+              aria-label="Deck"
+            >
+              &#9670;
+            </span>
+          <% end %>
+
+          <span class="truncate"><%= collection.name %></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

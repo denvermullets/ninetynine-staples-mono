@@ -28,11 +28,9 @@ module CollectionProxiesHelper
     case filter
     when 'proxy_only'
       'Proxies with no real copy anywhere in your collections - the shopping list.'
-    when 'real_owned'
-      'Proxies backed by a real copy somewhere, in this printing or another.'
     when 'other_printing'
-      'You own the real card, but in a different printing - proxies you may be able to retire. ' \
-      'Overlaps with Real owned on purpose.'
+      'You own the real card, but in a different printing - proxies you may be able to retire ' \
+      'by digging the version you already have out of a binder.'
     else
       'Every printing you hold a proxy of, one row each. Real copies are looked for across all ' \
       'your collections, not just the one selected above.'
@@ -50,6 +48,9 @@ module CollectionProxiesHelper
       'Only proxies sleeved in a deck.'
     when 'binders'
       'Only proxies sitting outside a deck. A printing proxied in both is in both lists.'
+    when 'swappable'
+      'Deck proxies whose real copy is sitting outside every deck - swaps you can make right now ' \
+      'without taking another deck apart.'
     else
       ''
     end

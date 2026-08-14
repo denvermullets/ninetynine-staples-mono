@@ -1,60 +1,15 @@
 <%# locals: collections, selected, username, filter, location %>
 <%#
-  Its own copy rather than collection_stats/_collection_picker: that one hardcodes the stats path and
-  carries a "Back to Cards" link, and this one has to carry both current axes forward the way the set
-  picker does. Somebody comparing deck proxies across three binders should not have to re-pick the
-  filters each time they change collection.
+  The dropdown plus this page's way back out. The picker itself is shared/_collection_picker - it is
+  identical on the sets index and here, and the only thing the two disagree about is what rides on
+  the link, which is why the path arrives as a proc.
 %>
 
 <div class="flex flex-wrap items-center gap-3">
-  <div class="relative" data-controller="dropdown">
-    <button
-      type="button"
-      data-dropdown-target="button"
-      data-action="click->dropdown#toggle"
-      class="
-        flex items-center gap-2 px-4 py-2 border rounded-lg border-highlight
-        bg-foreground text-grey-text hover:border-accent-50 hover:text-accent-50
-        cursor-pointer
-      "
-    >
-      <span class="truncate max-w-56">
-        <%= selected&.name || 'All Collections' %>
-      </span>
+  <%= render partial: "shared/collection_picker", locals: {
+    collections: collections, selected: selected,
+    path: ->(id) { collection_proxies_path(username, collection_id: id, filter: filter, location: location) } } %>
 
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M19 9l-7 7-7-7"
-        />
-      </svg>
-    </button>
-
-    <div
-      data-dropdown-target="menu"
-      class="
-        absolute left-0 z-30 hidden w-64 mt-2 overflow-y-auto border rounded-lg
-        shadow-lg bg-foreground border-highlight max-h-80
-      "
-    >
-      <%= link_to 'All Collections', collection_proxies_path(username, filter: filter, location: location),
-        class: "block px-4 py-2 text-sm hover:bg-background #{selected ? 'text-grey-text' : 'text-accent-50'}" %>
-
-      <% collections.each do |collection| %>
-        <%= link_to collection.name, collection_proxies_path(username, collection_id: collection.id, filter: filter, location: location),
-          class: "block px-4 py-2 text-sm truncate hover:bg-background #{selected&.id == collection.id ? 'text-accent-50' : 'text-grey-text'}" %>
-      <% end %>
-    </div>
-  </div>
-
-  <%= link_to 'Collection Stats', collections_stats_path(username, collection_id: selected&.id),
-    class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+  <%= link_to "Collection Stats", collections_stats_path(username, collection_id: selected&.id),
+    class: "px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer" %>
 </div>

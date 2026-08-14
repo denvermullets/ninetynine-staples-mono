@@ -1,4 +1,4 @@
-<%# locals: sets, boxset, filter, view, username, collection_id %>
+<%# locals: sets, boxset (nil on the index), filter, view, username, collection_id %>
 <%#
   Flipping between sets without going back to the dashboard. Scoped to the sets this collection has
   a real card from - the same membership the completion panel uses - so the picker never offers a
@@ -19,14 +19,17 @@
       cursor-pointer
     "
   >
-    <% if boxset.keyrune_code.present? %>
+    <%# nil on the sets index, where nothing is chosen yet and the button is the invitation to %>
+    <% if boxset&.keyrune_code.present? %>
       <i
         class="no-tailwind ss ss-<%= boxset.keyrune_code.downcase %> ss-fw"
         aria-hidden="true"
       ></i>
     <% end %>
 
-    <span class="truncate max-w-56"><%= boxset.name %></span>
+    <span class="truncate max-w-56">
+      <%= boxset&.name || 'Jump to a set' %>
+    </span>
 
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +72,7 @@
       <% sets.each do |option| %>
         <%= link_to collection_set_path(username, option.code, filter: filter, view: view, collection_id: collection_id),
           data: { dropdown_target: "item", search: "#{option.name} #{option.code}".downcase },
-          class: "flex items-center gap-2 px-4 py-2 text-sm hover:bg-background #{option.id == boxset.id ? "text-accent-50" : "text-grey-text"}" do %>
+          class: "flex items-center gap-2 px-4 py-2 text-sm hover:bg-background #{option.id == boxset&.id ? "text-accent-50" : "text-grey-text"}" do %>
           <% if option.keyrune_code.present? %>
             <i
               class="no-tailwind ss ss-<%= option.keyrune_code.downcase %> ss-fw shrink-0"
