@@ -34,17 +34,6 @@
         </div>
 
         <p class="mt-2 text-xs text-grey-text/70">
-          <% if row[:in_deck] %>
-            <span
-              class="text-accent-50"
-              role="img"
-              title="In a deck"
-              aria-label="In a deck"
-            >
-              &#9670;
-            </span>
-          <% end %>
-
           Proxied in <%= location_names(row[:proxy_locations]) %>
         </p>
 

@@ -14,12 +14,13 @@
 # would make that unaskable. Same shape as the set page carrying its view alongside its filter.
 module CollectionStats
   class ProxyCards < Service
-    FILTERS = %w[all proxy_only real_owned other_printing].freeze
+    FILTERS = %w[all proxy_only other_printing].freeze
 
-    LOCATIONS = %w[all decks binders].freeze
+    LOCATIONS = %w[all decks binders swappable].freeze
 
-    EMPTY = { rows: [], counts: { all: 0, proxy_only: 0, real_owned: 0, other_printing: 0 },
-              location_counts: { all: 0, decks: 0, binders: 0 },
+    EMPTY = { rows: [],
+              counts: { all: 0, proxy_only: 0, other_printing: 0 },
+              location_counts: { all: 0, decks: 0, binders: 0, swappable: 0 },
               totals: { copies: 0, printings: 0, proxy_only: 0, value: 0, cost_to_replace: 0 } }.freeze
 
     def initialize(proxy_collection_ids:, search_collection_ids: nil, filter: 'all', location: 'all')
@@ -49,14 +50,16 @@ module CollectionStats
 
     private
 
-    # real_owned and other_printing OVERLAP on purpose, the same way owned and missing do on the set
-    # page. A card you own for real in one printing and only proxy in another belongs in both lists:
-    # it is a proxy backed by a real card, and it is a proxy you might be able to retire by digging
-    # the other version out. Forcing them apart would hide it from whichever list you happened to open.
+    # There is deliberately no "real owned" button. It would be the exact complement of proxy_only -
+    # has_real and !has_real partition the rows - so it could only ever list what the shopping list
+    # leaves out, and its count is `all` minus that one. Every button here has to produce a set the
+    # others cannot reconstruct, and that one could not.
+    #
+    # other_printing survives that test: it is a SUBSET of the backed rows, not their whole, and it
+    # asks something the count cannot answer - which of these do I own in a version I did not sleeve.
     def keep?(row)
       case @filter
       when 'proxy_only' then !row[:has_real]
-      when 'real_owned' then row[:has_real]
       when 'other_printing' then row[:real_other_printing]
       else true
       end
@@ -67,10 +70,15 @@ module CollectionStats
     # row is a printing rather than a copy, so forcing it to pick a side would hide it from whichever
     # list you happened to open. Deck-ness is asked of the PROXY locations only: where the real card
     # lives is the other axis's question.
+    # swappable lives on this axis rather than beside the real-copy filters because it is a narrowing
+    # of `decks`, not a statement about the real copy on its own: every swap-ready row is a deck row.
+    # Sitting it here also removes a combination that could only ever be empty - swap-ready proxies
+    # OUTSIDE a deck do not exist, and a button pair that can contradict each other invites the click.
     def in_location?(row)
       case @location
       when 'decks' then row[:in_deck]
       when 'binders' then row[:outside_deck]
+      when 'swappable' then row[:swappable]
       else true
       end
     end
@@ -80,14 +88,14 @@ module CollectionStats
     def counts(rows)
       { all: rows.size,
         proxy_only: rows.count { |row| !row[:has_real] },
-        real_owned: rows.count { |row| row[:has_real] },
         other_printing: rows.count { |row| row[:real_other_printing] } }
     end
 
     def location_counts(rows)
       { all: rows.size,
         decks: rows.count { |row| row[:in_deck] },
-        binders: rows.count { |row| row[:outside_deck] } }
+        binders: rows.count { |row| row[:outside_deck] },
+        swappable: rows.count { |row| row[:swappable] } }
     end
 
     # Notional, and the tile says so. Sql explains why no other figure on the dashboard prices a

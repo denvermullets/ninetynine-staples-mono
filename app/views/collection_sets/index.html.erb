@@ -1,0 +1,79 @@
+<%#
+  The sets area's front door. Every set this collection touches, ranked by how close it is to done,
+  with both ways in: the picker for somebody who knows which set they want, the list for somebody
+  who wants to be told which one to finish.
+
+  Same panel as the stats dashboard's Completion tab, off the same service and the same partial.
+  Rendered here because a menu entry should land on an answer rather than on "pick a set", and the
+  dashboard is a wall of panels where this one is a tab deep.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Sets',
+    subtext: @scope[:collection] ? "How close #{@scope[:collection].name} is to finishing each set." : "How close #{@scope[:user].username}'s collection is to finishing each set." } %>
+
+  <% if @scope[:collection_ids].empty? %>
+    <%= render partial: 'collection_stats/empty', locals: { owner: @scope[:owner] } %>
+  <% else %>
+    <div class="flex flex-wrap items-center gap-3">
+      <%= render partial: 'shared/collection_picker', locals: {
+        collections: @scope[:collections], selected: @scope[:collection],
+        path: ->(id) { collection_sets_path(@scope[:user].username, collection_id: id) } } %>
+
+      <%#
+        boxset is nil here, which is what the picker's "Jump to a set" state is for - the index is
+        the one page in this area where no set is chosen yet
+      %>
+
+      <% if @sets.any? %>
+        <%= render partial: 'collection_sets/set_picker', locals: {
+          sets: @sets, boxset: nil, filter: 'all', view: 'table',
+          username: @scope[:user].username, collection_id: @scope[:collection]&.id } %>
+      <% end %>
+
+      <%= link_to 'Collection Stats', collections_stats_path(@scope[:user].username, collection_id: @scope[:collection]&.id),
+        class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+    </div>
+    <% if @completion[:sets].empty? %>
+      <div
+        class="
+          p-12 text-center border rounded-3xl bg-foreground border-highlight
+          text-grey-text
+        "
+      >
+        <p class="text-xl font-semibold">No sets yet</p>
+
+        <p class="mt-2 text-sm text-grey-text/70">
+          Nothing here owns a real card from any set, so there is nothing to
+          measure. Proxies do not count toward completion.
+        </p>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <%= render partial: 'collection_stats/kpi', locals: {
+          label: 'Sets Complete', tone: :accent,
+          value: number_with_delimiter(@completion[:complete]),
+          sub: 'every card in the run' } %>
+
+        <%= render partial: 'collection_stats/kpi', locals: {
+          label: 'Half or Better',
+          value: number_with_delimiter(@completion[:half]),
+          sub: '50% of the run or more' } %>
+
+        <%= render partial: 'collection_stats/kpi', locals: {
+          label: 'Sets Touched',
+          value: number_with_delimiter(@completion[:touched]),
+          sub: 'you own at least one card' } %>
+      </div>
+      <%= render partial: 'collection_stats/completion_list', locals: {
+        sets: @completion[:sets], username: @scope[:user].username,
+        collection_id: @scope[:collection]&.id } %>
+    <% end %>
+  <% end %>
+</div>

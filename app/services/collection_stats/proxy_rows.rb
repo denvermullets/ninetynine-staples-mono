@@ -173,16 +173,35 @@ module CollectionStats
         .merge(flags(proxy_locations, real_locations))
     end
 
-    # Everything the two toggles read, and nothing they do not. Both axes are asked as `any?` over
-    # the locations rather than as a property of the row, because a row is a printing and a printing
-    # can be in several places at once - which is what lets the same card be honestly both.
+    # Everything the toggles read, and nothing they do not. Every axis is asked as `any?` over the
+    # locations rather than as a property of the row, because a row is a printing and a printing can
+    # be in several places at once - which is what lets the same card be honestly both.
     def flags(proxy_locations, real_locations)
+      real_flags(real_locations).merge(deck_flags(proxy_locations, real_locations))
+    end
+
+    def real_flags(real_locations)
       { has_real: real_locations.any?,
         real_same_printing: real_locations.any? { |row| row[:same_printing] },
-        real_other_printing: real_locations.any? { |row| !row[:same_printing] },
-        in_deck: proxy_locations.any? { |row| row[:deck] },
+        real_other_printing: real_locations.any? { |row| !row[:same_printing] } }
+    end
+
+    # SWAPPABLE IS THE ACTIONABLE ONE: a proxy sleeved in a deck whose real copy is sitting outside
+    # every deck, so you can put the real card in without taking another deck apart to do it.
+    #
+    # It hangs on real_outside_deck rather than on has_real for exactly that reason. A real copy that
+    # is already sleeved in a different deck is spoken for - counting it would fill the list with
+    # swaps that cost you a hole somewhere else, which is the opposite of a list you can work through.
+    # A real copy in the SAME deck as the proxy lands outside this too, and should: nothing to move.
+    def deck_flags(proxy_locations, real_locations)
+      in_deck = proxy_locations.any? { |row| row[:deck] }
+      real_outside_deck = real_locations.any? { |row| !row[:deck] }
+
+      { in_deck: in_deck,
         outside_deck: proxy_locations.any? { |row| !row[:deck] },
-        real_in_deck: real_locations.any? { |row| row[:deck] } }
+        real_in_deck: real_locations.any? { |row| row[:deck] },
+        real_outside_deck: real_outside_deck,
+        swappable: in_deck && real_outside_deck }
     end
   end
 end

@@ -12,7 +12,7 @@
 <div class="flex flex-col gap-2">
   <div class="flex flex-wrap items-center justify-between gap-2">
     <div class="flex flex-wrap items-center gap-2">
-      <% { "all" => "All", "proxy_only" => "Proxy only", "real_owned" => "Real owned",
+      <% { "all" => "All", "proxy_only" => "Proxy only",
            "other_printing" => "Other printing" }.each do |key, label| %>
         <%= link_to collection_proxies_path(username, filter: key, location: location, collection_id: collection_id),
           class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == filter ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
@@ -26,7 +26,8 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
-      <% { "all" => "Anywhere", "decks" => "In a deck", "binders" => "Outside decks" }.each do |key, label| %>
+      <% { "all" => "Anywhere", "decks" => "In a deck", "binders" => "Outside decks",
+           "swappable" => "Swap ready" }.each do |key, label| %>
         <%= link_to collection_proxies_path(username, filter: filter, location: key, collection_id: collection_id),
           class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == location ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
           <%= label %>

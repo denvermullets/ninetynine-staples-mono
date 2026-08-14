@@ -9,6 +9,47 @@ RSpec.describe 'CollectionSets', type: :request do
   let(:set) { create(:boxset, code: 'ALP') }
   let!(:collection) { create(:collection, user: user, is_public: true) }
 
+  # The landing page, and the only route into this area that is not a link from somewhere else.
+  describe 'index' do
+    it 'opens without a set code' do
+      get collection_sets_path(user.username)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'refuses a username it does not have' do
+      get collection_sets_path('nobody')
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    # same rule as #show, and it has to drop the id rather than keep it or the redirect loops
+    it 'will not measure against a collection belonging to another user' do
+      stranger = create(:user, username: 'stranger')
+      theirs = create(:collection, user: stranger, is_public: true)
+
+      get collection_sets_path(user.username, collection_id: theirs.id)
+
+      expect(response).to redirect_to(collection_sets_path(user.username))
+    end
+
+    it 'leaves a private collection out of what a visitor is shown' do
+      private_collection = create(:collection, user: user, is_public: false)
+
+      get collection_sets_path(user.username, collection_id: private_collection.id)
+
+      expect(response).to redirect_to(collection_sets_path(user.username))
+    end
+
+    # /sets must not be swallowed by collections/:username(/:collection_id), which sits below it and
+    # would happily read "sets" as a collection id
+    it 'routes ahead of the collection show catch-all' do
+      recognized = Rails.application.routes.recognize_path("/collections/#{user.username}/sets")
+
+      expect(recognized).to include(controller: 'collection_sets', action: 'index')
+    end
+  end
+
   it 'refuses a set code it does not have' do
     get collection_set_path(user.username, 'NOPE')
 
