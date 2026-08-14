@@ -106,6 +106,8 @@ Rails.application.routes.draw do
                                               as: :collections_stats_section
   # one set, measured against this collection - what the completion panel's rows link into
   get 'collections/:username/sets/:code', to: 'collection_sets#show', as: :collection_set
+  # the proxies this collection holds, and whether a real copy is sitting somewhere else
+  get 'collections/:username/proxies', to: 'collection_proxies#show', as: :collection_proxies
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index

@@ -1,0 +1,61 @@
+<%#
+  The proxy pile, one row per printing you hold a proxy of, with the real-copy answer on the row.
+  Structured like the set page: picker and summary outside the frame because changing collection
+  changes the headline numbers, everything below it inside so the filters and pagination are ordinary
+  links.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Proxies',
+    subtext: @scope[:collection] ? "The proxies in #{@scope[:collection].name}, and where the real cards are." : "The proxies in #{@scope[:user].username}'s collections, and where the real cards are." } %>
+
+  <% if @scope[:collection_ids].empty? %>
+    <%= render partial: 'collection_stats/empty', locals: { owner: @scope[:owner] } %>
+  <% else %>
+    <%= render partial: 'collection_proxies/collection_picker', locals: {
+      collections: @scope[:collections], selected: @scope[:collection],
+      username: @scope[:user].username, filter: @filter, location: @location } %>
+    <%= render partial: 'collection_proxies/summary', locals: { totals: @totals } %>
+    <%#
+      turbo_action advance so the filter and the pagination move the URL: a list you cannot link to
+      or reload back into is not a view of anything. Every link inside the frame drives the frame by
+      default, so none of them needs a data attribute of its own.
+    %>
+    <%= turbo_frame_tag 'proxy_cards', data: { turbo_action: 'advance' } do %>
+      <div class="flex flex-col space-y-4">
+        <%= render partial: 'collection_proxies/filter_toggle', locals: {
+          filter: @filter, location: @location, counts: @counts,
+          location_counts: @location_counts,
+          username: @scope[:user].username, collection_id: @scope[:collection]&.id } %>
+
+        <% if @rows.empty? %>
+          <div
+            class="
+              p-12 text-center border rounded-3xl bg-foreground
+              border-highlight text-grey-text
+            "
+          >
+            <p class="text-xl font-semibold">
+              <%= @counts[:all].zero? ? 'No proxies here' : 'Nothing in this list' %>
+            </p>
+
+            <p class="mt-2 text-sm text-grey-text/70">
+              <%= @counts[:all].zero? ? 'Nothing in this collection is held as a proxy.' : 'Every proxy you hold falls outside these filters.' %>
+            </p>
+          </div>
+        <% else %>
+          <%= render partial: 'collection_proxies/mobile', locals: {
+            rows: @rows, labels: @labels, pagy: @pagy } %>
+          <%= render partial: 'collection_proxies/table', locals: {
+            rows: @rows, labels: @labels, pagy: @pagy } %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,39 @@
+<%# locals: totals - CollectionStats::ProxyCards %>
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Proxy Copies', value: number_with_delimiter(totals[:copies]),
+      sub: 'cards you printed' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Printings', value: number_with_delimiter(totals[:printings]),
+      sub: 'rows on this page' } %>
+
+    <%#
+      The one that decides what this page is for. Everything else is inventory; this is the count of
+      proxies with nothing real behind them anywhere.
+    %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Proxy Only', tone: :accent, value: number_with_delimiter(totals[:proxy_only]),
+      sub: 'no real copy anywhere' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Notional Value', value: number_to_currency(totals[:value]),
+      sub: 'what the pile would cost for real' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Cost to Replace', value: number_to_currency(totals[:cost_to_replace]),
+      sub: 'the proxy-only ones' } %>
+  </div>
+
+  <%#
+    Said plainly because it contradicts the rest of the app on purpose: no other page prices a proxy,
+    for the reason CollectionStats::Sql spells out. Here the notional number IS the question.
+  %>
+
+  <p class="mt-4 text-sm text-grey-text/50">
+    Proxies carry no value anywhere else in the app - these two figures are what
+    the pile would cost to buy for real, and they are counted nowhere but here.
+  </p>
+</div>

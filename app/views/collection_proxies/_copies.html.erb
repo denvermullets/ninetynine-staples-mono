@@ -1,0 +1,119 @@
+<%# locals: title, subtitle, locations, labels, tone (:proxy or :real); optional: empty_text %>
+<%#
+  One side of an expanded row, as art rather than as a list of numbers.
+
+  Same strip as the set page's variant row, and for the same reason: which PRINTING you own is the
+  thing the pictures answer and a collector number does not. "3ED #286" tells you a copy exists;
+  the scan tells you whether it is the one you wanted in the sleeve.
+
+  A tile is a printing - see CollectionProxiesHelper#group_locations_by_printing - so the proxy side
+  is one tile with its binders underneath, and the real side is one tile per version you own.
+%>
+<% groups = group_locations_by_printing(locations) %>
+
+<div class="px-4 pt-4">
+  <div class="flex items-baseline justify-between gap-2">
+    <p class="text-xs tracking-wider uppercase text-grey-text/50">
+      <%= title %>
+    </p>
+
+    <p class="text-xs text-grey-text/50">
+      <%= subtitle %>
+    </p>
+  </div>
+
+  <% if groups.empty? %>
+    <%#
+      A line rather than an empty strip. The absence IS the finding - this is a card you are playing
+      with cardstock and have never actually bought.
+    %>
+    <p class="mt-3 text-sm text-grey-text/50">
+      <%= local_assigns[:empty_text] %>
+    </p>
+  <% else %>
+    <div class="flex gap-4 pb-2 mt-3 overflow-x-auto">
+      <% groups.each do |group| %>
+        <div class="w-36 shrink-0">
+          <%#
+            the thumbnail is too small to read the art on, which is half the reason to look at a
+            printing - card-hover puts the full card next to the cursor, same as the set page
+          %>
+
+          <div
+            class="relative rounded-xl"
+            data-controller="card-hover"
+            data-card-hover-image-value="<%= group[:image_large] %>"
+            data-card-hover-name-value="<%= group[:name] %>"
+            data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+          >
+            <% if group[:image].present? %>
+              <%#
+                the proxy is greyed and the real card is not. It is the same scan either way - what
+                is in your sleeve is a printout of it - and the grey is the page saying so at a
+                glance, before anybody reads a caption.
+              %>
+              <%= image_tag group[:image],
+                alt: "#{group[:name]} - #{group[:set_code]} ##{group[:number]}",
+                loading: "lazy",
+                class: "w-full rounded-xl shadow-lg #{'grayscale opacity-60' if tone == :proxy}" %>
+            <% else %>
+              <div
+                class="
+                  flex items-center justify-center w-full p-2 text-xs text-center
+                  rounded-xl bg-background text-grey-text aspect-5/7
+                "
+              >
+                <%= group[:name] %>
+              </div>
+            <% end %>
+
+            <span class="absolute px-1.5 py-0.5 text-xs rounded top-1 right-1 <%= tone == :real ? 'bg-accent-50 text-badge-text' : 'bg-black/70 text-grey-text' %>">
+              <%= owned_marker(group[:qty], group[:foil_qty]) %>
+            </span>
+
+            <% if tone == :real %>
+              <%# which version, because "you own it" and "you own THIS one" are different answers %>
+              <span class="absolute px-1.5 py-0.5 text-xs rounded bottom-1 left-1 <%= group[:same_printing] ? 'bg-accent-50/20 text-accent-50' : 'bg-amber-900/60 text-amber-300' %>">
+                <%= group[:same_printing] ? 'this printing' : 'other printing' %>
+              </span>
+            <% end %>
+          </div>
+
+          <p
+            class="mt-2 text-xs truncate text-grey-text"
+            title="<%= printing_label(group, labels) %>"
+          >
+            <%= printing_label(group, labels) %>
+          </p>
+
+          <%#
+            the caption is the part the art cannot say: which binder to go and open, and whether it
+            is a binder at all. A proxy sleeved in a deck is one you are playing with; a proxy in a
+            binder is a spare, and that is the difference the deck filter is asking about.
+          %>
+
+          <% group[:locations].each do |location| %>
+            <p
+              class="text-xs truncate <%= location[:deck] ? 'text-grey-text/70' : 'text-grey-text/50' %>"
+              title="<%= location[:collection_name] %>"
+            >
+              <% if location[:deck] %>
+                <span
+                  class="text-accent-50"
+                  role="img"
+                  title="Deck"
+                  aria-label="Deck"
+                >
+                  &#9670;
+                </span>
+              <% end %>
+
+              <%= location[:collection_name] %>
+              <%= owned_marker(location[:qty], location[:foil_qty]) %>
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

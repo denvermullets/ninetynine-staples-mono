@@ -1,0 +1,19 @@
+<%# locals: row, labels %>
+<%#
+  Both sides of the row, spelled out. Proxies first because that is what you clicked on, real copies
+  second because that is the answer you came for.
+
+  Stacked rather than side by side: each side is a horizontal strip of art, and two strips sharing a
+  row would each get half the width and scroll twice as often for it.
+%>
+
+<div class="flex flex-col gap-2">
+  <%= render partial: 'collection_proxies/copies', locals: {
+    title: 'Proxy copies', tone: :proxy, locations: row[:proxy_locations], labels: labels,
+    subtitle: pluralize(row[:proxy_qty] + row[:proxy_foil_qty], 'copy') } %>
+
+  <%= render partial: 'collection_proxies/copies', locals: {
+    title: 'Real copies', tone: :real, locations: row[:real_locations], labels: labels,
+    subtitle: row[:has_real] ? pluralize(row[:real_qty] + row[:real_foil_qty], 'copy') : 'none',
+    empty_text: 'No real copy of this card in any of your collections.' } %>
+</div>

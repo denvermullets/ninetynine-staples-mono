@@ -1,0 +1,46 @@
+<%# locals: filter, location, counts, location_counts, username, collection_id %>
+<%#
+  Links inside the proxy_cards frame, so Turbo swaps the list and the toggles together and the active
+  state is worked out on the server. Counts come off the same pass that built the rows, so labelling
+  every button costs nothing.
+
+  Two independent axes, so each toggle carries the OTHER one's current value. Dropping it would
+  quietly reset the deck filter every time somebody changed the status one, which is exactly when
+  they care about it least.
+%>
+
+<div class="flex flex-col gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "All", "proxy_only" => "Proxy only", "real_owned" => "Real owned",
+           "other_printing" => "Other printing" }.each do |key, label| %>
+        <%= link_to collection_proxies_path(username, filter: key, location: location, collection_id: collection_id),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == filter ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+          <%= label %>
+
+          <span class="ml-1 text-xs opacity-60">
+            <%= number_with_delimiter(counts[key.to_sym]) %>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "Anywhere", "decks" => "In a deck", "binders" => "Outside decks" }.each do |key, label| %>
+        <%= link_to collection_proxies_path(username, filter: filter, location: key, collection_id: collection_id),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == location ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+          <%= label %>
+
+          <span class="ml-1 text-xs opacity-60">
+            <%= number_with_delimiter(location_counts[key.to_sym]) %>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <p class="text-xs text-grey-text/50">
+    <%= proxy_filter_text(filter) %>
+    <%= proxy_location_text(location) %>
+  </p>
+</div>

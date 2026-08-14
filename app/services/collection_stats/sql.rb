@@ -54,6 +54,18 @@ module CollectionStats
 
     REAL_QTY = '(owned.qty + owned.foil_qty)'.freeze
 
+    # The same two rules against a bare collection_magic_cards row rather than the summed `owned`
+    # CTE, for the queries that have to KEEP collection_id instead of rolling it up - which binder a
+    # copy sits in is not a question the CTE can answer, because summing is what it does.
+    #
+    # Same answer as their CTE counterparts wherever both apply, and they live here next to them so
+    # the two forms cannot drift into disagreeing about what a real copy is.
+    REAL_ROW = 'collection_magic_cards.quantity + collection_magic_cards.foil_quantity > 0'.freeze
+
+    PROXY_ROW = <<~SQL.squish.freeze
+      collection_magic_cards.proxy_quantity + collection_magic_cards.proxy_foil_quantity > 0
+    SQL
+
     # The real quantity buckets paired with the unit price each bucket's copies are actually worth.
     #
     # This is the same pairing PriceTiers unpivots through its LATERAL, and it lives here so it is the
