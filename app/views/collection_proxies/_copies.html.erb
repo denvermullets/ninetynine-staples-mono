@@ -27,7 +27,6 @@
       A line rather than an empty strip. The absence IS the finding - this is a card you are playing
       with cardstock and have never actually bought.
     %>
-
     <p class="mt-3 text-sm text-grey-text/50">
       <%= local_assigns[:empty_text] %>
     </p>
@@ -53,7 +52,6 @@
                 is in your sleeve is a printout of it - and the grey is the page saying so at a
                 glance, before anybody reads a caption.
               %>
-
               <%= image_tag group[:image],
                 alt: "#{group[:name]} - #{group[:set_code]} ##{group[:number]}",
                 loading: "lazy",
@@ -81,7 +79,10 @@
             <% end %>
           </div>
 
-          <p class="mt-2 text-xs truncate text-grey-text" title="<%= printing_label(group, labels) %>">
+          <p
+            class="mt-2 text-xs truncate text-grey-text"
+            title="<%= printing_label(group, labels) %>"
+          >
             <%= printing_label(group, labels) %>
           </p>
 
@@ -90,10 +91,21 @@
             is a binder at all. A proxy sleeved in a deck is one you are playing with; a proxy in a
             binder is a spare, and that is the difference the deck filter is asking about.
           %>
+
           <% group[:locations].each do |location| %>
-            <p class="text-xs truncate <%= location[:deck] ? 'text-grey-text/70' : 'text-grey-text/50' %>" title="<%= location[:collection_name] %>">
+            <p
+              class="text-xs truncate <%= location[:deck] ? 'text-grey-text/70' : 'text-grey-text/50' %>"
+              title="<%= location[:collection_name] %>"
+            >
               <% if location[:deck] %>
-                <span class="text-accent-50" title="deck" aria-label="deck">&#9670;</span>
+                <span
+                  class="text-accent-50"
+                  role="img"
+                  title="Deck"
+                  aria-label="Deck"
+                >
+                  &#9670;
+                </span>
               <% end %>
 
               <%= location[:collection_name] %>

@@ -21,9 +21,7 @@
     <%= render partial: 'collection_proxies/collection_picker', locals: {
       collections: @scope[:collections], selected: @scope[:collection],
       username: @scope[:user].username, filter: @filter, location: @location } %>
-
     <%= render partial: 'collection_proxies/summary', locals: { totals: @totals } %>
-
     <%#
       turbo_action advance so the filter and the pagination move the URL: a list you cannot link to
       or reload back into is not a view of anything. Every link inside the frame drives the frame by

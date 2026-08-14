@@ -65,7 +65,14 @@
           <td class="px-4 py-2 text-sm whitespace-nowrap text-grey-text/70">
             <%# the diamond marks a deck, so the collapsed row says whether this proxy is sleeved %>
             <% if row[:in_deck] %>
-              <span class="text-accent-50" title="in a deck" aria-label="in a deck">&#9670;</span>
+              <span
+                class="text-accent-50"
+                role="img"
+                title="In a deck"
+                aria-label="In a deck"
+              >
+                &#9670;
+              </span>
             <% end %>
 
             <%= location_names(row[:proxy_locations]) %>
@@ -74,9 +81,9 @@
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <% if row[:has_real] %>
               <%= owned_marker(row[:real_qty], row[:real_foil_qty]) %>
-
               <span class="ml-1 text-xs text-grey-text/50">
-                in <%= location_names(row[:real_locations].uniq { |location| location[:collection_id] }, limit: 2) %>
+                in
+                <%= location_names(row[:real_locations].uniq { |location| location[:collection_id] }, limit: 2) %>
               </span>
             <% else %>
               <span class="text-grey-text/40">none</span>

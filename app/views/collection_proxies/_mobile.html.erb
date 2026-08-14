@@ -28,12 +28,21 @@
             <span><%= labels[row[:id]].join(' ') %></span>
           <% end %>
 
-          <span><%= owned_marker(row[:proxy_qty], row[:proxy_foil_qty]) %> proxy</span>
+          <span>
+            <%= owned_marker(row[:proxy_qty], row[:proxy_foil_qty]) %> proxy
+          </span>
         </div>
 
         <p class="mt-2 text-xs text-grey-text/70">
           <% if row[:in_deck] %>
-            <span class="text-accent-50" title="in a deck" aria-label="in a deck">&#9670;</span>
+            <span
+              class="text-accent-50"
+              role="img"
+              title="In a deck"
+              aria-label="In a deck"
+            >
+              &#9670;
+            </span>
           <% end %>
 
           Proxied in <%= location_names(row[:proxy_locations]) %>
@@ -41,8 +50,10 @@
 
         <p class="mt-1 text-xs <%= row[:has_real] ? 'text-grey-text/70' : 'text-grey-text/40' %>">
           <% if row[:has_real] %>
-            Real: <%= owned_marker(row[:real_qty], row[:real_foil_qty]) %>
-            in <%= location_names(row[:real_locations].uniq { |location| location[:collection_id] }, limit: 2) %>
+            Real:
+            <%= owned_marker(row[:real_qty], row[:real_foil_qty]) %>
+            in
+            <%= location_names(row[:real_locations].uniq { |location| location[:collection_id] }, limit: 2) %>
           <% else %>
             No real copy anywhere
           <% end %>
