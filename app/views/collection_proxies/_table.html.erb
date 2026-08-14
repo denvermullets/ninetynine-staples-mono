@@ -1,0 +1,116 @@
+<%# locals: rows - CollectionStats::ProxyCards rows, labels, pagy %>
+<%#
+  A row is a PRINTING you hold a proxy of. The two columns that matter are the last two: where the
+  proxies sit, and whether the real card exists somewhere. Everything left of them is identification.
+
+  The rows are hashes, not MagicCard records, so nothing in here can call a model predicate -
+  CollectionProxiesHelper carries the presentation logic and owned_marker comes from
+  CollectionSetsHelper, which already formats a copies pair the way this page needs.
+%>
+<% column_count = 7 %>
+
+<div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
+  <table class="min-w-full divide-y table-auto divide-background">
+    <thead class="bg-background">
+      <tr>
+        <% ['Name', 'Set', '#', 'Proxies', 'In', 'Real Copies', ''].each do |label| %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left normal-case
+              text-grey-text
+            "
+          >
+            <%= label %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody class="bg-background" data-controller="expandable-row">
+      <% rows.each do |row| %>
+        <% chip = proxy_status_chip(row) %>
+
+        <tr
+          data-action="click->expandable-row#toggle"
+          data-card-id="<%= row[:id] %>"
+          class="
+            border border-background text-grey-text bg-foreground
+            hover:bg-menu hover:cursor-pointer
+          "
+        >
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= row[:keyrune]&.downcase %> ss-<%= row[:rarity]&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
+
+            <%= row[:name].to_s.split('//').first %>
+
+            <% if labels[row[:id]].present? %>
+              <span class="ml-2 text-xs text-grey-text/50">
+                <%= labels[row[:id]].join(' ') %>
+              </span>
+            <% end %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap text-grey-text/70">
+            <%= row[:set_code] %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap text-grey-text/70">
+            <%= row[:number] %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <%= owned_marker(row[:proxy_qty], row[:proxy_foil_qty]) || '—' %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap text-grey-text/70">
+            <%# the diamond marks a deck, so the collapsed row says whether this proxy is sleeved %>
+            <% if row[:in_deck] %>
+              <span class="text-accent-50" title="in a deck" aria-label="in a deck">&#9670;</span>
+            <% end %>
+
+            <%= location_names(row[:proxy_locations]) %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <% if row[:has_real] %>
+              <%= owned_marker(row[:real_qty], row[:real_foil_qty]) %>
+
+              <span class="ml-1 text-xs text-grey-text/50">
+                in <%= location_names(row[:real_locations].uniq { |location| location[:collection_id] }, limit: 2) %>
+              </span>
+            <% else %>
+              <span class="text-grey-text/40">none</span>
+            <% end %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <span class="px-1.5 py-0.5 text-xs border rounded <%= chip[:class] %>">
+              <%= chip[:label] %>
+            </span>
+          </td>
+        </tr>
+
+        <tr
+          data-expandable-row-target="content"
+          data-card-id="<%= row[:id] %>"
+          class="hidden border border-background"
+        >
+          <td colspan="<%= column_count %>">
+            <%= render partial: 'collection_proxies/locations', locals: { row: row, labels: labels } %>
+
+            <%= turbo_frame_tag "card_details_#{row[:id]}",
+                src: boxset_magic_card_path(row[:id], show_other_printings: true),
+                loading: :lazy %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if pagy %>
+    <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav() %>
+    </div>
+  <% end %>
+</div>

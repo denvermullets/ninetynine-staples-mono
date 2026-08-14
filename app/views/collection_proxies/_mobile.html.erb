@@ -1,0 +1,66 @@
+<%# locals: rows, labels, pagy %>
+<%#
+  The same rows without the table. The badge stays, because it is the reason to look at the page at
+  all, and the locations are printed inline rather than behind an expansion - there is no room for a
+  hover and a tap target that only reveals two lines is not worth the tap.
+%>
+
+<div class="max-w-full mb-24 md:hidden">
+  <div class="flex flex-col gap-2">
+    <% rows.each do |row| %>
+      <% chip = proxy_status_chip(row) %>
+
+      <div class="p-4 border rounded-xl bg-foreground border-highlight">
+        <div class="flex items-start justify-between gap-2">
+          <p class="text-sm font-semibold text-grey-text">
+            <%= row[:name].to_s.split('//').first %>
+          </p>
+
+          <span class="px-1.5 py-0.5 text-xs border rounded shrink-0 <%= chip[:class] %>">
+            <%= chip[:label] %>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-grey-text/50">
+          <span><%= row[:set_code] %> #<%= row[:number] %></span>
+
+          <% if labels[row[:id]].present? %>
+            <span><%= labels[row[:id]].join(' ') %></span>
+          <% end %>
+
+          <span><%= owned_marker(row[:proxy_qty], row[:proxy_foil_qty]) %> proxy</span>
+        </div>
+
+        <p class="mt-2 text-xs text-grey-text/70">
+          <% if row[:in_deck] %>
+            <span class="text-accent-50" title="in a deck" aria-label="in a deck">&#9670;</span>
+          <% end %>
+
+          Proxied in <%= location_names(row[:proxy_locations]) %>
+        </p>
+
+        <p class="mt-1 text-xs <%= row[:has_real] ? 'text-grey-text/70' : 'text-grey-text/40' %>">
+          <% if row[:has_real] %>
+            Real: <%= owned_marker(row[:real_qty], row[:real_foil_qty]) %>
+            in <%= location_names(row[:real_locations].uniq { |location| location[:collection_id] }, limit: 2) %>
+          <% else %>
+            No real copy anywhere
+          <% end %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy %>
+    <div
+      class="
+        flex flex-col w-full gap-2 px-4 py-3 mt-2 text-sm bg-foreground
+        rounded-xl
+      "
+    >
+      <div class="text-grey-text"><%== pagy.info_tag() %></div>
+
+      <div class="overflow-x-auto"><%== pagy.series_nav() %></div>
+    </div>
+  <% end %>
+</div>
