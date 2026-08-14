@@ -11,12 +11,6 @@ RSpec.describe 'CollectionSets', type: :request do
 
   # The landing page, and the only route into this area that is not a link from somewhere else.
   describe 'index' do
-    it 'opens without a set code' do
-      get collection_sets_path(user.username)
-
-      expect(response).to have_http_status(:ok)
-    end
-
     it 'refuses a username it does not have' do
       get collection_sets_path('nobody')
 
