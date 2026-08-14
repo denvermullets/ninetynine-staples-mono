@@ -4,6 +4,11 @@
   carries a "Back to Cards" link, and this one has to carry both current axes forward the way the set
   picker does. Somebody comparing deck proxies across three binders should not have to re-pick the
   filters each time they change collection.
+
+  Type-ahead for the same reason the set picker has it: once decks are collections too, this list is
+  every binder AND every deck, which is a scroll rather than a glance. The behaviour is already in
+  dropdown_controller - a menu earns it by having a filter target, which is why the stats copy of
+  this partial does not have it and this one does.
 %>
 
 <div class="flex flex-wrap items-center gap-3">
@@ -41,17 +46,60 @@
     <div
       data-dropdown-target="menu"
       class="
-        absolute left-0 z-30 hidden w-64 mt-2 overflow-y-auto border rounded-lg
-        shadow-lg bg-foreground border-highlight max-h-80
+        absolute left-0 z-30 hidden w-64 mt-2 border rounded-lg shadow-lg
+        bg-foreground border-highlight
       "
     >
-      <%= link_to 'All Collections', collection_proxies_path(username, filter: filter, location: location),
-        class: "block px-4 py-2 text-sm hover:bg-background #{selected ? 'text-grey-text' : 'text-accent-50'}" %>
+      <div class="p-2 border-b border-highlight">
+        <input
+          type="text"
+          autocomplete="off"
+          placeholder="Filter collections"
+          data-dropdown-target="filter"
+          data-action="input->dropdown#filter"
+          class="
+            w-full text-sm border rounded-md border-highlight bg-background
+            text-grey-text focus:border-accent-50 focus:ring-accent-50
+          "
+        >
+      </div>
 
-      <% collections.each do |collection| %>
-        <%= link_to collection.name, collection_proxies_path(username, collection_id: collection.id, filter: filter, location: location),
-          class: "block px-4 py-2 text-sm truncate hover:bg-background #{selected&.id == collection.id ? 'text-accent-50' : 'text-grey-text'}" %>
-      <% end %>
+      <div class="overflow-y-auto max-h-80">
+        <%#
+          "All Collections" is an item like any other, so it hides when it does not match rather than
+          sitting above a filtered list pretending to be part of it. Typing "all" still finds it.
+        %>
+
+        <%= link_to 'All Collections', collection_proxies_path(username, filter: filter, location: location),
+          data: { dropdown_target: "item", search: "all collections" },
+          class: "block px-4 py-2 text-sm hover:bg-background #{selected ? 'text-grey-text' : 'text-accent-50'}" %>
+
+        <%#
+          the deck marker is the same one the rows carry, so somebody typing to find a deck can see
+          which of these are decks - the axis the page filters on is worth showing where you pick
+        %>
+
+        <% collections.each do |collection| %>
+          <% deck = Collection.deck_type?(collection.collection_type) %>
+
+          <%= link_to collection_proxies_path(username, collection_id: collection.id, filter: filter, location: location),
+            data: { dropdown_target: "item", search: "#{collection.name} #{collection.collection_type}".downcase },
+            class: "flex items-center gap-2 px-4 py-2 text-sm hover:bg-background #{selected&.id == collection.id ? 'text-accent-50' : 'text-grey-text'}" do %>
+            <% if deck %>
+              <span
+                class="text-accent-50 shrink-0"
+                role="img"
+                title="Deck"
+                aria-label="Deck"
+              >
+                &#9670;
+              </span>
+            <% end %>
+
+            <span class="truncate"><%= collection.name %></span>
+          <% end %>
+        <% end %>
+      </div>
     </div>
   </div>
 
