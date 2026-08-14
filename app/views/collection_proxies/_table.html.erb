@@ -1,11 +1,15 @@
 <%# locals: rows - CollectionStats::ProxyCards rows, labels, pagy %>
 <%#
-  A row is a PRINTING you hold a proxy of. The two columns that matter are the last two: where the
-  proxies sit, and whether the real card exists somewhere. Everything left of them is identification.
+  A row is a PRINTING you hold a proxy of, and the collapsed row is COUNTS ONLY - how many proxies,
+  how many collections they are spread over, how many real copies exist. Naming the collections here
+  made the widest column the least useful one: three binder names push the badge off a laptop screen
+  to say something the expansion says better, next to the art, with the quantities attached.
+
+  So the numbers are the summary and the expansion is the detail. Foil splits go with the names for
+  the same reason - "x2 + x1 foil" is a breakdown, and a breakdown belongs where there is room.
 
   The rows are hashes, not MagicCard records, so nothing in here can call a model predicate -
-  CollectionProxiesHelper carries the presentation logic and owned_marker comes from
-  CollectionSetsHelper, which already formats a copies pair the way this page needs.
+  CollectionProxiesHelper carries the presentation logic.
 %>
 <% column_count = 7 %>
 
@@ -13,7 +17,7 @@
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
-        <% ['Name', 'Set', '#', 'Proxies', 'In', 'Real Copies', ''].each do |label| %>
+        <% ['Name', 'Set', '#', 'Proxies', 'Collections', 'Real', ''].each do |label| %>
           <th
             class="
               px-4 py-2 text-xs font-normal tracking-wider text-left normal-case
@@ -59,22 +63,26 @@
           </td>
 
           <td class="px-4 py-2 text-sm whitespace-nowrap">
-            <%= owned_marker(row[:proxy_qty], row[:proxy_foil_qty]) || '—' %>
+            <%= number_with_delimiter(row[:proxy_qty] + row[:proxy_foil_qty]) %>
           </td>
 
-          <td class="px-4 py-2 text-sm whitespace-nowrap text-grey-text/70">
-            <%= location_names(row[:proxy_locations]) %>
+          <%#
+            the names live on the title, so the one thing a bare count cannot tell you is still a
+            hover away without costing the column any width
+          %>
+
+          <td
+            class="px-4 py-2 text-sm whitespace-nowrap text-grey-text/70"
+            title="<%= location_names(row[:proxy_locations], limit: 99) %>"
+          >
+            <%= number_with_delimiter(row[:proxy_locations].size) %>
           </td>
 
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <% if row[:has_real] %>
-              <%= owned_marker(row[:real_qty], row[:real_foil_qty]) %>
-              <span class="ml-1 text-xs text-grey-text/50">
-                in
-                <%= location_names(row[:real_locations].uniq { |location| location[:collection_id] }, limit: 2) %>
-              </span>
+              <%= number_with_delimiter(row[:real_qty] + row[:real_foil_qty]) %>
             <% else %>
-              <span class="text-grey-text/40">none</span>
+              <span class="text-grey-text/40">—</span>
             <% end %>
           </td>
 
