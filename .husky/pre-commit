@@ -17,8 +17,19 @@ echo "Running yarn herb:fix..."
 yarn herb:fix
 LINT_EXIT=$?
 
+# Step 4: Run brakeman. A checker, not a fixer, so it goes last - after the auto-correctors have
+# had their say. Output is held back unless it fails: a clean run has nothing worth reading, and
+# 40 lines of scanner chatter on every commit trains you to ignore the one that matters.
+echo "Running bin/brakeman..."
+BRAKEMAN_OUTPUT=$(bin/brakeman --no-pager -q 2>&1)
+BRAKEMAN_EXIT=$?
+
+if [ $BRAKEMAN_EXIT -ne 0 ]; then
+  echo "$BRAKEMAN_OUTPUT"
+fi
+
 # Check if any command failed
-if [ $RUBOCOP_EXIT -ne 0 ] || [ $FORMAT_EXIT -ne 0 ] || [ $LINT_EXIT -ne 0 ]; then
+if [ $RUBOCOP_EXIT -ne 0 ] || [ $FORMAT_EXIT -ne 0 ] || [ $LINT_EXIT -ne 0 ] || [ $BRAKEMAN_EXIT -ne 0 ]; then
   echo ""
   echo "❌ Pre-commit checks failed. Commit aborted."
   exit 1
