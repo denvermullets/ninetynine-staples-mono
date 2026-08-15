@@ -77,6 +77,7 @@
               <%= link_to 'Collection Stats', collections_stats_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Sets', collection_sets_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Proxies', collection_proxies_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Brew', collection_brew_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Decks', decks_index_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Scan Cards', card_scanner_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Bulk Edit', bulk_edit_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
@@ -317,6 +318,10 @@
 
           <div class="<%= nav_item_classes('/collections/' + current_user.username + '/proxies') %>">
             <%= link_to 'Proxies', collection_proxies_path(current_user.username) %>
+          </div>
+
+          <div class="<%= nav_item_classes('/collections/' + current_user.username + '/brew') %>">
+            <%= link_to 'Brew', collection_brew_path(current_user.username) %>
           </div>
 
           <div class="<%= nav_item_classes('/decks/' + current_user.username) %>">

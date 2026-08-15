@@ -1,0 +1,69 @@
+<%# locals: row, card %>
+<%#
+  One commander. Everything on here was computed in the controller - row is a scored tuple out of
+  Commanders::Discovery and card is its hydrated printing - so nothing in this partial touches the
+  database. That is deliberate: it renders 50 times a page and there is no production cache store.
+%>
+
+<div
+  class="
+    relative flex flex-col overflow-hidden transition-transform rounded-xl
+    bg-foreground hover:scale-105
+  "
+  data-controller="card-hover"
+  data-card-hover-image-value="<%= card.image_large %>"
+  data-card-hover-name-value="<%= card.name %>"
+  data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+>
+  <% if card.image_medium.present? %>
+    <%= image_tag card.image_medium, alt: card.name, loading: "lazy",
+      class: "w-full rounded-t-xl shadow-lg" %>
+  <% else %>
+    <div class="flex items-center justify-center w-full rounded-t-xl bg-background aspect-5/7">
+      <span class="p-2 text-sm text-center text-grey-text"><%= card.name %></span>
+    </div>
+  <% end %>
+
+  <div class="absolute px-2 py-1 text-xs rounded top-1 right-1 bg-black/70 text-nine-white">
+    <%= row[:edhrec_rank] ? "##{number_with_delimiter(row[:edhrec_rank])}" : "unranked" %>
+  </div>
+
+  <div class="flex flex-col p-3 space-y-2 text-grey-text">
+    <p class="text-sm font-semibold truncate" title="<%= card.name %>"><%= card.name %></p>
+
+    <%# the bar is the headline number, so it gets read out beside itself rather than on hover %>
+    <div class="flex items-center gap-2">
+      <div class="flex-auto h-2 rounded-full bg-background">
+        <div
+          class="h-2 rounded-full bg-accent-50"
+          style="width: <%= brew_completeness_percent(row[:completeness]) %>%"
+        ></div>
+      </div>
+
+      <span class="text-xs tabular-nums">
+        <%= brew_completeness_percent(row[:completeness]) %>%
+      </span>
+    </div>
+
+    <p class="text-xs text-grey-text/70"><%= brew_pool_sentence(row) %></p>
+
+    <div class="flex flex-wrap gap-1">
+      <span class="px-2 py-0.5 text-xs rounded bg-background text-grey-text/80">
+        <%= brew_bottleneck_label(row[:bottleneck]) %>
+      </span>
+
+      <% row[:matched].each do |match| %>
+        <span class="px-2 py-0.5 text-xs rounded bg-background text-accent-50">
+          <%= match[:label] %> <%= match[:owned] %>
+        </span>
+      <% end %>
+    </div>
+
+    <%#
+      Stage 4 (STA-274) puts a real brew page behind this. Until it lands the useful destination is
+      the card itself, which is where the deck builder is reachable from.
+    %>
+    <%= link_to "Brew this", magic_card_path(card),
+      class: "px-3 py-1.5 text-sm text-center rounded-md transition cursor-pointer bg-highlight text-nine-white hover:bg-accent-50" %>
+  </div>
+</div>
