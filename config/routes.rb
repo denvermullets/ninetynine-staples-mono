@@ -119,6 +119,7 @@ Rails.application.routes.draw do
   resources :deck_builder, path: 'deck-builder', only: [:show] do
     member do
       get :search
+      get :suggestions
       post :add_card
       post :add_new_card
       delete :remove_card

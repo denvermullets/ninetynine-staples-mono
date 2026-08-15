@@ -54,4 +54,62 @@ RSpec.describe 'DeckBuilder', type: :request do
       expect(response.body).to include('grouping=none')
     end
   end
+  # Renders a bare partial, never the layout - a request spec that renders deck_builder/show needs a
+  # built tailwind.css, which CI does not have. What the panel shows is covered by the service spec.
+  describe 'GET /suggestions' do
+    let(:commander_legality) { Legality.find_or_create_by!(name: 'commander') }
+
+    let(:commander) do
+      card = create(:magic_card, name: 'The Commander', scryfall_oracle_id: SecureRandom.uuid,
+                                 card_side: nil, can_be_commander: true,
+                                 card_type: 'Legendary Creature - Elf',
+                                 text: 'Sacrifice another creature: draw a card.')
+      create(:card_role, scryfall_oracle_id: card.scryfall_oracle_id, role: 'sacrifice',
+                         effect: 'sacrifice_outlet', confidence: 0.9)
+      card
+    end
+
+    def set_commander!
+      create(:collection_magic_card, collection: deck, magic_card: commander, board_type: 'commander')
+    end
+
+    it 'renders the empty state when the deck has no commander' do
+      get suggestions_deck_builder_path(deck)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Set a commander on this deck')
+    end
+
+    it 'renders the suggestions frame for a deck with a commander' do
+      set_commander!
+      suggestion = create(:magic_card, name: 'Spicy Sac Outlet', scryfall_oracle_id: SecureRandom.uuid,
+                                       card_side: nil, edhrec_rank: 2500, boxset: create(:boxset))
+      MagicCardLegality.find_or_create_by!(magic_card: suggestion, legality: commander_legality, status: 'Legal')
+      create(:card_role, scryfall_oracle_id: suggestion.scryfall_oracle_id, role: 'sacrifice',
+                         effect: 'sacrifice_outlet', confidence: 0.9)
+
+      get suggestions_deck_builder_path(deck)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('<turbo-frame id="deck_suggestions"')
+      expect(response.body).to include('Spicy Sac Outlet')
+    end
+
+    it 'narrows to one role when the role filter is used' do
+      set_commander!
+
+      get suggestions_deck_builder_path(deck, role: 'ramp')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('role=ramp')
+    end
+
+    it 'refuses a deck the current user does not own' do
+      other_deck = create(:collection, user: create(:user), collection_type: 'deck')
+
+      get suggestions_deck_builder_path(other_deck)
+
+      expect(response).not_to have_http_status(:ok)
+    end
+  end
 end

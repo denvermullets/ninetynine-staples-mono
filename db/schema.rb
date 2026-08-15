@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_14_120003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -475,9 +475,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_120000) do
     t.index ["can_be_commander"], name: "index_magic_cards_on_can_be_commander"
     t.index ["card_side"], name: "index_magic_cards_on_card_side"
     t.index ["edhrec_rank"], name: "index_magic_cards_on_edhrec_rank"
+    t.index ["name"], name: "index_magic_cards_on_name"
     t.index ["price_change_weekly_foil"], name: "index_magic_cards_on_price_change_weekly_foil"
     t.index ["price_change_weekly_normal"], name: "index_magic_cards_on_price_change_weekly_normal"
     t.index ["rarity"], name: "index_magic_cards_on_rarity"
+    t.index ["scryfall_oracle_id", "card_side"], name: "index_magic_cards_on_scryfall_oracle_id_and_card_side"
     t.index ["scryfall_oracle_id"], name: "index_magic_cards_on_scryfall_oracle_id"
   end
 

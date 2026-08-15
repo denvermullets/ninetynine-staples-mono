@@ -8,6 +8,10 @@
     ['pow:', 'tou:', 'power, toughness'],
     ['s:', nil, 'set code'],
     ['kw:', 'a:', 'keyword, artist'],
+    ['role:', 'effect:', 'what a card does - ramp, removal, mana_rock'],
+    ['commander:', nil, 'legal in that commander\'s color identity'],
+    ['rank:', 'edhrec:', 'EDHREC rank - higher is less played'],
+    ['salt:', nil, 'EDHREC saltiness'],
     ['f:', 'banned:', 'legal in / banned in a format'],
     ['is:', nil, 'commander, token, reprint, dfc, colorless, foil, etched'],
     ['qty:', 'needed:', 'copies you own, cards marked needed'],
@@ -30,7 +34,9 @@
     ['o:"draw a card" c>=wu', 'azorius cantrips'],
     ['f:commander pow>=5 kw:flying', 'big commander-legal fliers'],
     ['r>=rare usd>=20 qty>=4', 'rares worth $20+ you own a playset of'],
-    ['c:c t:artifact foil:true', 'colorless artifacts you own in foil']
+    ['c:c t:artifact foil:true', 'colorless artifacts you own in foil'],
+    ['commander:prossh role:sacrifice qty>=1', 'sac outlets you own that are legal under Prossh'],
+    ['role:ramp rank>8000 qty>=1', 'ramp you own that almost nobody plays']
   ] %>
 
 <div data-controller="dialog" class="mt-2">

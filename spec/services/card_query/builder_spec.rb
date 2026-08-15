@@ -257,4 +257,119 @@ RSpec.describe CardQuery::Builder, type: :service do
       expect(described_class.call(cards: cards, terms: [])).to eq(cards)
     end
   end
+
+  describe 'card roles' do
+    def with_role(name, role, effect, confidence: 0.9)
+      card = create(:magic_card, name: name, scryfall_oracle_id: SecureRandom.uuid)
+      create(:card_role, scryfall_oracle_id: card.scryfall_oracle_id,
+                         role: role, effect: effect, confidence: confidence)
+      card
+    end
+
+    it 'matches on role' do
+      rock = with_role('A Rock', 'ramp', 'mana_rock')
+      with_role('A Bolt', 'removal', 'targeted_removal')
+
+      expect(build('role:ramp')).to contain_exactly(rock)
+    end
+
+    it 'matches on effect' do
+      rock = with_role('A Rock', 'ramp', 'mana_rock')
+      with_role('A Dork', 'ramp', 'mana_dork')
+
+      expect(build('effect:mana_rock')).to contain_exactly(rock)
+    end
+
+    it 'combines role and effect' do
+      rock = with_role('A Rock', 'ramp', 'mana_rock')
+      with_role('A Dork', 'ramp', 'mana_dork')
+
+      expect(build('role:ramp effect:mana_rock')).to contain_exactly(rock)
+    end
+
+    # A search result is a claim the card does the thing, and below HIGH_CONFIDENCE the rules are guessing.
+    it 'ignores low confidence role rows' do
+      with_role('A Maybe', 'ramp', 'mana_rock', confidence: 0.5)
+
+      expect(build('role:ramp')).to be_empty
+    end
+
+    it 'accepts a spaced effect name' do
+      rock = with_role('A Rock', 'ramp', 'mana_rock')
+
+      expect(build('effect:"mana rock"')).to contain_exactly(rock)
+    end
+
+    it 'negates with a leading dash' do
+      with_role('A Rock', 'ramp', 'mana_rock')
+      bolt = with_role('A Bolt', 'removal', 'targeted_removal')
+
+      expect(build('-role:ramp')).to contain_exactly(bolt)
+    end
+  end
+
+  describe 'commander identity' do
+    let(:green) { Color.find_or_create_by!(name: 'G') }
+    let(:red) { Color.find_or_create_by!(name: 'R') }
+
+    def with_identity(name, colors, can_be_commander: false)
+      card = create(:magic_card, name: name, can_be_commander: can_be_commander)
+      colors.each { |color| MagicCardColorIdent.create!(magic_card: card, color: color) }
+      card
+    end
+
+    before { with_identity('Selvala, Heart of the Wilds', [green], can_be_commander: true) }
+
+    it 'keeps cards inside the commander identity' do
+      on_colour = with_identity('Llanowar Elves', [green])
+      with_identity('Lightning Bolt', [red])
+
+      expect(build('commander:selvala').where.not(can_be_commander: true)).to contain_exactly(on_colour)
+    end
+
+    # Matches Scryfall: a colourless card is legal in every deck.
+    it 'keeps colourless cards' do
+      colourless = with_identity('Sol Ring', [])
+
+      expect(build('commander:selvala')).to include(colourless)
+    end
+
+    it 'resolves a partial name' do
+      on_colour = with_identity('Llanowar Elves', [green])
+
+      expect(build('commander:"Selvala, Heart"')).to include(on_colour)
+    end
+
+    it 'only resolves against cards that can actually be a commander' do
+      with_identity('Selvala Impersonator', [green, red])
+      off_colour = with_identity('Lightning Bolt', [red])
+
+      expect(build('commander:selvala')).not_to include(off_colour)
+    end
+
+    # Failing open beats returning zero rows for a typo.
+    it 'ignores the term when the name resolves to nothing' do
+      bolt = with_identity('Lightning Bolt', [red])
+
+      expect(build('commander:notacommander')).to include(bolt)
+    end
+  end
+
+  # edhrec_rank is an integer column, and binding the value as a Float made Postgres try to read "8000.0"
+  # as an integer and raise - so these were errors rather than results.
+  describe 'integer column comparisons' do
+    it 'compares against edhrec_rank without a type error' do
+      obscure = create(:magic_card, name: 'Obscure Thing', edhrec_rank: 9000)
+      create(:magic_card, name: 'Staple Thing', edhrec_rank: 12)
+
+      expect(build('rank>8000')).to contain_exactly(obscure)
+    end
+
+    it 'still compares against decimal columns' do
+      cheap = create(:magic_card, name: 'Cheap Thing', mana_value: 1)
+      create(:magic_card, name: 'Costly Thing', mana_value: 6)
+
+      expect(build('mv<=1.5')).to contain_exactly(cheap)
+    end
+  end
 end
