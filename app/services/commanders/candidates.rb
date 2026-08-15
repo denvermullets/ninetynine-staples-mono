@@ -36,7 +36,7 @@ module Commanders
         .joins('LEFT JOIN colors ON colors.id = magic_card_color_idents.color_id')
         .group('magic_cards.id')
         .pluck(:id, Arel.sql('magic_cards.scryfall_oracle_id::text'), :name, :text, :edhrec_rank,
-               :mana_value, Arel.sql("COALESCE(BIT_OR(#{ColorMask.bit_case}), 0)"))
+               :mana_value, Arel.sql(ColorMask::IDENTITY_MASK))
     end
 
     # Filters that narrow which cards are commanders at all run before the representative printing is

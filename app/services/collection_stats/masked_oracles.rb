@@ -21,7 +21,7 @@ module CollectionStats
     def masked_sql
       <<~SQL.squish
         SELECT owned_by_oracle.scryfall_oracle_id AS scryfall_oracle_id,
-               COALESCE(BIT_OR(#{Commanders::ColorMask.bit_case}), 0) AS mask
+               #{Commanders::ColorMask::IDENTITY_MASK} AS mask
         FROM owned_by_oracle
         JOIN magic_cards ON magic_cards.scryfall_oracle_id::text = owned_by_oracle.scryfall_oracle_id
         LEFT JOIN magic_card_color_idents ON magic_card_color_idents.magic_card_id = magic_cards.id

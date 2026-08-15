@@ -22,13 +22,15 @@ module Commanders
 
     MASKS = (COLORLESS..ALL).to_a.freeze
 
-    # The CASE that turns a joined colors row into its bit, for BIT_OR to aggregate. Written from
-    # BITS so the SQL and the Ruby cannot disagree about which colour is which.
-    def self.bit_case(colors_alias = 'colors')
-      whens = BITS.map { |letter, bit| "WHEN '#{letter}' THEN #{bit}" }.join(' ')
+    # The identity of a card as one aggregate expression, for a query that has joined `colors` to
+    # magic_card_color_idents and grouped by card. COALESCE catches the colourless case.
+    #
+    # Constants rather than a method: Brakeman cannot prove a method call interpolated into Arel.sql
+    # is constant, and flags it as SQL injection.
+    BIT_CASE = "CASE colors.name #{BITS.map { |letter, bit| "WHEN '#{letter}' THEN #{bit}" }
+                                      .join(' ')} END".freeze
 
-      "CASE #{colors_alias}.name #{whens} END"
-    end
+    IDENTITY_MASK = "COALESCE(BIT_OR(#{BIT_CASE}), 0)".freeze
 
     # Every mask that fits inside this one, itself and colourless included. A Jund commander can play
     # mono-red, Rakdos and colourless cards, so its pool is the sum of all eight of those buckets.
