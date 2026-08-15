@@ -37,9 +37,27 @@
       >
         My Collection
       </button>
+
+      <%# Only offered once the deck has a commander - there is nothing to derive suggestions from
+          without one, and the action returns the same empty state either way. %>
+      <% if deck_has_commander? %>
+        <button
+          data-deck-search-target="scopeSuggestions"
+          data-action="click->deck-search#setScope"
+          data-scope="suggestions"
+          class="
+            flex-1 px-3 py-1.5 text-xs border rounded-lg border-highlight
+            text-grey-text hover:bg-foreground hover:text-accent-50
+            hover:border-accent-50 transition cursor-pointer
+          "
+        >
+          Suggestions
+        </button>
+      <% end %>
     </div>
 
     <!-- Search Form -->
+    <div data-deck-search-target="searchPane">
     <%= form_with url: search_deck_builder_path(deck), method: :get, local: false,
       data: { action: "submit->deck-search#submit", deck_search_target: "form" },
       class: "relative" do |f| %>
@@ -89,5 +107,20 @@
     >
       <!-- Results will be inserted here -->
     </div>
+    </div>
+
+    <%# Its own container rather than reusing the results div: the deck:card-added listener empties the
+        results after every add, and a suggestion list should survive adding one of its own cards.
+        loading: lazy so the query only runs when the tab is actually opened. %>
+    <% if deck_has_commander? %>
+      <div
+        data-deck-search-target="suggestionsPane"
+        class="hidden mt-4 max-h-[60vh] overflow-y-auto"
+      >
+        <%= turbo_frame_tag "deck_suggestions",
+          src: suggestions_deck_builder_path(deck),
+          loading: "lazy" %>
+      </div>
+    <% end %>
   </div>
 <% end %>

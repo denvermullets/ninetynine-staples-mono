@@ -3,6 +3,7 @@ class DeckBuilderController < ApplicationController
   include DeckBuilderBulkImport
   include DeckBuilderCardActions
   include DeckBuilderRendering
+  include DeckBuilderSearchPanel
   include DeckBuilderViewCard
 
   before_action :set_deck
@@ -26,13 +27,6 @@ class DeckBuilderController < ApplicationController
       format.html
       format.turbo_stream { render_deck_cards_stream }
     end
-  end
-
-  def search
-    @results = DeckBuilder::Search.call(
-      query: params[:q], user: current_user, deck: @deck, scope: params[:scope] || 'all', limit: 20
-    )
-    render partial: 'search_results', locals: { results: @results, deck: @deck }
   end
 
   def add_card

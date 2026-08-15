@@ -81,6 +81,16 @@ module CardQuery
       'frame' => { handler: :assoc, kind: :card, join_table: 'magic_card_frame_effects',
                    lookup_table: 'frame_effects', fk: 'frame_effect_id', lookup_column: 'name' },
 
+      # --- card roles ----------------------------------------------------------------------
+      # card_roles is keyed by scryfall_oracle_id rather than magic_card_id, so these cannot use the
+      # :assoc shape - see Builder#predicate_for_card_role
+      'role' => { handler: :card_role, kind: :card, column: 'role' },
+      'effect' => { handler: :card_role, kind: :card, column: 'effect' },
+
+      # --- commander colour identity ---------------------------------------------------------
+      # takes a commander's name and resolves it to that commander's identity
+      'commander' => { handler: :commander_identity, kind: :card },
+
       # --- format legality ---------------------------------------------------------------
       'f' => { handler: :legality, kind: :card, status: 'Legal' },
       'format' => { handler: :legality, kind: :card, status: 'Legal' },

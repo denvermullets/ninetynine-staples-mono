@@ -53,6 +53,14 @@ class MagicCard < ApplicationRecord
   has_many :game_opponents_as_commander, class_name: 'GameOpponent', foreign_key: :commander_id
   has_many :game_opponents_as_partner, class_name: 'GameOpponent', foreign_key: :partner_commander_id
 
+  # Every suggestion surface has to answer "is this even legal in the format" and the answer lives two
+  # joins away, so it is a scope rather than a copy of the join in each caller.
+  scope :commander_legal, lambda {
+    where(id: MagicCardLegality.joins(:legality)
+                               .where(legalities: { name: 'commander' }, status: 'Legal')
+                               .select(:magic_card_id))
+  }
+
   def other_face
     return nil unless other_face_uuid.present?
 

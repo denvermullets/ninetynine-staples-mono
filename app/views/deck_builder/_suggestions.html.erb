@@ -1,0 +1,63 @@
+<%#
+  Loaded into a lazy turbo frame by the search panel's Suggestions tab. Every role pill below is a plain
+  link into this same frame, so filtering is a server round trip and needs no Stimulus of its own.
+
+  No turbo_action: advance here, unlike collection_proxies - that URL renders a whole page, this one
+  renders a bare partial, so pushing it into history would leave the back button on naked HTML.
+%>
+<%= turbo_frame_tag "deck_suggestions" do %>
+  <% if result.blank? %>
+    <p class="text-sm text-grey-text">
+      Set a commander on this deck to see suggestions.
+    </p>
+  <% else %>
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      <%= link_to "All",
+        suggestions_deck_builder_path(deck),
+        class: "px-2 py-1 text-xs rounded-md transition cursor-pointer #{role.blank? ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+
+      <% result[:roles].each do |bucket_role| %>
+        <%= link_to suggestions_deck_builder_path(deck, role: bucket_role),
+          class: "px-2 py-1 text-xs rounded-md transition cursor-pointer #{bucket_role == role ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+          <%= bucket_role.titleize %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <% if result[:buckets].empty? %>
+      <p class="text-sm text-grey-text">
+        Nothing to suggest here - every match is already in the deck.
+      </p>
+    <% else %>
+      <div class="space-y-5">
+        <% result[:buckets].each do |bucket| %>
+          <div>
+            <h3
+              class="
+                flex items-baseline justify-between mb-2 text-sm font-semibold
+                text-white
+              "
+            >
+              <span><%= bucket[:role].titleize %></span>
+
+              <% if bucket[:target] %>
+                <span class="text-xs font-normal text-grey-text">
+                  <%= bucket[:in_deck] %>
+                  of
+                  <%= bucket[:target] %>
+                  in deck
+                </span>
+              <% end %>
+            </h3>
+
+            <div class="space-y-2">
+              <% bucket[:cards].each do |card| %>
+                <%= render partial: "deck_builder/suggestion_card", locals: { card: card, deck: deck } %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

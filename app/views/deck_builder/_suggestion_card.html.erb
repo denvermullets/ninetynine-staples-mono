@@ -1,0 +1,123 @@
+<%#
+  One suggestion. Owned copies add straight from the binder they are sitting in; unowned ones can be
+  added outright or put on the needed list. Dimmed when unowned, so the panel still reads as "here is
+  what you already have" at a glance.
+%>
+<% source = card[:sources].first %>
+<div
+  class="
+    p-2 border rounded-lg border-highlight hover:border-accent-50/50
+    transition <%= "opacity-70" unless card[:owned] %>
+  "
+  data-controller="add-card"
+  data-add-card-deck-id-value="<%= deck.id %>"
+  data-add-card-card-id-value="<%= source ? source[:magic_card_id] : card[:magic_card].id %>"
+  <% if source %>
+    data-add-card-collection-id-value="<%= source[:collection_id] %>"
+    data-add-card-card-type-value="<%= source[:card_type] %>"
+  <% end %>
+>
+  <div class="flex items-start gap-2">
+    <% if card[:magic_card].image_small.present? %>
+      <%= image_tag card[:magic_card].image_small,
+        alt: card[:magic_card].name,
+        class: "w-10 h-auto rounded cursor-pointer",
+        loading: "lazy",
+        data: {
+          controller: "card-hover",
+          card_hover_image_value: card[:magic_card].image_large,
+          card_hover_name_value: card[:magic_card].name,
+          action: "mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+        } %>
+    <% end %>
+
+    <div class="flex-1 min-w-0">
+      <h4 class="text-sm font-medium truncate text-grey-text">
+        <%= card[:magic_card].name %>
+      </h4>
+
+      <%# The obscurity cue: a rank the reader can sanity check the ordering against. %>
+      <p class="text-xs text-grey-text/70">
+        <% if card[:edhrec_rank] %>
+          EDHREC #<%= number_with_delimiter(card[:edhrec_rank]) %>
+        <% else %>
+          Unranked
+        <% end %>
+      </p>
+
+      <div class="flex flex-wrap gap-1 mt-1">
+        <% card[:matched_roles].first(3).each do |matched| %>
+          <span
+            class="
+              px-1.5 py-0.5 text-[10px] rounded bg-highlight text-grey-text
+            "
+          >
+            <%= matched[:effect].titleize %>
+          </span>
+        <% end %>
+      </div>
+
+      <% if source %>
+        <p class="mt-1.5 text-xs text-accent-50">
+          <%= source[:available] %>
+          <%= source[:type_label].downcase %>
+          in
+          <%= source[:collection_name] %>
+        </p>
+      <% end %>
+
+      <%# submitAdd and submitNewCard both read a quantity input, so it is present but hidden - the
+          sidebar has no room for a spinner and one copy is the answer for 99 of the 99. %>
+      <input
+        type="hidden"
+        autocomplete="off"
+        data-add-card-target="quantityInput"
+        value="1"
+      >
+
+      <div class="flex items-center gap-2 mt-2">
+        <% if source %>
+          <button
+            type="button"
+            data-add-card-target="addOwnedButton"
+            data-action="click->add-card#addOwned"
+            class="
+              flex-1 px-2 py-1 text-xs font-medium border rounded
+              bg-accent-50 text-foreground border-accent-50
+              hover:bg-foreground hover:text-accent-50 transition
+              cursor-pointer
+            "
+          >
+            Add
+          </button>
+        <% else %>
+          <button
+            type="button"
+            data-action="click->add-card#addNewWithType"
+            data-card-type="regular"
+            class="
+              flex-1 px-2 py-1 text-xs font-medium border rounded
+              bg-accent-50 text-foreground border-accent-50
+              hover:bg-foreground hover:text-accent-50 transition
+              cursor-pointer
+            "
+          >
+            Add
+          </button>
+
+          <button
+            data-add-card-target="addPlannedButton"
+            data-action="click->add-card#addPlanned"
+            class="
+              flex-1 px-2 py-1 text-xs border rounded border-accent-400/50
+              text-accent-400 hover:bg-accent-400/10 transition
+              cursor-pointer
+            "
+          >
+            Add as needed
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

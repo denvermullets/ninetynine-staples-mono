@@ -25,9 +25,6 @@ module CardQuery
     # string for `?` placeholders and would count the quantifier as a missing bind.
     NUMERIC_CAST = "NULLIF(SUBSTRING(magic_cards.%<column>s FROM '^-{0,1}[0-9]+'), '')::numeric".freeze
 
-    OWNED_TOTAL = 'SUM(COALESCE(collection_magic_cards.quantity, 0)) + ' \
-                  'SUM(COALESCE(collection_magic_cards.foil_quantity, 0))'.freeze
-
     COMPARISONS = %w[= != > >= < <=].freeze
 
     # the is: values that are just a boolean column
@@ -144,6 +141,23 @@ module CardQuery
       [subquery(field[:join_table], field[:lookup_table], field[:fk], match), value]
     end
 
+    def predicate_for_card_role(field, term)
+      CardRolePredicate.call(column: field[:column], value: term.value)
+    end
+
+    # commander:"Prossh, Skyraider of Kher" is the colour identity subset relation with the letters looked
+    # up from a name. nil back from the resolver means the name matched nothing, and apply/1 reads that as
+    # "skip this term".
+    def predicate_for_commander_identity(_field, term)
+      letters = CommanderIdentity.call(name: term.value)
+      return nil if letters.nil?
+
+      ColorPredicate.call(
+        operator: '<=', value: letters.presence || ColorPredicate::COLORLESS,
+        join_table: 'magic_card_color_idents'
+      )
+    end
+
     def predicate_for_legality(field, term)
       [
         "magic_cards.id IN (
@@ -188,26 +202,29 @@ module CardQuery
     end
 
     # --- ownership ------------------------------------------------------------------------------
+    # HAVING over aggregates rather than a subquery - see OwnedPredicate for why
 
-    def predicate_for_owned_qty(_field, term)
-      ["#{OWNED_TOTAL} #{operator(term, default: '>=')} ?", term.value.to_i]
-    end
+    def predicate_for_owned_qty(_field, term) = owned(:owned_qty, term)
+    def predicate_for_owned_flag(field, term) = owned(:owned_flag, term, columns: field[:columns])
+    def predicate_for_owned_needed(_field, term) = owned(:owned_needed, term)
 
-    def predicate_for_owned_flag(field, term)
-      sums = field[:columns].map { |column| "SUM(COALESCE(collection_magic_cards.#{column}, 0))" }.join(' + ')
-
-      [truthy?(term) ? "#{sums} > 0" : "#{sums} = 0"]
-    end
-
-    # needed is a per-row boolean, so it has to be aggregated to survive the GROUP BY
-    def predicate_for_owned_needed(_field, term)
-      ['COALESCE(BOOL_OR(collection_magic_cards.needed), FALSE) = ?', truthy?(term)]
+    def owned(handler, term, columns: nil)
+      OwnedPredicate.call(handler: handler, operator: operator(term, default: '>='),
+                          value: term.value, columns: columns)
     end
 
     # --- shared helpers ----------------------------------------------------------------------------
 
     def comparison(expression, term, default:)
-      ["#{expression} #{operator(term, default: default)} ?", term.value.to_f]
+      ["#{expression} #{operator(term, default: default)} ?", numeric_bind(term.value)]
+    end
+
+    # A whole number binds as an Integer, not a Float. edhrec_rank is an integer column, and binding 8000.0
+    # against it makes Postgres try to read the literal "8000.0" as an integer and raise - so `rank>8000`
+    # and `edhrec>8000` were errors, not empty results. Decimal columns (mana_value, prices) are unaffected
+    # either way, and casting the column instead would have cost the edhrec_rank index.
+    def numeric_bind(value)
+      value.to_s.match?(/\A-?\d+\z/) ? value.to_i : value.to_f
     end
 
     def operator(term, default:)
@@ -215,10 +232,6 @@ module CardQuery
     end
 
     # a leading `-` is handled by maybe_negate, so this only reads the value
-    def truthy?(term)
-      %w[true yes].include?(term.value.downcase)
-    end
-
     def subquery(join_table, lookup_table, foreign_key, match)
       "magic_cards.id IN (
          SELECT #{join_table}.magic_card_id FROM #{join_table}
