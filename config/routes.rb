@@ -110,6 +110,8 @@ Rails.application.routes.draw do
   get 'collections/:username/sets/:code', to: 'collection_sets#show', as: :collection_set
   # the proxies this collection holds, and whether a real copy is sitting somewhere else
   get 'collections/:username/proxies', to: 'collection_proxies#show', as: :collection_proxies
+  # commanders ranked by how much of the deck this collection could already fill
+  get 'collections/:username/brew', to: 'brew#index', as: :collection_brew
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index

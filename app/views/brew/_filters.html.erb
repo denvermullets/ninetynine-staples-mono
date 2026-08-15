@@ -1,0 +1,56 @@
+<%# locals: sort, band, floor, owned_only, matched, total, username, collection_id %>
+<%#
+  Links inside the brew_commanders frame, so Turbo swaps the grid and the toggles together and the
+  active state is worked out on the server.
+
+  Four independent axes, so every toggle carries the other three's current values. Dropping them
+  would quietly reset the sort every time somebody changed the rank band, which is exactly when they
+  care about it least - the same rule collection_proxies/_filter_toggle follows for its two.
+%>
+
+<% carry = { username: username, sort: sort, band: band, floor: floor,
+             owned_only: owned_only ? "true" : nil, collection_id: collection_id } %>
+
+<div class="flex flex-col gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "buildable" => "Most buildable", "hipster" => "Hipster",
+           "rank" => "EDHREC rank", "mana_value" => "Mana value" }.each do |key, label| %>
+        <%= link_to label, collection_brew_path(**carry.merge(sort: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == sort ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "Any rank", "staples" => "Staples",
+           "known" => "Known", "obscure" => "Obscure" }.each do |key, label| %>
+        <%= link_to label, collection_brew_path(**carry.merge(band: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == band ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "Any completeness", "half" => "Half or better",
+           "most" => "Three quarters" }.each do |key, label| %>
+        <%= link_to label, collection_brew_path(**carry.merge(floor: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == floor ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+
+      <%= link_to collection_brew_path(**carry.merge(owned_only: owned_only ? nil : "true")),
+        class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{owned_only ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+        Only commanders I own
+      <% end %>
+    </div>
+
+    <p class="text-sm text-grey-text/70">
+      <%= number_with_delimiter(matched) %> of <%= number_with_delimiter(total) %> commanders
+    </p>
+  </div>
+
+  <p class="text-xs text-grey-text/50">
+    <%= brew_sort_text(sort) %>
+    <%= brew_band_text(band) %>
+  </p>
+</div>

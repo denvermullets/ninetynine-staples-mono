@@ -1,0 +1,79 @@
+<%#
+  Commanders ranked by how much of the deck this collection could already fill. Structured like the
+  proxies page: picker and summary outside the frame because changing collection changes the headline
+  numbers, everything below it inside so the filters and pagination are ordinary links.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Brew',
+    subtext: @scope[:collection] ? "What #{@scope[:collection].name} could already build." : "What #{@scope[:user].username}'s collection could already build." } %>
+
+  <% if @scope[:collection_ids].empty? %>
+    <%= render partial: 'collection_stats/empty', locals: { owner: @scope[:owner] } %>
+  <% else %>
+    <div class="flex flex-wrap items-center gap-3">
+      <%= render partial: "shared/collection_picker", locals: {
+        collections: @scope[:collections], selected: @scope[:collection],
+        path: ->(id) { collection_brew_path(@scope[:user].username, collection_id: id, sort: @sort, band: @band, floor: @floor) } } %>
+
+      <%= link_to "Collection Stats", collections_stats_path(@scope[:user].username, collection_id: @scope[:collection]&.id),
+        class: "px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer" %>
+    </div>
+
+    <%#
+      turbo_action advance so the filters and the pagination move the URL: a list you cannot link to
+      or reload back into is not a view of anything. Every link inside the frame drives the frame by
+      default, so none of them needs a data attribute of its own.
+    %>
+    <%= turbo_frame_tag 'brew_commanders', data: { turbo_action: 'advance' } do %>
+      <div class="flex flex-col space-y-4">
+        <%= render partial: 'brew/filters', locals: {
+          sort: @sort, band: @band, floor: @floor, owned_only: @owned_only,
+          matched: @matched, total: @total,
+          username: @scope[:user].username, collection_id: @scope[:collection]&.id } %>
+
+        <% if @rows.empty? %>
+          <div
+            class="
+              p-12 text-center border rounded-3xl bg-foreground
+              border-highlight text-grey-text
+            "
+          >
+            <p class="text-xl font-semibold">Nothing to brew here</p>
+
+            <p class="mt-2 text-sm text-grey-text/70">
+              No commander clears these filters. Lowering the completeness floor is usually the one
+              to loosen first.
+            </p>
+          </div>
+        <% else %>
+          <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+            <% @rows.each do |row| %>
+              <%= render partial: 'brew/commander_card', locals: {
+                row: row, card: @cards[row[:magic_card_id]] } %>
+            <% end %>
+          </div>
+
+          <div
+            class="
+              flex flex-col items-center justify-between w-full p-6 space-y-4
+              md:flex-row md:space-y-0 md:space-x-4
+            "
+          >
+            <%== @pagy.info_tag() %>
+
+            <div class="overflow-x-auto">
+              <%== @pagy.series_nav() %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
