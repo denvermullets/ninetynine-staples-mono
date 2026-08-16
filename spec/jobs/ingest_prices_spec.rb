@@ -37,14 +37,71 @@ RSpec.describe IngestPrices, type: :job do
     # a card whose foil listing dried up used to have its normal entry deleted
     # every day, freezing price_history at the last date both finishes shared
     it 'keeps recording normal prices when the feed has no foil data' do
-      card.update!(price_history: { 'normal' => [{ '2026-03-06' => 40.0 }],
-                                    'foil' => [{ '2026-03-06' => 60.0 }] })
+      card.update!(price_history: { 'normal' => [{ '2026-07-30' => 40.0 }],
+                                    'foil' => [{ '2026-07-30' => 60.0 }] })
 
       described_class.new.update_card(card.card_uuid, { 'normal' => { today => 55.0 } }, nil)
 
-      normal_dates = card.reload.price_history['normal'].map { |entry| entry.keys.first }
-      expect(normal_dates).to eq(['2026-03-06', today])
-      expect(card.price_history['foil'].map { |entry| entry.keys.first }).to eq(['2026-03-06'])
+      normal = card.reload.price_history['normal']
+      expect(normal).to eq([{ '2026-07-30' => 40.0 }, { today => 55.0 }])
+    end
+
+    # the finishes share an x axis on the chart, so an unreported foil day used
+    # to shift every later normal point over by one
+    it 'carries the last known price forward for a finish the feed skipped' do
+      card.update!(price_history: { 'normal' => [{ '2026-07-30' => 40.0 }],
+                                    'foil' => [{ '2026-07-30' => 60.0 }] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 55.0 } }, nil)
+
+      expect(card.reload.price_history['foil']).to eq([{ '2026-07-30' => 60.0 }, { today => 60.0 }])
+    end
+
+    it 'does not invent history for a finish that has never had a price' do
+      card.update!(price_history: { 'normal' => [{ '2026-07-30' => 40.0 }], 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 55.0 } }, nil)
+
+      expect(card.reload.price_history['foil']).to eq([])
+    end
+
+    it 'fills days the ingest never ran with the last known price' do
+      card.update!(price_history: { 'normal' => [{ '2026-07-28' => 40.0 }], 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 55.0 } }, nil)
+
+      expect(card.reload.price_history['normal']).to eq(
+        [{ '2026-07-28' => 40.0 }, { '2026-07-29' => 40.0 }, { '2026-07-30' => 40.0 }, { today => 55.0 }]
+      )
+    end
+
+    it 'fills a stretch of missing days no matter how long' do
+      card.update!(price_history: { 'normal' => [{ '2026-01-01' => 40.0 }], 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 55.0 } }, nil)
+
+      normal = card.reload.price_history['normal']
+      dates = normal.map { |entry| entry.keys.first }
+      expect(dates.first).to eq('2026-05-03')
+      expect(dates.last).to eq(today)
+      expect(dates).to eq(dates.uniq.sort)
+    end
+
+    it 'keeps at most 90 days of history' do
+      history = (1..95).map { |day| { (Date.parse(today) - day).to_s => 40.0 } }.reverse
+      card.update!(price_history: { 'normal' => history, 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 55.0 } }, nil)
+
+      expect(card.reload.price_history['normal'].size).to eq(90)
+    end
+
+    it 'ignores a date it has already recorded' do
+      card.update!(price_history: { 'normal' => [{ today => 40.0 }], 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 55.0 } }, nil)
+
+      expect(card.reload.price_history['normal']).to eq([{ today => 40.0 }])
     end
 
     it 'records the first price point for a card with no history' do

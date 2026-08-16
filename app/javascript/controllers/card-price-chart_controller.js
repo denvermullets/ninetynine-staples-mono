@@ -62,6 +62,20 @@ export default class extends Controller {
     return `${month}/${day}`;
   }
 
+  // history arrives as a list of single-key {date: price} objects. collapse it
+  // into a date -> price lookup so both finishes can be plotted against one
+  // shared axis instead of by position in their own array
+  toSeries(entries) {
+    const series = {};
+
+    (entries || []).forEach((entry) => {
+      const [date, price] = Object.entries(entry)[0];
+      series[date] = price;
+    });
+
+    return series;
+  }
+
   renderChart() {
     const cardPriceHistory = this.cardPriceChartTarget.dataset.cardPriceChartEvents;
 
@@ -84,36 +98,21 @@ export default class extends Controller {
       this.chart = null;
     }
 
-    const labels = [];
-    const foilPrices = [];
-    const normalPrices = [];
+    const foilSeries = this.toSeries(priceHistory.foil);
+    const normalSeries = this.toSeries(priceHistory.normal);
 
-    if (priceHistory.foil.length > 0) {
-      priceHistory.foil.forEach((card) => {
-        const date = this.processDate(Object.keys(card)[0]);
-        labels.push(date);
-        foilPrices.push(Object.values(card)[0]);
-      });
-    }
+    // the two finishes are tracked independently, so their dates can diverge -
+    // a finish that starts late or skips a day used to shift every later point.
+    // build one sorted axis off the union and look each finish up by date. ISO
+    // dates sort lexicographically, so no parsing needed
+    const dates = [...new Set([...Object.keys(foilSeries), ...Object.keys(normalSeries)])].sort();
+    const foilPrices = dates.map((date) => (date in foilSeries ? foilSeries[date] : null));
+    const normalPrices = dates.map((date) => (date in normalSeries ? normalSeries[date] : null));
 
-    if (priceHistory.normal.length > 0) {
-      priceHistory.normal.forEach((card) => {
-        const date = this.processDate(Object.keys(card)[0]);
-        labels.push(date);
-        normalPrices.push(Object.values(card)[0]);
-      });
-    }
+    const uniqueLabels = dates.length > 0 ? dates.map((date) => this.processDate(date)) : ["No Data"];
 
-    if (labels.length === 0) {
-      labels.push("No Data");
-    }
-
-    const uniqueLabels = [...new Set(labels)];
-
-    const priceBounds = this.getAxisBounds(
-      Math.min(...foilPrices, ...normalPrices),
-      Math.max(...foilPrices, ...normalPrices)
-    );
+    const plottedPrices = [...foilPrices, ...normalPrices].filter((price) => price !== null);
+    const priceBounds = this.getAxisBounds(Math.min(...plottedPrices), Math.max(...plottedPrices));
 
     // Fix canvas height before initializing a new chart
     const canvas = this.cardPriceChartTarget;
@@ -157,6 +156,7 @@ export default class extends Controller {
             borderWidth: 2,
             tension: 0.3,
             fill: false,
+            spanGaps: true,
           },
           {
             label: "Regular Price",
@@ -166,8 +166,11 @@ export default class extends Controller {
             borderWidth: 2,
             tension: 0.3,
             fill: false,
+            spanGaps: true,
           },
-        ].filter((dataset) => dataset.data.length > 0),
+          // a finish with no history at all is all nulls, not an empty array -
+          // it would otherwise claim a legend entry it never draws a line for
+        ].filter((dataset) => dataset.data.some((price) => price !== null)),
       },
       options: {
         responsive: true,
