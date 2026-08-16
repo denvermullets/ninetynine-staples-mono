@@ -1,6 +1,8 @@
 require 'open-uri'
 
 class IngestPrices < ApplicationJob
+  MAX_HISTORY_DAYS = 90
+
   queue_as :ingest
 
   def perform
@@ -36,7 +38,7 @@ class IngestPrices < ApplicationJob
     card = MagicCard.find_by(card_uuid:)
     return unless card.present?
 
-    tcg_attrs = tcgplayer_attributes(card, price_info)
+    tcg_attrs = tcgplayer_attributes(card, price_info, price_date)
     ck_attrs = ck_buylist_attributes(card, ck_buylist_info)
 
     card.update(**tcg_attrs, **ck_attrs)
@@ -47,7 +49,7 @@ class IngestPrices < ApplicationJob
 
   private
 
-  def tcgplayer_attributes(card, price_info)
+  def tcgplayer_attributes(card, price_info, price_date = nil)
     unless price_info
       return { normal_price: card.normal_price, foil_price: card.foil_price,
                price_history: card.price_history, price_change_weekly_normal: card.price_change_weekly_normal,
@@ -56,7 +58,7 @@ class IngestPrices < ApplicationJob
 
     normal_price = find_price(card.normal_price, price_info['normal']) || 0
     foil_price = find_price(card.foil_price, price_info['foil']) || 0
-    price_history = update_price_history(card.price_history, price_info)
+    price_history = update_price_history(card.price_history, price_info, price_date)
     price_change_weekly_normal, price_change_weekly_foil = calculate_price_changes_weekly(
       price_history, normal_price, foil_price
     )
@@ -88,23 +90,56 @@ class IngestPrices < ApplicationJob
   # normal and foil are tracked independently. intersecting their dates used to
   # drop the day's entry whenever the other finish had no data, which froze the
   # history for good and left price_change replaying the same stale delta
-  def update_price_history(price_history, new_daily_price)
+  def update_price_history(price_history, new_daily_price, price_date = nil)
     price_history ||= {}
+    entry_date = price_date || feed_date(new_daily_price)
 
     {
-      normal: check_existing(price_history['normal'] || [], new_daily_price['normal']),
-      foil: check_existing(price_history['foil'] || [], new_daily_price['foil'])
+      normal: check_existing(price_history['normal'] || [], new_daily_price['normal'], entry_date),
+      foil: check_existing(price_history['foil'] || [], new_daily_price['foil'], entry_date)
     }
   end
 
-  def check_existing(existing_data, new_info)
-    return [] if existing_data.nil?
-    return existing_data if new_info.nil?
-    return existing_data if existing_data.any? { |hash| hash.keys.first == new_info.keys.first }
+  # the feed keys each price by the day it was pulled, so a run with no explicit
+  # date can still recover it from whichever finish reported
+  def feed_date(new_daily_price)
+    (new_daily_price['normal'] || new_daily_price['foil'])&.keys&.first
+  end
 
-    # Keep track for 90 days, remove oldest if full
-    data = existing_data.sort_by { |hash| hash.keys.first } << new_info
-    existing_data.count < 90 ? data : data.drop(1)
+  def check_existing(existing_data, new_info, entry_date = nil)
+    return [] if existing_data.nil?
+
+    sorted = existing_data.sort_by { |hash| hash.keys.first }
+    new_entry = new_info || carry_forward(sorted, entry_date)
+    return existing_data if new_entry.nil?
+    return existing_data if sorted.any? { |hash| hash.keys.first == new_entry.keys.first }
+
+    trim(sorted + fill_gap(sorted, new_entry.keys.first) + [new_entry])
+  end
+
+  # an unreported finish isn't a worthless one. repeat the last known price so
+  # both finishes stay on the same daily grid - a hole in one of them shifts
+  # every later point on the chart, which plots the two series side by side
+  def carry_forward(sorted_data, entry_date)
+    return nil if entry_date.nil? || sorted_data.empty?
+
+    { entry_date => sorted_data.last.values.first }
+  end
+
+  # a day the ingest never ran leaves the same kind of hole, just in both
+  # finishes at once. bridge every missing day with the last known price, however
+  # long the stretch - trim drops whatever falls out the back of the window
+  def fill_gap(sorted_data, new_date)
+    return [] if sorted_data.empty?
+
+    last_date = Date.parse(sorted_data.last.keys.first)
+    last_price = sorted_data.last.values.first
+
+    ((last_date + 1)...Date.parse(new_date)).map { |date| { date.to_s => last_price } }
+  end
+
+  def trim(data)
+    data.last(MAX_HISTORY_DAYS)
   end
 
   def calculate_price_changes_weekly(price_history, current_normal_price, current_foil_price)
