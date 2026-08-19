@@ -1,0 +1,101 @@
+<%# locals: rows - CollectionStats::ReservedCards rows, labels, pagy %>
+<%#
+  One tile per PRINTING, greyed where you hold no real copy. Lifted from collection_sets/_visual,
+  with one deliberate change: the corner badge is the set, not the collector number. That grid is one
+  set deep and the number is what tells its printings apart; this one spans a hundred-odd sets, and
+  which printing of Gaea's Cradle you are looking at is the thing the art cannot tell you.
+
+  Deliberately not clickable, same as the set grid - the hover preview is the whole interaction, and
+  a grid where every tile expands something underneath it stops being a grid.
+%>
+
+<div class="mb-24">
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+    <% rows.each do |row| %>
+      <% label = labels[row[:id]]&.join(" ")&.presence %>
+
+      <div
+        class="
+          relative overflow-hidden transition-transform rounded-xl
+          hover:scale-105
+        "
+        data-controller="card-hover"
+        data-card-hover-image-value="<%= row[:image_large] %>"
+        data-card-hover-name-value="<%= row[:name] %>"
+        data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+      >
+        <% if row[:image].present? %>
+          <%= image_tag row[:image],
+            alt: [row[:name], row[:set_name], label].compact.join(" - "),
+            loading: "lazy",
+            class: "w-full rounded-xl shadow-lg #{"grayscale opacity-40" unless row[:owned]}" %>
+        <% else %>
+          <div
+            class="
+              flex items-center justify-center w-full p-2 text-sm text-center
+              rounded-xl bg-background text-grey-text aspect-5/7
+            "
+          >
+            <%= row[:name] %>
+          </div>
+        <% end %>
+
+        <span
+          class="
+            absolute flex items-center gap-1 px-1.5 py-0.5 text-xs rounded
+            top-1 left-1 bg-black/70 text-grey-text
+          "
+          title="<%= row[:set_name] %>"
+        >
+          <% if row[:keyrune].present? %>
+            <i class="<%= row[:keyrune] %>"></i>
+          <% end %>
+
+          <%= row[:set_code] %>
+        </span>
+
+        <span class="absolute px-1.5 py-0.5 text-xs rounded top-1 right-1 <%= row[:owned] ? "bg-accent-50 text-badge-text" : "bg-black/70 text-grey-text" %>">
+          <%= row[:owned] ? "x#{row[:copies]}" : "missing" %>
+        </span>
+
+        <div
+          class="
+            absolute bottom-0 left-0 right-0 px-2 py-2 text-xs rounded-b-xl
+            bg-black/80
+          "
+        >
+          <div class="font-medium truncate text-nine-white">
+            <%= row[:name].to_s.split("//").first %>
+          </div>
+
+          <div class="flex items-center justify-between gap-1 mt-1">
+            <%#
+              The foil is a note, never a state of its own - it says the foil is still outstanding on
+              a card you already have, and it does not touch the numbers in the header.
+            %>
+            <span class="px-1 border rounded shrink-0 <%= row[:owned] && row[:missing_foil] ? finish_chip_class(:foil) : rarity_chip_class(row[:rarity]) %>">
+              <%= row[:owned] && row[:missing_foil] ? "no foil" : row[:rarity] %>
+            </span>
+
+            <span class="text-grey-text">
+              <%= number_to_currency(row[:price]) %>
+            </span>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy %>
+    <div
+      class="
+        flex flex-col items-center justify-between w-full gap-2 p-6 mt-4
+        text-sm md:flex-row
+      "
+    >
+      <%== pagy.info_tag() %>
+
+      <div class="overflow-x-auto"><%== pagy.series_nav() %></div>
+    </div>
+  <% end %>
+</div>

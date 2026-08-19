@@ -1,0 +1,66 @@
+<%#
+  The Reserved List as a checklist. 571 cards, 1,477 printings, and the ones you do not own are
+  greyed - which is the whole interaction, so the grid is the page and everything else is a header
+  for it.
+
+  Measured across every collection this user has rather than one of them, so there is no picker: a
+  dual sitting in a different binder is still a dual you do not have to go and buy.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Reserved List',
+    subtext: "Every card Wizards promised never to reprint, against #{@scope[:user].username}'s collections." } %>
+
+  <% if @scope[:collection_ids].empty? %>
+    <%= render partial: 'collection_stats/empty', locals: { owner: @scope[:owner] } %>
+  <% else %>
+    <%#
+      outside the frame, because the headline numbers do not move when the filter does - they are
+      counted off every row rather than the filtered list
+    %>
+    <%= render partial: 'collection_reserved/summary', locals: { totals: @totals } %>
+    <%#
+      turbo_action advance so the filters and the pagination move the URL: a list you cannot link to
+      or reload back into is not a view of anything. Every link inside the frame drives the frame by
+      default, so none of them needs a data attribute of its own.
+    %>
+    <%= turbo_frame_tag 'reserved_cards', data: { turbo_action: 'advance' } do %>
+      <div class="flex flex-col space-y-4">
+        <%= render partial: 'collection_reserved/filters', locals: {
+          filter: @filter, sort: @sort, view: @view, counts: @counts,
+          username: @scope[:user].username } %>
+
+        <% if @rows.empty? %>
+          <div
+            class="
+              p-12 text-center border rounded-3xl bg-foreground
+              border-highlight text-grey-text
+            "
+          >
+            <p class="text-xl font-semibold">
+              <%= @filter == 'owned' ? 'Nothing here yet' : 'Nothing missing' %>
+            </p>
+
+            <p class="mt-2 text-sm text-grey-text/70">
+              <%= @filter == 'owned' ? 'You do not own a real copy of anything on the Reserved List.' : 'You are not short a single printing on the Reserved List.' %>
+            </p>
+          </div>
+        <% elsif @view == 'visual' %>
+          <%= render partial: 'collection_reserved/grid', locals: {
+            rows: @rows, labels: @labels, pagy: @pagy } %>
+        <% else %>
+          <%= render partial: 'collection_reserved/mobile', locals: {
+            rows: @rows, labels: @labels, pagy: @pagy } %>
+          <%= render partial: 'collection_reserved/table', locals: {
+            rows: @rows, labels: @labels, pagy: @pagy } %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

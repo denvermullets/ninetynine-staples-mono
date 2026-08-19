@@ -1,0 +1,33 @@
+<%# locals: totals - CollectionStats::ReservedCards %>
+<%#
+  Completion twice, because on its own each figure lies. The card number is what a collector means by
+  "how far along am I" - nobody is chasing all seven printings of an Underground Sea - and the
+  printing number is what the grid underneath actually shows.
+%>
+
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Cards', tone: :accent,
+      value: "#{number_with_delimiter(totals[:cards_owned])} / #{number_with_delimiter(totals[:cards_total])}",
+      sub: "#{totals[:cards_share]}% of the list" } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Printings',
+      value: "#{number_with_delimiter(totals[:printings_owned])} / #{number_with_delimiter(totals[:printings_total])}",
+      sub: 'the tiles below' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Value Held', value: number_to_currency(totals[:value_owned]),
+      sub: 'the reserved cards you own' } %>
+
+    <%#
+      The cheapest printing of each card you hold none of, which is the honest floor rather than a
+      shopping list - it prices a Beta dual at whatever the cheapest reprint of it goes for.
+    %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Cost to Finish', value: number_to_currency(totals[:cost_to_complete]),
+      sub: 'cheapest printing of each one missing' } %>
+  </div>
+</div>

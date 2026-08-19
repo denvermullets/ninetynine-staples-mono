@@ -33,7 +33,8 @@ module CardQuery
       'brawlcommander' => 'can_be_brawl_commander',
       'oathbreaker' => 'can_be_oathbreaker_commander',
       'token' => 'is_token',
-      'reprint' => 'is_reprint'
+      'reprint' => 'is_reprint',
+      'reserved' => 'is_reserved'
     }.freeze
 
     def initialize(cards:, terms:)

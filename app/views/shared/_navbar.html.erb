@@ -76,6 +76,7 @@
               <%= link_to 'All Cards', collection_show_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Collection Stats', collections_stats_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Sets', collection_sets_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Reserved List', collection_reserved_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Proxies', collection_proxies_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Brew', collection_brew_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Decks', decks_index_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
@@ -314,6 +315,10 @@
 
           <div class="<%= nav_item_classes('/collections/' + current_user.username + '/sets') %>">
             <%= link_to 'Sets', collection_sets_path(current_user.username) %>
+          </div>
+
+          <div class="<%= nav_item_classes('/collections/' + current_user.username + '/reserved') %>">
+            <%= link_to 'Reserved List', collection_reserved_path(current_user.username) %>
           </div>
 
           <div class="<%= nav_item_classes('/collections/' + current_user.username + '/proxies') %>">

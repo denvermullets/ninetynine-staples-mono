@@ -40,8 +40,13 @@ module CardIngestion
     end
     # rubocop:enable Metrics/MethodLength
 
+    # Tokens are excluded from all of this, which is why is_reserved sits here rather than next to
+    # is_reprint above: nothing on the Reserved List is a token, so a token has no answer to give.
     def card_specific_attributes
       {
+        # mtgjson omits isReserved entirely when it is false, so the key is either true or absent -
+        # reading it straight through would write nil into a NOT NULL column
+        is_reserved: @card_data['isReserved'] || false,
         original_text: @card_data['originalText'],
         rarity: @card_data['rarity'],
         original_type: @card_data['originalType'],
