@@ -13,6 +13,7 @@ RSpec.describe CardIngestion::AttributeMapper, type: :service do
       'borderColor' => 'black',
       'frameVersion' => '2015',
       'isReprint' => false,
+      'isReserved' => true,
       'number' => '141',
       'identifiers' => { 'scryfallOracleId' => SecureRandom.uuid },
       'uuid' => SecureRandom.uuid,
@@ -38,6 +39,15 @@ RSpec.describe CardIngestion::AttributeMapper, type: :service do
       expect(result[:rarity]).to eq('common')
       expect(result[:mana_cost]).to eq('{R}')
       expect(result[:edhrec_rank]).to eq(5)
+      expect(result[:is_reserved]).to be true
+    end
+
+    # mtgjson omits isReserved entirely rather than sending false, and is_reserved is NOT NULL, so
+    # passing the missing key straight through would blow up the insert on almost every card
+    it 'reads a missing isReserved as false rather than nil' do
+      result = described_class.call(boxset: boxset, card_data: card_data.except('isReserved'))
+
+      expect(result[:is_reserved]).to be false
     end
   end
 
@@ -47,6 +57,7 @@ RSpec.describe CardIngestion::AttributeMapper, type: :service do
       expect(result[:is_token]).to be true
       expect(result).not_to have_key(:rarity)
       expect(result).not_to have_key(:edhrec_rank)
+      expect(result).not_to have_key(:is_reserved)
     end
   end
 end

@@ -1,0 +1,151 @@
+<%# locals: rows - CollectionStats::ReservedCards groups at unit 'card', labels, pagy %>
+<%#
+  A row here is a CARD - you own an Underground Sea or you do not - and its printings are the
+  sub-rows inside the expansion. The set page's table with one column swapped: it is one set deep, so
+  the collector number places a card; this list spans a hundred-odd sets, so the ORIGINAL printing's
+  set is what places one.
+
+  Column visibility rides on the boxsets preferences on purpose, same as the set table - this is the
+  same table looked at from the collection's side, and a reader who hid Salt there does not want it
+  back here. Printings and Owned are what the page is FOR, so they are not optional.
+
+  The rows are hashes, not MagicCard records, so nothing in here can call a model predicate.
+%>
+<% shared_columns = %w[name type mana regular_price foil_price salt] %>
+<% visible_column_count = shared_columns.count { |key| column_visible?(key, 'boxsets') } + 3 %>
+
+<div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
+  <table class="min-w-full divide-y table-auto divide-background">
+    <thead class="bg-background">
+      <tr>
+        <% [['name', 'Name'], ['type', 'Type'], ['mana', 'Mana'],
+            ['regular_price', 'Regular'], ['foil_price', 'Foil'], ['salt', 'Salt']].each do |key, label| %>
+          <% next unless column_visible?(key, 'boxsets') %>
+
+          <th
+            class="
+              <%= key.in?(%w[type salt]) ? 'hidden lg:table-cell' : '' %>
+              px-4 py-2 text-xs font-normal tracking-wider text-left normal-case
+              text-grey-text
+            "
+          >
+            <%= label %>
+          </th>
+        <% end %>
+
+        <% ['Set', 'Printings', 'Owned'].each do |label| %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left normal-case
+              text-grey-text
+            "
+          >
+            <%= label %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody class="bg-background" data-controller="expandable-row">
+      <% rows.each do |row| %>
+        <% card = row[:primary] %>
+
+        <tr
+          data-action="click->expandable-row#toggle"
+          data-card-id="<%= card[:id] %>"
+          class="
+            border border-background text-grey-text bg-foreground
+            hover:bg-menu hover:cursor-pointer <%= 'opacity-60' unless row[:owned] %>
+          "
+        >
+          <% if column_visible?('name', 'boxsets') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card[:keyrune_code]&.downcase %> ss-<%= card[:rarity]&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
+
+              <%= row[:name].to_s.split('//').first %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('type', 'boxsets') %>
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap lg:table-cell">
+              <%= card[:card_type] %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('mana', 'boxsets') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <div class="flex items-center m-0 space-x-1">
+                <%= mana_symbols(card[:mana_cost]) %>
+              </div>
+            </td>
+          <% end %>
+
+          <% if column_visible?('regular_price', 'boxsets') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <%= render partial: 'collection_sets/price', locals: {
+                price: card[:normal_price], change: card[:change_normal] } %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('foil_price', 'boxsets') %>
+            <td class="px-4 py-2 text-sm whitespace-nowrap">
+              <%= render partial: 'collection_sets/price', locals: {
+                price: card[:foil_price], change: card[:change_foil] } %>
+            </td>
+          <% end %>
+
+          <% if column_visible?('salt', 'boxsets') %>
+            <td class="hidden px-4 py-2 text-sm whitespace-nowrap lg:table-cell">
+              <% if card[:salt].present? %>
+                <%= number_with_precision(card[:salt], precision: 2) %>
+              <% end %>
+            </td>
+          <% end %>
+
+          <%#
+            The original printing, which is what a collector means by the card - and it stays the
+            original whichever way the list is sorted, so the row does not rename itself.
+          %>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap" title="<%= card[:set_name] %>">
+            <%= card[:set_code] %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <span class="<%= row[:owned_printings] == row[:total_printings] ? 'text-accent-50' : 'text-grey-text/70' %>">
+              <%= row[:owned_printings] %> / <%= row[:total_printings] %>
+            </span>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <%= owned_marker(row[:owned_qty], row[:owned_foil_qty]) || '—' %>
+          </td>
+        </tr>
+
+        <tr
+          data-expandable-row-target="content"
+          data-card-id="<%= card[:id] %>"
+          class="hidden border border-background"
+        >
+          <td colspan="<%= visible_column_count %>">
+            <% if row[:total_printings] > 1 %>
+              <%= render partial: 'collection_reserved/printings', locals: {
+                printings: row[:printings], labels: labels } %>
+            <% end %>
+
+            <%= turbo_frame_tag "card_details_#{card[:id]}",
+                src: boxset_magic_card_path(card[:id], show_other_printings: true),
+                loading: :lazy %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if pagy %>
+    <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav() %>
+    </div>
+  <% end %>
+</div>

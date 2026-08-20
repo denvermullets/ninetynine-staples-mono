@@ -1,0 +1,60 @@
+<%# locals: filter, sort, view, counts, username %>
+<%#
+  Links inside the reserved_cards frame, so Turbo swaps the list and the toggles together and the
+  active state is worked out on the server.
+
+  Three independent axes, so every toggle carries the other two's current values - dropping them
+  would reset the sort every time somebody switched to "missing", which is exactly when they care
+  about it least. Same rule brew/_filters and collection_sets/_filter_toggle follow.
+%>
+
+<% carry = { username: username, filter: filter, sort: sort, view: view } %>
+
+<div class="flex flex-col gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "All", "owned" => "Owned", "missing" => "Missing" }.each do |key, label| %>
+        <%= link_to collection_reserved_path(**carry.merge(filter: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == filter ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+          <%= label %>
+
+          <span class="ml-1 text-xs opacity-60">
+            <%= number_with_delimiter(counts[key.to_sym]) %>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "table" => "Table", "visual" => "Visual" }.each do |key, label| %>
+        <%= link_to label, collection_reserved_path(**carry.merge(view: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == view ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "name" => "Name", "price" => "Price", "set" => "Set" }.each do |key, label| %>
+        <%= link_to label, collection_reserved_path(**carry.merge(sort: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == sort ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+    </div>
+
+    <%#
+      The counts move when the view does, because the thing being counted moves with it. Saying which
+      it is beats letting somebody wonder why Missing jumped when they clicked Visual. The figures in
+      the header do not move - they are about the list, not the view.
+    %>
+
+    <p class="text-xs text-grey-text/50">
+      <% if view == "visual" %>
+        Counting printings - every printing is its own card here, so a Revised
+        dual you do not have is missing even when you have the Beta one.
+      <% else %>
+        Counting cards - owned is a card you have in any printing, missing is one
+        you are still short a printing of, so a card at 1 of 3 is both.
+      <% end %>
+    </p>
+  </div>
+</div>

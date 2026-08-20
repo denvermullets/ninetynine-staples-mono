@@ -1,0 +1,90 @@
+<%# locals: printings, labels - CollectionStats::PrintingLabels, keyed by magic_card_id %>
+<%#
+  Every printing of the card, shown whichever filter is on, and shown as the card rather than as a
+  row of numbers - which Beta dual you are missing is a question the art answers and a set code does
+  not. Missing ones are greyed rather than hidden: the gap in the strip is the thing to look at.
+
+  Same partial as collection_sets/_printings, captioned by set instead of collector number - these
+  printings are spread across sets rather than sitting inside one. The images come off rows
+  ReservedCards already plucked, so the strip costs no queries however many printings a card has.
+%>
+<% collected = printings.count { |printing| printing[:owned] } %>
+
+<div class="px-4 pt-4">
+  <div class="flex items-baseline justify-between gap-2">
+    <p class="text-xs tracking-wider uppercase text-grey-text/50">
+      Printings of this card
+    </p>
+
+    <p class="text-xs text-grey-text/50">
+      <%= collected %> of <%= printings.size %> collected
+    </p>
+  </div>
+
+  <div class="flex gap-4 pb-2 mt-3 overflow-x-auto">
+    <% printings.each do |printing| %>
+      <% label = labels[printing[:id]]&.join(" ")&.presence %>
+
+      <div class="w-36 shrink-0">
+        <%#
+          the thumbnail is too small to read the art on, which is the whole reason to look at a
+          printing - card-hover puts the full card next to the cursor
+        %>
+
+        <div
+          class="relative rounded-xl"
+          data-controller="card-hover"
+          data-card-hover-image-value="<%= printing[:image_large] %>"
+          data-card-hover-name-value="<%= printing[:name] %>"
+          data-action="mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move"
+        >
+          <% if printing[:image].present? %>
+            <%= image_tag printing[:image],
+              alt: [printing[:name], printing[:set_name], label].compact.join(" - "),
+              loading: "lazy",
+              class: "w-full rounded-xl shadow-lg #{"grayscale opacity-50" unless printing[:owned]}" %>
+          <% else %>
+            <div
+              class="
+                flex items-center justify-center w-full p-2 text-xs text-center
+                rounded-xl bg-background text-grey-text aspect-5/7
+              "
+            >
+              <%= printing[:name] %>
+            </div>
+          <% end %>
+
+          <span class="absolute px-1.5 py-0.5 text-xs rounded top-1 right-1 <%= printing[:owned] ? "bg-accent-50 text-badge-text" : "bg-black/70 text-grey-text" %>">
+            <%= owned_marker(printing[:qty], printing[:foil_qty]) || "missing" %>
+          </span>
+        </div>
+
+        <p class="mt-2 text-xs truncate text-grey-text" title="<%= printing[:set_name] %>">
+          <%= printing[:set_code] %>
+
+          <% if label.present? %>
+            &middot; <%= label %>
+          <% end %>
+        </p>
+
+        <% if (chip = foil_chip(printing)) %>
+          <span class="inline-block mt-1 px-1.5 py-0.5 text-xs border rounded <%= chip[:class] %>">
+            <%= chip[:label] %>
+          </span>
+        <% end %>
+
+        <p class="text-xs text-grey-text/50">
+          <% if printing[:normal_price].to_f.positive? %>
+            <%= number_to_currency(printing[:normal_price]) %>
+          <% end %>
+
+          <% if printing[:foil_price].to_f.positive? %>
+            <span class="text-yellow-400">
+              <%= number_to_currency(printing[:foil_price]) %>
+            </span>
+          <% end %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+</div>

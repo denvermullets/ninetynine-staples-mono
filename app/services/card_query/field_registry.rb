@@ -16,7 +16,8 @@ module CardQuery
   module FieldRegistry
     RARITY_ORDER = %w[common uncommon rare mythic].freeze
 
-    IS_FLAGS = %w[commander brawlcommander oathbreaker token reprint dfc colorless foil etched].freeze
+    IS_FLAGS = %w[commander brawlcommander oathbreaker token reprint reserved dfc colorless foil
+                  etched].freeze
 
     FIELDS = {
       # --- colors -------------------------------------------------------------------

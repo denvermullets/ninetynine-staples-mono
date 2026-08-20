@@ -110,6 +110,9 @@ Rails.application.routes.draw do
   get 'collections/:username/sets/:code', to: 'collection_sets#show', as: :collection_set
   # the proxies this collection holds, and whether a real copy is sitting somewhere else
   get 'collections/:username/proxies', to: 'collection_proxies#show', as: :collection_proxies
+  # every Reserved List printing, greyed where this user owns none of it - across all their
+  # collections, because a card in another binder is still one they do not have to buy
+  get 'collections/:username/reserved', to: 'collection_reserved#show', as: :collection_reserved
   # commanders ranked by how much of the deck this collection could already fill
   get 'collections/:username/brew', to: 'brew#index', as: :collection_brew
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
