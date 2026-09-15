@@ -263,6 +263,73 @@ RSpec.describe CardAnalysis::CommanderSynergy, type: :service do
     end
   end
 
+  # Read off the deck's last Spellbook check: an almost_included combo whose one missing card you own.
+  describe 'combo pieces' do
+    let(:combo_role) { described_class::COMBO_ROLE }
+
+    def legal_card(name)
+      card = create(:magic_card, scryfall_oracle_id: SecureRandom.uuid, card_side: nil, name: name, edhrec_rank: 2500)
+      MagicCardLegality.find_or_create_by!(magic_card: card, legality: commander_legality, status: 'Legal')
+      card
+    end
+
+    def one_card_short(card, results: 'Infinite mana')
+      combo = Combo.create!(spellbook_id: SecureRandom.hex(4), results: results)
+      deck_combo = DeckCombo.create!(collection: deck, combo: combo, combo_type: 'almost_included')
+      deck_combo.deck_combo_missing_cards.create!(card_name: card.name, oracle_id: card.scryfall_oracle_id)
+    end
+
+    def own(card)
+      create(:collection_magic_card, collection: binder, magic_card: card, quantity: 1)
+    end
+
+    def with_deck(**)
+      described_class.call(commander: commander, user: user, deck: deck, owned_only: false, **)
+    end
+
+    it 'leads with an owned card that completes a combo' do
+      piece = legal_card('Combo Piece')
+      own(piece)
+      2.times { |i| one_card_short(piece, results: "Result #{i}") }
+      candidate(role: 'ramp', effect: 'mana_dork', name: 'A Dork')
+
+      bucket = with_deck[:buckets].first
+      expect(bucket[:role]).to eq(combo_role)
+      expect(bucket[:cards].first).to include(combo_count: 2, combo_results: ['Result 0', 'Result 1'])
+      expect(bucket[:cards].first[:magic_card].name).to eq('Combo Piece')
+    end
+
+    it 'does not suggest a combo piece you do not own' do
+      one_card_short(legal_card('Unowned Piece'))
+
+      expect(suggested_names(with_deck)).not_to include('Unowned Piece')
+    end
+
+    it 'moves a piece out of its role bucket but keeps its roles' do
+      piece = candidate(role: 'ramp', effect: 'mana_dork', name: 'Dork And Piece')
+      own(piece)
+      one_card_short(piece)
+
+      result = with_deck
+      expect(suggested_names(result).count('Dork And Piece')).to eq(1)
+      card = result[:buckets].find { |bucket| bucket[:role] == combo_role }[:cards].first
+      expect(card[:matched_roles]).to include({ role: 'ramp', effect: 'mana_dork' })
+    end
+
+    it 'narrows to the combo bucket when that role is given' do
+      piece = legal_card('Combo Piece')
+      own(piece)
+      one_card_short(piece)
+      candidate(role: 'ramp', effect: 'mana_dork')
+
+      expect(with_deck(role: combo_role)[:buckets].pluck(:role)).to eq([combo_role])
+    end
+
+    it 'offers no combo filter without a deck' do
+      expect(synergy[:roles]).not_to include(combo_role)
+    end
+  end
+
   it 'returns no buckets when nothing matches' do
     expect(synergy[:buckets]).to be_empty
   end

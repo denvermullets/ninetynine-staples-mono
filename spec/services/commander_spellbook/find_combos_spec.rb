@@ -27,7 +27,7 @@ RSpec.describe CommanderSpellbook::FindCombos, type: :service do
                 'notablePrerequisites' => [],
                 'requires' => [],
                 'identity' => 'U',
-                'legalities' => { 'commander' => 'Legal' }
+                'legalities' => { 'commander' => true }
               }
             ],
             'almostIncluded' => [
@@ -43,7 +43,7 @@ RSpec.describe CommanderSpellbook::FindCombos, type: :service do
                 'notablePrerequisites' => [],
                 'requires' => [],
                 'identity' => 'UB',
-                'legalities' => { 'commander' => 'Legal' }
+                'legalities' => { 'commander' => true }
               }
             ]
           }
@@ -94,6 +94,33 @@ RSpec.describe CommanderSpellbook::FindCombos, type: :service do
       it 'generates permalink' do
         combo = subject[:included].first
         expect(combo[:permalink]).to eq('https://commanderspellbook.com/combo/4821-5261')
+      end
+
+      it 'does not flag a commander legal combo as banned' do
+        expect(subject[:included].first[:has_banned_card]).to be false
+      end
+    end
+
+    # Spellbook reports legality per format as a boolean, so false is what a banned piece looks like.
+    context 'when a combo includes a card banned in commander' do
+      let(:api_response) do
+        {
+          'results' => {
+            'included' => [
+              { 'id' => '1-2', 'uses' => [], 'legalities' => { 'commander' => false } }
+            ],
+            'almostIncluded' => []
+          }
+        }
+      end
+
+      before do
+        response = instance_double(HTTParty::Response, success?: true, parsed_response: api_response, code: 200)
+        allow(HTTParty).to receive(:post).and_return(response)
+      end
+
+      it 'flags the combo as banned' do
+        expect(subject[:included].first[:has_banned_card]).to be true
       end
     end
 

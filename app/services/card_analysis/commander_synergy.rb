@@ -14,6 +14,10 @@ module CardAnalysis
 
     DEFAULT_PER_BUCKET = 12
 
+    # Not a card_roles role - a bucket of its own for owned cards that finish a combo the deck is one
+    # card short of. See ComboPieces.
+    COMBO_ROLE = 'combo_pieces'.freeze
+
     # rubocop:disable Metrics/ParameterLists -- every one of these is a real axis of the query and
     # collapsing them into an options hash would only hide that from callers.
     def initialize(commander:, user: nil, deck: nil, role: nil, owned_only: true, limit: DEFAULT_PER_BUCKET)
@@ -28,17 +32,25 @@ module CardAnalysis
 
     def call
       themes = merged_themes
-      rows = candidate_role_rows(themes)
-      ranks = gate(rows.map(&:first).uniq)
-
-      scored = score(rows.select { |oracle_id, _r, _e, _c| ranks.key?(oracle_id) }, themes)
-      entries = build_entries(scored, ranks)
+      entries = build_entries(*scored_candidates(themes))
 
       { commander: @commander, themes: themes, roles: all_roles(themes),
         buckets: SuggestionHydrator.call(buckets: bucket(entries, themes)) }
     end
 
     private
+
+    # Role matches and combo pieces share one gate and one ownership lookup.
+    # -> [scored, ranks, ownership]
+    def scored_candidates(themes)
+      rows = candidate_role_rows(themes)
+      pieces = combo_pieces
+      ranks = gate(rows.map(&:first) | pieces.keys)
+      scored = score(rows.select { |oracle_id, _r, _e, _c| ranks.key?(oracle_id) }, themes)
+      ownership = load_ownership(scored.keys | (pieces.keys & ranks.keys))
+      claim_combo_pieces(scored, pieces, ownership)
+      [scored, ranks, ownership]
+    end
 
     # A deck's commanders are the truth when there is a deck - partners mean two cards and a merged
     # identity. The passed commander is the fallback for callers with no deck yet.
@@ -144,6 +156,25 @@ module CardAnalysis
       matched_roles.max_by { |match| targets.fetch([match[:role], match[:effect]], 0.0) }&.fetch(:role)
     end
 
+    def combo_pieces
+      @deck ? ComboPieces.call(deck: @deck, exclude_oracle_ids: excluded_oracle_ids) : {}
+    end
+
+    # Owned pieces only - ownership was only looked up for pieces that passed the gate, so this also
+    # drops anything off-identity, illegal or basic. "This finishes a combo and it is in your binder"
+    # is actionable tonight; a list
+    # of combo pieces to buy is what Commander Spellbook itself is for.
+    #
+    # A piece takes the combo bucket over whatever role it matched - finishing a combo is the more
+    # specific reason to add it - but keeps its matched roles, so the card still shows what else it does.
+    # Combo count stands in for fit, which SuggestionBuckets normalises within the bucket anyway.
+    def claim_combo_pieces(scored, pieces, ownership)
+      pieces.slice(*ownership.keys).each do |oracle_id, combo|
+        data = scored[oracle_id] ||= { score: 0.0, matched_roles: [] }
+        data.merge!(score: combo[:combo_count].to_f, primary_role: COMBO_ROLE, **combo)
+      end
+    end
+
     # No MagicCard here - entries stay as plain scored data until the buckets are decided. Loading a
     # printing for every candidate meant instantiating ~10k records with their boxsets to display 96 of
     # them, which was most of the request.
@@ -151,11 +182,10 @@ module CardAnalysis
     # raw_fit is left unnormalised on purpose too: the confidence product is unbounded, and the scale it
     # should be measured against is the bucket it lands in, not the whole result. SuggestionBuckets does
     # the normalisation once it knows the groups.
-    def build_entries(scored, ranks)
+    def build_entries(scored, ranks, ownership)
       return [] if scored.empty?
 
       obscurity = ObscurityScore.new
-      ownership = load_ownership(scored.keys)
       entries = scored.map do |oracle_id, data|
         entry(oracle_id, data, ranks[oracle_id], obscurity, ownership[oracle_id])
       end
@@ -170,7 +200,8 @@ module CardAnalysis
         oracle_id: oracle_id, edhrec_rank: rank,
         raw_fit: data[:score], obscurity: obscurity.score(rank).round(3),
         matched_roles: data[:matched_roles].uniq, primary_role: data[:primary_role],
-        owned: sources.present?, sources: sources || []
+        owned: sources.present?, sources: sources || [],
+        combo_count: data[:combo_count].to_i, combo_results: data[:combo_results] || []
       }
     end
 
@@ -194,12 +225,14 @@ module CardAnalysis
       @role ? [@role] : all_roles(themes)
     end
 
-    # Theme roles lead - they are what makes this commander different - with the universal checklist roles
-    # behind them. Reported whole even when the result is narrowed to one role, because it is also the
-    # panel's role filter and the filter has to offer the roles you are not currently looking at.
+    # Combo pieces lead when there is a deck to be one card short - completing a combo is the strongest
+    # reason to add a card - then theme roles, which are what makes this commander different, with the
+    # universal checklist roles behind them. Reported whole even when the result is narrowed to one role,
+    # because it is also the panel's role filter and the filter has to offer the roles you are not
+    # currently looking at.
     def all_roles(themes)
       theme_roles = themes[:role_weights].sort_by { |_pair, weight| -weight }.map { |pair, _weight| pair.first }.uniq
-      theme_roles | Commanders::DeckTargets::ROLES
+      (@deck ? [COMBO_ROLE] : []) | theme_roles | Commanders::DeckTargets::ROLES
     end
 
     def deck_role_counts
