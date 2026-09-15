@@ -12,7 +12,7 @@ module CardIngestion
 
     private
 
-    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable-next Metrics/MethodLength
     def base_attributes
       {
         boxset: @boxset,
@@ -38,7 +38,6 @@ module CardIngestion
         can_be_oathbreaker_commander: @card_data.dig('leadershipSkills', 'oathbreaker') || false
       }
     end
-    # rubocop:enable Metrics/MethodLength
 
     # Tokens are excluded from all of this, which is why is_reserved sits here rather than next to
     # is_reprint above: nothing on the Reserved List is a token, so a token has no answer to give.
