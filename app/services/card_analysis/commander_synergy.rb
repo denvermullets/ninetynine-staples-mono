@@ -12,10 +12,6 @@ module CardAnalysis
     # than one it does.
     BASELINE_WEIGHT = 0.35
 
-    # How far obscurity may move an already-fitting card, as a multiplier around 1.0. At 0.8 the band
-    # swings a card's score between 0.6x and 1.4x. Fit still leads; this only reorders cards that already
-    # do the job. Tuned against real output - see SuggestionBuckets.
-    OBSCURITY_WEIGHT = 0.8
     DEFAULT_PER_BUCKET = 12
 
     # rubocop:disable Metrics/ParameterLists -- every one of these is a real axis of the query and
@@ -39,7 +35,7 @@ module CardAnalysis
       entries = build_entries(scored, ranks)
 
       { commander: @commander, themes: themes, roles: all_roles(themes),
-        buckets: hydrate(bucket(entries, themes)) }
+        buckets: SuggestionHydrator.call(buckets: bucket(entries, themes)) }
     end
 
     private
@@ -160,8 +156,13 @@ module CardAnalysis
 
       obscurity = ObscurityScore.new
       ownership = load_ownership(scored.keys)
+      entries = scored.map do |oracle_id, data|
+        entry(oracle_id, data, ranks[oracle_id], obscurity, ownership[oracle_id])
+      end
 
-      scored.map { |oracle_id, data| entry(oracle_id, data, ranks[oracle_id], obscurity, ownership[oracle_id]) }
+      # Two things card_roles cannot say, both read off the local precon corpus: whether designers
+      # reach for this card at all, and whether it travels with what is already in the deck.
+      PreconSignals.call(entries: entries, anchor_oracle_ids: deck_oracle_ids)
     end
 
     def entry(oracle_id, data, rank, obscurity, sources)
@@ -173,42 +174,19 @@ module CardAnalysis
       }
     end
 
-    # Attaches a printing to the cards that actually made a bucket - a few dozen rows instead of the whole
-    # candidate pool. Anything that fails to resolve is dropped rather than rendered half-built.
-    def hydrate(buckets)
-      cards = load_cards(buckets.flat_map { |bucket| bucket[:cards] }.pluck(:oracle_id))
-
-      buckets.filter_map do |bucket|
-        hydrated = bucket[:cards].filter_map do |entry|
-          card = cards[entry[:oracle_id]]
-          entry.merge(magic_card: card) if card
-        end
-
-        bucket.merge(cards: hydrated) if hydrated.any?
-      end
-    end
-
     def load_ownership(oracle_ids)
       DeckBuilder::OwnershipOverlay.call(
         user: @user, oracle_ids: oracle_ids, exclude_collection_id: @deck&.id
       )
     end
 
-    def load_cards(oracle_ids)
-      return {} if oracle_ids.empty?
-
-      MagicCard.where(scryfall_oracle_id: oracle_ids, card_side: [nil, 'a'])
-               .includes(:boxset)
-               .order('boxsets.release_date DESC')
-               .index_by(&:scryfall_oracle_id)
-    end
-
     def bucket(entries, themes)
       entries = entries.select { |entry| entry[:owned] } if @owned_only
 
+      # The ranking weights are SuggestionBuckets' own - it is the class that applies them.
       Commanders::SuggestionBuckets.call(
         entries: entries, deck_role_counts: deck_role_counts,
-        roles: bucket_order(themes), per_bucket: @limit, obscurity_weight: OBSCURITY_WEIGHT
+        roles: bucket_order(themes), per_bucket: @limit
       )
     end
 

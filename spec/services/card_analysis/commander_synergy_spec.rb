@@ -199,6 +199,70 @@ RSpec.describe CardAnalysis::CommanderSynergy, type: :service do
     end
   end
 
+  # The precon corpus supplies the quality signal card_roles cannot: inside a generic bucket every
+  # candidate scores nearly the same on fit, so this is what breaks the tie.
+  describe 'the precon signals' do
+    def precon_with(cards)
+      deck = create(:precon_deck, deck_type: 'Commander Deck')
+      PreconDeckCard.create!(precon_deck: deck, magic_card: commander, board_type: 'commander')
+      cards.each { |c| PreconDeckCard.create!(precon_deck: deck, magic_card: c, board_type: 'mainBoard') }
+      deck
+    end
+
+    def card_named(result, name)
+      result[:buckets].flat_map { |bucket| bucket[:cards] }.find { |card| card[:magic_card].name == name }
+    end
+
+    it 'reports how many precons a suggestion appears in' do
+      printed = candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Printed')
+      2.times { precon_with([printed]) }
+
+      expect(card_named(synergy, 'Printed')[:precon_decks]).to eq(2)
+    end
+
+    it 'reports zero for a card no precon has ever run' do
+      candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Never Printed')
+
+      entry = card_named(synergy, 'Never Printed')
+      expect(entry[:precon_decks]).to eq(0)
+      expect(entry[:precon]).to eq(0.0)
+    end
+
+    it 'ranks a card designers reach for above an identical one they do not' do
+      printed = candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Printed')
+      candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Never Printed')
+      3.times { precon_with([printed]) }
+
+      ramp = synergy[:buckets].find { |bucket| bucket[:role] == 'ramp' }
+      expect(ramp[:cards].map { |card| card[:magic_card].name }).to eq(['Printed', 'Never Printed'])
+    end
+
+    # Co-occurrence is anchored on the deck's own cards, so a deck that is still just a commander has
+    # nothing to measure against.
+    it 'scores co-occurrence at zero when the deck has no cards yet' do
+      printed = candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Printed')
+      precon_with([printed])
+
+      expect(card_named(synergy, 'Printed')[:cooccurrence]).to eq(0.0)
+    end
+
+    it 'lifts a card that shares precons with what is already in the deck' do
+      in_deck = candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Already Here')
+      travels = candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Travels With It')
+      loner = candidate(role: 'ramp', effect: 'mana_dork', colors: [green], name: 'Loner')
+
+      3.times { precon_with([in_deck, travels]) }
+      3.times { precon_with([loner]) }
+      create(:collection_magic_card, collection: deck, magic_card: in_deck)
+
+      result = described_class.call(commander: commander, user: user, deck: deck, owned_only: false)
+      ramp = result[:buckets].find { |bucket| bucket[:role] == 'ramp' }
+
+      expect(card_named(result, 'Travels With It')[:cooccurrence]).to be > 0.0
+      expect(ramp[:cards].first[:magic_card].name).to eq('Travels With It')
+    end
+  end
+
   it 'returns no buckets when nothing matches' do
     expect(synergy[:buckets]).to be_empty
   end

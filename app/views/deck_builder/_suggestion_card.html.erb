@@ -36,16 +36,34 @@
         <%= card[:magic_card].name %>
       </h4>
 
-      <%# The obscurity cue: a rank the reader can sanity check the ordering against. %>
+      <%#
+        The ranking cues, so the ordering is legible instead of mysterious: the EDHREC rank the
+        obscurity band is read off, and the precon count behind the inclusion prior.
+      %>
       <p class="text-xs text-grey-text/70">
         <% if card[:edhrec_rank] %>
           EDHREC #<%= number_with_delimiter(card[:edhrec_rank]) %>
         <% else %>
           Unranked
         <% end %>
+
+        <% if card[:precon_decks].to_i.positive? %>
+          &middot; in <%= pluralize(card[:precon_decks], "precon") %>
+        <% end %>
       </p>
 
       <div class="flex flex-wrap gap-1 mt-1">
+        <%# Only present once the deck has cards to measure against - see PreconCoOccurrence. %>
+        <% if card[:cooccurrence].to_f.positive? %>
+          <span
+            class="
+              px-1.5 py-0.5 text-[10px] rounded bg-accent-50/20 text-accent-50
+            "
+          >
+            Pairs with your deck
+          </span>
+        <% end %>
+
         <% card[:matched_roles].first(3).each do |matched| %>
           <span
             class="
