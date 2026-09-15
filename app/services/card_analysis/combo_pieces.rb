@@ -31,6 +31,7 @@ module CardAnalysis
         .where(deck_combo_id: single_missing_deck_combo_ids)
         .where.not(oracle_id: nil)
         .where.not(oracle_id: @exclude_oracle_ids.to_a)
+        .order(:id)
         .pluck(:oracle_id, 'combos.results')
     end
 
