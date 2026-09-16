@@ -5,6 +5,7 @@ class User < ApplicationRecord
   has_many :collections
   has_many :tracked_decks, dependent: :destroy
   has_many :commander_games, dependent: :destroy
+  has_many :collection_magic_cards, through: :collections
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -32,6 +33,11 @@ class User < ApplicationRecord
   # Game tracker visibility
   def game_tracker_public?
     game_tracker_public
+  end
+
+  # copies marked for trade across every public collection - what other users are allowed to see
+  def tradeable_cards
+    collection_magic_cards.tradeable.merge(Collection.visible_to_public)
   end
 
   def ordered_collections

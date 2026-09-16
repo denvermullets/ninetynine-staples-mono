@@ -230,6 +230,15 @@ RSpec.describe CardQuery::Builder, type: :service do
       expect(build('needed:true', relation: grouped).map(&:name)).to eq(['Wanted'])
     end
 
+    it 'filters on copies marked for trade' do
+      owned(create(:magic_card, name: 'Offered'), quantity: 2, trade_quantity: 1)
+      owned(create(:magic_card, name: 'Offered Foil'), quantity: 0, foil_quantity: 1, trade_foil_quantity: 1)
+
+      expect(build('tradeable:true', relation: grouped).map(&:name)).to contain_exactly('Offered', 'Offered Foil')
+      expect(build('trade:true', relation: grouped).map(&:name)).to contain_exactly('Offered', 'Offered Foil')
+      expect(build('tradeable:false', relation: grouped)).to contain_exactly(playset, single)
+    end
+
     it 'is a no-op when the relation is not grouped' do
       expect { build('qty>=4').to_a }.not_to raise_error
     end

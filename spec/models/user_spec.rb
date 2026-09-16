@@ -180,4 +180,19 @@ RSpec.describe User, type: :model do
       end
     end
   end
+
+  describe '#tradeable_cards' do
+    let(:user) { create(:user) }
+
+    it 'returns trade-marked rows across the user\'s public collections only' do
+      public_binder = create(:collection, user: user, is_public: true)
+      hidden_binder = create(:collection, user: user, is_public: false)
+      offered = create(:collection_magic_card, :tradeable, collection: public_binder, quantity: 3)
+      create(:collection_magic_card, collection: public_binder, quantity: 3)
+      create(:collection_magic_card, :tradeable, collection: hidden_binder, quantity: 3)
+      create(:collection_magic_card, :tradeable, collection: create(:collection, is_public: true))
+
+      expect(user.tradeable_cards).to eq([offered])
+    end
+  end
 end

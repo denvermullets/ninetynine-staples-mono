@@ -91,6 +91,19 @@ RSpec.describe Collection, type: :model do
     end
   end
 
+  describe '#tradeable_cards' do
+    let(:user) { create(:user) }
+
+    it 'returns only this collection\'s rows with copies marked for trade' do
+      collection = create(:collection, user: user)
+      offered = create(:collection_magic_card, :tradeable, collection: collection, quantity: 2)
+      create(:collection_magic_card, collection: collection, quantity: 2)
+      create(:collection_magic_card, :tradeable, collection: create(:collection, user: user))
+
+      expect(collection.tradeable_cards).to eq([offered])
+    end
+  end
+
   describe '.deck_type?' do
     it 'returns true for "deck"' do
       expect(Collection.deck_type?('deck')).to be true

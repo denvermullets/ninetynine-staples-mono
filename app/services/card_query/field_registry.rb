@@ -120,7 +120,9 @@ module CardQuery
       'quantity' => { handler: :owned_qty, kind: :owned, default_op: '>=' },
       'foil' => { handler: :owned_flag, kind: :owned, columns: %w[foil_quantity] },
       'proxy' => { handler: :owned_flag, kind: :owned, columns: %w[proxy_quantity proxy_foil_quantity] },
-      'needed' => { handler: :owned_needed, kind: :owned }
+      'needed' => { handler: :owned_needed, kind: :owned },
+      'tradeable' => { handler: :owned_flag, kind: :owned, columns: %w[trade_quantity trade_foil_quantity] },
+      'trade' => { handler: :owned_flag, kind: :owned, columns: %w[trade_quantity trade_foil_quantity] }
     }.freeze
 
     KEYS = FIELDS.keys.to_set.freeze
