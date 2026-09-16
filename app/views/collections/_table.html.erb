@@ -1,4 +1,5 @@
-<% visible_column_count = %w[card_number name type mana regular_price foil_price salt sell_regular sell_foil].count { |k| column_visible?(k, 'collections') } %>
+<% show_trade = is_owner && column_visible?('trade', 'collections') %>
+<% visible_column_count = %w[card_number name type mana regular_price foil_price salt sell_regular sell_foil].count { |k| column_visible?(k, 'collections') } + (show_trade ? 1 : 0) %>
 
 <!-- Mobile Card View -->
 <div class="lg:hidden mb-24 max-w-full">
@@ -125,6 +126,17 @@
             <%= render 'collections/sort_header', column: :edhrec_saltiness, label: 'Salt' %>
           </th>
         <% end %>
+
+        <% if show_trade %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left
+              normal-case text-grey-text
+            "
+          >
+            Trade
+          </th>
+        <% end %>
       </tr>
     </thead>
 
@@ -173,6 +185,12 @@
                   title="Token"
                 >
                   T
+                </span>
+              <% end %>
+
+              <% if is_owner %>
+                <span id="trade_pill_<%= card.id %>">
+                  <%= render 'collections/trade_pill', trade_quantity: card[:trade_quantity], trade_foil_quantity: card[:trade_foil_quantity] %>
                 </span>
               <% end %>
             </td>
@@ -247,6 +265,15 @@
               <% if card.edhrec_saltiness.present? %>
                 <%= number_with_precision(card.edhrec_saltiness, precision: 2) %>
               <% end %>
+            </td>
+          <% end %>
+
+          <% if show_trade %>
+            <td
+              id="trade_cell_<%= card.id %>"
+              class="px-4 py-2 text-sm whitespace-nowrap"
+            >
+              <%= render 'collections/trade_cell', trade_quantity: card[:trade_quantity], trade_foil_quantity: card[:trade_foil_quantity] %>
             </td>
           <% end %>
         </tr>

@@ -89,6 +89,7 @@ Rails.application.routes.draw do
   post 'collection_magic_cards/update_collection', to: 'collection_magic_cards#update_collection', as: :collection_magic_cards_update
   post 'collection_magic_cards/transfer', to: 'collection_magic_cards#transfer', as: :transfer_collection_magic_cards
   post 'collection_magic_cards/adjust', to: 'collection_magic_cards#adjust', as: :adjust_collection_magic_cards
+  post 'collection_magic_cards/update_trade', to: 'collection_magic_cards#update_trade', as: :update_trade_collection_magic_cards
 
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
   resources :collections, only: %w[new create update destroy] do

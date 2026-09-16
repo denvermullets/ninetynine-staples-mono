@@ -76,7 +76,9 @@ class MagicCardsController < ApplicationController
       collections: user_data[:collections] || [],
       card_locations:,
       other_printing_locations:,
-      editable: user_data[:editable]
+      editable: user_data[:editable],
+      # the collections table filtered to one collection sums trade counts over just that one
+      row_collection_id: params[:collection_id]
     }
   end
 end

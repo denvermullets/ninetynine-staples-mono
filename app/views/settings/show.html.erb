@@ -33,12 +33,14 @@
                 value="dark"
                 data-theme-target="radio"
                 data-action="change->theme#toggle"
-                <% if current_user.theme == 'dark' %> checked<% end %>
+                <% if current_user.theme == 'dark' %>
+                  checked
+                <% end %>
                 class="
-                  w-4 h-4 border-highlight bg-background
-                  accent-accent-50 focus:ring-accent-50
-                  focus:ring-offset-background
-                "
+                    w-4 h-4 border-highlight bg-background
+                    accent-accent-50 focus:ring-accent-50
+                    focus:ring-offset-background
+                  "
               >
 
               <span>99s Dark Mode</span>
@@ -56,12 +58,14 @@
                 value="light"
                 data-theme-target="radio"
                 data-action="change->theme#toggle"
-                <% if current_user.theme == 'light' %> checked<% end %>
+                <% if current_user.theme == 'light' %>
+                  checked
+                <% end %>
                 class="
-                  w-4 h-4 border-highlight bg-background
-                  accent-accent-50 focus:ring-accent-50
-                  focus:ring-offset-background
-                "
+                    w-4 h-4 border-highlight bg-background
+                    accent-accent-50 focus:ring-accent-50
+                    focus:ring-offset-background
+                  "
               >
 
               <span>99s E-ink Mode</span>
@@ -95,12 +99,14 @@
               type="checkbox"
               data-game-tracker-visibility-target="toggle"
               data-action="change->game-tracker-visibility#toggle"
-              <% if current_user.game_tracker_public? %> checked<% end %>
+              <% if current_user.game_tracker_public? %>
+                checked
+              <% end %>
               class="
-                w-4 h-4 rounded border-highlight bg-background
-                accent-accent-50 focus:ring-accent-50
-                focus:ring-offset-background
-              "
+                  w-4 h-4 rounded border-highlight bg-background
+                  accent-accent-50 focus:ring-accent-50
+                  focus:ring-offset-background
+                "
             >
 
             <div>
@@ -158,7 +164,8 @@
               ['foil_price', 'Foil Price'],
               ['salt', 'Salt'],
               ['sell_regular', 'Sell Regular'],
-              ['sell_foil', 'Sell Foil']
+              ['sell_foil', 'Sell Foil'],
+              ['trade', 'Trade']
             ].each do |key, label| %>
               <label
                 class="
@@ -172,12 +179,14 @@
                 <input
                   type="checkbox"
                   data-action="change->column-visibility#toggle"
-                  <% if current_user.column_visible?(key, 'collections') %> checked<% end %>
+                  <% if current_user.column_visible?(key, 'collections') %>
+                    checked
+                  <% end %>
                   class="
-                    w-4 h-4 rounded border-highlight bg-background
-                    accent-accent-50 focus:ring-accent-50
-                    focus:ring-offset-background
-                  "
+                      w-4 h-4 rounded border-highlight bg-background
+                      accent-accent-50 focus:ring-accent-50
+                      focus:ring-offset-background
+                    "
                 >
 
                 <span><%= label %></span>
@@ -233,12 +242,14 @@
                 <input
                   type="checkbox"
                   data-action="change->column-visibility#toggle"
-                  <% if current_user.column_visible?(key, 'boxsets') %> checked<% end %>
+                  <% if current_user.column_visible?(key, 'boxsets') %>
+                    checked
+                  <% end %>
                   class="
-                    w-4 h-4 rounded border-highlight bg-background
-                    accent-accent-50 focus:ring-accent-50
-                    focus:ring-offset-background
-                  "
+                      w-4 h-4 rounded border-highlight bg-background
+                      accent-accent-50 focus:ring-accent-50
+                      focus:ring-offset-background
+                    "
                 >
 
                 <span><%= label %></span>

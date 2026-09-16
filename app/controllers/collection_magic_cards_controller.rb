@@ -45,6 +45,20 @@ class CollectionMagicCardsController < ApplicationController
     end
   end
 
+  # scoped through current_user so an owner can only mark their own copies
+  def update_trade
+    record = current_user&.collection_magic_cards&.find_by(id: params[:collection_magic_card_id])
+    return render_error_toast('Card not found in your collections.') unless record
+
+    result = CollectionRecord::UpdateTrade.call(
+      collection_magic_card: record,
+      trade_quantity: params[:trade_quantity],
+      trade_foil_quantity: params[:trade_foil_quantity]
+    )
+
+    result[:success] ? render_trade_success(record, result) : render_error_toast(result[:error])
+  end
+
   private
 
   def render_transfer_success(result)
@@ -73,6 +87,30 @@ class CollectionMagicCardsController < ApplicationController
       ),
       render_success_toast(adjust_message(result))
     ]
+  end
+
+  # refreshes the expanded card details plus the trade pill / Trade column on the collection table row
+  def render_trade_success(record, result)
+    flash.now[:type] = 'success'
+    card_id = record.magic_card_id
+    trade_quantity, trade_foil_quantity = row_trade_counts(card_id)
+    counts = { card_id:, trade_quantity:, trade_foil_quantity: }
+
+    render turbo_stream: [
+      turbo_stream.replace("card_details_#{card_id}", partial: 'magic_cards/details',
+                                                      locals: reload_card_details(card_id)),
+      turbo_stream.update("trade_pill_#{card_id}", partial: 'collections/trade_pill', locals: counts),
+      turbo_stream.update("trade_cell_#{card_id}", partial: 'collections/trade_cell', locals: counts),
+      render_success_toast("Updated trade copies of #{result[:name]}.")
+    ]
+  end
+
+  # the table row sums every collection unless the table was filtered to one, so match that
+  def row_trade_counts(card_id)
+    records = current_user.collection_magic_cards.where(magic_card_id: card_id)
+    records = records.where(collection_id: params[:row_collection_id]) if params[:row_collection_id].present?
+
+    records.pick(Arel.sql('COALESCE(SUM(trade_quantity), 0)'), Arel.sql('COALESCE(SUM(trade_foil_quantity), 0)'))
   end
 
   # Edits made from the "other printings" table mutate a printing whose expanded row isn't on
@@ -134,6 +172,7 @@ class CollectionMagicCardsController < ApplicationController
                                  CollectionMagicCard.none
                                end
 
-    { card:, collections: collections || [], card_locations:, other_printing_locations:, editable: }
+    { card:, collections: collections || [], card_locations:, other_printing_locations:, editable:,
+      row_collection_id: params[:row_collection_id] }
   end
 end
