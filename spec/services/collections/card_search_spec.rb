@@ -35,13 +35,13 @@ RSpec.describe Collections::CardSearch, type: :service do
     )
   end
 
-  def search(query, extra = {})
+  def search(query, viewer: user, **extra)
     params = { search: query, collection_id: collection.id }.merge(extra)
-    described_class.call(user: user, params: params, sort_config: sort_config(params))
+    described_class.call(user: user, current_user: viewer, params: params, sort_config: sort_config(params))
   end
 
-  def names(query, extra = {})
-    search(query, extra)[:cards].map(&:name)
+  def names(query, viewer: user, **extra)
+    search(query, viewer: viewer, **extra)[:cards].map(&:name)
   end
 
   it 'narrows to cards matching an advanced query' do
@@ -90,5 +90,30 @@ RSpec.describe Collections::CardSearch, type: :service do
   it 'applies the requested column sort' do
     expect(names('', sort: 'name', direction: 'asc')).to eq(['Dark Ritual', 'Goblin Guide'])
     expect(names('', sort: 'name', direction: 'desc')).to eq(['Goblin Guide', 'Dark Ritual'])
+  end
+
+  # this page also renders other people's public collections, so a tag somebody added for themselves is
+  # only searchable by them
+  describe 'tags a user added' do
+    let(:tag) { create(:oracle_tag, :user_created, slug: 'my-pet-card', created_by: user) }
+
+    before do
+      # the magic_card factory leaves the oracle id blank, and tags hang off it rather than the printing
+      goblin.update!(scryfall_oracle_id: SecureRandom.uuid)
+      create(:card_oracle_tag, :by_user, oracle_tag: tag, user: user,
+                                         scryfall_oracle_id: goblin.scryfall_oracle_id)
+    end
+
+    it 'finds them when the owner searches their own collection' do
+      expect(names('otag:my-pet-card')).to contain_exactly('Goblin Guide')
+    end
+
+    it 'hides them from someone else browsing that collection' do
+      expect(names('otag:my-pet-card', viewer: create(:user))).to be_empty
+    end
+
+    it 'hides them from a signed-out visitor' do
+      expect(names('otag:my-pet-card', viewer: nil)).to be_empty
+    end
   end
 end

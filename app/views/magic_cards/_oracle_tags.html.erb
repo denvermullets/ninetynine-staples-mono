@@ -1,0 +1,36 @@
+<%#
+  Scryfall Tagger tags first, then user tags (STA-284). Scryfall's link back to Tagger doubles as
+  attribution. Pills match the chips in brew/_commander_card and the collection stats panels: solid
+  bg-background, accent text for a Scryfall tag and grey for a user tag, so the two are still told apart.
+%>
+<% card_tags = card.card_oracle_tags.ordered.merge(OracleTag.enabled).preload(:oracle_tag).to_a %>
+
+<%# the wrapper always renders so STA-284 can turbo_stream.replace it by id, even when a card has no tags yet %>
+<div id="oracle_tags_<%= card.id %>" class="w-full">
+  <% if card_tags.any? %>
+    <div class="flex items-start gap-3 w-full" data-testid="oracle-tags">
+      <span class="text-xs text-grey-text w-16 shrink-0 pt-0.5">Tags:</span>
+
+      <div class="flex flex-wrap gap-1">
+        <% card_tags.each do |card_tag| %>
+          <% tag = card_tag.oracle_tag %>
+
+          <% if card_tag.source == "scryfall" && tag.tagger_url %>
+            <%= link_to tag.label,
+          tag.tagger_url,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          title: tag.description.presence || "Scryfall Tagger",
+          class:
+            "px-2 py-0.5 text-xs rounded bg-background text-accent-50 " \
+              "hover:text-nine-white" %>
+          <% else %>
+            <span class="px-2 py-0.5 text-xs rounded bg-background text-grey-text">
+              <%= tag.label %>
+            </span>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

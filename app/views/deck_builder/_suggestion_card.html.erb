@@ -4,6 +4,7 @@
   what you already have" at a glance.
 %>
 <% source = card[:sources].first %>
+
 <div
   class="
     p-2 border rounded-lg border-highlight hover:border-accent-50/50
@@ -36,22 +37,47 @@
         <%= card[:magic_card].name %>
       </h4>
 
-      <%# The obscurity cue: a rank the reader can sanity check the ordering against. %>
+      <%#
+        The ranking cues, so the ordering is legible instead of mysterious: the EDHREC rank the
+        obscurity band is read off, and the precon count behind the inclusion prior.
+      %>
+
       <p class="text-xs text-grey-text/70">
         <% if card[:edhrec_rank] %>
           EDHREC #<%= number_with_delimiter(card[:edhrec_rank]) %>
         <% else %>
           Unranked
         <% end %>
+
+        <% if card[:precon_decks].to_i.positive? %>
+          &middot; in
+          <%= pluralize(card[:precon_decks], "precon") %>
+        <% end %>
       </p>
 
       <div class="flex flex-wrap gap-1 mt-1">
-        <% card[:matched_roles].first(3).each do |matched| %>
+        <%# Only present once the deck has cards to measure against - see PreconCoOccurrence. %>
+        <% if card[:cooccurrence].to_f.positive? %>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-accent-50/20 text-accent-50">
+            Pairs with your deck
+          </span>
+        <% end %>
+
+        <%# Only on owned pieces of a combo the deck is one card short of - see ComboPieces. %>
+        <% if card[:combo_count].to_i.positive? %>
           <span
             class="
-              px-1.5 py-0.5 text-[10px] rounded bg-highlight text-grey-text
+              px-1.5 py-0.5 text-[10px] rounded bg-accent-50/20
+              text-accent-50
             "
+            title="<%= card[:combo_results].to_a.join(" / ") %>"
           >
+            Completes <%= pluralize(card[:combo_count], "combo") %>
+          </span>
+        <% end %>
+
+        <% card[:matched_roles].first(3).each do |matched| %>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-highlight text-grey-text">
             <%= matched[:effect].titleize %>
           </span>
         <% end %>
@@ -59,15 +85,16 @@
 
       <% if source %>
         <p class="mt-1.5 text-xs text-accent-50">
-          <%= source[:available] %>
-          <%= source[:type_label].downcase %>
-          in
+          <%= source[:available] %> <%= source[:type_label].downcase %> in
           <%= source[:collection_name] %>
         </p>
       <% end %>
 
-      <%# submitAdd and submitNewCard both read a quantity input, so it is present but hidden - the
-          sidebar has no room for a spinner and one copy is the answer for 99 of the 99. %>
+      <%#
+        submitAdd and submitNewCard both read a quantity input, so it is present but hidden - the
+        sidebar has no room for a spinner and one copy is the answer for 99 of the 99.
+      %>
+
       <input
         type="hidden"
         autocomplete="off"
@@ -104,7 +131,6 @@
           >
             Add
           </button>
-
           <button
             data-add-card-target="addPlannedButton"
             data-action="click->add-card#addPlanned"

@@ -15,6 +15,28 @@ RSpec.describe Collection, type: :model do
     end
   end
 
+  describe '#combos_stale?' do
+    let(:deck) { create(:collection, collection_type: 'commander_deck') }
+
+    it 'is stale when combos have never been checked' do
+      expect(deck.combos_stale?).to be true
+    end
+
+    it 'is current when no card changed after the check' do
+      create(:collection_magic_card, collection: deck)
+      deck.update!(combos_checked_at: 1.minute.from_now)
+
+      expect(deck.combos_stale?).to be false
+    end
+
+    it 'is stale when a card was added after the check' do
+      deck.update!(combos_checked_at: 1.hour.ago)
+      create(:collection_magic_card, collection: deck)
+
+      expect(deck.combos_stale?).to be true
+    end
+  end
+
   describe 'scopes' do
     let(:user) { create(:user) }
     let(:other_user) { create(:user) }

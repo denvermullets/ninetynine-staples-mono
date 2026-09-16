@@ -2,7 +2,7 @@ class CardRole < ApplicationRecord
   ROLES = %w[
     ramp removal card_draw tutor protection recursion tokens
     lifegain pump evasion finisher lands_matter sacrifice mill
-    manabase stax blink copy wheels graveyard_hate group_hug voltron
+    manabase stax blink copy wheels graveyard_hate group_hug voltron counters
   ].freeze
 
   EFFECTS = {
@@ -29,8 +29,14 @@ class CardRole < ApplicationRecord
     'wheels' => %w[wheel_effect windfall_effect],
     'graveyard_hate' => %w[exile_graveyard graveyard_prevention],
     'group_hug' => %w[group_draw group_ramp group_lifegain],
-    'voltron' => %w[double_strike protection_from]
+    'voltron' => %w[double_strike protection_from],
+    # only CardAnalysis::TaggerDetector writes these - no oracle-text pattern detects counters yet
+    'counters' => %w[proliferate counters_matter plus_one_counters]
   }.freeze
+
+  # Who wrote the row. pattern/keyword/type/subtype are CardAnalysis::RoleProfiler's own rules; tagger is
+  # a Scryfall Tagger tag mapped by CardAnalysis::TaggerDetector. Documentation only - nothing validates it.
+  SOURCES = %w[pattern keyword type subtype tagger].freeze
 
   # below this the pattern rules start guessing - the 0.5 scry -> card_selection rule alone would
   # bend a collection-wide count out of shape

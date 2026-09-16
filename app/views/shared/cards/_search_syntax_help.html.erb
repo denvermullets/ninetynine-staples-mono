@@ -1,4 +1,12 @@
-<% fields = [
+<%#
+  ownership: false drops the qty:/foil:/proxy:/needed: rows. They are HAVING clauses over the
+  collections page's quantity aggregates, so surfaces that are not grouped by card - the deck
+  builder panel - cannot answer them and should not advertise them. See DeckBuilder::Search.
+%>
+
+<% ownership = local_assigns.fetch(:ownership, true)
+
+  fields = [
     ['c:', 'id:', 'color, color identity'],
     ['t:', nil, 'card type, subtype or supertype'],
     ['r:', nil, 'rarity'],
@@ -9,15 +17,16 @@
     ['s:', nil, 'set code'],
     ['kw:', 'a:', 'keyword, artist'],
     ['role:', 'effect:', 'what a card does - ramp, removal, mana_rock'],
+    ['otag:', 'function:', 'Scryfall Tagger tag, incl. narrower tags - removal, mana-rock'],
     ['commander:', nil, 'legal in that commander\'s color identity'],
     ['rank:', 'edhrec:', 'EDHREC rank - higher is less played'],
     ['salt:', nil, 'EDHREC saltiness'],
     ['f:', 'banned:', 'legal in / banned in a format'],
     ['is:', nil, 'commander, token, reprint, reserved, dfc, colorless, foil, etched'],
-    ['qty:', 'needed:', 'copies you own, cards marked needed'],
-    ['foil:', 'proxy:', 'true or false'],
+    (['qty:', 'needed:', 'copies you own, cards marked needed'] if ownership),
+    (['foil:', 'proxy:', 'true or false'] if ownership),
     ['usd:', 'change:', 'price, weekly price change']
-  ]
+  ].compact
 
   operators = [
     [':', 'contains or matches part of', 't:goblin'],
@@ -32,12 +41,21 @@
     ['c:b t:creature r:uncommon', 'black uncommon creatures'],
     ['t:goblin -t:legendary mv<=3', 'cheap non-legendary goblins'],
     ['o:"draw a card" c>=wu', 'azorius cantrips'],
-    ['f:commander pow>=5 kw:flying', 'big commander-legal fliers'],
-    ['r>=rare usd>=20 qty>=4', 'rares worth $20+ you own a playset of'],
-    ['c:c t:artifact foil:true', 'colorless artifacts you own in foil'],
-    ['commander:prossh role:sacrifice qty>=1', 'sac outlets you own that are legal under Prossh'],
-    ['role:ramp rank>8000 qty>=1', 'ramp you own that almost nobody plays']
-  ] %>
+    ['f:commander pow>=5 kw:flying', 'big commander-legal fliers']
+  ]
+
+  examples += if ownership
+                [['r>=rare usd>=20 qty>=4', 'rares worth $20+ you own a playset of'],
+                 ['c:c t:artifact foil:true', 'colorless artifacts you own in foil'],
+                 ['commander:prossh role:sacrifice qty>=1', 'sac outlets you own that are legal under Prossh'],
+                 ['role:ramp rank>8000 qty>=1', 'ramp you own that almost nobody plays'],
+                 ['otag:sweeper qty>=1', 'board wipes you own, as tagged on Scryfall Tagger']]
+              else
+                [['r>=rare usd>=20', 'rares worth $20 or more'],
+                 ['commander:prossh role:sacrifice', 'sac outlets legal under Prossh'],
+                 ['role:ramp rank>8000', 'ramp that almost nobody plays'],
+                 ['otag:sweeper', 'board wipes, as tagged on Scryfall Tagger']]
+              end %>
 
 <div data-controller="dialog" class="mt-2">
   <p class="text-xs text-grey-text">
@@ -89,6 +107,10 @@
         Terms combine with AND, so
         <code class="text-accent-50">c:b t:creature</code> finds black
         creatures. Anything that isn't a term is matched against the card name.
+
+        <% unless ownership %>
+          Use the My Collection tab to limit results to cards you own.
+        <% end %>
       </p>
 
       <div class="grid gap-6 md:grid-cols-2">

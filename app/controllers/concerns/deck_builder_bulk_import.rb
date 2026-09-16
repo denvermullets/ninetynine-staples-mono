@@ -8,7 +8,7 @@ module DeckBuilderBulkImport
   def bulk_import_search
     results = DeckBuilder::Search.call(
       query: params[:name], user: current_user, deck: @deck, scope: 'all', limit: 20
-    )
+    ).results
 
     exact = results.select { |r| r[:card].name.downcase == params[:name].to_s.downcase }
     results = exact.presence || results

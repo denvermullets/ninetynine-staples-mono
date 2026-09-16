@@ -44,6 +44,11 @@ production:
     queue: ingest
     class: IngestPrices
     schedule: at 5am every day
+  # Scryfall regenerates the oracle tags file around 21:00 UTC; 3am clears ingest_prices and the weekend ingests
+  ingest_oracle_tags:
+    queue: ingest
+    class: IngestOracleTags
+    schedule: at 3am every day
   record_collection_history:
     queue: collection_updates
     class: RecordCollectionHistory

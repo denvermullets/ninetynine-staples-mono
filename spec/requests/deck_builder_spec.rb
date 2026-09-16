@@ -69,8 +69,30 @@ RSpec.describe 'DeckBuilder', type: :request do
       card
     end
 
+    # Stubbed so no request spec ever reaches Commander Spellbook.
+    before { allow(SyncDeckCombosJob).to receive(:perform_later) }
+
     def set_commander!
       create(:collection_magic_card, collection: deck, magic_card: commander, board_type: 'commander')
+    end
+
+    it 'checks for combos in the background when the deck has never been checked' do
+      set_commander!
+
+      get suggestions_deck_builder_path(deck)
+
+      expect(SyncDeckCombosJob).to have_received(:perform_later).with(deck.id, notify: false)
+      expect(response.body).to include('Checking Commander Spellbook for combo pieces')
+    end
+
+    it 'does not re-check combos when the last check is still current' do
+      set_commander!
+      deck.update!(combos_checked_at: 1.minute.from_now)
+
+      get suggestions_deck_builder_path(deck)
+
+      expect(SyncDeckCombosJob).not_to have_received(:perform_later)
+      expect(response.body).not_to include('Checking Commander Spellbook')
     end
 
     it 'renders the empty state when the deck has no commander' do

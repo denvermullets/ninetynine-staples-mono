@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_19_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_120000) do
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["level"], name: "index_brackets_on_level", unique: true
+  end
+
+  create_table "card_oracle_tags", force: :cascade do |t|
+    t.text "annotation"
+    t.datetime "created_at", null: false
+    t.bigint "oracle_tag_id", null: false
+    t.uuid "scryfall_oracle_id", null: false
+    t.string "source", default: "scryfall", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.string "weight"
+    t.index ["oracle_tag_id", "scryfall_oracle_id", "source"], name: "idx_card_oracle_tags_unique", unique: true
+    t.index ["scryfall_oracle_id"], name: "index_card_oracle_tags_on_scryfall_oracle_id"
+    t.index ["user_id"], name: "index_card_oracle_tags_on_user_id"
   end
 
   create_table "card_prices", force: :cascade do |t|
@@ -484,6 +498,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_120000) do
     t.index ["scryfall_oracle_id"], name: "index_magic_cards_on_scryfall_oracle_id"
   end
 
+  create_table "oracle_tag_ancestors", force: :cascade do |t|
+    t.bigint "ancestor_id", null: false
+    t.integer "depth", null: false
+    t.bigint "descendant_id", null: false
+    t.index ["ancestor_id"], name: "index_oracle_tag_ancestors_on_ancestor_id"
+    t.index ["descendant_id", "ancestor_id"], name: "index_oracle_tag_ancestors_on_descendant_id_and_ancestor_id", unique: true
+  end
+
+  create_table "oracle_tags", force: :cascade do |t|
+    t.string "aliases", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.text "description"
+    t.boolean "disabled", default: false, null: false
+    t.string "label", null: false
+    t.uuid "scryfall_id"
+    t.string "slug", null: false
+    t.string "source", default: "scryfall", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_oracle_tags_on_created_by_id"
+    t.index ["scryfall_id"], name: "index_oracle_tags_on_scryfall_id", unique: true
+    t.index ["slug"], name: "index_oracle_tags_on_slug", unique: true
+  end
+
   create_table "precon_deck_cards", force: :cascade do |t|
     t.string "board_type", null: false
     t.datetime "created_at", null: false
@@ -523,6 +561,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_120000) do
     t.string "ruling"
     t.date "ruling_date"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "scryfall_bulk_imports", force: :cascade do |t|
+    t.string "bulk_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "imported_at"
+    t.datetime "remote_updated_at"
+    t.integer "tag_count"
+    t.integer "tagging_count"
+    t.datetime "updated_at", null: false
+    t.index ["bulk_type"], name: "index_scryfall_bulk_imports_on_bulk_type", unique: true
   end
 
   create_table "sub_types", force: :cascade do |t|
@@ -580,6 +629,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_120000) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "card_oracle_tags", "oracle_tags"
+  add_foreign_key "card_oracle_tags", "users"
   add_foreign_key "collection_magic_cards", "collections"
   add_foreign_key "collection_magic_cards", "collections", column: "source_collection_id"
   add_foreign_key "collection_magic_cards", "magic_cards"
@@ -606,6 +657,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_120000) do
   add_foreign_key "magic_card_legalities", "magic_cards"
   add_foreign_key "magic_card_variations", "magic_cards"
   add_foreign_key "magic_card_variations", "magic_cards", column: "variation_id"
+  add_foreign_key "oracle_tag_ancestors", "oracle_tags", column: "ancestor_id"
+  add_foreign_key "oracle_tag_ancestors", "oracle_tags", column: "descendant_id"
+  add_foreign_key "oracle_tags", "users", column: "created_by_id"
   add_foreign_key "precon_deck_cards", "magic_cards"
   add_foreign_key "precon_deck_cards", "precon_decks"
   add_foreign_key "tracked_decks", "collections"

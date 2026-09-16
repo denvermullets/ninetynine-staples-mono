@@ -47,6 +47,8 @@ class MagicCard < ApplicationRecord
 
   has_one :game_changer, primary_key: :scryfall_oracle_id, foreign_key: :oracle_id
   has_many :card_roles, primary_key: :scryfall_oracle_id, foreign_key: :scryfall_oracle_id
+  has_many :card_oracle_tags, primary_key: :scryfall_oracle_id, foreign_key: :scryfall_oracle_id
+  has_many :oracle_tags, through: :card_oracle_tags
 
   has_many :tracked_decks_as_commander, class_name: 'TrackedDeck', foreign_key: :commander_id
   has_many :tracked_decks_as_partner, class_name: 'TrackedDeck', foreign_key: :partner_commander_id

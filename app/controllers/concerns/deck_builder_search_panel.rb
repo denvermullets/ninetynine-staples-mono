@@ -11,24 +11,29 @@ module DeckBuilderSearchPanel
   end
 
   def search
-    @results = DeckBuilder::Search.call(
+    @search = DeckBuilder::Search.call(
       query: params[:q], user: current_user, deck: @deck,
       scope: params[:scope] || 'all', limit: SEARCH_RESULT_LIMIT
     )
-    render partial: 'search_results', locals: { results: @results, deck: @deck }
+    render partial: 'search_results', locals: { search: @search, deck: @deck }
   end
 
   # Owner-only for free: ensure_owner covers everything not named in its except: list, and the panel
   # this renders into only exists for the owner anyway.
   def suggestions
     commander = @deck.commanders.first&.magic_card
+    # The combo pieces bucket reads the deck's last Spellbook check, so a stale or missing one is refreshed
+    # in the background. The job's page refresh reloads this lazy frame once the check lands.
+    combos_pending = commander.present? && @deck.combos_stale?
+    SyncDeckCombosJob.perform_later(@deck.id, notify: false) if combos_pending
 
     result = commander && CardAnalysis::CommanderSynergy.call(
       commander: commander, user: current_user, deck: @deck,
       role: params[:role], owned_only: false, limit: SUGGESTIONS_PER_BUCKET
     )
 
-    render partial: 'suggestions', locals: { result: result, deck: @deck, role: params[:role] }
+    render partial: 'suggestions',
+           locals: { result: result, deck: @deck, role: params[:role], combos_pending: combos_pending }
   end
 
   # There is nothing to derive suggestions from without a commander, so the tab is not offered.

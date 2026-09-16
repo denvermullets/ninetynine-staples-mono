@@ -64,6 +64,7 @@ Rails.application.routes.draw do
   post 'dashboard/backfill-scryfall-oracle-id', to: 'dashboard#backfill_scryfall_oracle_id', as: :dashboard_backfill_scryfall_oracle_id
   post 'dashboard/ingest-precon-decks', to: 'dashboard#ingest_precon_decks', as: :dashboard_ingest_precon_decks
   post 'dashboard/profile-card-roles', to: 'dashboard#profile_card_roles', as: :dashboard_profile_card_roles
+  post 'dashboard/ingest-oracle-tags', to: 'dashboard#ingest_oracle_tags', as: :dashboard_ingest_oracle_tags
 
   resources :collection_imports, only: %i[new create], path: 'import-collection'
 

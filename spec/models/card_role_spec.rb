@@ -94,6 +94,12 @@ RSpec.describe CardRole, type: :model do
       expect(CardRole::ROLES).to include('ramp', 'removal', 'card_draw', 'tutor')
     end
 
+    # written only by TaggerDetector, from Scryfall's proliferate and counters tags
+    it 'includes the counters role' do
+      expect(described_class.new(scryfall_oracle_id: SecureRandom.uuid, role: 'counters', effect: 'proliferate',
+                                 confidence: 1.0)).to be_valid
+    end
+
     it 'defines EFFECTS for each role' do
       CardRole::ROLES.each do |role|
         expect(CardRole::EFFECTS).to have_key(role)

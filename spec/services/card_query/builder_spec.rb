@@ -8,8 +8,8 @@ RSpec.describe CardQuery::Builder, type: :service do
   # a plain, ungrouped relation - enough for every card-level predicate
   let(:cards) { MagicCard.all }
 
-  def build(query, relation: cards)
-    described_class.call(cards: relation, terms: CardQuery::Parser.call(query: query).terms)
+  def build(query, relation: cards, viewer_id: nil)
+    described_class.call(cards: relation, terms: CardQuery::Parser.call(query: query).terms, viewer_id: viewer_id)
   end
 
   def owned(card, quantity: 1, foil_quantity: 0, **attrs)
@@ -255,6 +255,95 @@ RSpec.describe CardQuery::Builder, type: :service do
       create(:magic_card, name: 'Anything')
 
       expect(described_class.call(cards: cards, terms: [])).to eq(cards)
+    end
+  end
+
+  describe 'oracle tags' do
+    let!(:removal) { create(:oracle_tag, slug: 'removal', label: 'removal') }
+    let!(:spot_removal) { create(:oracle_tag, slug: 'spot-removal', label: 'spot removal', aliases: ['spot']) }
+    let!(:mana_rock) { create(:oracle_tag, slug: 'mana-rock', label: 'mana rock') }
+
+    def with_tag(name, tag, tagged_by: nil)
+      card = create(:magic_card, name: name, scryfall_oracle_id: SecureRandom.uuid)
+      create(:card_oracle_tag, oracle_tag: tag, scryfall_oracle_id: card.scryfall_oracle_id,
+                               source: tagged_by ? 'user' : 'scryfall', user: tagged_by)
+      card
+    end
+
+    before { OracleTagAncestor.create!(ancestor: removal, descendant: spot_removal, depth: 1) }
+
+    it 'matches cards carrying the tag' do
+      bolt = with_tag('Bolt', spot_removal)
+      with_tag('Sol Ring', mana_rock)
+
+      expect(build('otag:spot-removal')).to contain_exactly(bolt)
+    end
+
+    # Scryfall's umbrella tags have no direct taggings; without the closure otag:removal would be empty
+    it 'matches cards carrying a narrower tag underneath' do
+      bolt = with_tag('Bolt', spot_removal)
+
+      expect(build('otag:removal')).to contain_exactly(bolt)
+    end
+
+    it 'accepts a label or an alias' do
+      rock = with_tag('Sol Ring', mana_rock)
+      bolt = with_tag('Bolt', spot_removal)
+
+      expect(build('otag:"mana rock"')).to contain_exactly(rock)
+      expect(build('otag:spot')).to contain_exactly(bolt)
+    end
+
+    it "answers to Scryfall's other names for the field" do
+      rock = with_tag('Sol Ring', mana_rock)
+
+      expect(build('function:mana-rock')).to contain_exactly(rock)
+      expect(build('oracletag:mana-rock')).to contain_exactly(rock)
+    end
+
+    it 'excludes with a leading dash' do
+      bolt = with_tag('Bolt', spot_removal)
+      rock = with_tag('Sol Ring', mana_rock)
+
+      expect(build('-otag:removal')).to include(rock)
+      expect(build('-otag:removal')).not_to include(bolt)
+    end
+
+    # a user's own tags are personal: they show up when that user searches their own collection
+    it 'includes your own tags when you are searching your collection' do
+      bolt = with_tag('Bolt', spot_removal, tagged_by: user)
+
+      expect(build('otag:removal', viewer_id: user.id)).to contain_exactly(bolt)
+    end
+
+    it 'hides your tags from everyone else' do
+      stranger = create(:user)
+      with_tag('Bolt', spot_removal, tagged_by: user)
+
+      expect(build('otag:removal', viewer_id: stranger.id)).to be_empty
+      expect(build('otag:removal')).to be_empty
+    end
+
+    it 'still finds Scryfall tags for everyone' do
+      bolt = with_tag('Bolt', spot_removal)
+
+      expect(build('otag:removal')).to contain_exactly(bolt)
+      expect(build('otag:removal', viewer_id: user.id)).to contain_exactly(bolt)
+    end
+
+    # a typo must not widen the search to every card
+    it 'matches nothing for an unknown tag' do
+      with_tag('Bolt', spot_removal)
+
+      expect(build('otag:not-a-tag')).to be_empty
+    end
+
+    it 'matches nothing through a disabled tag' do
+      with_tag('Bolt', spot_removal)
+      spot_removal.update!(disabled: true)
+
+      expect(build('otag:removal')).to be_empty
+      expect(build('otag:spot-removal')).to be_empty
     end
   end
 

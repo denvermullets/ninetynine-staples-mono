@@ -1,7 +1,26 @@
-<% if results.empty? %>
+<%#
+  This partial is fetched into the panel's results container, so anything that has to react to the
+  query itself - a typo, a term this panel cannot answer - belongs here rather than in _search_panel.
+%>
+
+<% if search.card_query.ignored.present? %>
+  <p class="mb-2 text-xs text-red-400">
+    Ignored (unusable value): <%= search.card_query.ignored.join(", ") %>
+  </p>
+<% end %>
+
+<% if search.unsupported.present? %>
+  <p class="mb-2 text-xs text-red-400">
+    <%= search.unsupported.map { |key| "#{key}:" }.join(", ") %>
+    <%= search.unsupported.one? ? "does not work here" : "do not work here" %> —
+    use the My Collection tab to limit this search to cards you own.
+  </p>
+<% end %>
+
+<% if search.results.empty? %>
   <p class="py-4 text-sm text-center text-grey-text">No cards found</p>
 <% else %>
-  <% results.each do |result| %>
-    <%= render partial: 'search_result', locals: { result: result, deck: deck } %>
+  <% search.results.each do |result| %>
+    <%= render partial: "search_result", locals: { result: result, deck: deck } %>
   <% end %>
 <% end %>
