@@ -114,6 +114,9 @@
             <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
           </div>
         <% end %>
+        <div class="flex flex-row w-full mt-4">
+          <%= render partial: 'magic_cards/oracle_tags', locals: { card: } %>
+        </div>
         <% if current_user_admin? %>
           <div class="flex flex-row w-full mt-4">
             <%= button_to 'Delete Card', magic_card_path(card.id), method: :delete,

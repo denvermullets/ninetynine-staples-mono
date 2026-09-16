@@ -141,7 +141,7 @@ class CollectionsController < ApplicationController
   def search_magic_cards
     return if @user.nil?
 
-    result = Collections::CardSearch.call(user: @user, params: params, sort_config: sort_config)
+    result = Collections::CardSearch.call(user: @user, current_user:, params:, sort_config: sort_config)
     @card_query = result[:card_query]
     @filtered_cards = result[:cards]
   end

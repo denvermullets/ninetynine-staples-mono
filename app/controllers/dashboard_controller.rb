@@ -58,4 +58,10 @@ class DashboardController < ApplicationController
 
     redirect_to '/jobs'
   end
+
+  def ingest_oracle_tags
+    IngestOracleTags.perform_later(force: true)
+
+    redirect_to '/jobs'
+  end
 end

@@ -88,6 +88,12 @@ module CardQuery
       'role' => { handler: :card_role, kind: :card, column: 'role' },
       'effect' => { handler: :card_role, kind: :card, column: 'effect' },
 
+      # --- scryfall tagger oracle tags ---------------------------------------------------------
+      # Scryfall's own three names for the same field - see OracleTagPredicate
+      'otag' => { handler: :oracle_tag, kind: :card },
+      'oracletag' => { handler: :oracle_tag, kind: :card },
+      'function' => { handler: :oracle_tag, kind: :card },
+
       # --- commander colour identity ---------------------------------------------------------
       # takes a commander's name and resolves it to that commander's identity
       'commander' => { handler: :commander_identity, kind: :card },

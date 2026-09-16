@@ -68,4 +68,70 @@ RSpec.describe CardAnalysis::BatchProfiler, type: :service do
       expect(CardRole.count).to eq(initial_count)
     end
   end
+
+  describe 'Scryfall Tagger tags' do
+    let(:spot_removal) { create(:oracle_tag, slug: 'spot-removal') }
+    let(:doom_blade) { create(:oracle_tag, slug: 'doom-blade') }
+    let(:mana_rock) { create(:oracle_tag, slug: 'mana-rock') }
+
+    # no pattern rule fires on this text, so every role it gets comes from its tags
+    let!(:silent_card) do
+      create(:magic_card, scryfall_oracle_id: SecureRandom.uuid, text: 'Nothing a rule would read.',
+                          card_type: 'Artifact', is_token: false, card_side: nil)
+    end
+
+    def roles_for(card)
+      CardRole.for_oracle_id(card.scryfall_oracle_id).pluck(:role, :effect, :confidence, :source)
+    end
+
+    before do
+      OracleTagAncestor.create!(ancestor: spot_removal, descendant: doom_blade, depth: 1)
+    end
+
+    it 'maps a tag through the hierarchy into a tagger role at full confidence' do
+      create(:card_oracle_tag, oracle_tag: doom_blade, scryfall_oracle_id: card1.scryfall_oracle_id)
+
+      described_class.call(oracle_ids: [first_oracle_id])
+
+      expect(roles_for(card1)).to include(['removal', 'targeted_removal', 1.0, 'tagger'])
+    end
+
+    it 'keeps the tagger row on a re-run even though a pattern rule also matches' do
+      create(:card_oracle_tag, oracle_tag: doom_blade, scryfall_oracle_id: card1.scryfall_oracle_id)
+
+      2.times { described_class.call(oracle_ids: [first_oracle_id]) }
+
+      expect(roles_for(card1)).to include(['removal', 'targeted_removal', 1.0, 'tagger'])
+    end
+
+    # a retracted tag must not leave its 1.0 role behind
+    it 'removes the role when the tagging goes away' do
+      tagging = create(:card_oracle_tag, oracle_tag: mana_rock, scryfall_oracle_id: silent_card.scryfall_oracle_id)
+      described_class.call(oracle_ids: [silent_card.scryfall_oracle_id])
+      expect(roles_for(silent_card)).to eq([['ramp', 'mana_rock', 1.0, 'tagger']])
+
+      tagging.destroy!
+      described_class.call(oracle_ids: [silent_card.scryfall_oracle_id])
+
+      expect(roles_for(silent_card)).to be_empty
+    end
+
+    it 'ignores a disabled tag' do
+      mana_rock.update!(disabled: true)
+      create(:card_oracle_tag, oracle_tag: mana_rock, scryfall_oracle_id: silent_card.scryfall_oracle_id)
+
+      described_class.call(oracle_ids: [silent_card.scryfall_oracle_id])
+
+      expect(roles_for(silent_card)).to be_empty
+    end
+
+    # user tags are unmoderated and TaggerDetector writes at 1.0
+    it 'ignores tags users added' do
+      create(:card_oracle_tag, :by_user, oracle_tag: mana_rock, scryfall_oracle_id: silent_card.scryfall_oracle_id)
+
+      described_class.call(oracle_ids: [silent_card.scryfall_oracle_id])
+
+      expect(roles_for(silent_card)).to be_empty
+    end
+  end
 end
