@@ -11,11 +11,11 @@ module DeckBuilderSearchPanel
   end
 
   def search
-    @results = DeckBuilder::Search.call(
+    @search = DeckBuilder::Search.call(
       query: params[:q], user: current_user, deck: @deck,
       scope: params[:scope] || 'all', limit: SEARCH_RESULT_LIMIT
     )
-    render partial: 'search_results', locals: { results: @results, deck: @deck }
+    render partial: 'search_results', locals: { search: @search, deck: @deck }
   end
 
   # Owner-only for free: ensure_owner covers everything not named in its except: list, and the panel
