@@ -41,6 +41,28 @@ RSpec.describe SyncDeckCombosJob, type: :job do
       end
     end
 
+    context 'when run in the background by the suggestions panel' do
+      let(:deck) { create(:collection, user: user, collection_type: 'commander_deck') }
+
+      it 'refreshes the page without a toast' do
+        allow(CommanderSpellbook::SyncDeckCombos).to receive(:call).and_return({ success: true })
+
+        expect(Turbo::StreamsChannel).not_to receive(:broadcast_append_to)
+        expect(Turbo::StreamsChannel).to receive(:broadcast_refresh_to).with("user_#{user.id}_notifications")
+
+        described_class.new.perform(deck.id, notify: false)
+      end
+
+      it 'stays quiet when the check fails' do
+        allow(CommanderSpellbook::SyncDeckCombos).to receive(:call).and_return({ error: 'API unavailable' })
+
+        expect(Turbo::StreamsChannel).not_to receive(:broadcast_append_to)
+        expect(Turbo::StreamsChannel).not_to receive(:broadcast_refresh_to)
+
+        described_class.new.perform(deck.id, notify: false)
+      end
+    end
+
     context 'when sync returns an error' do
       let(:deck) { create(:collection, user: user, collection_type: 'commander_deck') }
 

@@ -37,9 +37,12 @@ module CardQuery
       'reserved' => 'is_reserved'
     }.freeze
 
-    def initialize(cards:, terms:)
+    # viewer_id is set only when somebody is searching their own collection - it is what lets otag: see the
+    # tags that user added. See OracleTagPredicate.
+    def initialize(cards:, terms:, viewer_id: nil)
       @cards = cards
       @terms = Array(terms)
+      @viewer_id = viewer_id
     end
 
     def call
@@ -142,9 +145,9 @@ module CardQuery
       [subquery(field[:join_table], field[:lookup_table], field[:fk], match), value]
     end
 
-    def predicate_for_card_role(field, term)
-      CardRolePredicate.call(column: field[:column], value: term.value)
-    end
+    def predicate_for_card_role(field, term) = CardRolePredicate.call(column: field[:column], value: term.value)
+
+    def predicate_for_oracle_tag(_field, term) = OracleTagPredicate.call(value: term.value, viewer_id: @viewer_id)
 
     # commander:"Prossh, Skyraider of Kher" is the colour identity subset relation with the letters looked
     # up from a name. nil back from the resolver means the name matched nothing, and apply/1 reads that as

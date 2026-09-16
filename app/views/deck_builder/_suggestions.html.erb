@@ -5,6 +5,7 @@
   No turbo_action: advance here, unlike collection_proxies - that URL renders a whole page, this one
   renders a bare partial, so pushing it into history would leave the back button on naked HTML.
 %>
+
 <%= turbo_frame_tag "deck_suggestions" do %>
   <% if result.blank? %>
     <p class="text-sm text-grey-text">
@@ -23,7 +24,11 @@
         <% end %>
       <% end %>
     </div>
-
+    <% if local_assigns[:combos_pending] %>
+      <p class="mb-3 text-xs text-grey-text">
+        Checking Commander Spellbook for combo pieces&hellip;
+      </p>
+    <% end %>
     <% if result[:buckets].empty? %>
       <p class="text-sm text-grey-text">
         Nothing to suggest here - every match is already in the deck.
@@ -34,18 +39,28 @@
           <div>
             <h3
               class="
-                flex items-baseline justify-between mb-2 text-sm font-semibold
-                text-white
+                flex items-baseline justify-between mb-2 text-sm
+                font-semibold text-white
               "
             >
               <span><%= bucket[:role].titleize %></span>
 
-              <% if bucket[:target] %>
+              <% if bucket[:role] == CardAnalysis::CommanderSynergy::COMBO_ROLE %>
                 <span class="text-xs font-normal text-grey-text">
-                  <%= bucket[:in_deck] %>
-                  of
-                  <%= bucket[:target] %>
-                  in deck
+                  <%= link_to "View combos",
+                    combos_deck_builder_path(deck),
+                    class: "hover:text-accent-50",
+                    data: { turbo_frame: "_top" } %>
+                  &middot;
+                  <%= link_to "via Commander Spellbook",
+                    "https://commanderspellbook.com",
+                    class: "hover:text-accent-50",
+                    target: "_blank",
+                    rel: "noopener" %>
+                </span>
+              <% elsif bucket[:target] %>
+                <span class="text-xs font-normal text-grey-text">
+                  <%= bucket[:in_deck] %> of <%= bucket[:target] %> in deck
                 </span>
               <% end %>
             </h3>

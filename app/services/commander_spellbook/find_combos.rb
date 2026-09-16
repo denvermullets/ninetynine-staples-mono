@@ -81,7 +81,8 @@ module CommanderSpellbook
         results: parse_results(combo),
         color_identity: combo['identity'] || '',
         permalink: "https://commanderspellbook.com/combo/#{combo['id']}",
-        has_banned_card: combo.dig('legalities', 'commander') == 'Banned'
+        # Spellbook reports legality as a boolean per format, not a status string.
+        has_banned_card: combo.dig('legalities', 'commander') == false
       }
     rescue StandardError => e
       log "Failed to parse combo #{combo['id']}: #{e.message}"

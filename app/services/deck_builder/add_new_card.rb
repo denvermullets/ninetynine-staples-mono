@@ -67,7 +67,7 @@ module DeckBuilder
       update_collection_totals
     end
 
-    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable-next Metrics/AbcSize
     def update_collection_totals
       changes = { quantity: 0, foil_quantity: 0, proxy_quantity: 0, proxy_foil_quantity: 0, real_price: 0,
                   proxy_price: 0 }
@@ -89,7 +89,6 @@ module DeckBuilder
 
       CollectionRecord::UpdateTotals.call(collection: @deck, changes: changes)
     end
-    # rubocop:enable Metrics/AbcSize
 
     def error_result(message)
       { success: false, error: message }

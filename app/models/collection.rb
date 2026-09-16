@@ -71,6 +71,14 @@ class Collection < ApplicationRecord
     collection_type == 'commander_deck'
   end
 
+  # The Spellbook check is a snapshot of the deck at combos_checked_at, so any card added or changed
+  # since then means the combos - and the pieces missing from them - may no longer be true.
+  def combos_stale?
+    return true unless combos_checked_at
+
+    collection_magic_cards.where('created_at > :t OR updated_at > :t', t: combos_checked_at).exists?
+  end
+
   def hidden?
     !is_public
   end

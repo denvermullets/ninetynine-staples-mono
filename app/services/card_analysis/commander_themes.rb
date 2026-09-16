@@ -9,6 +9,10 @@ module CardAnalysis
     # Goblin with any removal tag at all outscored every actual removal spell in the bucket.
     TRIBAL_WEIGHT = 0.45
 
+    # "create a 1/1 white Cat Soldier creature token" says what a commander *makes*, not what it cares
+    # about. Bounded to a single sentence so the strip cannot run past the clause it is aimed at.
+    TOKEN_CLAUSE = /\bcreates?\b[^.]*?\btokens?\b/i
+
     def initialize(commander:)
       @commander = commander
     end
@@ -41,18 +45,33 @@ module CardAnalysis
     # proliferate deck, not an Angel deck. Taking the type line alone would make every legendary creature
     # look like a tribal commander.
     #
-    # False positive worth knowing: a commander whose only tribal mention is the token it makes ("create a
-    # 1/1 Soldier") reads as Soldier tribal. TRIBAL_WEIGHT keeps that from dominating a bucket.
+    # Token clauses are stripped before the scan, so a commander is not tribal for the tokens it makes:
+    # Brimaz only ever says "Cat Soldier" inside the token he creates and is not a Cat deck. A commander
+    # that genuinely cares names the type outside the clause too - Krenko sizes his tokens off "the number
+    # of Goblins you control", Edgar Markov triggers on "another Vampire spell" - so real tribal survives.
     def tribal_subtypes
-      words = @commander.text.to_s.scan(/\b[A-Z][a-z]+\b/).uniq
+      words = subtype_words(@commander.text.to_s.gsub(TOKEN_CLAUSE, ' '))
       return [] if words.empty?
 
-      # The creature join filters out subtypes that are also ordinary capitalised words in rules text -
-      # "You" is a real row in sub_types and matches the reminder text on half the partner commanders.
+      # A tribe is a type that is *mostly* printed on creatures, which is what separates it from a type
+      # that merely leaks onto a few: Goblin is 1,587 of 1,603 printings, while Saga is 85 of 504 (the
+      # Final Fantasy enchantment creatures), Shrine 11 of 37 and Mountain 1 of 1,112. Requiring only one
+      # creature printing let all three through as tribes. It also still drops subtypes that are ordinary
+      # capitalised words - "You" is a real row in sub_types and matches partner reminder text - since
+      # those are on no cards at all.
       SubType.joins(magic_card_sub_types: :magic_card)
              .where(name: words)
-             .where('magic_cards.card_type ILIKE ?', '%creature%')
-             .distinct.pluck(:name)
+             .group('sub_types.id', 'sub_types.name')
+             .having("COUNT(*) FILTER (WHERE magic_cards.card_type ILIKE '%creature%') * 2 > COUNT(*)")
+             .pluck(:name)
+    end
+
+    # Rules text names a tribe in the plural when it cares about it ("the number of Goblins you control")
+    # while sub_types stores the singular, so both forms have to reach the lookup. Once token clauses are
+    # stripped the plural is often the *only* mention left, and dropping it would lose Krenko entirely.
+    def subtype_words(text)
+      words = text.scan(/\b[A-Z][a-z]+\b/)
+      (words + words.map(&:singularize)).uniq
     end
   end
 end

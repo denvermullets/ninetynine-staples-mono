@@ -8,11 +8,14 @@ module CardAnalysis
       @subtypes = (options[:subtypes] || []).map(&:downcase)
       @layout = options[:layout]
       @power = options[:power]
+      @tag_slugs = Array(options[:tag_slugs])
     end
 
     def call
       results = {}
 
+      # first, so a curated tag at 1.0 cannot be displaced by any rule below - see TaggerDetector
+      detect_tagger_roles(results)
       OracleTextDetector.new(@oracle_text, @card_type).detect(results)
       detect_keyword_roles(results)
       detect_type_line_roles(results)
@@ -22,6 +25,13 @@ module CardAnalysis
     end
 
     private
+
+    def detect_tagger_roles(results)
+      TaggerDetector.roles_for(@tag_slugs).each do |role, effect|
+        add_result(results, role: role, effect: effect,
+                            confidence: TaggerDetector::CONFIDENCE, source: TaggerDetector::SOURCE)
+      end
+    end
 
     def detect_keyword_roles(results)
       keyword_map = {

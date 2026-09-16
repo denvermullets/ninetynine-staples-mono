@@ -38,8 +38,11 @@
         My Collection
       </button>
 
-      <%# Only offered once the deck has a commander - there is nothing to derive suggestions from
-          without one, and the action returns the same empty state either way. %>
+      <%#
+        Only offered once the deck has a commander - there is nothing to derive suggestions from
+        without one, and the action returns the same empty state either way.
+      %>
+
       <% if deck_has_commander? %>
         <button
           data-deck-search-target="scopeSuggestions"
@@ -58,60 +61,69 @@
 
     <!-- Search Form -->
     <div data-deck-search-target="searchPane">
-    <%= form_with url: search_deck_builder_path(deck), method: :get, local: false,
+      <%= form_with url: search_deck_builder_path(deck), method: :get, local: false,
       data: { action: "submit->deck-search#submit", deck_search_target: "form" },
       class: "relative" do |f| %>
-      <div class="flex overflow-hidden">
-        <%= f.text_field :q,
-          placeholder: "Search cards...",
+        <div class="flex overflow-hidden">
+          <%= f.text_field :q,
+          placeholder: "Name, or role:ramp mv<=3",
           data: { deck_search_target: "input" },
           class: "flex-1 min-w-0 px-4 py-2 border rounded-l-lg bg-background border-highlight text-white placeholder-grey-text focus:border-accent-50 focus:outline-none" %>
 
-        <%= f.hidden_field :scope, value: search_scope, data: { deck_search_target: "scopeField" } %>
+          <%= f.hidden_field :scope, value: search_scope, data: { deck_search_target: "scopeField" } %>
 
-        <%= f.submit "Search",
+          <%= f.submit "Search",
           class: "shrink-0 px-4 py-2 bg-background text-grey-text rounded-r-lg border border-l-0 border-highlight hover:bg-highlight cursor-pointer transition" %>
-      </div>
+        </div>
 
-      <div
-        data-deck-search-target="loading"
-        class="absolute hidden right-20 top-2.5"
-      >
-        <svg
-          class="w-5 h-5 animate-spin text-grey-text"
-          fill="none"
-          viewBox="0 0 24 24"
+        <div
+          data-deck-search-target="loading"
+          class="absolute hidden right-20 top-2.5"
         >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
+          <svg
+            class="w-5 h-5 animate-spin text-grey-text"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
 
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+      <% end %>
+
+      <%#
+        ownership: false - qty:/foil:/proxy:/needed: need the collections page's grouped quantity
+        aggregates, which this panel does not have. DeckBuilder::Search reports them instead.
+      %>
+      <%= render "shared/cards/search_syntax_help", ownership: false %>
+
+      <!-- Search Results -->
+      <div
+        data-deck-search-target="results"
+        class="mt-4 space-y-2 max-h-[60vh] overflow-y-auto"
+      >
+        <!-- Results will be inserted here -->
       </div>
-    <% end %>
-
-    <!-- Search Results -->
-    <div
-      data-deck-search-target="results"
-      class="mt-4 space-y-2 max-h-[60vh] overflow-y-auto"
-    >
-      <!-- Results will be inserted here -->
-    </div>
     </div>
 
-    <%# Its own container rather than reusing the results div: the deck:card-added listener empties the
-        results after every add, and a suggestion list should survive adding one of its own cards.
-        loading: lazy so the query only runs when the tab is actually opened. %>
+    <%#
+      Its own container rather than reusing the results div: the deck:card-added listener empties the
+      results after every add, and a suggestion list should survive adding one of its own cards.
+      loading: lazy so the query only runs when the tab is actually opened.
+    %>
+
     <% if deck_has_commander? %>
       <div
         data-deck-search-target="suggestionsPane"

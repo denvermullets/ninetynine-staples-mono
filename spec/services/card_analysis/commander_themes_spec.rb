@@ -33,10 +33,41 @@ RSpec.describe CardAnalysis::CommanderThemes, type: :service do
 
   describe 'tribal subtypes' do
     it 'picks up a creature type the rules text names' do
-      card = commander(text: 'Create X 1/1 red Goblin creature tokens.', subtypes: ['Goblin'])
+      card = commander(text: 'Whenever you cast another Goblin spell, draw a card.', subtypes: ['Goblin'])
       create(:magic_card, card_type: 'Creature - Goblin').sub_types << SubType.find_by!(name: 'Goblin')
 
       expect(described_class.call(commander: card)[:subtypes]).to eq(['Goblin'])
+    end
+
+    # Krenko's only mention outside the token clause is the plural that sizes it, and sub_types stores the
+    # singular - so without singularising, stripping token clauses would lose the archetypal Goblin deck.
+    it 'picks up a tribe named only in the plural outside the token clause' do
+      card = commander(text: 'Create X 1/1 red Goblin creature tokens, where X is the number of ' \
+                             'Goblins you control.', subtypes: ['Goblin'])
+      create(:magic_card, card_type: 'Creature - Goblin').sub_types << SubType.find_by!(name: 'Goblin')
+
+      expect(described_class.call(commander: card)[:subtypes]).to eq(['Goblin'])
+    end
+
+    # Brimaz makes Cat Soldiers and cares about neither; "create ... token" is what it makes, not a theme.
+    it 'ignores a creature type that appears only in a token the commander creates' do
+      card = commander(text: 'Whenever Brimaz attacks, create a 1/1 white Cat Soldier creature token ' \
+                             "with vigilance that's attacking.", subtypes: %w[Cat Soldier])
+      create(:magic_card, card_type: 'Creature - Cat Soldier').tap do |other|
+        other.sub_types << SubType.find_by!(name: 'Cat')
+        other.sub_types << SubType.find_by!(name: 'Soldier')
+      end
+
+      expect(described_class.call(commander: card)[:subtypes]).to be_empty
+    end
+
+    # Edgar makes Vampire tokens *and* triggers off Vampire spells - the second mention is the real theme.
+    it 'keeps a creature type named both inside and outside a token clause' do
+      card = commander(text: 'Whenever you cast another Vampire spell, create a 1/1 black Vampire ' \
+                             'creature token.', subtypes: ['Vampire'])
+      create(:magic_card, card_type: 'Creature - Vampire').sub_types << SubType.find_by!(name: 'Vampire')
+
+      expect(described_class.call(commander: card)[:subtypes]).to eq(['Vampire'])
     end
 
     # A commander is not tribal just because of its type line - Atraxa is a Phyrexian Angel Horror and a
