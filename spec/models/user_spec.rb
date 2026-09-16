@@ -32,6 +32,19 @@ RSpec.describe User, type: :model do
       expect(user.errors[:username]).to be_present
     end
 
+    it 'requires username uniqueness (case-insensitive)' do
+      create(:user, username: 'Planeswalker')
+      user = build(:user, username: 'planeswalker')
+      expect(user).not_to be_valid
+      expect(user.errors[:username]).to include('has already been taken')
+    end
+
+    it 'enforces username uniqueness at the database level' do
+      create(:user, username: 'Planeswalker')
+      user = build(:user, username: 'PLANESWALKER')
+      expect { user.save(validate: false) }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
     it 'validates password minimum length of 10 characters' do
       user = build(:user, password: 'short')
       expect(user).not_to be_valid

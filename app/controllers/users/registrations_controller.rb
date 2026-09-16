@@ -11,7 +11,7 @@ class Users::RegistrationsController < ApplicationController
 
     @user = User.new(registration_params)
 
-    if @user.save
+    if save_user
       if Rails.env.development?
         @user.confirm!
       else
@@ -27,6 +27,16 @@ class Users::RegistrationsController < ApplicationController
   end
 
   private
+
+  # The uniqueness validation races with concurrent sign-ups; the unique index
+  # on LOWER(username) is the real guard, so surface its failure like a
+  # validation error instead of a 500.
+  def save_user
+    @user.save
+  rescue ActiveRecord::RecordNotUnique
+    @user.errors.add(:username, :taken)
+    false
+  end
 
   def registration_params
     params.require(:user).permit(:email, :username, :password, :password_confirmation)
