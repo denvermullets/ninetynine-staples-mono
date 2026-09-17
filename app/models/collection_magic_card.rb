@@ -5,6 +5,9 @@ class CollectionMagicCard < ApplicationRecord
   belongs_to :magic_card
   belongs_to :source_collection, class_name: 'Collection', optional: true
 
+  # a deleted binder row leaves its trade items behind - a finished trade still has to read correctly
+  has_many :trade_items, dependent: :nullify
+
   # Validations
   validates :quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity,
             numericality: { greater_than_or_equal_to: 0 }

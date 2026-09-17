@@ -1,0 +1,90 @@
+<%# locals: cards - MagicCard rows from CollectionQuery::PageRows, pagy, owner %>
+<%#
+  One row per printing on offer. Retail is the headline price and the buylist sits under it in muted
+  text - the trade is valued at retail, the buylist is the floor either side can check it against.
+
+  The Add to trade button is rendered hidden until the trade builder wires it up; it carries the
+  printing id so that issue only has to reveal it and attach an action.
+%>
+
+<div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
+  <table class="min-w-full divide-y table-auto divide-background">
+    <thead class="bg-background">
+      <tr>
+        <% ['Name', 'Set', '#', 'For trade', 'Unit value', 'Total', ''].each do |label| %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left normal-case
+              text-grey-text
+            "
+          >
+            <%= label %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody class="bg-background">
+      <% cards.each do |card| %>
+        <tr class="border border-background text-grey-text bg-foreground">
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset&.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
+
+            <%= card.name.to_s.split('//').first %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap text-grey-text/70">
+            <%= card.boxset&.code %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap text-grey-text/70">
+            <%= card.card_number %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <%= owned_marker(card.trade_quantity.to_i, card.trade_foil_quantity.to_i) %>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <%= trade_unit_prices(card) %>
+
+            <p class="text-xs text-grey-text/50">
+              buylist <%= trade_unit_prices(card, :buylist) %>
+            </p>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <%= number_to_currency(trade_row_value(card)) %>
+
+            <p class="text-xs text-grey-text/50">
+              buylist <%= number_to_currency(trade_row_value(card, :buylist)) %>
+            </p>
+          </td>
+
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <% unless owner %>
+              <button
+                type="button"
+                class="
+                  hidden px-2 py-1 text-xs border rounded border-highlight
+                  hover:border-accent-50 hover:text-accent-50
+                "
+                data-trade-add-target="button"
+                data-magic-card-id="<%= card.id %>"
+              >
+                Add to trade
+              </button>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if pagy %>
+    <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav() %>
+    </div>
+  <% end %>
+</div>

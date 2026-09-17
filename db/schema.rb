@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_17_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -616,6 +616,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
     t.index ["user_id"], name: "index_tracked_decks_on_user_id"
   end
 
+  create_table "trade_items", force: :cascade do |t|
+    t.bigint "collection_magic_card_id"
+    t.datetime "created_at", null: false
+    t.integer "foil_quantity", default: 0, null: false
+    t.bigint "magic_card_id", null: false
+    t.integer "quantity", default: 0, null: false
+    t.string "side", null: false
+    t.bigint "trade_id", null: false
+    t.decimal "unit_buylist_foil_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.decimal "unit_buylist_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.decimal "unit_foil_price_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.decimal "unit_price_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.datetime "updated_at", null: false
+    t.index ["collection_magic_card_id"], name: "index_trade_items_on_collection_magic_card_id"
+    t.index ["magic_card_id"], name: "index_trade_items_on_magic_card_id"
+    t.index ["trade_id", "side"], name: "index_trade_items_on_trade_id_and_side"
+    t.index ["trade_id"], name: "index_trade_items_on_trade_id"
+  end
+
+  create_table "trades", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "message"
+    t.bigint "parent_trade_id"
+    t.datetime "proposer_completed_at"
+    t.bigint "proposer_id", null: false
+    t.datetime "recipient_completed_at"
+    t.bigint "recipient_id", null: false
+    t.string "status", default: "proposed", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parent_trade_id"], name: "index_trades_on_parent_trade_id"
+    t.index ["proposer_id", "status"], name: "index_trades_on_proposer_id_and_status"
+    t.index ["proposer_id"], name: "index_trades_on_proposer_id"
+    t.index ["recipient_id", "status"], name: "index_trades_on_recipient_id_and_status"
+    t.index ["recipient_id"], name: "index_trades_on_recipient_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
@@ -625,6 +661,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
     t.jsonb "preferences", default: {}
     t.string "prices_last_updated_at"
     t.string "role", default: "1001", null: false
+    t.boolean "trades_public", default: false, null: false
     t.string "unconfirmed_email"
     t.datetime "updated_at", null: false
     t.string "username", null: false
@@ -669,4 +706,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"
   add_foreign_key "tracked_decks", "users"
+  add_foreign_key "trade_items", "collection_magic_cards"
+  add_foreign_key "trade_items", "magic_cards"
+  add_foreign_key "trade_items", "trades"
+  add_foreign_key "trades", "trades", column: "parent_trade_id"
+  add_foreign_key "trades", "users", column: "proposer_id"
+  add_foreign_key "trades", "users", column: "recipient_id"
 end

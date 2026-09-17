@@ -28,6 +28,7 @@ Rails.application.routes.draw do
   post 'settings/move_collection', to: 'settings#move_collection', as: :move_collection
   post 'settings/update_column_visibility', to: 'settings#update_column_visibility', as: :update_column_visibility
   post 'settings/update_game_tracker_visibility', to: 'settings#update_game_tracker_visibility', as: :update_game_tracker_visibility
+  post 'settings/update_trades_visibility', to: 'settings#update_trades_visibility', as: :update_trades_visibility
   post 'settings/update_theme', to: 'settings#update_theme', as: :update_theme
 
   mount MissionControl::Jobs::Engine, at: '/jobs'
@@ -117,6 +118,9 @@ Rails.application.routes.draw do
   get 'collections/:username/reserved', to: 'collection_reserved#show', as: :collection_reserved
   # commanders ranked by how much of the deck this collection could already fill
   get 'collections/:username/brew', to: 'brew#index', as: :collection_brew
+  # every copy marked for trade across this user's public collections - above the catch-all below,
+  # or 'trades' is swallowed as a collection_id
+  get 'collections/:username/trades', to: 'collection_trades#show', as: :collection_trades
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index

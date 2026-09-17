@@ -32,12 +32,11 @@ class SettingsController < ApplicationController
   end
 
   def update_game_tracker_visibility
-    is_public = [true, 'true'].include?(params[:public])
-    if current_user.update(game_tracker_public: is_public)
-      head :ok
-    else
-      head :unprocessable_entity
-    end
+    update_visibility(:game_tracker_public)
+  end
+
+  def update_trades_visibility
+    update_visibility(:trades_public)
   end
 
   def update_theme
@@ -53,6 +52,11 @@ class SettingsController < ApplicationController
   end
 
   private
+
+  def update_visibility(attribute)
+    is_public = [true, 'true'].include?(params[:public])
+    current_user.update(attribute => is_public) ? head(:ok) : head(:unprocessable_entity)
+  end
 
   def valid_view?(view)
     %w[collections boxsets].include?(view)

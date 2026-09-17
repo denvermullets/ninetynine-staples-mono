@@ -6,6 +6,10 @@ class User < ApplicationRecord
   has_many :tracked_decks, dependent: :destroy
   has_many :commander_games, dependent: :destroy
   has_many :collection_magic_cards, through: :collections
+  has_many :proposed_trades, class_name: 'Trade', foreign_key: :proposer_id, dependent: :destroy,
+                             inverse_of: :proposer
+  has_many :received_trades, class_name: 'Trade', foreign_key: :recipient_id, dependent: :destroy,
+                             inverse_of: :recipient
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -33,6 +37,10 @@ class User < ApplicationRecord
   # Game tracker visibility
   def game_tracker_public?
     game_tracker_public
+  end
+
+  def trades
+    Trade.involving(self)
   end
 
   # copies marked for trade across every public collection - what other users are allowed to see
