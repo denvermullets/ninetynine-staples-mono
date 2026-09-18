@@ -1,0 +1,71 @@
+<%# locals: result - WantList::BulkImport's answer, nil before anything is pasted; text - the textarea's contents %>
+<%#
+  Bulk add for the owner. Posts to WantImportsController, which swaps this panel for the report and
+  leaves the lines it could not use in the textarea to be fixed and sent again.
+%>
+
+<% report_class = 'px-4 py-3 text-sm border rounded-xl bg-background text-grey-text' %>
+
+<div id="want_import">
+  <%= tag.details class: 'p-4 border rounded-3xl bg-foreground border-highlight', open: result.present? do %>
+    <summary class="text-sm cursor-pointer text-nine-white">
+      Bulk add cards
+    </summary>
+
+    <div class="flex flex-col gap-3 mt-4">
+      <% if result && !result[:success] %>
+        <div class="<%= report_class %> border-accent-100/40">
+          <%= result[:error] %>
+        </div>
+      <% elsif result %>
+        <div class="<%= report_class %> border-accent-50/40">
+          <% if result[:added].any? %>
+            Added
+            <%= pluralize(result[:added].size, 'card') %>
+            to your want list, any printing.
+          <% else %>
+            Nothing new to add.
+          <% end %>
+        </div>
+        <% if result[:already_wanted].any? %>
+          <div class="<%= report_class %> border-highlight">
+            Already on your want list, left as they were:
+            <%= result[:already_wanted].map { |line| line[:name] }.to_sentence %>
+          </div>
+        <% end %>
+        <% if result[:ambiguous].any? %>
+          <div class="<%= report_class %> border-accent-100/40">
+            More than one card goes by this name - add it from its card details
+            instead:
+            <%= result[:ambiguous].map { |line| line[:name] }.to_sentence %>
+          </div>
+        <% end %>
+        <% if result[:unresolved].any? %>
+          <div class="<%= report_class %> border-accent-100/40">
+            No card found for
+            <%= result[:unresolved].map { |line| line[:name] }.to_sentence %>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%= form_with url: want_imports_path, class: 'flex flex-col gap-3' do |f| %>
+        <p class="text-sm text-grey-text/70">
+          One card per line, like
+          <code class="text-accent-50">4 Lightning Bolt</code>. Set codes and
+          foil markers from a Moxfield or Archidekt export are ignored - every
+          card is added as any printing.
+        </p>
+
+        <%= f.text_area :decklist, value: text, rows: 10, id: nil,
+              placeholder: "1 Sol Ring\n4 Lightning Bolt\n1 Fire // Ice",
+              'aria-label': 'Card list',
+              class: 'w-full p-3 text-sm border rounded-lg resize-y bg-background border-highlight text-grey-text placeholder-grey-text/50 focus:outline-none focus:border-accent-50' %>
+
+        <div>
+          <%= f.submit 'Add to want list', data: { turbo_submits_with: 'Adding...' },
+                class: 'px-4 py-2 text-sm font-medium rounded-lg cursor-pointer bg-accent-50 text-background hover:bg-nine-white' %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

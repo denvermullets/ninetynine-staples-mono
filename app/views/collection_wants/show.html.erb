@@ -41,6 +41,7 @@
       <%= link_to 'Find matches', want_matches_path,
         class: 'px-3 py-1.5 text-sm text-center rounded-md shrink-0 bg-highlight text-nine-white hover:opacity-90' %>
     </div>
+    <%= render partial: 'collection_wants/import', locals: { result: nil, text: '' } %>
   <% end %>
 
   <%= turbo_frame_tag 'want_items', data: { turbo_action: 'advance' } do %>
@@ -72,7 +73,7 @@
 
           <p class="mt-2 text-sm text-grey-text/70">
             <% if @counts[:all].zero? %>
-              <%= @owner ? 'Add cards from the Want List block in any card\'s details and they will show up here.' : "#{@user.username} is not looking for anything right now." %>
+              <%= @owner ? 'Add cards from the Want List block in any card\'s details, or paste a list into Bulk add cards above.' : "#{@user.username} is not looking for anything right now." %>
             <% else %>
               Every want falls outside this filter.
             <% end %>
