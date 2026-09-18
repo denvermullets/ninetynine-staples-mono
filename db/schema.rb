@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_18_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -690,6 +690,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_130000) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  create_table "want_list_items", force: :cascade do |t|
+    t.boolean "any_printing", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "foil_preference", default: "any", null: false
+    t.bigint "magic_card_id", null: false
+    t.text "notes"
+    t.integer "quantity", default: 1, null: false
+    t.uuid "scryfall_oracle_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["magic_card_id"], name: "index_want_list_items_on_magic_card_id"
+    t.index ["scryfall_oracle_id"], name: "index_want_list_items_on_scryfall_oracle_id"
+    t.index ["user_id", "magic_card_id"], name: "index_want_list_items_on_user_id_and_magic_card_id", unique: true
+    t.index ["user_id", "scryfall_oracle_id"], name: "index_want_list_items_on_user_and_oracle_any_printing", unique: true, where: "any_printing"
+  end
+
   add_foreign_key "card_oracle_tags", "oracle_tags"
   add_foreign_key "card_oracle_tags", "users"
   add_foreign_key "collection_magic_cards", "collections"
@@ -736,4 +752,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_130000) do
   add_foreign_key "trades", "trades", column: "parent_trade_id"
   add_foreign_key "trades", "users", column: "proposer_id"
   add_foreign_key "trades", "users", column: "recipient_id"
+  add_foreign_key "want_list_items", "magic_cards"
+  add_foreign_key "want_list_items", "users"
 end

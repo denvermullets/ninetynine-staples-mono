@@ -240,6 +240,57 @@ RSpec.describe MagicCard, type: :model do
     end
   end
 
+  describe 'want list helpers' do
+    let(:user) { create(:user) }
+    let(:oracle_id) { SecureRandom.uuid }
+    let(:card) { create(:magic_card, scryfall_oracle_id: oracle_id) }
+    let(:reprint) { create(:magic_card, scryfall_oracle_id: oracle_id, boxset: create(:boxset)) }
+
+    it 'answers no without a user' do
+      expect(card.wanted_by?(nil)).to be(false)
+      expect(card.want_list_item_for(nil)).to be_nil
+    end
+
+    it 'is wanted through an any-printing row on another printing' do
+      item = create(:want_list_item, user: user, magic_card: reprint)
+      expect(card.wanted_by?(user)).to be(true)
+      expect(card.want_list_item_for(user)).to eq(item)
+    end
+
+    it 'ignores other users' do
+      create(:want_list_item, magic_card: card)
+      expect(card.wanted_by?(user)).to be(false)
+    end
+
+    it 'prefers the row naming this exact printing' do
+      create(:want_list_item, user: user, magic_card: reprint)
+      exact = create(:want_list_item, :specific_printing, user: user, magic_card: card)
+      expect(card.want_list_item_for(user)).to eq(exact)
+    end
+
+    it 'finds the exact-printing row from the back face' do
+      card.update!(card_side: 'a', card_uuid: SecureRandom.uuid)
+      back = create(:magic_card, scryfall_oracle_id: oracle_id, card_side: 'b', card_uuid: SecureRandom.uuid,
+                                 other_face_uuid: card.card_uuid)
+      create(:want_list_item, user: user, magic_card: reprint)
+      exact = create(:want_list_item, :specific_printing, user: user, magic_card: card)
+      expect(back.want_list_item_for(user)).to eq(exact)
+    end
+  end
+
+  describe '#front_face' do
+    it 'is the card itself for a single-faced card or a front face' do
+      card = create(:magic_card)
+      expect(card.front_face).to eq(card)
+    end
+
+    it 'is the other face for a back face' do
+      front = create(:magic_card, card_side: 'a', card_uuid: SecureRandom.uuid)
+      back = create(:magic_card, card_side: 'b', card_uuid: SecureRandom.uuid, other_face_uuid: front.card_uuid)
+      expect(back.front_face).to eq(front)
+    end
+  end
+
   describe '#price_change' do
     it 'delegates to the price trend service' do
       card = build(:magic_card)
