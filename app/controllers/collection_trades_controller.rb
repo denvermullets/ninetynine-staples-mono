@@ -15,6 +15,7 @@ class CollectionTradesController < ApplicationController
 
     @user = access[:user]
     @owner = access[:owner]
+    @wanted_count = WantList::TradeBadge.call(viewer: current_user, holder: @user)
     read_options
     load_list
   end

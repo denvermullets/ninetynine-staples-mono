@@ -25,7 +25,8 @@ module Collections
       searched = Search::Collection.call(cards: owned_cards, search_term: card_query.free_text,
                                          code: @params[:code], sort_by: :price,
                                          collection_id: @params[:collection_id])
-      advanced = CardQuery::Builder.call(cards: sorted(searched), terms: card_query.terms, viewer_id: viewer_id)
+      advanced = CardQuery::Builder.call(cards: sorted(searched), terms: card_query.terms, viewer_id: viewer_id,
+                                         wanter_id: @current_user&.id)
 
       { cards: CollectionQuery::Filter.call(cards: advanced, params: @params), card_query: card_query }
     end

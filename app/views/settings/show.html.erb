@@ -174,6 +174,54 @@
 
       <hr class="border-highlight">
 
+      <!-- Want List Visibility Section -->
+      <section>
+        <h2 class="mb-4 text-lg font-semibold">Want List Privacy</h2>
+
+        <p class="mb-4 text-sm">
+          Control whether other users can see the cards you are looking for.
+        </p>
+
+        <div
+          data-controller="visibility-toggle"
+          data-visibility-toggle-url-value="<%= update_wants_visibility_path %>"
+          data-visibility-toggle-label-value="Want list"
+        >
+          <label
+            class="
+              flex items-center gap-3 p-3 border rounded-lg cursor-pointer
+              border-highlight bg-background hover:border-accent-50
+              transition
+            "
+          >
+            <input
+              type="checkbox"
+              data-visibility-toggle-target="toggle"
+              data-action="change->visibility-toggle#toggle"
+              <% if current_user.wants_public? %>
+                checked
+              <% end %>
+              class="
+                  w-4 h-4 rounded border-highlight bg-background
+                  accent-accent-50 focus:ring-accent-50
+                  focus:ring-offset-background
+                "
+            >
+
+            <div>
+              <span class="font-medium">Make my want list public</span>
+
+              <p class="text-sm text-grey-text/70">
+                When enabled, anyone can view the cards on your want list at
+                <code class="text-accent-50">/collections/<%= current_user.username %>/wants</code>
+              </p>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <hr class="border-highlight">
+
       <!-- Collection Order Section -->
       <section>
         <h2 class="mb-4 text-lg font-semibold">Collection Order</h2>

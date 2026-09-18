@@ -161,4 +161,25 @@ RSpec.describe WantListItem, type: :model do
       expect(described_class.matching(blank)).to be_empty
     end
   end
+
+  describe '#satisfied_by?' do
+    let(:oracle_id) { SecureRandom.uuid }
+    let(:wanted) { create(:magic_card, scryfall_oracle_id: oracle_id) }
+    let(:reprint) { create(:magic_card, scryfall_oracle_id: oracle_id, boxset: create(:boxset)) }
+
+    it 'agrees with matching for an any-printing row' do
+      item = create(:want_list_item, magic_card: wanted)
+
+      expect(item.satisfied_by?(wanted)).to be(true)
+      expect(item.satisfied_by?(reprint)).to be(true)
+      expect(item.satisfied_by?(create(:magic_card, scryfall_oracle_id: SecureRandom.uuid))).to be(false)
+    end
+
+    it 'only accepts the exact printing for a printing-specific row' do
+      item = create(:want_list_item, :specific_printing, magic_card: wanted)
+
+      expect(item.satisfied_by?(wanted)).to be(true)
+      expect(item.satisfied_by?(reprint)).to be(false)
+    end
+  end
 end

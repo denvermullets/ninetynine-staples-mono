@@ -1,0 +1,73 @@
+<%#
+  The cards a user is looking for. Laid out like the trade list, except that everything sits inside
+  the frame: the owner's edit and remove forms redirect back here, and the pill counts and the flash
+  have to move with the list when they do.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Want List',
+    subtext: @owner ? 'The cards you are looking for.' : "The cards #{@user.username} is looking for." } %>
+
+  <% if @owner && !@user.wants_public? %>
+    <div
+      class="
+        px-4 py-3 text-sm border rounded-xl border-highlight bg-foreground
+        text-grey-text/70
+      "
+    >
+      Your want list is private - only you can see this page.
+      <%= link_to 'Make it public in Settings', settings_path, class: 'text-accent-50 hover:underline', data: { turbo_frame: '_top' } %>
+    </div>
+  <% end %>
+
+  <%= turbo_frame_tag 'want_items', data: { turbo_action: 'advance' } do %>
+    <div class="flex flex-col space-y-4">
+      <% if flash[:notice] || flash[:alert] %>
+        <div
+          class="
+            px-4 py-3 text-sm border rounded-xl bg-foreground text-grey-text
+            <%= flash[:alert] ? 'border-accent-100/40' : 'border-accent-50/40' %>
+          "
+        >
+          <%= flash[:alert] || flash[:notice] %>
+        </div>
+      <% end %>
+
+      <%= render partial: 'collection_wants/filters', locals: {
+        username: @user.username, filter: @filter, sort: @sort, counts: @counts } %>
+
+      <% if @items.empty? %>
+        <div
+          class="
+            p-12 text-center border rounded-3xl bg-foreground border-highlight
+            text-grey-text
+          "
+        >
+          <p class="text-xl font-semibold">
+            <%= @counts[:all].zero? ? 'Nothing on the want list' : 'Nothing in this list' %>
+          </p>
+
+          <p class="mt-2 text-sm text-grey-text/70">
+            <% if @counts[:all].zero? %>
+              <%= @owner ? 'Add cards from the Want List block in any card\'s details and they will show up here.' : "#{@user.username} is not looking for anything right now." %>
+            <% else %>
+              Every want falls outside this filter.
+            <% end %>
+          </p>
+        </div>
+      <% else %>
+        <% view = { filter: @filter, sort: @sort, page: params[:page] }.compact_blank %>
+        <%= render partial: 'collection_wants/mobile', locals: {
+          items: @items, pagy: @pagy, owner: @owner, view: view } %>
+        <%= render partial: 'collection_wants/table', locals: {
+          items: @items, pagy: @pagy, owner: @owner, view: view } %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

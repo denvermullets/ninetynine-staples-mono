@@ -13,6 +13,8 @@
     header: 'Trades',
     subtext: 'Offers you have made and received. A trade is a record of the deal - it never moves cards between binders.' } %>
 
+  <%= render partial: 'trades/wanters', locals: { wanters: @wanters } %>
+
   <div class="flex flex-wrap items-center gap-2">
     <% { 'incoming' => 'Incoming', 'outgoing' => 'Outgoing', 'history' => 'History' }.each do |key, label| %>
       <%= link_to trades_path(tab: key),

@@ -1,0 +1,20 @@
+<%# locals: item %>
+<% if item.any_printing %>
+  <span
+    class="
+      px-2 py-0.5 text-xs border rounded-full border-highlight
+      text-grey-text/70
+    "
+  >
+    Any printing
+  </span>
+<% else %>
+  <span
+    class="
+      px-2 py-0.5 text-xs border rounded-full border-accent-50/40
+      text-accent-50
+    "
+  >
+    This printing
+  </span>
+<% end %>

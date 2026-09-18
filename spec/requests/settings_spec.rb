@@ -29,4 +29,31 @@ RSpec.describe 'Settings', type: :request do
       end
     end
   end
+
+  describe 'POST /settings/update_wants_visibility' do
+    it 'requires a login' do
+      post update_wants_visibility_path, params: { public: true }, as: :json
+
+      expect(user.reload.wants_public).to be(false)
+    end
+
+    context 'when logged in' do
+      before { post login_path, params: { email: user.email, password: 'password123' } }
+
+      it 'opens the want list' do
+        post update_wants_visibility_path, params: { public: true }, as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(user.reload.wants_public).to be(true)
+      end
+
+      it 'closes it again' do
+        user.update!(wants_public: true)
+
+        post update_wants_visibility_path, params: { public: false }, as: :json
+
+        expect(user.reload.wants_public).to be(false)
+      end
+    end
+  end
 end

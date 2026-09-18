@@ -94,6 +94,10 @@ module CardQuery
       'oracletag' => { handler: :oracle_tag, kind: :card },
       'function' => { handler: :oracle_tag, kind: :card },
 
+      # --- want list ---------------------------------------------------------------------------
+      # the searcher's own want list, whoever owns the cards being searched - see WantedPredicate
+      'wanted' => { handler: :wanted, kind: :card },
+
       # --- commander colour identity ---------------------------------------------------------
       # takes a commander's name and resolves it to that commander's identity
       'commander' => { handler: :commander_identity, kind: :card },

@@ -1,0 +1,85 @@
+<%# locals: items - WantListItem rows from WantList::List carrying owned_quantity, pagy, owner, view %>
+<%#
+  One row per want. The price is the finish the want asks for; "Owned" counts the copies that would
+  fill it, so a row with a number there is a want that has probably gone stale.
+%>
+
+<div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
+  <table class="min-w-full divide-y table-auto divide-background">
+    <thead class="bg-background">
+      <tr>
+        <% ['Name', 'Set', 'Printing', 'Qty', 'Finish', 'Price', 'Owned', ''].each do |label| %>
+          <th
+            class="
+              px-4 py-2 text-xs font-normal tracking-wider text-left normal-case
+              text-grey-text
+            "
+          >
+            <%= label %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody class="bg-background">
+      <% items.each do |item| %>
+        <% card = item.magic_card %>
+
+        <tr class="border border-background text-grey-text bg-foreground align-top">
+          <td class="px-4 py-2 text-sm whitespace-nowrap">
+            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset&.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
+
+            <%= card.name.to_s.split('//').first %>
+
+            <% if item.notes.present? %>
+              <p class="mt-1 text-xs whitespace-pre-line text-grey-text/50"><%= item.notes %></p>
+            <% end %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap text-grey-text/70">
+            <%= card.boxset&.code %> #<%= card.card_number %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap">
+            <%= render partial: 'collection_wants/printing_badge', locals: { item: item } %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap">
+            x<%= item.quantity %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap text-grey-text/70">
+            <%= WantListHelper::SHORT_FOIL_PREFERENCE_LABELS.fetch(item.foil_preference) %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap">
+            <%= want_unit_price(item) %>
+          </td>
+
+          <td class="px-4 text-sm py-7 whitespace-nowrap">
+            <% if item.owned_quantity.to_i.positive? %>
+              <span class="text-accent-50">
+                x<%= item.owned_quantity %> owned
+              </span>
+            <% else %>
+              <span class="text-grey-text/50">-</span>
+            <% end %>
+          </td>
+
+          <td class="px-4 py-6 text-sm">
+            <% if owner %>
+              <%= render partial: 'collection_wants/owner_controls', locals: { item: item, view: view } %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if pagy %>
+    <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav() %>
+    </div>
+  <% end %>
+</div>

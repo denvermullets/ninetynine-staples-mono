@@ -26,10 +26,21 @@
   <% end %>
 
   <% if !@owner && logged_in? %>
-    <div>
+    <div class="flex flex-wrap items-center gap-3">
       <%= link_to "Start a trade with #{@user.username}",
         new_trade_path(with: @user.username),
         class: 'inline-block px-4 py-2 text-sm rounded-md bg-highlight text-nine-white hover:opacity-90' %>
+
+      <% if @wanted_count.positive? %>
+        <span
+          class="
+            px-3 py-1 text-xs border rounded-full border-accent-50/40
+            text-accent-50
+          "
+        >
+          <%= pluralize(@wanted_count, 'card') %> you want
+        </span>
+      <% end %>
     </div>
   <% end %>
 

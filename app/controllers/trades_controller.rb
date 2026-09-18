@@ -17,6 +17,7 @@
 # gets a 404 - not a 403, which would confirm the trade exists.
 class TradesController < ApplicationController
   PER_PAGE = 25
+  WANTERS_SHOWN = 5
   TRANSITION_NOTICES = {
     'accept' => 'Trade accepted. Swap the cards, then confirm once yours arrive.',
     'decline' => 'Trade declined.',
@@ -35,6 +36,8 @@ class TradesController < ApplicationController
     @tab = inbox[:tab]
     @counts = inbox[:counts]
     @pagy, @trades = pagy(:offset, inbox[:trades], limit: PER_PAGE)
+    # "who wants what I'm trading": the best few, and how many there are in all
+    @wanters = WantList::Matches.call(user: current_user, direction: :inverse, per_page: WANTERS_SHOWN)
   end
 
   # opening the trade is reading about it, however the viewer got here

@@ -37,6 +37,14 @@ class WantListItem < ApplicationRecord
     exact.or(any_printing.for_oracle(magic_card.scryfall_oracle_id))
   end
 
+  # In-memory twin of `matching`, for lists that load a user's wants once instead of querying per card.
+  def satisfied_by?(card)
+    card = card.front_face
+    return true if magic_card_id == card.id
+
+    any_printing && scryfall_oracle_id.present? && scryfall_oracle_id == card.scryfall_oracle_id
+  end
+
   private
 
   def anchor_to_front_face

@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   post 'settings/update_column_visibility', to: 'settings#update_column_visibility', as: :update_column_visibility
   post 'settings/update_game_tracker_visibility', to: 'settings#update_game_tracker_visibility', as: :update_game_tracker_visibility
   post 'settings/update_trades_visibility', to: 'settings#update_trades_visibility', as: :update_trades_visibility
+  post 'settings/update_wants_visibility', to: 'settings#update_wants_visibility', as: :update_wants_visibility
   post 'settings/update_theme', to: 'settings#update_theme', as: :update_theme
 
   mount MissionControl::Jobs::Engine, at: '/jobs'
@@ -92,6 +93,11 @@ Rails.application.routes.draw do
   post 'collection_magic_cards/adjust', to: 'collection_magic_cards#adjust', as: :adjust_collection_magic_cards
   post 'collection_magic_cards/update_trade', to: 'collection_magic_cards#update_trade', as: :update_trade_collection_magic_cards
 
+  # want control inside the expanded card details; the user comes from the session
+  post 'want_list_items', to: 'want_list_items#create', as: :want_list_items
+  patch 'want_list_items/:id', to: 'want_list_items#update', as: :want_list_item
+  delete 'want_list_items/:id', to: 'want_list_items#destroy'
+
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
   resources :collections, only: %w[new create update destroy] do
     member do
@@ -121,6 +127,9 @@ Rails.application.routes.draw do
   # every copy marked for trade across this user's public collections - above the catch-all below,
   # or 'trades' is swallowed as a collection_id
   get 'collections/:username/trades', to: 'collection_trades#show', as: :collection_trades
+  # the cards this user is looking for - above the catch-all below, or 'wants' is swallowed as a
+  # collection_id
+  get 'collections/:username/wants', to: 'collection_wants#show', as: :collection_wants
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index

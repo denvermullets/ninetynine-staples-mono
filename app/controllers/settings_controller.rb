@@ -39,6 +39,10 @@ class SettingsController < ApplicationController
     update_visibility(:trades_public)
   end
 
+  def update_wants_visibility
+    update_visibility(:wants_public)
+  end
+
   def update_theme
     theme = params[:theme]
     return head :unprocessable_entity unless %w[dark light].include?(theme)
