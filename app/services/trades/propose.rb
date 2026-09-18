@@ -52,6 +52,8 @@ module Trades
       ActiveRecord::Base.transaction do
         trade = Trade.create!(proposer: @proposer, recipient: @recipient, status: 'proposed', message: @message)
         @items.each { |item| trade.trade_items.create!(item_attributes(item)) }
+        trade.trade_events.create!(user: @proposer, event: 'proposed')
+        Notifications::Deliver.call(user: @recipient, kind: 'trade_proposed', notifiable: trade)
         trade
       end
     end

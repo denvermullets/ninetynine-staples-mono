@@ -140,6 +140,99 @@ RSpec.describe Trades::Transition, type: :service do
     end
   end
 
+  describe 'the timeline' do
+    def timeline
+      trade.reload.trade_events.map { |event| [event.event, event.user&.username] }
+    end
+
+    it 'records each step with who took it' do
+      transition('accept', user: recipient)
+      transition('cancel', user: proposer)
+
+      expect(timeline).to eq([%w[accepted recipient], %w[cancelled proposer]])
+    end
+
+    it 'records each confirmation, then the trade completing on its own' do
+      transition('accept', user: recipient)
+      transition('complete', user: recipient)
+      transition('complete', user: proposer)
+
+      expect(timeline).to eq([%w[accepted recipient], %w[confirmed recipient], %w[confirmed proposer],
+                              ['completed', nil]])
+    end
+
+    it 'records nothing for a refused step' do
+      transition('accept', user: proposer)
+
+      expect(timeline).to be_empty
+    end
+  end
+
+  describe 'notifications' do
+    def notified(user)
+      user.notifications.where(notifiable: trade).pluck(:kind)
+    end
+
+    %w[accept decline].each do |event|
+      it "tells the proposer when the recipient #{event}s" do
+        transition(event, user: recipient)
+
+        expect(notified(proposer)).to eq(["trade_#{trade.reload.status}"])
+        expect(notified(recipient)).to be_empty
+      end
+    end
+
+    it 'tells whoever did not cancel' do
+      transition('cancel', user: proposer)
+
+      expect(notified(recipient)).to eq(%w[trade_cancelled])
+      expect(notified(proposer)).to be_empty
+    end
+
+    it 'stays quiet on the first confirmation and tells the other party once the trade completes' do
+      transition('accept', user: recipient)
+      transition('complete', user: recipient)
+      expect(notified(proposer)).to eq(%w[trade_accepted])
+
+      transition('complete', user: proposer)
+      expect(notified(recipient)).to eq(%w[trade_completed])
+    end
+
+    it 'notifies nobody about a refused step' do
+      transition('accept', user: proposer)
+
+      expect(Notification.count).to eq(0)
+    end
+  end
+
+  describe '.allowed_events' do
+    def allowed(user, on: trade)
+      described_class.allowed_events(trade: on, user: user)
+    end
+
+    it 'offers the recipient an answer on a proposed trade' do
+      expect(allowed(recipient)).to eq(%w[accept decline cancel])
+    end
+
+    it 'only lets the proposer withdraw a proposed trade' do
+      expect(allowed(proposer)).to eq(%w[cancel])
+    end
+
+    it 'offers confirmation on an accepted trade until the party has confirmed' do
+      accepted = create(:trade, :half_confirmed, proposer: proposer, recipient: recipient)
+
+      expect(allowed(recipient, on: accepted)).to eq(%w[cancel complete])
+      expect(allowed(proposer, on: accepted)).to eq(%w[cancel])
+    end
+
+    it 'offers nothing on a closed trade or to an outsider' do
+      closed = create(:trade, proposer: proposer, recipient: recipient, status: 'completed')
+
+      expect(allowed(proposer, on: closed)).to be_empty
+      expect(allowed(outsider)).to be_empty
+    end
+  end
+
   it 'refuses an event that is not part of the state machine' do
     expect(transition('haggle', user: recipient)[:error]).to match(/Unknown trade action/)
   end

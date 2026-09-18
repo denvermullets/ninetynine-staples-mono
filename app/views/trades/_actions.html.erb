@@ -1,0 +1,34 @@
+<%# locals: trade, detail - Trades::Detail %>
+<%#
+  The buttons are exactly detail[:actions], which comes straight from Trades::Transition's guards -
+  nothing here decides who may do what.
+
+  Completion is two-step: each party presses "I've received my cards" once theirs arrive, and the
+  trade only closes when both have. Until then this says whose confirmation is still outstanding.
+%>
+
+<% if trade.accepted? || detail[:actions].any? %>
+  <div
+    class="
+      flex flex-col gap-4 p-6 border rounded-3xl bg-foreground
+      border-highlight sm:flex-row sm:items-center sm:justify-between
+    "
+  >
+    <div class="text-sm text-grey-text/70">
+      <% trade_progress_lines(trade, detail).each do |line| %>
+        <p><%= line %></p>
+      <% end %>
+    </div>
+
+    <% if detail[:actions].any? %>
+      <div class="flex flex-wrap gap-2">
+        <% detail[:actions].each do |event| %>
+          <%= button_to TradesHelper::ACTION_LABELS.fetch(event), transition_trade_path(trade),
+            method: :patch, params: { event: event },
+            form: { data: { turbo_confirm: TradesHelper::ACTION_CONFIRMS[event] } },
+            class: "px-4 py-2 text-sm rounded-md cursor-pointer #{%w[decline cancel].include?(event) ? 'bg-background text-grey-text hover:bg-menu' : 'bg-highlight text-nine-white hover:opacity-90'}" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

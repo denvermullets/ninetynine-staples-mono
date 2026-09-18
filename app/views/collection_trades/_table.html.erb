@@ -1,10 +1,11 @@
-<%# locals: cards - MagicCard rows from CollectionQuery::PageRows, pagy, owner %>
+<%# locals: cards - MagicCard rows from CollectionQuery::PageRows, pagy, owner, username %>
 <%#
   One row per printing on offer. Retail is the headline price and the buylist sits under it in muted
   text - the trade is valued at retail, the buylist is the floor either side can check it against.
 
-  The Add to trade button is rendered hidden until the trade builder wires it up; it carries the
-  printing id so that issue only has to reveal it and attach an action.
+  Add to trade opens the builder with this printing already on the other side. Logged-out visitors
+  do not get it: the builder is authenticated, and a link that only ever bounces to the login page
+  is worse than no link.
 %>
 
 <div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
@@ -62,18 +63,9 @@
           </td>
 
           <td class="px-4 py-2 text-sm whitespace-nowrap">
-            <% unless owner %>
-              <button
-                type="button"
-                class="
-                  hidden px-2 py-1 text-xs border rounded border-highlight
-                  hover:border-accent-50 hover:text-accent-50
-                "
-                data-trade-add-target="button"
-                data-magic-card-id="<%= card.id %>"
-              >
-                Add to trade
-              </button>
+            <% if !owner && logged_in? %>
+              <%= link_to 'Add to trade', new_trade_path(with: username, card: card.id),
+                class: 'px-2 py-1 text-xs border rounded border-highlight hover:border-accent-50 hover:text-accent-50' %>
             <% end %>
           </td>
         </tr>

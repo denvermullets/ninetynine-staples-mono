@@ -44,9 +44,22 @@ RSpec.describe Trades::Propose, type: :service do
       expect(offered.unit_foil_price_snapshot).to eq(9)
     end
 
+    it 'starts the timeline with the proposal' do
+      trade = propose([item(mine, 'proposer')])[:trade]
+
+      expect(trade.trade_events.map { |event| [event.event, event.user] }).to eq([['proposed', proposer]])
+    end
+
     it 'leaves the collection counts alone - a proposal moves nothing' do
       propose([item(mine, 'proposer', quantity: 2)])
       expect(mine.reload).to have_attributes(quantity: 4, trade_quantity: 4)
+    end
+
+    it 'notifies the recipient' do
+      trade = propose([item(mine, 'proposer')])[:trade]
+
+      expect(recipient.notifications.map { |n| [n.kind, n.notifiable] }).to eq([['trade_proposed', trade]])
+      expect(proposer.notifications).to be_empty
     end
   end
 

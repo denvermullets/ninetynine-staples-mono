@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_17_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -500,6 +500,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120001) do
     t.index ["scryfall_oracle_id"], name: "index_magic_cards_on_scryfall_oracle_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "kind", null: false
+    t.bigint "notifiable_id"
+    t.string "notifiable_type"
+    t.datetime "read_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+  end
+
   create_table "oracle_tag_ancestors", force: :cascade do |t|
     t.bigint "ancestor_id", null: false
     t.integer "depth", null: false
@@ -616,6 +628,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120001) do
     t.index ["user_id"], name: "index_tracked_decks_on_user_id"
   end
 
+  create_table "trade_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event", null: false
+    t.bigint "trade_id", null: false
+    t.bigint "user_id"
+    t.index ["trade_id"], name: "index_trade_events_on_trade_id"
+    t.index ["user_id"], name: "index_trade_events_on_user_id"
+  end
+
   create_table "trade_items", force: :cascade do |t|
     t.bigint "collection_magic_card_id"
     t.datetime "created_at", null: false
@@ -697,6 +718,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120001) do
   add_foreign_key "magic_card_legalities", "magic_cards"
   add_foreign_key "magic_card_variations", "magic_cards"
   add_foreign_key "magic_card_variations", "magic_cards", column: "variation_id"
+  add_foreign_key "notifications", "users"
   add_foreign_key "oracle_tag_ancestors", "oracle_tags", column: "ancestor_id"
   add_foreign_key "oracle_tag_ancestors", "oracle_tags", column: "descendant_id"
   add_foreign_key "oracle_tags", "users", column: "created_by_id"
@@ -706,6 +728,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120001) do
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"
   add_foreign_key "tracked_decks", "users"
+  add_foreign_key "trade_events", "trades"
+  add_foreign_key "trade_events", "users"
   add_foreign_key "trade_items", "collection_magic_cards"
   add_foreign_key "trade_items", "magic_cards"
   add_foreign_key "trade_items", "trades"

@@ -16,6 +16,8 @@ class Trade < ApplicationRecord
                             inverse_of: :parent_trade
 
   has_many :trade_items, dependent: :destroy
+  has_many :trade_events, -> { order(:created_at, :id) }, dependent: :delete_all, inverse_of: :trade
+  has_many :notifications, as: :notifiable, dependent: :delete_all
 
   validates :proposer_id, comparison: { other_than: :recipient_id }
 

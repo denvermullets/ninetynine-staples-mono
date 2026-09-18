@@ -1,0 +1,65 @@
+<%#
+  The trade inbox. Incoming and outgoing are the open trades on each side, history is everything that
+  has closed - Trades::Inbox draws the lines. The tabs are plain links, so each one is its own URL.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Trades',
+    subtext: 'Offers you have made and received. A trade is a record of the deal - it never moves cards between binders.' } %>
+
+  <div class="flex flex-wrap items-center gap-2">
+    <% { 'incoming' => 'Incoming', 'outgoing' => 'Outgoing', 'history' => 'History' }.each do |key, label| %>
+      <%= link_to trades_path(tab: key),
+        aria: { current: ('page' if key == @tab) },
+        class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == @tab ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+        <%= label %>
+
+        <span class="ml-1 text-xs opacity-60">
+          <%= number_with_delimiter(@counts[key]) %>
+        </span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @trades.empty? %>
+    <div
+      class="
+        p-12 text-center border rounded-3xl bg-foreground border-highlight
+        text-grey-text
+      "
+    >
+      <p class="text-xl font-semibold">
+        <%= { 'incoming' => 'No offers waiting', 'outgoing' => 'No open offers', 'history' => 'No finished trades yet' }[@tab] %>
+      </p>
+
+      <p class="mt-2 text-sm text-grey-text/70">
+        <%= { 'incoming' => 'Trades other players propose to you will show up here.',
+              'outgoing' => "Start one from another player's trade list.",
+              'history' => 'Completed, declined and cancelled trades end up here.' }[@tab] %>
+      </p>
+    </div>
+  <% else %>
+    <div
+      class="
+        flex flex-col border divide-y rounded-3xl bg-foreground
+        border-highlight divide-highlight
+      "
+    >
+      <% @trades.each do |trade| %>
+        <%= render partial: 'trades/inbox_row', locals: { trade: trade, viewer: current_user } %>
+      <% end %>
+    </div>
+    <% if @pagy.last > 1 %>
+      <div class="flex flex-row items-center justify-between w-full space-x-4">
+        <%== @pagy.info_tag %>
+        <%== @pagy.series_nav %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

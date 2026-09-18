@@ -189,6 +189,33 @@ Rails.application.routes.draw do
     resources :games, only: %i[index show], controller: 'game_tracker/commander_games', as: 'commander_games'
   end
 
+  # Trade builder, inbox and proposals. Every route here is session-scoped: who is proposing comes from
+  # the session and who they are proposing to rides in the query string or the body, never the path.
+  # Same split as the game tracker, where the username-scoped routes are the read-only half.
+  scope 'trades' do
+    resources :trades, path: '', only: %i[index show new create] do
+      collection do
+        post :preview
+      end
+
+      # accept / decline / cancel / complete, named in `event` - Trades::Transition decides the rest
+      member do
+        patch :transition
+      end
+    end
+  end
+
+  # In-app notifications, always the signed-in user's own. Reading one goes on to whatever it is about.
+  resources :notifications, only: :index do
+    member do
+      patch :read
+    end
+
+    collection do
+      patch :read_all
+    end
+  end
+
   # Card scanner routes
   get 'scan-cards', to: 'card_scanner#show', as: :card_scanner
   get 'scan-cards/search', to: 'card_scanner#search', as: :card_scanner_search

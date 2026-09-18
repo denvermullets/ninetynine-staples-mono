@@ -1,0 +1,35 @@
+<%# locals: side, heading, rows, preselected, empty_text %>
+<%#
+  One column of the builder. Every row the owner can still offer is on the page, so the filter is a
+  client-side one - there is nothing to fetch.
+%>
+
+<div class="flex flex-col border rounded-3xl bg-foreground border-highlight">
+  <div class="flex flex-col gap-3 p-4 border-b border-highlight">
+    <div class="flex items-baseline justify-between gap-2">
+      <h2 class="text-lg font-semibold text-grey-text"><%= heading %></h2>
+
+      <span class="text-xs text-grey-text/50">
+        <%= pluralize(rows.size, 'printing') %>
+      </span>
+    </div>
+
+    <% if rows.any? %>
+      <%= tag.input type: 'search', placeholder: 'Filter these cards',
+        aria: { label: "Filter #{heading}" },
+        data: { side: side, action: 'input->trade-builder#filter' },
+        class: 'px-3 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text' %>
+    <% end %>
+  </div>
+
+  <% if rows.empty? %>
+    <p class="p-8 text-sm text-center text-grey-text/70"><%= empty_text %></p>
+  <% else %>
+    <div class="overflow-y-auto divide-y max-h-96 divide-highlight">
+      <% rows.each do |row| %>
+        <%= render partial: 'trades/row', locals: {
+          row: row, side: side, preselected: preselected } %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

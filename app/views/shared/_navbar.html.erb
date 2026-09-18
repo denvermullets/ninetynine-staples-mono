@@ -90,6 +90,10 @@
           <div class="<%= nav_item_classes('/game-tracker/' + current_user.username) %>">
             <%= link_to 'Game Tracker', game_tracker_path(current_user.username) %>
           </div>
+          <!-- Trades Link -->
+          <div class="<%= trades_nav_classes %>">
+            <%= render partial: 'shared/trades_nav_link' %>
+          </div>
         <% else %>
           <p class="<%= nav_item_classes('/collections/') %> text-gray-500">
             My Cards
@@ -191,6 +195,7 @@
             </div>
           </div>
         <% end %>
+        <%= render partial: 'shared/notifications_nav_link', locals: { icon: true } %>
         <%= link_to 'Settings', settings_path, class: 'hover:text-white' %>
         <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'hover:text-white' %>
       <% else %>
@@ -354,6 +359,12 @@
       </div>
       <div class="<%= nav_item_classes('/game-tracker/' + current_user.username) %> px-4">
         <%= link_to 'Game Tracker', game_tracker_path(current_user.username) %>
+      </div>
+      <div class="<%= trades_nav_classes %> px-4">
+        <%= render partial: 'shared/trades_nav_link' %>
+      </div>
+      <div class="<%= nav_item_classes('/notifications') %> px-4">
+        <%= render partial: 'shared/notifications_nav_link' %>
       </div>
       <!-- Features Link -->
       <div class="<%= nav_item_classes('/features') %> px-4">

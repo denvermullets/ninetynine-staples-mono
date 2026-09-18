@@ -1,0 +1,48 @@
+<%# locals: row - Trades::AvailableRows::Row, side, preselected %>
+<%#
+  One collection row on one side of the draft. The inputs carry no name: the draft only becomes form
+  fields when trade-builder#submit writes them, so nothing here is posted by accident.
+
+  A finish with nothing left to offer gets no input at all - the row is still listed because the
+  other finish is available, and an input capped at zero would only look broken.
+%>
+
+<div
+  class="flex items-center justify-between gap-3 px-4 py-2"
+  data-trade-builder-target="row"
+  data-side="<%= side %>"
+  data-row-id="<%= row.id %>"
+  data-card-name="<%= row.magic_card.name.to_s.downcase %>"
+>
+  <div class="min-w-0">
+    <p class="text-sm truncate text-grey-text">
+      <%= row.magic_card.name.to_s.split('//').first %>
+    </p>
+
+    <p class="text-xs truncate text-grey-text/50">
+      <%= row.magic_card.boxset&.code %> #<%= row.magic_card.card_number %> ·
+      <%= row.collection_name %>
+    </p>
+  </div>
+
+  <div class="flex items-center gap-3 shrink-0 text-grey-text/70">
+    <%# a card arriving from an "Add to trade" link starts at one copy of whichever finish it has %>
+    <% prefill = preselected == row.id && (row.quantity.positive? ? :quantity : :foil_quantity) %>
+
+    <% { quantity: '', foil_quantity: 'foil' }.each do |field, finish| %>
+      <% available = row.public_send(field) %>
+
+      <% if available.positive? %>
+        <div class="flex items-center gap-1 text-xs">
+          <%= tag.input type: 'number', value: (1 if prefill == field),
+            min: 0, max: available, step: 1, inputmode: 'numeric',
+            aria: { label: "#{finish.presence || 'regular'} copies of #{row.magic_card.name} to trade" },
+            data: { trade_field: field, action: 'input->trade-builder#change' },
+            class: 'w-14 px-2 py-1 text-sm text-right border rounded-md border-highlight bg-background text-grey-text' %>
+
+          <span><%= "/ #{available} #{finish}".strip %></span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

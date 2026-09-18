@@ -1,0 +1,7 @@
+<%# locals: count %>
+<%# the badge itself - Notifications::Deliver re-renders this into every [data-unread-badge] as counts change %>
+<% if count.positive? %>
+  <span class="px-1.5 text-xs rounded-full bg-accent-100 text-nine-white">
+    <%= count %>
+  </span>
+<% end %>

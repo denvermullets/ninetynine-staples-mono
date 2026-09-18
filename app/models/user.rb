@@ -10,6 +10,7 @@ class User < ApplicationRecord
                              inverse_of: :proposer
   has_many :received_trades, class_name: 'Trade', foreign_key: :recipient_id, dependent: :destroy,
                              inverse_of: :recipient
+  has_many :notifications, dependent: :delete_all
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }

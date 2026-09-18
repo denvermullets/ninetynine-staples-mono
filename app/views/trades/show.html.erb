@@ -1,0 +1,111 @@
+<%#
+  One trade, seen by one of its two parties - everyone else was 404'd before getting here. Everything
+  on the page faces the viewer: their counterparty's side on the left, theirs on the right, and a
+  difference that is positive when the deal favours them. Trades::Detail does that turning.
+
+  Totals are at the prices snapshotted when the trade was proposed, because that is the deal both
+  parties saw. The drift badge is the only place today's prices show up, and only while the trade is
+  still open - once it has closed, what the cards are worth now no longer bears on it.
+%>
+
+<% them = @detail[:theirs][:user] %>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <div class="flex flex-col gap-2">
+    <%= render partial: 'shared/page_header', locals: {
+      header: "Trade with #{them.username}",
+      subtext: "#{trade_party_name(@trade.proposer, current_user)} proposed this on #{@trade.created_at.strftime('%b %-d, %Y')}." } %>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <%= trade_status_badge(@trade.status) %>
+
+      <% if @trade.open? && @detail[:drift?] %>
+        <span
+          class="
+            px-2 py-0.5 text-xs rounded-full bg-accent-200/20
+            text-accent-200
+          "
+          title="At today's prices the difference is <%= number_to_currency(@detail[:live_difference].abs) %> <%= trade_difference_text(@detail[:live_difference]) %>."
+        >
+          Prices have moved since this was proposed
+        </span>
+      <% end %>
+
+      <%= link_to 'Back to trades', trades_path, class: 'ml-auto text-sm text-grey-text/70 hover:text-grey-text' %>
+    </div>
+  </div>
+
+  <% if flash[:notice] %>
+    <div
+      class="
+        px-4 py-3 text-sm border rounded-xl border-accent-50/40 bg-foreground
+        text-grey-text
+      "
+    >
+      <%= flash[:notice] %>
+    </div>
+  <% end %>
+
+  <% if @trade.completed? %>
+    <div
+      class="
+        px-4 py-3 text-sm border rounded-xl border-accent-200/40 bg-foreground
+        text-grey-text
+      "
+    >
+      Trade complete. 99 Staples only keeps the record - it never moves cards
+      between collections - so take the cards you gave out of your binders and
+      add the ones you received by hand. The traded copies have already been
+      taken off your trade list.
+    </div>
+  <% end %>
+
+  <div class="p-6 border rounded-3xl bg-foreground border-highlight">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <%= render partial: 'collection_stats/kpi', locals: {
+        label: "#{them.username} gives",
+        value: number_to_currency(@detail[:theirs][:retail]),
+        sub: trade_side_sub(@detail[:theirs]) } %>
+
+      <%= render partial: 'collection_stats/kpi', locals: {
+        label: 'You give',
+        value: number_to_currency(@detail[:mine][:retail]),
+        sub: trade_side_sub(@detail[:mine]) } %>
+
+      <%= render partial: 'collection_stats/kpi', locals: {
+        label: 'Difference', tone: trade_difference_tone(@detail[:difference]),
+        value: number_to_currency(@detail[:difference].abs),
+        sub: trade_difference_text(@detail[:difference]) } %>
+    </div>
+  </div>
+
+  <%= render partial: 'trades/actions', locals: {
+    trade: @trade, detail: @detail } %>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <%= render partial: 'trades/detail_side', locals: {
+      side: @detail[:theirs], heading: "#{them.username} gives" } %>
+
+    <%= render partial: 'trades/detail_side', locals: {
+      side: @detail[:mine], heading: 'You give' } %>
+  </div>
+
+  <% if @trade.message.present? %>
+    <div class="p-6 space-y-2 border rounded-3xl bg-foreground border-highlight">
+      <p class="text-sm text-grey-text/70">
+        Message from
+        <%= @trade.proposer == current_user ? 'you' : @trade.proposer.username %>
+      </p>
+
+      <p class="text-sm whitespace-pre-line text-grey-text"><%= @trade.message %></p>
+    </div>
+  <% end %>
+
+  <%= render partial: 'trades/timeline', locals: {
+    events: @detail[:timeline], viewer: current_user } %>
+</div>

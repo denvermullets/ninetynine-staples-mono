@@ -1,0 +1,4 @@
+<%# the Trades nav link, with a badge for unread notifications about trades %>
+<%= link_to trades_path, class: 'inline-flex items-center gap-1.5' do %>
+  Trades <%= unread_badge('Trade') %>
+<% end %>

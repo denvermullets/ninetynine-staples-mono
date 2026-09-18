@@ -29,6 +29,11 @@ class TradeItem < ApplicationRecord
                             normal: unit_price_snapshot, foil: unit_foil_price_snapshot)
   end
 
+  # [regular, foil] per-copy retail as agreed, with the same fallback as the totals above
+  def unit_prices
+    Trades::UnitPrice.pair(unit_price_snapshot, unit_foil_price_snapshot)
+  end
+
   def buylist_value
     Trades::UnitPrice.value(quantity: quantity, foil_quantity: foil_quantity,
                             normal: unit_buylist_snapshot, foil: unit_buylist_foil_snapshot)
