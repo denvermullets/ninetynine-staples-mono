@@ -71,4 +71,12 @@ RSpec.describe Trades::AvailableRows, type: :service do
 
     expect(rows.map { |available| available.magic_card.name }).to eq(['Black Lotus', 'Lightning Bolt'])
   end
+
+  it 'hands back the copies held by the trade being countered' do
+    binder_row = row(lotus)
+    original = open_trade(binder_row, quantity: 3)
+    open_trade(binder_row, quantity: 1)
+
+    expect(described_class.call(user: user, except_trade: original).first).to have_attributes(quantity: 3)
+  end
 end

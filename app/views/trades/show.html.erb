@@ -22,7 +22,7 @@
       subtext: "#{trade_party_name(@trade.proposer, current_user)} proposed this on #{@trade.created_at.strftime('%b %-d, %Y')}." } %>
 
     <div class="flex flex-wrap items-center gap-2">
-      <%= trade_status_badge(@trade.status) %>
+      <%= trade_status_badge(@trade) %>
 
       <% if @trade.open? && @detail[:drift?] %>
         <span
@@ -48,6 +48,33 @@
       "
     >
       <%= flash[:notice] %>
+    </div>
+  <% end %>
+
+  <% if @detail[:parent] || @detail[:counter_offer] %>
+    <div
+      class="
+        flex flex-col gap-1 px-4 py-3 text-sm border rounded-xl border-highlight
+        bg-foreground text-grey-text
+      "
+    >
+      <% if @detail[:parent] %>
+        <p>
+          <%= trade_party_name(@trade.proposer, current_user) %> sent this as a
+          counter-offer.
+          <%= link_to 'See the original trade', trade_path(@detail[:parent]),
+            class: 'underline text-accent-50 hover:opacity-80' %>
+        </p>
+      <% end %>
+
+      <% if @detail[:counter_offer] %>
+        <p>
+          <%= trade_party_name(@detail[:counter_offer].proposer, current_user) %>
+          answered this with a counter-offer.
+          <%= link_to 'See the counter-offer', trade_path(@detail[:counter_offer]),
+            class: 'underline text-accent-50 hover:opacity-80' %>
+        </p>
+      <% end %>
     </div>
   <% end %>
 

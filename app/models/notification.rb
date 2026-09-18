@@ -7,7 +7,7 @@
 # A new kind needs an entry in KINDS and a sentence in NotificationsHelper::TEXT, and, if its
 # notifiable has a page, a branch in NotificationsHelper#notification_target_path.
 class Notification < ApplicationRecord
-  KINDS = %w[trade_proposed trade_accepted trade_declined trade_cancelled trade_completed].freeze
+  KINDS = %w[trade_proposed trade_countered trade_accepted trade_declined trade_cancelled trade_completed].freeze
 
   belongs_to :user
   belongs_to :notifiable, polymorphic: true, optional: true

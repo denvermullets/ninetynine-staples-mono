@@ -5,6 +5,7 @@ module TradesHelper
     'accepted' => 'bg-highlight text-nine-white',
     'completed' => 'bg-accent-50/20 text-accent-50',
     'declined' => 'bg-accent-100/20 text-accent-100',
+    'countered' => 'bg-accent-200/20 text-accent-200',
     'cancelled' => 'bg-accent-100/20 text-accent-100'
   }.freeze
 
@@ -25,6 +26,7 @@ module TradesHelper
     'proposed' => 'proposed the trade',
     'accepted' => 'accepted',
     'declined' => 'declined',
+    'countered' => 'declined with a counter-offer',
     'cancelled' => 'cancelled',
     'confirmed' => 'confirmed receipt'
   }.freeze
@@ -55,7 +57,10 @@ module TradesHelper
     nav_item_classes(*(request.path.start_with?('/trades') ? ['/trades'] : []))
   end
 
-  def trade_status_badge(status)
+  # a countered trade is declined as far as the state machine goes, but it reads as a conversation
+  # still going rather than a no
+  def trade_status_badge(trade)
+    status = trade.countered? ? 'countered' : trade.status
     tag.span status.capitalize,
              class: "px-2 py-0.5 text-xs rounded-full whitespace-nowrap #{STATUS_CLASSES.fetch(status)}"
   end
@@ -90,7 +95,7 @@ module TradesHelper
     return [my_confirmation_line(detail[:mine]), their_confirmation_line(detail[:theirs], them)] if trade.accepted?
     return ["Waiting on #{them} to answer."] if trade.proposer_id == detail[:mine][:user].id
 
-    ["#{them} is waiting on your answer."]
+    ["#{them} is waiting on your answer. Accept it, decline it, or counter with changes of your own."]
   end
 
   def trade_time(time)

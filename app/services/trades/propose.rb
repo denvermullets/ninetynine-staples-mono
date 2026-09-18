@@ -8,6 +8,12 @@
 # playset to five people and only find out when four of them accepted - the counts on the collection
 # row don't move until a trade completes, so they can't be the whole answer on their own.
 #
+# A counter-offer is a proposal with a `parent`: the trade it answers. Only that trade's recipient can
+# send one, back to its proposer, while it is still proposed. The parent is declined - with a
+# `countered` event rather than a `declined` one, so its timeline says why - in the same transaction
+# the counter is written, and before its items are checked: once the parent is closed its copies stop
+# counting as committed, which is what lets the counter put the same cards back on the table.
+#
 # Prices are snapshotted here. Both parties agreed on the numbers they were shown, and a card
 # spiking between proposal and acceptance shouldn't silently rewrite the deal.
 module Trades
@@ -19,15 +25,16 @@ module Trades
       unit_buylist_foil_snapshot: :ck_buylist_foil_price
     }.freeze
 
-    def initialize(proposer:, recipient:, items:, message: nil)
+    def initialize(proposer:, recipient:, items:, message: nil, parent: nil)
       @proposer = proposer
       @recipient = recipient
       @items = Array(items).map { |item| item.to_h.symbolize_keys }
       @message = message
+      @parent = parent
     end
 
     def call
-      error = guard
+      error = guard || counter_guard
       return { success: false, error: error } if error
 
       trade = build_trade
@@ -48,14 +55,34 @@ module Trades
       nil
     end
 
+    def counter_guard
+      return nil if @parent.nil?
+      return nil if @parent.counterable_by?(@proposer) && @parent.proposer_id == @recipient.id
+
+      'You can only counter an open offer that was made to you.'
+    end
+
     def build_trade
       ActiveRecord::Base.transaction do
-        trade = Trade.create!(proposer: @proposer, recipient: @recipient, status: 'proposed', message: @message)
+        close_parent if @parent
+        trade = Trade.create!(proposer: @proposer, recipient: @recipient, status: 'proposed', message: @message,
+                              parent_trade: @parent)
         @items.each { |item| trade.trade_items.create!(item_attributes(item)) }
         trade.trade_events.create!(user: @proposer, event: 'proposed')
-        Notifications::Deliver.call(user: @recipient, kind: 'trade_proposed', notifiable: trade)
+        Notifications::Deliver.call(user: @recipient, kind: @parent ? 'trade_countered' : 'trade_proposed',
+                                    notifiable: trade)
         trade
       end
+    end
+
+    # locked and re-checked, so the parent cannot be accepted, cancelled or countered twice while the
+    # counter is being written
+    def close_parent
+      @parent.lock!
+      raise ProposalError, "This trade is already #{@parent.status}." unless @parent.proposed?
+
+      @parent.update!(status: 'declined')
+      @parent.trade_events.create!(user: @proposer, event: 'countered')
     end
 
     def item_attributes(item)

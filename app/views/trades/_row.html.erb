@@ -1,4 +1,4 @@
-<%# locals: row - Trades::AvailableRows::Row, side, preselected %>
+<%# locals: row - Trades::AvailableRows::Row, side, prefill - { row_id => { quantity:, foil_quantity: } } %>
 <%#
   One collection row on one side of the draft. The inputs carry no name: the draft only becomes form
   fields when trade-builder#submit writes them, so nothing here is posted by accident.
@@ -26,15 +26,15 @@
   </div>
 
   <div class="flex items-center gap-3 shrink-0 text-grey-text/70">
-    <%# a card arriving from an "Add to trade" link starts at one copy of whichever finish it has %>
-    <% prefill = preselected == row.id && (row.quantity.positive? ? :quantity : :foil_quantity) %>
+    <%# an "Add to trade" link or a counter-offer's original trade starts the row with copies in it %>
+    <% start = prefill.fetch(row.id, {}) %>
 
     <% { quantity: '', foil_quantity: 'foil' }.each do |field, finish| %>
       <% available = row.public_send(field) %>
 
       <% if available.positive? %>
         <div class="flex items-center gap-1 text-xs">
-          <%= tag.input type: 'number', value: (1 if prefill == field),
+          <%= tag.input type: 'number', value: (start[field] if start[field].to_i.positive?),
             min: 0, max: available, step: 1, inputmode: 'numeric',
             aria: { label: "#{finish.presence || 'regular'} copies of #{row.magic_card.name} to trade" },
             data: { trade_field: field, action: 'input->trade-builder#change' },

@@ -6,7 +6,12 @@
 # because that is the deal both parties were shown; the live one only backs the drift badge.
 #
 # `actions` are the Trades::Transition events the viewer can fire right now, straight from its
-# guards, so the page never offers a button the state machine would refuse.
+# guards, so the page never offers a button the state machine would refuse. Countering is not one of
+# them - it writes a new trade rather than moving this one - so `counter?` rides alongside, from the
+# same rule Trades::Propose checks.
+#
+# `parent` and `counter_offer` are the trades either side of this one in a counter-offer chain. Both
+# have the same two parties, so linking to them never shows the viewer a trade they are not on.
 #
 # Only for a party to the trade - the controller has already 404'd everyone else.
 module Trades
@@ -26,6 +31,8 @@ module Trades
         difference: valuation[:difference] * sign, live_difference: valuation[:live_difference] * sign,
         drift?: valuation[:drift?],
         actions: Transition.allowed_events(trade: @trade, user: @viewer),
+        counter?: @trade.counterable_by?(@viewer),
+        parent: @trade.parent_trade, counter_offer: @trade.counter_offers.max_by(&:id),
         timeline: @trade.trade_events.to_a }
     end
 

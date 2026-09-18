@@ -6,6 +6,10 @@
 # the user's other open trades. A row with nothing left after that subtraction is dropped - it is on
 # their trade list, but every copy of it is already in somebody else's proposal.
 #
+# A counter-offer passes the trade it answers as except_trade. Those copies are still committed while
+# the builder is open, but they are the ones being put back on the table - left in, both sides of the
+# original would come up short in its own counter.
+#
 # The counts on each row are what the builder's quantity inputs are capped at. They are a courtesy,
 # not the guard: Propose re-checks availability at proposal time, because the page may have been
 # open while another trade was accepted.
@@ -13,8 +17,9 @@ module Trades
   class AvailableRows < Service
     Row = Data.define(:id, :magic_card, :collection_name, :quantity, :foil_quantity)
 
-    def initialize(user:)
+    def initialize(user:, except_trade: nil)
       @user = user
+      @except_trade = except_trade
     end
 
     def call
@@ -33,7 +38,7 @@ module Trades
     end
 
     def committed
-      @committed ||= Committed.call(user: @user, collection_magic_card_ids: rows.map(&:id))
+      @committed ||= Committed.call(user: @user, collection_magic_card_ids: rows.map(&:id), except_trade: @except_trade)
     end
 
     def available(row)

@@ -4,7 +4,7 @@ class MagicCardsController < ApplicationController
   def show
     card = MagicCard.find(params[:id])
 
-    render partial: 'magic_cards/details', locals: { card: }
+    render partial: 'magic_cards/details', locals: { card:, trade_holders: trade_holders(card) }
   end
 
   def show_boxset_card
@@ -70,6 +70,13 @@ class MagicCardsController < ApplicationController
     card.other_printing_locations(user)
   end
 
+  # the back face of a double-faced card renders none of the sections below the card image
+  def trade_holders(card)
+    return [] unless card.card_side.nil? || card.card_side == 'a'
+
+    MagicCards::TradeHolders.call(card: card, viewer: current_user)
+  end
+
   def card_details_locals(card, user_data, card_locations, other_printing_locations)
     {
       card:,
@@ -77,6 +84,7 @@ class MagicCardsController < ApplicationController
       card_locations:,
       other_printing_locations:,
       editable: user_data[:editable],
+      trade_holders: trade_holders(card),
       # the collections table filtered to one collection sums trade counts over just that one
       row_collection_id: params[:collection_id]
     }

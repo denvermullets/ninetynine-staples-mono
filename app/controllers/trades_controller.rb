@@ -9,6 +9,10 @@
 # written. Nothing is saved until then: there is no draft status and a half-built trade left on
 # screen is just a page nobody submitted.
 #
+# A counter-offer is the same builder and the same #create, with `counter` naming the trade being
+# answered. The builder starts pre-filled from it, and Trades::Propose decides whether it may be
+# answered at all.
+#
 # A trade is only ever found through current_user.trades, so anyone who is not one of its two parties
 # gets a 404 - not a 403, which would confirm the trade exists.
 class TradesController < ApplicationController
@@ -22,6 +26,8 @@ class TradesController < ApplicationController
 
   before_action :authenticate_user!
   before_action :set_recipient, only: :new
+  before_action :set_parent, only: :new
+  before_action :find_parent, only: :create
   before_action :set_trade, only: %i[show transition]
 
   def index
@@ -45,9 +51,9 @@ class TradesController < ApplicationController
   end
 
   def new
-    @their_rows = Trades::AvailableRows.call(user: @recipient)
-    @my_rows = Trades::AvailableRows.call(user: current_user)
-    @preselected = preselected_row_id
+    @their_rows = Trades::AvailableRows.call(user: @recipient, except_trade: @parent)
+    @my_rows = Trades::AvailableRows.call(user: current_user, except_trade: @parent)
+    @prefill = @parent ? Trades::CounterDraft.call(parent: @parent, rows: @their_rows + @my_rows) : preselected
     @totals = draft_totals(@recipient)
   end
 
@@ -63,17 +69,19 @@ class TradesController < ApplicationController
 
   def create
     result = Trades::Propose.call(proposer: current_user, recipient: User.find_by(username: params[:with]),
-                                  items: submitted_items, message: params[:message].presence)
+                                  items: submitted_items, message: params[:message].presence, parent: @parent)
     return render_error_toast(result[:error]) unless result[:success]
 
-    redirect_to trade_path(result[:trade]), notice: "Trade proposed to #{result[:trade].recipient.username}."
+    noun = @parent ? 'Counter-offer sent' : 'Trade proposed'
+    redirect_to trade_path(result[:trade]), notice: "#{noun} to #{result[:trade].recipient.username}."
   end
 
   private
 
   def set_trade
     @trade = current_user.trades
-                         .includes(:proposer, :recipient, trade_events: :user, trade_items: { magic_card: :boxset })
+                         .includes(:proposer, :recipient, :parent_trade, :counter_offers,
+                                   trade_events: :user, trade_items: { magic_card: :boxset })
                          .find_by(id: params[:id])
     head :not_found if @trade.nil?
   end
@@ -87,13 +95,35 @@ class TradesController < ApplicationController
     redirect_to root_path, alert: "#{@recipient.username} is not accepting trade offers."
   end
 
+  # only the offer's recipient, answering the user who made it, gets a pre-filled counter builder -
+  # Trades::Propose would refuse anything else on submit, so there is no point drafting it
+  def set_parent
+    return if params[:counter].blank?
+
+    @parent = current_user.trades.includes(:trade_items).find_by(id: params[:counter])
+    return if @parent&.counterable_by?(current_user) && @parent.proposer_id == @recipient.id
+
+    redirect_to trades_path, alert: 'That trade can no longer be countered.'
+  end
+
+  # whether it may still be countered is Trades::Propose's call; this only makes sure it is theirs
+  def find_parent
+    return if params[:counter].blank?
+
+    @parent = current_user.trades.find_by(id: params[:counter])
+    render_error_toast('We could not find that trade.') if @parent.nil?
+  end
+
   # "Add to trade" on a trade list names a printing, but a proposal is written in collection rows -
   # so the first row offering that printing is the one that starts with a copy in it.
-  def preselected_row_id
+  def preselected
     card_id = params[:card].to_i
-    return nil unless card_id.positive?
+    return {} unless card_id.positive?
 
-    @their_rows.find { |row| row.magic_card.id == card_id }&.id
+    row = @their_rows.find { |candidate| candidate.magic_card.id == card_id }
+    return {} if row.nil?
+
+    { row.id => row.quantity.positive? ? { quantity: 1, foil_quantity: 0 } : { quantity: 0, foil_quantity: 1 } }
   end
 
   def draft_totals(recipient)

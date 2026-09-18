@@ -16,7 +16,9 @@ module Trades
     end
 
     def call
-      trades = scope(@tab).includes(:proposer, :recipient, :trade_items).order(updated_at: :desc, id: :desc)
+      # counter_offers so a countered trade in history can say so without a query per row
+      trades = scope(@tab).includes(:proposer, :recipient, :trade_items, :counter_offers)
+                          .order(updated_at: :desc, id: :desc)
 
       { tab: @tab, trades: trades, counts: TABS.index_with { |tab| scope(tab).count } }
     end

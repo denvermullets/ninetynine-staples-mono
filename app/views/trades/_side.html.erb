@@ -1,4 +1,4 @@
-<%# locals: side, heading, rows, preselected, empty_text %>
+<%# locals: side, heading, rows, prefill, empty_text %>
 <%#
   One column of the builder. Every row the owner can still offer is on the page, so the filter is a
   client-side one - there is nothing to fetch.
@@ -28,7 +28,7 @@
     <div class="overflow-y-auto divide-y max-h-96 divide-highlight">
       <% rows.each do |row| %>
         <%= render partial: 'trades/row', locals: {
-          row: row, side: side, preselected: preselected } %>
+          row: row, side: side, prefill: prefill } %>
       <% end %>
     </div>
   <% end %>

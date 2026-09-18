@@ -127,6 +127,8 @@
           collections:,
           editable:
         } %>
+        <%= render partial: 'shared/cards/trade_holders', locals: {
+          trade_holders: local_assigns[:trade_holders] || [], magic_card: card } %>
         <% if card.price_history.present? %>
           <div class="flex flex-row w-full mt-4">
             <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>

@@ -16,7 +16,7 @@
         <%= counterparty.username %>
       </span>
 
-      <%= trade_status_badge(trade.status) %>
+      <%= trade_status_badge(trade) %>
 
       <% if trade_waiting_on_you?(trade, viewer) %>
         <span class="text-xs text-accent-200">Waiting on you</span>

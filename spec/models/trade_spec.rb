@@ -17,6 +17,39 @@ RSpec.describe Trade, type: :model do
     end
   end
 
+  describe '#counterable_by?' do
+    it 'lets the recipient counter a proposed trade' do
+      expect(trade.counterable_by?(recipient)).to be(true)
+    end
+
+    it 'does not let the proposer counter their own offer' do
+      expect(trade.counterable_by?(proposer)).to be(false)
+    end
+
+    it 'closes once the trade has been answered' do
+      trade.update!(status: 'accepted')
+      expect(trade.counterable_by?(recipient)).to be(false)
+    end
+
+    it 'is false for nobody' do
+      expect(trade.counterable_by?(nil)).to be(false)
+    end
+  end
+
+  describe '#countered?' do
+    it 'is a declined trade with a counter-offer hanging off it' do
+      trade.update!(status: 'declined')
+      create(:trade, proposer: recipient, recipient: proposer, parent_trade: trade)
+
+      expect(trade.reload).to be_countered
+    end
+
+    it 'is not a plain decline' do
+      trade.update!(status: 'declined')
+      expect(trade).not_to be_countered
+    end
+  end
+
   describe '#open?' do
     it 'is open while proposed' do
       expect(trade).to be_open

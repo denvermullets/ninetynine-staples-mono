@@ -157,4 +157,75 @@ RSpec.describe Trades::Propose, type: :service do
       expect(propose([item(theirs, 'recipient')], from: other_user)[:error]).to match(/Only 0 copies/)
     end
   end
+
+  describe 'counter-offers' do
+    let(:mine) { binder_row(proposer, quantity: 2) }
+    let(:theirs) { binder_row(recipient, quantity: 2) }
+    # the proposer asks for both of the recipient's copies and puts both of theirs up
+    let!(:original) { propose([item(mine, 'proposer', quantity: 2), item(theirs, 'recipient', quantity: 2)])[:trade] }
+
+    def counter(items, from: recipient, to: proposer, parent: original)
+      described_class.call(proposer: from, recipient: to, items: items, parent: parent)
+    end
+
+    it 'writes a new trade pointing back at the one it answers, with the parties swapped' do
+      result = counter([item(theirs, 'proposer'), item(mine, 'recipient', quantity: 2)])
+
+      expect(result[:success]).to be(true)
+      expect(result[:trade]).to have_attributes(proposer_id: recipient.id, recipient_id: proposer.id,
+                                                parent_trade_id: original.id, status: 'proposed')
+    end
+
+    it 'declines the original and says on its timeline that it was countered' do
+      counter([item(theirs, 'proposer')])
+
+      expect(original.reload).to be_declined
+      expect(original).to be_countered
+      expect(original.trade_events.map { |event| [event.event, event.user] }.last).to eq(['countered', recipient])
+    end
+
+    it 'can put back on the table every copy the original held' do
+      expect(counter([item(theirs, 'proposer', quantity: 2), item(mine, 'recipient', quantity: 2)]))
+        .to include(success: true)
+    end
+
+    it 'tells the original proposer it was countered, and nothing else' do
+      proposer.notifications.delete_all
+      trade = counter([item(theirs, 'proposer')])[:trade]
+
+      expect(proposer.notifications.map { |n| [n.kind, n.notifiable] }).to eq([['trade_countered', trade]])
+    end
+
+    it 'refuses a counter from the original proposer' do
+      result = counter([item(mine, 'proposer')], from: proposer, to: recipient)
+
+      expect(result[:error]).to match(/only counter an open offer that was made to you/)
+      expect(original.reload).to be_proposed
+    end
+
+    it 'refuses a counter sent to anyone but the original proposer' do
+      third = create(:user, username: 'third', trades_public: true)
+
+      expect(counter([item(theirs, 'proposer')], to: third)[:error]).to match(/only counter/)
+    end
+
+    it 'refuses to counter a trade that is no longer waiting on an answer' do
+      Trades::Transition.call(trade: original, user: recipient, event: 'accept')
+
+      expect(counter([item(theirs, 'proposer')])[:error]).to match(/only counter/)
+    end
+
+    it 'refuses a trade that was answered after the counter was started' do
+      stale = Trade.find(original.id)
+      Trades::Transition.call(trade: original, user: recipient, event: 'decline')
+
+      expect(counter([item(theirs, 'proposer')], parent: stale)[:error]).to match(/already declined/)
+    end
+
+    it 'leaves the original open when the counter itself is refused' do
+      expect { counter([item(theirs, 'proposer', quantity: 5)]) }.not_to change(Trade, :count)
+      expect(original.reload).to be_proposed
+      expect(original.trade_events.map(&:event)).to eq(['proposed'])
+    end
+  end
 end

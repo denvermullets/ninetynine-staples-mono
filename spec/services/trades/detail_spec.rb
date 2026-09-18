@@ -55,4 +55,20 @@ RSpec.describe Trades::Detail, type: :service do
     expect(detail(proposer)[:theirs][:confirmed_at]).to be_present
     expect(detail(proposer)[:mine][:confirmed_at]).to be_nil
   end
+
+  it 'lets only the recipient counter, and only while the trade is proposed' do
+    expect(detail(recipient)[:counter?]).to be(true)
+    expect(detail(proposer)[:counter?]).to be(false)
+
+    trade.update!(status: 'accepted')
+    expect(detail(recipient)[:counter?]).to be(false)
+  end
+
+  it 'links a counter-offer and the trade it answered to each other' do
+    counter = create(:trade, proposer: recipient, recipient: proposer, parent_trade: trade)
+    trade.update!(status: 'declined')
+
+    expect(detail(proposer)).to include(counter_offer: counter, parent: nil)
+    expect(described_class.call(trade: counter, viewer: proposer)).to include(parent: trade, counter_offer: nil)
+  end
 end

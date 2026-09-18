@@ -3,6 +3,7 @@ module NotificationsHelper
   # One sentence per Notification kind. %<actor>s is whoever caused it, as notification_actor works out.
   TEXT = {
     'trade_proposed' => '%<actor>s proposed a trade to you.',
+    'trade_countered' => '%<actor>s countered your trade.',
     'trade_accepted' => '%<actor>s accepted your trade.',
     'trade_declined' => '%<actor>s declined your trade.',
     'trade_cancelled' => '%<actor>s cancelled your trade.',

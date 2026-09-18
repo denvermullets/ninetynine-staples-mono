@@ -10,7 +10,7 @@ class Trade < ApplicationRecord
 
   belongs_to :proposer, class_name: 'User'
   belongs_to :recipient, class_name: 'User'
-  # counter-offers: reserved, nothing creates one yet
+  # a counter-offer points back at the trade it answered - see Trades::Propose
   belongs_to :parent_trade, class_name: 'Trade', optional: true
   has_many :counter_offers, class_name: 'Trade', foreign_key: :parent_trade_id, dependent: :nullify,
                             inverse_of: :parent_trade
@@ -57,6 +57,17 @@ class Trade < ApplicationRecord
 
   def completed_at_for(side)
     side.to_s == 'proposer' ? proposer_completed_at : recipient_completed_at
+  end
+
+  # Only the recipient can counter, and only while the offer is still waiting on their answer - the
+  # same window in which they could decline it, which is what countering does to it.
+  def counterable_by?(user)
+    proposed? && user.present? && recipient_id == user.id
+  end
+
+  # a declined trade that was answered with a new offer rather than a plain no
+  def countered?
+    declined? && counter_offers.any?
   end
 
   def confirmed_by?(user)

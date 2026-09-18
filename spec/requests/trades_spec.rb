@@ -113,6 +113,56 @@ RSpec.describe 'Trades', type: :request do
     end
   end
 
+  describe 'countering a trade' do
+    let(:original) do
+      Trades::Propose.call(proposer: proposer, recipient: recipient,
+                           items: [item(binder_row(proposer), 'proposer')])[:trade]
+    end
+
+    it 'sends a counter the recipient cannot make back to the inbox' do
+      sign_in(proposer)
+
+      get new_trade_path(with: recipient.username, counter: original.id)
+
+      expect(response).to redirect_to(trades_path)
+    end
+
+    it 'sends a counter on a trade that is no longer open back to the inbox' do
+      original.update!(status: 'accepted')
+      sign_in(recipient)
+
+      get new_trade_path(with: proposer.username, counter: original.id)
+
+      expect(response).to redirect_to(trades_path)
+    end
+
+    it 'writes the counter-offer, declines the original and sends the recipient to the new trade' do
+      mine = binder_row(recipient)
+      sign_in(recipient)
+
+      post trades_path, params: { with: proposer.username, counter: original.id,
+                                  items: { '0' => item(mine, 'proposer') } }
+
+      counter = Trade.find_by(parent_trade_id: original.id)
+      expect(response).to redirect_to(trade_path(counter))
+      expect(counter).to have_attributes(proposer_id: recipient.id, recipient_id: proposer.id)
+      expect(original.reload).to be_countered
+    end
+
+    it 'refuses to counter a trade the user is not on' do
+      outsider = create(:user, username: 'outsider', trades_public: true)
+      sign_in(outsider)
+
+      post trades_path, params: { with: proposer.username, counter: original.id,
+                                  items: { '0' => item(binder_row(outsider), 'proposer') } },
+                        as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('could not find that trade')
+      expect(original.reload).to be_proposed
+    end
+  end
+
   describe 'POST /trades/preview' do
     before { sign_in(proposer) }
 
