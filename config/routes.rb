@@ -198,6 +198,9 @@ Rails.application.routes.draw do
     resources :games, only: %i[index show], controller: 'game_tracker/commander_games', as: 'commander_games'
   end
 
+  # "Who has my wants" - always the signed-in user's own want list, so there is no username to scope by
+  get 'wants/matches', to: 'want_matches#show', as: :want_matches
+
   # Trade builder, inbox and proposals. Every route here is session-scoped: who is proposing comes from
   # the session and who they are proposing to rides in the query string or the body, never the path.
   # Same split as the game tracker, where the username-scoped routes are the read-only half.

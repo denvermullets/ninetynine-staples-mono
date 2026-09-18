@@ -11,7 +11,8 @@
 #
 # A counter-offer is the same builder and the same #create, with `counter` naming the trade being
 # answered. The builder starts pre-filled from it, and Trades::Propose decides whether it may be
-# answered at all.
+# answered at all. The want matches page opens the same builder with `want_ids`, which pre-fills the
+# other side from those wants (Trades::WantDraft) and changes nothing else.
 #
 # A trade is only ever found through current_user.trades, so anyone who is not one of its two parties
 # gets a 404 - not a 403, which would confirm the trade exists.
@@ -56,7 +57,7 @@ class TradesController < ApplicationController
   def new
     @their_rows = Trades::AvailableRows.call(user: @recipient, except_trade: @parent)
     @my_rows = Trades::AvailableRows.call(user: current_user, except_trade: @parent)
-    @prefill = @parent ? Trades::CounterDraft.call(parent: @parent, rows: @their_rows + @my_rows) : preselected
+    @prefill = starting_draft
     @totals = draft_totals(@recipient)
   end
 
@@ -115,6 +116,20 @@ class TradesController < ApplicationController
 
     @parent = current_user.trades.find_by(id: params[:counter])
     render_error_toast('We could not find that trade.') if @parent.nil?
+  end
+
+  # a counter-offer starts from the trade it answers, "Propose trade" on the want matches page from the
+  # wants it named, and "Add to trade" from one printing
+  def starting_draft
+    return Trades::CounterDraft.call(parent: @parent, rows: @their_rows + @my_rows) if @parent
+    return preselected if params[:want_ids].blank?
+
+    Trades::WantDraft.call(proposer: current_user, want_ids: want_ids, rows: @their_rows)
+  end
+
+  # comma-separated, as the matches page writes it; anything that is not a positive id is ignored
+  def want_ids
+    params[:want_ids].to_s.split(',').map(&:to_i).select(&:positive?)
   end
 
   # "Add to trade" on a trade list names a printing, but a proposal is written in collection rows -

@@ -47,7 +47,7 @@
           <div data-controller="dropdown" class="relative">
             <button
               data-action="click->dropdown#toggle"
-              class="<%= nav_item_classes('/collections/' + current_user.username, '/decks/' + current_user.username, '/scan-cards') %> cursor-pointer flex items-center gap-1"
+              class="<%= nav_item_classes('/collections/' + current_user.username, '/decks/' + current_user.username, '/scan-cards', '/wants/matches') %> cursor-pointer flex items-center gap-1"
             >
               My Cards
               <svg
@@ -80,6 +80,7 @@
               <%= link_to 'Proxies', collection_proxies_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Trade List', collection_trades_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Want List', collection_wants_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
+              <%= link_to 'Want Matches', want_matches_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Brew', collection_brew_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Decks', decks_index_path(current_user.username), class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
               <%= link_to 'Scan Cards', card_scanner_path, class: 'block px-4 py-2 text-nav-text hover:text-white hover:bg-gray-700' %>
@@ -339,6 +340,10 @@
 
           <div class="<%= nav_item_classes('/collections/' + current_user.username + '/wants') %>">
             <%= link_to 'Want List', collection_wants_path(current_user.username) %>
+          </div>
+
+          <div class="<%= nav_item_classes('/wants/matches') %>">
+            <%= link_to 'Want Matches', want_matches_path %>
           </div>
 
           <div class="<%= nav_item_classes('/collections/' + current_user.username + '/brew') %>">

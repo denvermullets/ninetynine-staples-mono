@@ -84,6 +84,26 @@ RSpec.describe 'CollectionMagicCards', type: :request do
 
       expect(response.body).not_to include('Other Printings You Own')
     end
+
+    it 'offers to take a want the new copies fill off the want list' do
+      want = create(:want_list_item, user: user, magic_card: expanded_card)
+
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 1 },
+           as: :turbo_stream
+
+      # the card_details frame has a remove button of its own, so look for the toast's wording
+      expect(response.body).to include('to cover your want list', 'data-toast-persist-value="true"')
+      expect(want.reload).to be_persisted
+    end
+
+    it 'does not show the want toast when nothing was filled' do
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 1 },
+           as: :turbo_stream
+
+      expect(response.body).not_to include('to cover your want list')
+    end
   end
 
   describe 'POST /collection_magic_cards/update_trade' do

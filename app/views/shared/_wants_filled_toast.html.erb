@@ -1,0 +1,65 @@
+<%# locals: items - WantListItem rows from WantList::Filled, username - the want list's owner, remove_params (optional) %>
+<%#
+  "You own this now - take it off your want list?" Stays up until the user answers, and never removes
+  anything by itself.
+
+  With remove_params each want gets its own remove button, posting to WantListItemsController#destroy
+  with the params the open card_details frame was loaded with; a lone want closes the toast when it is
+  removed, and several leave it up for the rest. Broadcasts leave remove_params out -
+  they are rendered outside a request, so there is no session to sign a form with - and link to the
+  "Now owned" filter on the want list page instead.
+%>
+
+<% removable = local_assigns.key?(:remove_params)
+  names = items.map { |item| item.magic_card.name.to_s.split('//').first.strip }
+  button_class = 'px-3 py-1 text-xs transition border rounded-md cursor-pointer border-background/40 hover:bg-background hover:text-nine-white' %>
+
+<div
+  data-controller="toast"
+  data-toast-persist-value="true"
+  class="max-w-sm p-4 space-y-3 rounded-lg shadow-lg text-menu bg-accent-50"
+>
+  <div class="flex items-start justify-between gap-3">
+    <p class="text-sm">
+      <% if items.one? %>
+        You now own enough
+        <%= names.first %>
+        to cover your want list.
+      <% else %>
+        You now own enough of
+        <%= items.size %>
+        cards on your want list.
+      <% end %>
+    </p>
+
+    <button
+      type="button"
+      data-action="toast#dismiss"
+      class="text-sm leading-none cursor-pointer shrink-0 hover:text-nine-white"
+      aria-label="Keep on want list"
+    >
+      &times;
+    </button>
+  </div>
+
+  <% if removable %>
+    <div class="flex flex-col gap-2">
+      <% items.zip(names).each do |item, name| %>
+        <div class="flex items-center justify-between gap-3 text-xs">
+          <% unless items.one? %>
+            <span class="truncate"><%= name %></span>
+          <% end %>
+
+          <%= button_to 'Remove from want list', want_list_item_path(item), method: :delete,
+                params: remove_params,
+                form: { data: { turbo: true, turbo_frame: '_top',
+                                action: ('turbo:submit-end->toast#dismiss' if items.one?) }.compact },
+                class: button_class %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <%= link_to 'Review your want list', collection_wants_path(username, filter: 'owned'),
+      class: "#{button_class} inline-block" %>
+  <% end %>
+</div>

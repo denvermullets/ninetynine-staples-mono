@@ -26,6 +26,23 @@
     </div>
   <% end %>
 
+  <% if @owner %>
+    <div
+      class="
+        flex flex-col gap-3 p-4 border sm:flex-row sm:items-center
+        sm:justify-between rounded-3xl bg-foreground border-highlight
+      "
+    >
+      <p class="text-sm text-grey-text/70">
+        See who owns the cards on this list, and propose a trade for the ones
+        they have marked.
+      </p>
+
+      <%= link_to 'Find matches', want_matches_path,
+        class: 'px-3 py-1.5 text-sm text-center rounded-md shrink-0 bg-highlight text-nine-white hover:opacity-90' %>
+    </div>
+  <% end %>
+
   <%= turbo_frame_tag 'want_items', data: { turbo_action: 'advance' } do %>
     <div class="flex flex-col space-y-4">
       <% if flash[:notice] || flash[:alert] %>

@@ -1,12 +1,20 @@
 import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="toast"
+// A toast that asks the user something sets data-toast-persist-value="true" and stays until dismissed.
 export default class extends Controller {
   static targets = ["message"];
+  static values = { persist: Boolean };
 
   connect() {
-    // dismiss after 3s
+    if (this.persistValue) return;
+
+    // dismiss after 5s
     this.timeout = setTimeout(() => this.dismiss(), 5000);
+  }
+
+  disconnect() {
+    clearTimeout(this.timeout);
   }
 
   dismiss() {

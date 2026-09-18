@@ -1,3 +1,5 @@
+# Adds every card in a precon to a collection. The result's `wants_filled` lists the owner's want
+# list rows the new copies have just filled, so the job can point them at the want list.
 class PreconDeckImporter < Service
   include CollectionRecord::PriceCalculator
 
@@ -11,6 +13,7 @@ class PreconDeckImporter < Service
     @precon_deck = precon_deck
     @collection = collection
     @include_tokens = include_tokens
+    @additions = Hash.new { |hash, card| hash[card] = { quantity: 0, foil_quantity: 0 } }
   end
 
   def call
@@ -23,7 +26,8 @@ class PreconDeckImporter < Service
       end
     end
 
-    { action: :success, deck_name: @precon_deck.name, cards_imported: cards_count }
+    { action: :success, deck_name: @precon_deck.name, cards_imported: cards_count,
+      wants_filled: WantList::Filled.call(user: @collection.user, additions: @additions) }
   end
 
   private
@@ -42,6 +46,13 @@ class PreconDeckImporter < Service
 
     update_collection_card(collection_card, normal_change, foil_change)
     update_collection_totals(normal_change, foil_change)
+    record_addition(normal_change, foil_change)
+  end
+
+  # a card can sit on more than one board, so its copies are summed before the want list is asked
+  def record_addition(normal_change, foil_change)
+    @additions[@magic_card][:quantity] += normal_change
+    @additions[@magic_card][:foil_quantity] += foil_change
   end
 
   def find_or_initialize_collection_card

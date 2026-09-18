@@ -1,4 +1,6 @@
 class CollectionMagicCardsController < ApplicationController
+  include WantsFilledToast
+
   def update_collection
     result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
 
@@ -85,8 +87,15 @@ class CollectionMagicCardsController < ApplicationController
         partial: 'magic_cards/details',
         locals: reload_card_details(card_id)
       ),
-      render_success_toast(adjust_message(result))
+      render_success_toast(adjust_message(result)),
+      *wants_filled_toast(result, want_frame_context(card_id))
     ]
+  end
+
+  # the params the open card_details frame was loaded with, for the want toast's remove button
+  def want_frame_context(card_id)
+    { refresh_card_id: card_id, collection_id: params[:row_collection_id],
+      show_other_printings: params[:show_other_printings] }.compact_blank
   end
 
   # refreshes the expanded card details plus the trade pill / Trade column on the collection table row
