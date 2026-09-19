@@ -29,13 +29,6 @@ module WantListHelper
     end
   end
 
-  # A want-list row whose copies on hand already cover the quantity wanted, so the page can offer to
-  # take it off. Rows from WantList::List carry owned_quantity; anything else reads as not filled.
-  def want_filled?(item)
-    owned = item.try(:owned_quantity).to_i
-    owned.positive? && owned >= item.quantity
-  end
-
   # Same answer as MagicCard#want_list_item_for, but from one load of the viewer's wants per request.
   # The mobile cards render eagerly for a whole page of cards, where a query per card adds up.
   def preloaded_want_item_for(card)

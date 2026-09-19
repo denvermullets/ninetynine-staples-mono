@@ -1,7 +1,7 @@
 require 'rails_helper'
 
-# Answered with turbo streams of partials, so these render no layout. What gets resolved and added is
-# WantList::BulkImport's business and covered there.
+# Answered with turbo streams of partials, so these render no layout. The adding happens in
+# WantImportJob, covered in its own spec; here it only has to be enqueued for the right user.
 RSpec.describe 'WantImports', type: :request do
   let(:user) { create(:user, username: 'wanter') }
 
@@ -15,23 +15,26 @@ RSpec.describe 'WantImports', type: :request do
     expect(response).to redirect_to(login_path)
   end
 
-  it 'adds the pasted cards to the signed-in user' do
-    create(:magic_card, name: 'Sol Ring', scryfall_oracle_id: SecureRandom.uuid)
+  it 'enqueues the paste for the signed-in user and answers with the pending panel' do
     sign_in(user)
 
-    post want_imports_path, params: { decklist: "1 Sol Ring\n1 Not A Card" }, as: :turbo_stream
+    expect { post want_imports_path, params: { decklist: '1 Sol Ring' }, as: :turbo_stream }
+      .to have_enqueued_job(WantImportJob).with(user.id, collection_wants_path(user.username), decklist: '1 Sol Ring')
 
     expect(response.media_type).to eq(Mime[:turbo_stream])
-    expect(user.want_list_items.count).to eq(1)
+    expect(response.body).to include('Adding to your want list')
+    expect(user.want_list_items.count).to eq(0)
   end
 
-  it 'answers a paste over the limit' do
+  it 'hands the job the filter and sort of the page it was sent from' do
     sign_in(user)
-    text = Array.new(WantList::BulkImport::MAX_CARDS + 1) { |i| "1 Card #{i}" }.join("\n")
+    page = collection_wants_url(user.username, filter: 'unfilled', sort: 'name', page: 3)
 
-    post want_imports_path, params: { decklist: text }, as: :turbo_stream
-
-    expect(response.media_type).to eq(Mime[:turbo_stream])
+    expect do
+      post want_imports_path, params: { decklist: '1 Sol Ring' }, headers: { 'Referer' => page }, as: :turbo_stream
+    end
+      .to have_enqueued_job(WantImportJob)
+      .with(user.id, collection_wants_path(user.username, filter: 'unfilled', sort: 'name'), decklist: '1 Sol Ring')
   end
 
   describe 'adding proxies' do
@@ -41,16 +44,13 @@ RSpec.describe 'WantImports', type: :request do
       expect(response).to redirect_to(login_path)
     end
 
-    it "adds the signed-in user's proxies" do
-      card = create(:magic_card, scryfall_oracle_id: SecureRandom.uuid)
-      create(:collection_magic_card, collection: create(:collection, user: user), magic_card: card,
-                                     quantity: 0, proxy_quantity: 1)
+    it 'enqueues the import for the signed-in user, with no decklist' do
       sign_in(user)
 
-      post want_proxy_imports_path, as: :turbo_stream
+      expect { post want_proxy_imports_path, as: :turbo_stream }
+        .to have_enqueued_job(WantImportJob).with(user.id, collection_wants_path(user.username))
 
       expect(response.media_type).to eq(Mime[:turbo_stream])
-      expect(user.want_list_items.pluck(:magic_card_id)).to eq([card.id])
     end
   end
 end
