@@ -1,0 +1,205 @@
+<%#
+  The viewer's want for this card: an add button, or the row that covers it with edit + remove. It is
+  about current_user, not the collection owner, so it renders the same on anyone's collection.
+  An any-printing row for the same card counts, so the row shown may name a different printing.
+
+  The desktop copy lives inside the card_details frame and is replaced with it. The mobile card
+  expands in place, so its copy (mobile: true) carries an id of its own to be replaced by.
+
+  Desktop is a one-row table like shared/cards/_card_locations, so its buttons sit under Quick actions
+  with the rest of the panel's. The mobile card has no room for one and keeps the stacked layout.
+%>
+
+<% if logged_in? %>
+  <% mobile = local_assigns[:mobile] || false
+    want_item = mobile ? preloaded_want_item_for(magic_card) : magic_card.want_list_item_for(current_user)
+    covered_by_other_printing = want_item && want_item.magic_card_id != magic_card.front_face.id
+    # the params the card_details frame was loaded with, posted back so the refreshed frame matches
+    frame_context = { refresh_card_id: magic_card.id, username: params[:username],
+                      collection_id: params[:collection_id],
+                      show_other_printings: params[:show_other_printings] }.compact_blank
+    input_class = 'px-3 py-2 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50'
+    button_class = 'px-3 py-1 text-xs transition border rounded-md cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white' %>
+  <% edit_form = want_item && capture do %>
+    <%= form_with url: want_list_item_path(want_item), method: :patch,
+          class: "flex flex-col gap-3 #{'p-3 mt-3 border rounded-md border-highlight bg-background' if mobile}",
+          data: { turbo: true, turbo_frame: '_top' } do |f| %>
+      <% frame_context.each do |name, value| %>
+        <%= f.hidden_field name, value: value, id: nil %>
+      <% end %>
+
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <label class="flex flex-col gap-1 text-xs text-grey-text">
+          Quantity
+          <%= f.number_field :quantity, value: want_item.quantity, min: 1, id: nil,
+                class: input_class %>
+        </label>
+
+        <label class="flex flex-col gap-1 text-xs text-grey-text">
+          Finish
+          <%= f.select :foil_preference,
+                options_for_select(want_foil_preference_options, want_item.foil_preference),
+                {}, id: nil, class: input_class %>
+        </label>
+      </div>
+
+      <label class="flex items-center gap-2 text-sm text-grey-text">
+        <%= f.hidden_field :any_printing, value: '0', id: nil %>
+        <%= check_box_tag :any_printing, '1', want_item.any_printing, id: nil,
+              class: 'rounded border-highlight bg-background text-accent-50 focus:ring-accent-50' %>
+        Any printing will do
+      </label>
+
+      <label class="flex flex-col gap-1 text-xs text-grey-text">
+        Notes
+        <%= f.text_area :notes, value: want_item.notes, rows: 2, id: nil,
+              class: input_class %>
+      </label>
+
+      <div>
+        <%= f.submit 'Save', class: 'px-4 py-2 text-sm font-medium rounded-lg cursor-pointer bg-accent-50 text-background hover:bg-nine-white' %>
+      </div>
+    <% end %>
+  <% end %>
+  <div
+    id="<%= 'mobile_' if mobile %>want_control_<%= magic_card.id %>"
+    class="flex flex-col w-full <%= mobile ? 'gap-3 p-4 border-t border-highlight/50' : 'gap-4 mt-6' %>"
+  >
+    <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text">
+      Want List
+    </h4>
+
+    <% if !mobile %>
+      <div
+        class="overflow-hidden border rounded-lg border-highlight"
+        data-controller="collapsible"
+        data-collapsible-expanded-value="false"
+      >
+        <table class="min-w-full divide-y divide-highlight">
+          <thead class="bg-background">
+            <tr>
+              <% ['Wanted', 'Finish', 'Printing', 'Quick actions'].each do |heading| %>
+                <th
+                  class="
+                    px-4 py-3 text-xs font-normal tracking-wider text-left
+                    normal-case text-grey-text
+                  "
+                >
+                  <%= heading %>
+                </th>
+              <% end %>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y bg-foreground divide-highlight">
+            <tr class="text-grey-text hover:bg-menu">
+              <% if want_item %>
+                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <span class="font-medium text-accent-50">
+                    <%= want_item.quantity %>
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <%= WantListHelper::FOIL_PREFERENCE_LABELS.fetch(want_item.foil_preference) %>
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  <%= want_item.any_printing ? 'Any printing' : 'This printing only' %>
+
+                  <% if covered_by_other_printing %>
+                    <p class="text-xs text-grey-text">
+                      Covered by your want for any printing of
+                      <%= want_item.magic_card.name %>.
+                    </p>
+                  <% end %>
+                </td>
+              <% else %>
+                <td colspan="3" class="px-4 py-3 text-sm">
+                  Not on your want list.
+                </td>
+              <% end %>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <div class="flex gap-2">
+                  <% if want_item %>
+                    <button
+                      type="button"
+                      data-action="click->collapsible#toggle"
+                      class="<%= button_class %>"
+                    >
+                      Edit
+                    </button>
+                    <%= button_to 'Remove', want_list_item_path(want_item), method: :delete,
+                          params: frame_context,
+                          form: { data: { turbo: true, turbo_frame: '_top' } },
+                          class: button_class %>
+                  <% else %>
+                    <%= button_to 'Add to want list', want_list_items_path, method: :post,
+                          params: frame_context.merge(magic_card_id: magic_card.id),
+                          form: { data: { turbo: true, turbo_frame: '_top' } },
+                          class: button_class %>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+
+            <% if want_item&.notes.present? %>
+              <tr class="text-grey-text">
+                <td colspan="4" class="px-4 py-3 text-sm whitespace-pre-line"><%= want_item.notes %></td>
+              </tr>
+            <% end %>
+
+            <% if want_item %>
+              <tr
+                class="hidden bg-background"
+                data-collapsible-target="content"
+              >
+                <td colspan="4" class="px-4 py-3">
+                  <%= edit_form %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% elsif want_item %>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-grey-text">
+        <span class="font-medium text-accent-50">
+          Wanted &times; <%= want_item.quantity %>
+        </span>
+
+        <span>
+          <%= WantListHelper::FOIL_PREFERENCE_LABELS.fetch(want_item.foil_preference) %>
+        </span>
+
+        <span>
+          <%= want_item.any_printing ? 'Any printing' : 'This printing only' %>
+        </span>
+      </div>
+      <% if covered_by_other_printing %>
+        <p class="text-xs text-grey-text">
+          Covered by your want for any printing of
+          <%= want_item.magic_card.name %>.
+        </p>
+      <% end %>
+      <% if want_item.notes.present? %>
+        <p class="text-sm text-grey-text whitespace-pre-line"><%= want_item.notes %></p>
+      <% end %>
+      <details class="group">
+        <summary class="<%= button_class %> inline-block list-none">
+          Edit want
+        </summary>
+
+        <%= edit_form %>
+      </details>
+      <%= button_to 'Remove from want list', want_list_item_path(want_item), method: :delete,
+            params: frame_context,
+            form: { data: { turbo: true, turbo_frame: '_top' } },
+            class: button_class %>
+    <% else %>
+      <%= button_to 'Add to want list', want_list_items_path, method: :post,
+            params: frame_context.merge(magic_card_id: magic_card.id),
+            form: { data: { turbo: true, turbo_frame: '_top' } },
+            class: button_class %>
+    <% end %>
+  </div>
+<% end %>

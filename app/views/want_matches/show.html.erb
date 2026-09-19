@@ -1,0 +1,52 @@
+<%#
+  Who has the cards the signed-in user wants, one panel per holder, ranked by how many of those wants
+  they could trade for. Everything inside the frame moves with pagination; links that leave the page
+  target _top.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Want Matches',
+    subtext: 'Who owns the cards on your want list. Anyone with them marked for trade comes first.' } %>
+
+  <%= turbo_frame_tag 'want_matches', data: { turbo_action: 'advance' } do %>
+    <div class="flex flex-col space-y-4">
+      <% if @matches.empty? %>
+        <div
+          class="
+            p-12 text-center border rounded-3xl bg-foreground border-highlight
+            text-grey-text
+          "
+        >
+          <p class="text-xl font-semibold">No matches yet</p>
+
+          <p class="mt-2 text-sm text-grey-text/70">
+            Nobody has the cards on your want list in a public collection right
+            now.
+            <%= link_to 'Go to your want list', collection_wants_path(current_user.username),
+              class: 'text-accent-50 hover:underline', data: { turbo_frame: '_top' } %>
+          </p>
+        </div>
+      <% else %>
+        <p class="text-sm text-grey-text/70">
+          <%= pluralize(@total, 'user has', plural: 'users have') %> cards you
+          want
+        </p>
+        <% @matches.each do |user_matches| %>
+          <%= render partial: 'want_matches/user', locals: { user_matches: user_matches } %>
+        <% end %>
+        <% if @pagy.pages > 1 %>
+          <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+            <%== @pagy.info_tag() %>
+            <%== @pagy.series_nav() %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

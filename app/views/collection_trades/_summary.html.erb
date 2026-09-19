@@ -1,0 +1,16 @@
+<%# locals: totals - CollectionTrades::List %>
+<div class="p-6 border rounded-3xl bg-foreground border-highlight">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Copies', value: number_with_delimiter(totals[:copies]),
+      sub: 'marked for trade' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Retail Value', tone: :accent, value: number_to_currency(totals[:retail]),
+      sub: 'TCGplayer market' } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Buylist Value', value: number_to_currency(totals[:buylist]),
+      sub: 'Card Kingdom buylist' } %>
+  </div>
+</div>

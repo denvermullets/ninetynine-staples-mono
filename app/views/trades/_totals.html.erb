@@ -1,0 +1,30 @@
+<%# locals: totals - Trades::DraftTotals, recipient %>
+<%#
+  The running total, swapped in by trades/preview as the draft changes. Retail is the headline and
+  the buylist sits under it, the same pair the trade list is summarised with.
+
+  A number, never a verdict: a lopsided trade is a perfectly good trade if both players want it, so
+  nothing here warns anybody off one.
+%>
+
+<div
+  id="trade_totals"
+  class="p-6 border rounded-3xl bg-foreground border-highlight"
+>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: "#{recipient.username} gives",
+      value: number_to_currency(totals[:recipient][:retail]),
+      sub: trade_side_sub(totals[:recipient]) } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'You give',
+      value: number_to_currency(totals[:proposer][:retail]),
+      sub: trade_side_sub(totals[:proposer]) } %>
+
+    <%= render partial: 'collection_stats/kpi', locals: {
+      label: 'Difference', tone: trade_difference_tone(totals[:difference]),
+      value: number_to_currency(totals[:difference].abs),
+      sub: trade_difference_text(totals[:difference]) } %>
+  </div>
+</div>

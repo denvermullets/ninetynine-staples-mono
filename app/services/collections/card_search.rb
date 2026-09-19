@@ -10,11 +10,14 @@
 #
 module Collections
   class CardSearch < Service
-    def initialize(user:, params:, sort_config:, current_user: nil)
+    # tradeable narrows the base to copies marked for trade in public collections before anything
+    # else runs, so the aggregates the later stages read are trade-list totals, not whole-shelf ones
+    def initialize(user:, params:, sort_config:, current_user: nil, tradeable: false)
       @user = user
       @current_user = current_user
       @params = params
       @sort_config = sort_config
+      @tradeable = tradeable
     end
 
     def call
@@ -22,7 +25,8 @@ module Collections
       searched = Search::Collection.call(cards: owned_cards, search_term: card_query.free_text,
                                          code: @params[:code], sort_by: :price,
                                          collection_id: @params[:collection_id])
-      advanced = CardQuery::Builder.call(cards: sorted(searched), terms: card_query.terms, viewer_id: viewer_id)
+      advanced = CardQuery::Builder.call(cards: sorted(searched), terms: card_query.terms, viewer_id: viewer_id,
+                                         wanter_id: @current_user&.id)
 
       { cards: CollectionQuery::Filter.call(cards: advanced, params: @params), card_query: card_query }
     end
@@ -38,7 +42,10 @@ module Collections
     # scoped to the user up front, and every later stage narrows this relation rather than
     # rebuilding from MagicCard - that rebuild is how the scope got dropped once before
     def owned_cards
-      MagicCard.joins(collection_magic_cards: :collection).where(collections: { user_id: @user.id })
+      cards = MagicCard.joins(collection_magic_cards: :collection).where(collections: { user_id: @user.id })
+      return cards unless @tradeable
+
+      cards.merge(CollectionMagicCard.tradeable).merge(Collection.visible_to_public)
     end
 
     def sorted(cards)

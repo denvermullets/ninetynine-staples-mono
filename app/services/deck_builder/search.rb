@@ -167,7 +167,7 @@ module DeckBuilder
     # viewer_id lets otag: see the tags this user added - the panel only ever searches their own
     # collections and their own deck.
     def advanced(cards)
-      CardQuery::Builder.call(cards: cards, terms: supported, viewer_id: @user.id)
+      CardQuery::Builder.call(cards: cards, terms: supported, viewer_id: @user.id, wanter_id: @user.id)
     end
 
     # A term-only query (`role:ramp mv<=3`) has nothing to match against the name, and an unconditional

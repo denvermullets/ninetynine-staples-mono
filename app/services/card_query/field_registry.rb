@@ -94,6 +94,10 @@ module CardQuery
       'oracletag' => { handler: :oracle_tag, kind: :card },
       'function' => { handler: :oracle_tag, kind: :card },
 
+      # --- want list ---------------------------------------------------------------------------
+      # the searcher's own want list, whoever owns the cards being searched - see WantedPredicate
+      'wanted' => { handler: :wanted, kind: :card },
+
       # --- commander colour identity ---------------------------------------------------------
       # takes a commander's name and resolves it to that commander's identity
       'commander' => { handler: :commander_identity, kind: :card },
@@ -120,7 +124,9 @@ module CardQuery
       'quantity' => { handler: :owned_qty, kind: :owned, default_op: '>=' },
       'foil' => { handler: :owned_flag, kind: :owned, columns: %w[foil_quantity] },
       'proxy' => { handler: :owned_flag, kind: :owned, columns: %w[proxy_quantity proxy_foil_quantity] },
-      'needed' => { handler: :owned_needed, kind: :owned }
+      'needed' => { handler: :owned_needed, kind: :owned },
+      'tradeable' => { handler: :owned_flag, kind: :owned, columns: %w[trade_quantity trade_foil_quantity] },
+      'trade' => { handler: :owned_flag, kind: :owned, columns: %w[trade_quantity trade_foil_quantity] }
     }.freeze
 
     KEYS = FIELDS.keys.to_set.freeze

@@ -84,5 +84,68 @@ RSpec.describe 'CollectionMagicCards', type: :request do
 
       expect(response.body).not_to include('Other Printings You Own')
     end
+
+    it 'offers to take a want the new copies fill off the want list' do
+      want = create(:want_list_item, user: user, magic_card: expanded_card)
+
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 1 },
+           as: :turbo_stream
+
+      # the card_details frame has a remove button of its own, so look for the toast's wording
+      expect(response.body).to include('to cover your want list', 'data-toast-persist-value="true"')
+      expect(want.reload).to be_persisted
+    end
+
+    it 'does not show the want toast when nothing was filled' do
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 1 },
+           as: :turbo_stream
+
+      expect(response.body).not_to include('to cover your want list')
+    end
+  end
+
+  describe 'POST /collection_magic_cards/update_trade' do
+    let!(:record) do
+      create(:collection_magic_card, collection: collection, magic_card: magic_card, quantity: 3, foil_quantity: 1)
+    end
+
+    def update_trade(record_id: record.id, trade_quantity: 2, trade_foil_quantity: 1)
+      post update_trade_collection_magic_cards_path,
+           params: { collection_magic_card_id: record_id, trade_quantity:, trade_foil_quantity: },
+           as: :turbo_stream
+    end
+
+    context 'when signed in as the owner' do
+      before { post login_path, params: { email: user.email, password: 'password123' } }
+
+      it 'marks the copies for trade' do
+        update_trade
+
+        expect(response).to have_http_status(:ok)
+        expect(record.reload).to have_attributes(trade_quantity: 2, trade_foil_quantity: 1)
+      end
+    end
+
+    context "when signed in as someone who doesn't own the row" do
+      let(:other_user) { create(:user) }
+
+      before { post login_path, params: { email: other_user.email, password: 'password123' } }
+
+      it 'leaves the row alone' do
+        update_trade
+
+        expect(record.reload.trade_quantity).to eq(0)
+      end
+    end
+
+    context 'when signed out' do
+      it 'leaves the row alone' do
+        update_trade
+
+        expect(record.reload.trade_quantity).to eq(0)
+      end
+    end
   end
 end

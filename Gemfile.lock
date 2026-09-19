@@ -411,7 +411,7 @@ DEPENDENCIES
   faker
   httparty
   importmap-rails
-  json (<= 3.0.2)
+  json (< 3)
   mission_control-jobs
   pagy
   pg (~> 1.6.3)

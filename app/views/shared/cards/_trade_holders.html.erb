@@ -1,0 +1,109 @@
+<%#
+  People the viewer follows offering this card, from MagicCards::TradeHolders - this printing first, then every other
+  printing of the same card. Laid out like shared/cards/_other_printing_locations so the two tables
+  read as a pair in the details panel.
+%>
+
+<% if trade_holders.any? %>
+  <div class="flex flex-col w-full gap-4 mt-6">
+    <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text">
+      Up for Trade
+      <span class="normal-case tracking-normal font-normal text-grey-text/50"> - from people you follow </span>
+    </h4>
+
+    <div class="overflow-x-auto border rounded-lg border-highlight">
+      <table class="min-w-full divide-y divide-highlight">
+        <thead class="bg-background">
+          <tr>
+            <% ['Trader', 'Printing', 'Regular', 'Foil', 'Asking'].each do |heading| %>
+              <th
+                class="
+                  px-4 py-3 text-xs font-normal tracking-wider text-left
+                  normal-case text-grey-text
+                "
+              >
+                <%= heading %>
+              </th>
+            <% end %>
+
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Quick actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y bg-foreground divide-highlight">
+          <% trade_holders.each do |holder| %>
+            <% printing = holder.printing %>
+
+            <tr class="text-grey-text hover:bg-menu">
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= link_to holder.user.username,
+                  collection_trades_path(holder.user.username),
+                  data: { turbo_frame: '_top' },
+                  class: 'text-accent-50 hover:underline' %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%# set code instead of the full set name - the name blows the table width out %>
+                <span
+                  class="inline-flex items-center"
+                  title="<%= printing.boxset.name %>"
+                  data-controller="card-hover"
+                  data-card-hover-image-value="<%= printing.image_medium %>"
+                  data-card-hover-name-value="<%= printing.name %>"
+                  data-action="
+                    mouseenter->card-hover#show mouseleave->card-hover#hide
+                    mousemove->card-hover#move
+                  "
+                >
+                  <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= printing.boxset.keyrune_code&.downcase %> ss-<%= printing.rarity&.downcase || 'common' %> ss-fw ss-2x mr-3"></i>
+
+                  <%= printing.boxset.code&.upcase %>
+
+                  <span class="ml-2 text-xs text-grey-text">
+                    #<%= printing.card_number %>
+                  </span>
+
+                  <% if printing.id == magic_card.id %>
+                    <span class="ml-2 text-xs text-accent-50">
+                      this printing
+                    </span>
+                  <% end %>
+                </span>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= holder.quantity %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= holder.foil_quantity %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= number_to_currency(holder.value) %>
+              </td>
+
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= link_to 'Trade',
+                  new_trade_path(with: holder.user.username, card: printing.id),
+                  data: { turbo_frame: '_top' },
+                  class: '
+                    px-3 py-1 text-xs transition border rounded-md
+                    border-highlight text-grey-text hover:bg-background
+                    hover:text-nine-white
+                  ' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

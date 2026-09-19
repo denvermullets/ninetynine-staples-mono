@@ -1,0 +1,53 @@
+<%# locals: cards, pagy, owner, username %>
+<div class="max-w-full mb-24 md:hidden">
+  <div class="flex flex-col gap-2">
+    <% cards.each do |card| %>
+      <div class="p-4 border rounded-xl bg-foreground border-highlight">
+        <div class="flex items-start justify-between gap-2">
+          <p class="text-sm font-semibold text-grey-text">
+            <%= card.name.to_s.split('//').first %>
+          </p>
+
+          <span class="text-sm shrink-0 text-grey-text">
+            <%= number_to_currency(trade_row_value(card)) %>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-grey-text/50">
+          <span><%= card.boxset&.code %> #<%= card.card_number %></span>
+
+          <span>
+            <%= owned_marker(card.trade_quantity.to_i, card.trade_foil_quantity.to_i) %>
+            for trade
+          </span>
+
+          <span>
+            buylist <%= number_to_currency(trade_row_value(card, :buylist)) %>
+          </span>
+        </div>
+
+        <p class="mt-2 text-xs text-grey-text/70">
+          <%= trade_unit_prices(card) %> each
+        </p>
+
+        <% if !owner && logged_in? %>
+          <%= link_to 'Add to trade', new_trade_path(with: username, card: card.id),
+            class: 'inline-block px-2 py-1 mt-2 text-xs border rounded border-highlight hover:border-accent-50 hover:text-accent-50' %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy %>
+    <div
+      class="
+        flex flex-col w-full gap-2 px-4 py-3 mt-2 text-sm bg-foreground
+        rounded-xl
+      "
+    >
+      <div class="text-grey-text"><%== pagy.info_tag() %></div>
+
+      <div class="overflow-x-auto"><%== pagy.series_nav() %></div>
+    </div>
+  <% end %>
+</div>

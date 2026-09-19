@@ -24,6 +24,8 @@
 
       <%= link_to 'View Analytics', collections_stats_path(@user.username),
         class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 transition cursor-pointer' %>
+
+      <%= render partial: 'follows/button', locals: { user: @user } %>
     </div>
   </div>
 

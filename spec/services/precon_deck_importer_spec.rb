@@ -67,4 +67,17 @@ RSpec.describe PreconDeckImporter, type: :service do
       expect(cmc.quantity).to eq(8)
     end
   end
+
+  describe 'wants the precon fills' do
+    it 'returns the owner\'s wants the new copies cover' do
+      filled = create(:want_list_item, user: user, magic_card: magic_card, quantity: 4)
+      create(:want_list_item, user: user, magic_card: foil_card, quantity: 2)
+
+      expect(subject[:wants_filled]).to contain_exactly(filled)
+    end
+
+    it 'returns nothing when the user wants none of the cards' do
+      expect(subject[:wants_filled]).to be_empty
+    end
+  end
 end

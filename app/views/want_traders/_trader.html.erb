@@ -1,0 +1,69 @@
+<%# locals: trader - WantList::Traders::Trader, want %>
+<%#
+  One trader's copies of one printing. Everyone listed has a public trade list - that is what put
+  them here - so the trade list and the builder are always there to link to.
+%>
+
+<% printing = trader.printing %>
+<% holder = trader.user %>
+
+<div
+  class="
+    flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center
+    sm:justify-between
+  "
+>
+  <div class="min-w-0">
+    <p class="flex flex-wrap items-center gap-2 text-sm font-semibold text-grey-text">
+      <%= link_to holder.username, collections_overview_path(holder.username),
+        class: 'truncate hover:text-accent-50', data: { turbo_frame: '_top' } %>
+
+      <% if trader.followed %>
+        <span
+          class="
+            px-2 py-0.5 text-xs font-normal border rounded-full
+            border-accent-50/40 text-accent-50
+          "
+        >
+          Following
+        </span>
+      <% end %>
+    </p>
+
+    <p class="text-xs truncate text-grey-text/50">
+      <span
+        title="<%= printing.boxset&.name %>"
+        data-controller="card-hover"
+        data-card-hover-image-value="<%= printing.image_medium %>"
+        data-card-hover-name-value="<%= printing.name %>"
+        data-action="
+          mouseenter->card-hover#show mouseleave->card-hover#hide
+          mousemove->card-hover#move
+        "
+      >
+        <%= printing.boxset&.code&.upcase %> #<%= printing.card_number %>
+      </span>
+
+      <% if printing.id == want.magic_card_id %>
+        ·
+        <span class="text-accent-50">this printing</span>
+      <% end %>
+      · <%= owned_marker(trader.quantity, trader.foil_quantity) %>
+    </p>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3 text-sm shrink-0">
+    <span class="text-grey-text/70">
+      <%= number_to_currency(trader.value) %>
+    </span>
+
+    <%= link_to 'View trade list', collection_trades_path(holder.username),
+      class: 'px-3 py-1.5 border rounded-md border-highlight text-grey-text hover:border-accent-50 hover:text-accent-50',
+      data: { turbo_frame: '_top' } %>
+
+    <%= link_to 'Propose trade',
+      new_trade_path(with: holder.username, want_ids: want.id),
+      class: 'px-3 py-1.5 rounded-md bg-highlight text-nine-white hover:opacity-90',
+      data: { turbo_frame: '_top' } %>
+  </div>
+</div>

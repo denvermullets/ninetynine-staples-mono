@@ -1,0 +1,87 @@
+<%#
+  The trade builder. Their cards on the left, yours on the right, a message under both, and a
+  proposal at the end of it.
+
+  A counter-offer is this same page with @parent set: the inputs start from the trade being answered
+  (Trades::CounterDraft) and the form carries `counter` so trades#create knows what it answers.
+
+  Each column opens on its owner's trade list and can search the rest of their public collections
+  underneath; anything the draft takes from off the list is badged as such.
+
+  The draft lives in the quantity inputs and nowhere else - no draft row, no autosave. The only
+  server round trip before submitting is trades#preview, which re-prices the totals panel.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+  data-controller="trade-builder"
+  data-trade-builder-preview-path-value="<%= preview_trades_path %>"
+  data-trade-builder-rows-path-value="<%= rows_trades_path %>"
+  data-trade-builder-with-value="<%= @recipient.username %>"
+  data-trade-builder-counter-value="<%= @parent&.id %>"
+>
+  <% if @parent %>
+    <%= render partial: 'shared/page_header', locals: {
+      header: safe_join(['Counter ', trade_user_link(@recipient), "'s offer"]),
+      subtext: 'Their offer is filled in below. Change what you like - sending this declines the original.' } %>
+  <% else %>
+    <%= render partial: 'shared/page_header', locals: {
+      header: safe_join(['Trade with ', trade_user_link(@recipient)]),
+      subtext: 'Pick what each side puts up. Nothing is sent until you propose the trade.' } %>
+  <% end %>
+
+  <%= form_with url: trades_path, method: :post, class: 'flex flex-col space-y-6',
+    data: { action: 'submit->trade-builder#submit' } do %>
+    <%= hidden_field_tag :with, @recipient.username %>
+    <%= hidden_field_tag :counter, @parent.id if @parent %>
+
+    <%# trade-builder#submit fills this in from the draft at submit time %>
+    <div class="hidden" data-trade-builder-target="payload"></div>
+
+    <%= render partial: 'trades/totals', locals: {
+      totals: @totals, recipient: @recipient } %>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <%= render partial: 'trades/side', locals: {
+        side: 'recipient', heading: trade_user_link(@recipient, 'gives'), rows: @their_rows,
+        prefill: @prefill, owner: @recipient,
+        search_label: "Not enough on the list? Search the rest of #{@recipient.username}'s public collections.",
+        empty_text: "#{@recipient.username} has nothing left up for trade right now." } %>
+
+      <%= render partial: 'trades/side', locals: {
+        side: 'proposer', heading: 'You give', rows: @my_rows, prefill: @prefill,
+        owner: current_user,
+        search_label: 'Offer something that is not on your trade list, from your public collections.',
+        empty_text: 'Mark copies for trade in a public collection and they will show up here.' } %>
+    </div>
+
+    <div class="p-6 space-y-4 border rounded-3xl bg-foreground border-highlight">
+      <%= label_tag :message, 'Message (optional)',
+        class: 'block text-sm text-grey-text' %>
+
+      <%= text_area_tag :message, nil, rows: 3, maxlength: 1000,
+        placeholder: 'Anything they should know about the offer.',
+        class: 'w-full px-3 py-2 text-sm border rounded-md border-highlight bg-background text-grey-text' %>
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          class="
+            px-3 py-1.5 text-sm rounded-md cursor-pointer text-grey-text/70
+            hover:text-grey-text
+          "
+          data-action="trade-builder#clear"
+        >
+          Clear the draft
+        </button>
+
+        <%= submit_tag @parent ? 'Send counter-offer' : 'Propose trade', name: nil, disabled: true,
+          data: { trade_builder_target: 'submit' },
+          class: 'px-4 py-2 text-sm rounded-md cursor-pointer bg-highlight text-nine-white disabled:opacity-40 disabled:cursor-not-allowed' %>
+      </div>
+    </div>
+  <% end %>
+</div>

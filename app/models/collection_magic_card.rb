@@ -5,12 +5,24 @@ class CollectionMagicCard < ApplicationRecord
   belongs_to :magic_card
   belongs_to :source_collection, class_name: 'Collection', optional: true
 
+  # a deleted binder row leaves its trade items behind - a finished trade still has to read correctly
+  has_many :trade_items, dependent: :nullify
+
   # Validations
   validates :quantity, :foil_quantity, :proxy_quantity, :proxy_foil_quantity,
             numericality: { greater_than_or_equal_to: 0 }
   validates :staged_quantity, :staged_foil_quantity, :staged_proxy_quantity, :staged_proxy_foil_quantity,
             numericality: { greater_than_or_equal_to: 0 }
+  validates :trade_quantity, :trade_foil_quantity, numericality: { greater_than_or_equal_to: 0 }
+  validates :trade_quantity, numericality: { less_than_or_equal_to: :quantity }, if: :quantity
+  validates :trade_foil_quantity, numericality: { less_than_or_equal_to: :foil_quantity }, if: :foil_quantity
   validates :board_type, inclusion: { in: BOARD_TYPES }, allow_nil: true
+
+  # Copies leaving a row (transfer, adjust, bulk edit, deck-builder finalize) must not leave more
+  # marked for trade than are still owned. Runs before validation so a plain decrement clamps
+  # rather than failing the <= check above. Only the trade columns the caller did not touch are
+  # clamped - an explicit over-set is still rejected by validation.
+  before_validation :clamp_trade_quantities
 
   # Scopes
   scope :commanders, -> { where(board_type: 'commander') }
@@ -22,6 +34,14 @@ class CollectionMagicCard < ApplicationRecord
   scope :owned, -> { where(needed: false) }
   scope :from_collection, -> { where.not(source_collection_id: nil) }
   scope :planned, -> { staged.where(source_collection_id: nil) }
+
+  # Trade scopes - proxies are never tradeable, and only finalized owned copies can be offered
+  scope :tradeable, -> { finalized.owned.where('trade_quantity > 0 OR trade_foil_quantity > 0') }
+  # everything a trade could ask for, listed or not; `unlisted` is the part of it off the trade list
+  scope :offerable, lambda {
+    finalized.owned.where('collection_magic_cards.quantity > 0 OR collection_magic_cards.foil_quantity > 0')
+  }
+  scope :unlisted, -> { where(trade_quantity: 0, trade_foil_quantity: 0) }
 
   # Helper methods
   def total_regular
@@ -125,7 +145,26 @@ class CollectionMagicCard < ApplicationRecord
     board_type == 'commander'
   end
 
+  def tradeable?
+    !staged? && !needed? && (trade_quantity.positive? || trade_foil_quantity.positive?)
+  end
+
+  def total_trade
+    trade_quantity + trade_foil_quantity
+  end
+
   private
+
+  def clamp_trade_quantities
+    clamp_trade_count(:trade_quantity, :quantity)
+    clamp_trade_count(:trade_foil_quantity, :foil_quantity)
+  end
+
+  def clamp_trade_count(trade_attr, owned_attr)
+    return if will_save_change_to_attribute?(trade_attr)
+
+    self[trade_attr] = [self[trade_attr].to_i, self[owned_attr].to_i].min
+  end
 
   def unit_price_for(finish)
     case finish

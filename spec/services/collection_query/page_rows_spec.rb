@@ -59,6 +59,17 @@ RSpec.describe CollectionQuery::PageRows, type: :service do
     expect(result['Mox Pearl'].foil_quantity.to_i).to eq(4)
   end
 
+  it 'carries the summed trade counts the owner trade pill reads' do
+    CollectionMagicCard.where(magic_card: bolt).find_each { |row| row.update!(trade_quantity: 1) }
+    CollectionMagicCard.find_by(magic_card: mox).update!(trade_foil_quantity: 3)
+
+    result = described_class.call(cards: grouped).index_by(&:name)
+
+    expect(result['Lightning Bolt'][:trade_quantity].to_i).to eq(2)
+    expect(result['Mox Pearl'][:trade_foil_quantity].to_i).to eq(3)
+    expect(result['Dark Ritual'][:trade_quantity].to_i).to eq(0)
+  end
+
   it 'returns full magic_cards rows, not just the narrow columns' do
     card = described_class.call(cards: grouped).first
 

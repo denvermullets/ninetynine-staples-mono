@@ -39,10 +39,14 @@ module CardQuery
 
     # viewer_id is set only when somebody is searching their own collection - it is what lets otag: see the
     # tags that user added. See OracleTagPredicate.
-    def initialize(cards:, terms:, viewer_id: nil)
+    #
+    # wanter_id is whoever is signed in, whoever's cards these are - wanted: reads that user's want list.
+    # See WantedPredicate.
+    def initialize(cards:, terms:, viewer_id: nil, wanter_id: nil)
       @cards = cards
       @terms = Array(terms)
       @viewer_id = viewer_id
+      @wanter_id = wanter_id
     end
 
     def call
@@ -149,6 +153,8 @@ module CardQuery
 
     def predicate_for_oracle_tag(_field, term) = OracleTagPredicate.call(value: term.value, viewer_id: @viewer_id)
 
+    def predicate_for_wanted(_field, term) = WantedPredicate.call(value: term.value, wanter_id: @wanter_id)
+
     # commander:"Prossh, Skyraider of Kher" is the colour identity subset relation with the letters looked
     # up from a name. nil back from the resolver means the name matched nothing, and apply/1 reads that as
     # "skip this term".
@@ -245,8 +251,6 @@ module CardQuery
     end
 
     # a card name with a % or _ in it shouldn't turn into a wildcard
-    def sanitize_like(value)
-      ActiveRecord::Base.sanitize_sql_like(value)
-    end
+    def sanitize_like(value) = ActiveRecord::Base.sanitize_sql_like(value)
   end
 end

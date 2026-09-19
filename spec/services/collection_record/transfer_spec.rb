@@ -83,6 +83,43 @@ RSpec.describe CollectionRecord::Transfer, type: :service do
     end
   end
 
+  # the clamp is a model callback (CollectionMagicCard#clamp_trade_quantities); this proves the
+  # transfer path reaches it
+  context 'when the source row has copies marked for trade' do
+    let(:quantity) { 3 }
+    let(:foil_quantity) { 1 }
+
+    before { source_card.update!(trade_quantity: 4, trade_foil_quantity: 1) }
+
+    it 'clamps the trade counts to what is left in the source' do
+      subject
+      source_card.reload
+      expect(source_card.trade_quantity).to eq(1)
+      expect(source_card.trade_foil_quantity).to eq(0)
+    end
+
+    it 'does not carry the trade counts over to the destination' do
+      subject
+      dest_card = to_collection.collection_magic_cards.first
+      expect(dest_card.trade_quantity).to eq(0)
+      expect(dest_card.trade_foil_quantity).to eq(0)
+    end
+
+    context 'when the transfer only takes copies that were not marked for trade' do
+      let(:quantity) { 1 }
+      let(:foil_quantity) { 0 }
+
+      before { source_card.update!(trade_quantity: 2, trade_foil_quantity: 1) }
+
+      it 'leaves the trade counts as they were' do
+        subject
+        source_card.reload
+        expect(source_card.trade_quantity).to eq(2)
+        expect(source_card.trade_foil_quantity).to eq(1)
+      end
+    end
+  end
+
   context 'when transferring nothing' do
     let(:quantity) { 0 }
     let(:foil_quantity) { 0 }

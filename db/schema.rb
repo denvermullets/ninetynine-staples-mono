@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_19_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -108,6 +108,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
     t.integer "staged_proxy_foil_quantity", default: 0, null: false
     t.integer "staged_proxy_quantity", default: 0, null: false
     t.integer "staged_quantity", default: 0, null: false
+    t.integer "trade_foil_quantity", default: 0, null: false
+    t.integer "trade_quantity", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["board_type"], name: "index_collection_magic_cards_on_board_type"
     t.index ["collection_id", "staged", "needed"], name: "index_cmc_on_collection_staged_needed", include: ["magic_card_id"]
@@ -242,6 +244,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
     t.string "name"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_finishes_on_name", unique: true
+  end
+
+  create_table "follows", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "followed_id", null: false
+    t.bigint "follower_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["followed_id"], name: "index_follows_on_followed_id"
+    t.index ["follower_id", "followed_id"], name: "index_follows_on_follower_id_and_followed_id", unique: true
   end
 
   create_table "frame_effects", force: :cascade do |t|
@@ -498,6 +509,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
     t.index ["scryfall_oracle_id"], name: "index_magic_cards_on_scryfall_oracle_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "kind", null: false
+    t.bigint "notifiable_id"
+    t.string "notifiable_type"
+    t.datetime "read_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+  end
+
   create_table "oracle_tag_ancestors", force: :cascade do |t|
     t.bigint "ancestor_id", null: false
     t.integer "depth", null: false
@@ -614,6 +637,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
     t.index ["user_id"], name: "index_tracked_decks_on_user_id"
   end
 
+  create_table "trade_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event", null: false
+    t.bigint "trade_id", null: false
+    t.bigint "user_id"
+    t.index ["trade_id"], name: "index_trade_events_on_trade_id"
+    t.index ["user_id"], name: "index_trade_events_on_user_id"
+  end
+
+  create_table "trade_items", force: :cascade do |t|
+    t.bigint "collection_magic_card_id"
+    t.datetime "created_at", null: false
+    t.integer "foil_quantity", default: 0, null: false
+    t.bigint "magic_card_id", null: false
+    t.boolean "off_list", default: false, null: false
+    t.integer "quantity", default: 0, null: false
+    t.string "side", null: false
+    t.bigint "trade_id", null: false
+    t.decimal "unit_buylist_foil_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.decimal "unit_buylist_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.decimal "unit_foil_price_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.decimal "unit_price_snapshot", precision: 12, scale: 2, default: "0.0"
+    t.datetime "updated_at", null: false
+    t.index ["collection_magic_card_id"], name: "index_trade_items_on_collection_magic_card_id"
+    t.index ["magic_card_id"], name: "index_trade_items_on_magic_card_id"
+    t.index ["trade_id", "side"], name: "index_trade_items_on_trade_id_and_side"
+    t.index ["trade_id"], name: "index_trade_items_on_trade_id"
+  end
+
+  create_table "trades", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "message"
+    t.bigint "parent_trade_id"
+    t.datetime "proposer_completed_at"
+    t.bigint "proposer_id", null: false
+    t.datetime "recipient_completed_at"
+    t.bigint "recipient_id", null: false
+    t.string "status", default: "proposed", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parent_trade_id"], name: "index_trades_on_parent_trade_id"
+    t.index ["proposer_id", "status"], name: "index_trades_on_proposer_id_and_status"
+    t.index ["proposer_id"], name: "index_trades_on_proposer_id"
+    t.index ["recipient_id", "status"], name: "index_trades_on_recipient_id_and_status"
+    t.index ["recipient_id"], name: "index_trades_on_recipient_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
@@ -623,10 +692,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
     t.jsonb "preferences", default: {}
     t.string "prices_last_updated_at"
     t.string "role", default: "1001", null: false
+    t.boolean "trades_public", default: false, null: false
     t.string "unconfirmed_email"
     t.datetime "updated_at", null: false
     t.string "username", null: false
+    t.boolean "wants_public", default: false, null: false
+    t.index "lower((username)::text)", name: "index_users_on_lower_username", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
+  end
+
+  create_table "want_list_items", force: :cascade do |t|
+    t.boolean "any_printing", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "foil_preference", default: "any", null: false
+    t.bigint "magic_card_id", null: false
+    t.text "notes"
+    t.integer "quantity", default: 1, null: false
+    t.uuid "scryfall_oracle_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["magic_card_id"], name: "index_want_list_items_on_magic_card_id"
+    t.index ["scryfall_oracle_id"], name: "index_want_list_items_on_scryfall_oracle_id"
+    t.index ["user_id", "magic_card_id"], name: "index_want_list_items_on_user_id_and_magic_card_id", unique: true
+    t.index ["user_id", "scryfall_oracle_id"], name: "index_want_list_items_on_user_and_oracle_any_printing", unique: true, where: "any_printing"
   end
 
   add_foreign_key "card_oracle_tags", "oracle_tags"
@@ -645,6 +733,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
   add_foreign_key "deck_combos", "collections"
   add_foreign_key "deck_combos", "combos"
   add_foreign_key "deck_rules", "brackets"
+  add_foreign_key "follows", "users", column: "followed_id"
+  add_foreign_key "follows", "users", column: "follower_id"
   add_foreign_key "game_opponents", "commander_games"
   add_foreign_key "game_opponents", "magic_cards", column: "commander_id"
   add_foreign_key "game_opponents", "magic_cards", column: "partner_commander_id"
@@ -657,6 +747,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
   add_foreign_key "magic_card_legalities", "magic_cards"
   add_foreign_key "magic_card_variations", "magic_cards"
   add_foreign_key "magic_card_variations", "magic_cards", column: "variation_id"
+  add_foreign_key "notifications", "users"
   add_foreign_key "oracle_tag_ancestors", "oracle_tags", column: "ancestor_id"
   add_foreign_key "oracle_tag_ancestors", "oracle_tags", column: "descendant_id"
   add_foreign_key "oracle_tags", "users", column: "created_by_id"
@@ -666,4 +757,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120003) do
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"
   add_foreign_key "tracked_decks", "users"
+  add_foreign_key "trade_events", "trades"
+  add_foreign_key "trade_events", "users"
+  add_foreign_key "trade_items", "collection_magic_cards"
+  add_foreign_key "trade_items", "magic_cards"
+  add_foreign_key "trade_items", "trades"
+  add_foreign_key "trades", "trades", column: "parent_trade_id"
+  add_foreign_key "trades", "users", column: "proposer_id"
+  add_foreign_key "trades", "users", column: "recipient_id"
+  add_foreign_key "want_list_items", "magic_cards"
+  add_foreign_key "want_list_items", "users"
 end

@@ -11,6 +11,31 @@ RSpec.describe CollectionMagicCard, type: :model do
       end
     end
 
+    %i[trade_quantity trade_foil_quantity].each do |field|
+      it "rejects negative #{field}" do
+        card = build(:collection_magic_card, field => -1)
+        expect(card).not_to be_valid
+        expect(card.errors[field]).to be_present
+      end
+    end
+
+    it 'rejects marking more regular copies for trade than are owned' do
+      card = build(:collection_magic_card, quantity: 2, trade_quantity: 3)
+      expect(card).not_to be_valid
+      expect(card.errors[:trade_quantity]).to be_present
+    end
+
+    it 'rejects marking more foil copies for trade than are owned' do
+      card = build(:collection_magic_card, foil_quantity: 1, trade_foil_quantity: 2)
+      expect(card).not_to be_valid
+      expect(card.errors[:trade_foil_quantity]).to be_present
+    end
+
+    it 'allows trade counts equal to the owned counts' do
+      card = build(:collection_magic_card, quantity: 2, foil_quantity: 1, trade_quantity: 2, trade_foil_quantity: 1)
+      expect(card).to be_valid
+    end
+
     it 'allows nil board_type' do
       card = build(:collection_magic_card, board_type: nil)
       expect(card).to be_valid
@@ -87,6 +112,68 @@ RSpec.describe CollectionMagicCard, type: :model do
         create(:collection_magic_card, staged: false, source_collection: nil)
         expect(described_class.planned).to eq([planned])
       end
+    end
+
+    describe '.tradeable' do
+      it 'returns finalized owned rows with either trade count above zero' do
+        regular = create(:collection_magic_card, quantity: 2, trade_quantity: 1)
+        foil = create(:collection_magic_card, quantity: 0, foil_quantity: 1, trade_foil_quantity: 1)
+        create(:collection_magic_card, quantity: 2, trade_quantity: 0)
+
+        expect(described_class.tradeable).to contain_exactly(regular, foil)
+      end
+
+      it 'excludes staged and needed rows' do
+        create(:collection_magic_card, quantity: 1, trade_quantity: 1, staged: true)
+        create(:collection_magic_card, quantity: 1, trade_quantity: 1, needed: true)
+
+        expect(described_class.tradeable).to be_empty
+      end
+    end
+  end
+
+  # Copies leave a row through Transfer, CreateOrUpdate, bulk edit and deck-builder Finalize, all of
+  # which save through the model - so the clamp lives here rather than in each service.
+  describe 'trade quantity clamp' do
+    let(:card) { create(:collection_magic_card, :tradeable, quantity: 4, foil_quantity: 2) }
+
+    it 'clamps trade_quantity when the regular count drops below it' do
+      card.update!(quantity: 1)
+      expect(card.reload.trade_quantity).to eq(1)
+    end
+
+    it 'clamps trade_foil_quantity when the foil count drops below it' do
+      card.update!(foil_quantity: 0)
+      expect(card.reload.trade_foil_quantity).to eq(0)
+    end
+
+    it 'leaves trade counts alone when the owned count grows' do
+      card.update!(quantity: 10)
+      expect(card.reload.trade_quantity).to eq(4)
+    end
+
+    it 'leaves the other finish untouched' do
+      card.update!(quantity: 1)
+      expect(card.reload.trade_foil_quantity).to eq(2)
+    end
+
+    it 'does not paper over an explicit over-set in the same save' do
+      expect { card.update!(quantity: 1, trade_quantity: 3) }.to raise_error(ActiveRecord::RecordInvalid)
+    end
+  end
+
+  describe '#tradeable?' do
+    it 'is true for a finalized owned row with copies marked for trade' do
+      expect(build(:collection_magic_card, :tradeable)).to be_tradeable
+    end
+
+    it 'is false when nothing is marked for trade' do
+      expect(build(:collection_magic_card)).not_to be_tradeable
+    end
+
+    it 'is false for staged or needed rows' do
+      expect(build(:collection_magic_card, :tradeable, staged: true)).not_to be_tradeable
+      expect(build(:collection_magic_card, :tradeable, needed: true)).not_to be_tradeable
     end
   end
 

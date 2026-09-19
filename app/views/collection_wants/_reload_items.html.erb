@@ -1,0 +1,11 @@
+<%# locals: src - the want list page to pull a fresh want_items frame from %>
+<%#
+  Stands in for the want_items frame after a bulk add and loads the real one from the page, so the
+  list is rendered in one place. Keeps the frame's turbo_action, which the pills and pagination rely on.
+%>
+
+<%= turbo_frame_tag 'want_items', src: src, data: { turbo_action: 'advance' } do %>
+  <p class="p-12 text-sm text-center text-grey-text/70">
+    Loading your want list...
+  </p>
+<% end %>

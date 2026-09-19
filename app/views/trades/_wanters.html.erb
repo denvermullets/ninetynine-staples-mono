@@ -1,0 +1,51 @@
+<%# locals: wanters - WantList::Matches, the inverse direction %>
+<%#
+  Who wants what the viewer is trading: public want lists matched against their marked copies. Only
+  the best few are listed; the headline counts everybody. Nothing is drawn when nobody matches.
+%>
+
+<% if wanters[:total].positive? %>
+  <div class="p-6 space-y-4 border rounded-3xl bg-foreground border-highlight">
+    <p class="font-semibold text-grey-text">
+      <%= pluralize(wanters[:total], 'user wants', plural: 'users want') %>
+      cards you're trading
+    </p>
+
+    <div class="flex flex-col divide-y divide-highlight">
+      <% wanters[:users].each do |wanter| %>
+        <div
+          class="
+            flex flex-col gap-2 py-3 sm:flex-row sm:items-center
+            sm:justify-between
+          "
+        >
+          <div class="min-w-0">
+            <%= link_to wanter.user.username,
+              collection_wants_path(wanter.user.username),
+              class: 'font-semibold text-grey-text hover:underline' %>
+
+            <p class="text-xs truncate text-grey-text/50">
+              wants
+              <%= wanter.matches.map { |match| match.printing.name }.uniq.first(3).to_sentence %>
+              <% if wanter.total_count > 3 %>
+                and more
+              <% end %>
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 text-sm shrink-0">
+            <span class="text-accent-50">
+              <%= pluralize(wanter.total_count, 'card') %>
+            </span>
+
+            <% if wanter.user.trades_public? %>
+              <%= link_to 'Start a trade',
+                new_trade_path(with: wanter.user.username),
+                class: 'px-3 py-1.5 rounded-md bg-highlight text-nine-white hover:opacity-90' %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

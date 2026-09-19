@@ -1,0 +1,33 @@
+<%# locals: username, filter, sort, counts %>
+<%#
+  Links inside the want_items frame, so Turbo swaps the list and the pills together. Every control
+  carries the other axis' current value, same rule as collection_trades/_filters.
+%>
+
+<% carry = { username: username, filter: filter, sort: sort } %>
+
+<div class="flex flex-col gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "All", "any_printing" => "Any printing", "specific" => "Specific", "owned" => "Now owned" }.each do |key, label| %>
+        <%= link_to collection_wants_path(**carry.merge(filter: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == filter ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+          <%= label %>
+
+          <span class="ml-1 text-xs opacity-60">
+            <%= number_with_delimiter(counts[key.to_sym]) %>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "name" => "Name", "price" => "Price", "added" => "Added" }.each do |key, label| %>
+        <%= link_to label, collection_wants_path(**carry.merge(sort: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == sort ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+    </div>
+  </div>
+
+  <p class="text-xs text-grey-text/50"><%= want_filter_text(filter) %></p>
+</div>

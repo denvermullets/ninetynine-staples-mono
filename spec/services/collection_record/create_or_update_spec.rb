@@ -33,7 +33,7 @@ RSpec.describe CollectionRecord::CreateOrUpdate, type: :service do
 
     it 'returns success with the card name' do
       result = subject
-      expect(result).to eq({ action: :success, name: magic_card.name })
+      expect(result).to eq({ action: :success, name: magic_card.name, wants_filled: [] })
     end
   end
 
@@ -73,7 +73,7 @@ RSpec.describe CollectionRecord::CreateOrUpdate, type: :service do
 
     it 'returns success with the card name' do
       result = subject
-      expect(result).to eq({ action: :success, name: magic_card.name })
+      expect(result).to eq({ action: :success, name: magic_card.name, wants_filled: [] })
     end
   end
 
@@ -112,7 +112,32 @@ RSpec.describe CollectionRecord::CreateOrUpdate, type: :service do
 
     it 'returns delete action with the card name' do
       result = subject
-      expect(result).to eq({ action: :delete, name: magic_card.name })
+      expect(result).to eq({ action: :delete, name: magic_card.name, wants_filled: [] })
+    end
+  end
+
+  describe 'wants the new copies fill' do
+    let(:quantity) { 1 }
+    let(:foil_quantity) { 0 }
+
+    it 'returns the owner\'s want the copy fills' do
+      want = create(:want_list_item, user: collection.user, magic_card: magic_card)
+
+      expect(subject[:wants_filled]).to contain_exactly(want)
+    end
+
+    it 'returns nothing when a staged row goes up' do
+      create(:want_list_item, user: collection.user, magic_card: magic_card)
+      create(:collection_magic_card, collection: collection, magic_card: magic_card, card_uuid: 'test-uuid',
+                                     quantity: 0, staged: true)
+
+      expect(subject[:wants_filled]).to be_empty
+    end
+
+    it 'leaves the want on the list' do
+      create(:want_list_item, user: collection.user, magic_card: magic_card)
+
+      expect { subject }.not_to(change { WantListItem.count })
     end
   end
 end

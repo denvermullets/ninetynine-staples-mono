@@ -1,0 +1,64 @@
+<%# locals: item, view - the filter / sort / page to come back to %>
+<%#
+  Edit and remove for the owner's own rows, posting to the same WantListItemsController actions the
+  card details block uses. return_to=want_list has them redirect back here instead of streaming a
+  card_details frame; the forms sit inside the want_items frame, so the redirect reloads just the list.
+
+  A want the owner already has enough copies of gets its remove button called out, as the
+  "you own this now" prompt; it is still their call, nothing comes off the list by itself.
+%>
+
+<% back = view.merge(return_to: 'want_list')
+  input_class = 'px-3 py-2 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50'
+  button_class = 'px-3 py-1 text-xs transition border rounded-md cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white' %>
+
+<div class="flex flex-wrap items-start gap-2">
+  <details class="group">
+    <summary class="<%= button_class %> inline-block list-none">Edit</summary>
+
+    <%= form_with url: want_list_item_path(item), method: :patch,
+          class: 'flex flex-col gap-3 p-3 mt-3 border rounded-md border-highlight bg-background' do |f| %>
+      <% back.each do |name, value| %>
+        <%= f.hidden_field name, value: value, id: nil %>
+      <% end %>
+
+      <div class="grid grid-cols-2 gap-3">
+        <label class="flex flex-col gap-1 text-xs text-grey-text">
+          Quantity
+          <%= f.number_field :quantity, value: item.quantity, min: 1, id: nil, class: input_class %>
+        </label>
+
+        <label class="flex flex-col gap-1 text-xs text-grey-text">
+          Finish
+          <%= f.select :foil_preference,
+                options_for_select(want_foil_preference_options, item.foil_preference),
+                {}, id: nil, class: input_class %>
+        </label>
+      </div>
+
+      <label class="flex items-center gap-2 text-sm text-grey-text">
+        <%= f.hidden_field :any_printing, value: '0', id: nil %>
+        <%= check_box_tag :any_printing, '1', item.any_printing, id: nil,
+              class: 'rounded border-highlight bg-background text-accent-50 focus:ring-accent-50' %>
+        Any printing will do
+      </label>
+
+      <label class="flex flex-col gap-1 text-xs text-grey-text">
+        Notes
+        <%= f.text_area :notes, value: item.notes, rows: 2, id: nil, class: input_class %>
+      </label>
+
+      <div>
+        <%= f.submit 'Save', class: 'px-4 py-2 text-sm font-medium rounded-lg cursor-pointer bg-accent-50 text-background hover:bg-nine-white' %>
+      </div>
+    <% end %>
+  </details>
+
+  <% if want_filled?(item) %>
+    <%= button_to 'Owned - remove', want_list_item_path(item), method: :delete, params: back,
+          title: 'You have enough copies to cover this want',
+          class: 'px-3 py-1 text-xs transition rounded-md cursor-pointer bg-accent-50 text-background hover:bg-nine-white' %>
+  <% else %>
+    <%= button_to 'Remove', want_list_item_path(item), method: :delete, params: back, class: button_class %>
+  <% end %>
+</div>

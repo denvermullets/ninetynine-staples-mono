@@ -1,0 +1,27 @@
+<%# locals: side, rows - Trades::UnlistedRows, query, owner %>
+<%#
+  What one column's search of the rest of its owner's public collections came back with. The rows
+  are the builder's own row partial, so a quantity typed into one is already part of the draft -
+  trade-builder moves it up into the column at that point, where the next search cannot replace it.
+%>
+
+<%= turbo_frame_tag "trade_rows_#{side}", data: { trade_builder_target: 'results', side: side } do %>
+  <% if rows.any? %>
+    <div class="overflow-y-auto divide-y max-h-64 divide-highlight">
+      <% rows.each do |row| %>
+        <%= render partial: 'trades/row', locals: { row: row, side: side, prefill: {} } %>
+      <% end %>
+    </div>
+    <% if rows.size >= Trades::UnlistedRows::LIMIT %>
+      <p class="px-4 py-2 text-xs text-grey-text/50">
+        Showing the first <%= Trades::UnlistedRows::LIMIT %> - keep typing to
+        narrow it down.
+      </p>
+    <% end %>
+  <% elsif query.present? %>
+    <p class="px-4 py-3 text-xs text-grey-text/50">
+      Nothing else in <%= owner.username %>'s public collections matches
+      "<%= query %>".
+    </p>
+  <% end %>
+<% end %>

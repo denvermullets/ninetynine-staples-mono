@@ -29,6 +29,13 @@ export default class extends Controller {
     "adjustProxyNew",
     "adjustProxyFoilNew",
     "newCollectionSelect",
+    "tradeModal",
+    "tradeRecordId",
+    "tradeCollectionName",
+    "tradeRegularNew",
+    "tradeFoilNew",
+    "tradeRegularOwned",
+    "tradeFoilOwned",
   ];
 
   // Transfer Modal Methods
@@ -220,6 +227,33 @@ export default class extends Controller {
 
   closeAdjustModal() {
     this.adjustModalTarget.classList.add("hidden");
+  }
+
+  // Trade Modal Methods
+  openTradeModal(event) {
+    const button = event.currentTarget;
+    const regularQty = parseInt(button.dataset.regularQty) || 0;
+    const foilQty = parseInt(button.dataset.foilQty) || 0;
+
+    this.tradeRecordIdTarget.value = button.dataset.collectionMagicCardId;
+    this.tradeCollectionNameTarget.textContent = `(${button.dataset.collectionName})`;
+
+    this.setTradeInput(this.tradeRegularNewTarget, this.tradeRegularOwnedTarget, regularQty, button.dataset.tradeQty);
+    this.setTradeInput(this.tradeFoilNewTarget, this.tradeFoilOwnedTarget, foilQty, button.dataset.tradeFoilQty);
+
+    this.tradeModalTarget.classList.remove("hidden");
+  }
+
+  // the server clamps too - max only keeps the spinner from walking past what's owned
+  setTradeInput(input, ownedLabel, owned, current) {
+    input.max = owned;
+    input.value = parseInt(current) || 0;
+    input.disabled = owned === 0;
+    ownedLabel.textContent = owned === 0 ? "None owned" : `You own ${owned}`;
+  }
+
+  closeTradeModal() {
+    this.tradeModalTarget.classList.add("hidden");
   }
 
   // Utility method to prevent modal close when clicking inside

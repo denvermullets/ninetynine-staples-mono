@@ -1,0 +1,23 @@
+<%# locals: notification %>
+<%# one notification - unread ones carry a dot and full-strength text %>
+
+<%= button_to read_notification_path(notification),
+  method: :patch,
+  class: 'flex items-center w-full gap-3 px-4 py-4 text-left cursor-pointer sm:px-6 hover:bg-menu' do %>
+  <span
+    class="
+      w-2 h-2 rounded-full shrink-0
+      <%= notification.read? ? 'bg-transparent' : 'bg-accent-100' %>
+    "
+  ></span>
+
+  <span class="flex flex-col min-w-0">
+    <span class="<%= notification.read? ? 'text-grey-text/60' : 'font-semibold text-grey-text' %>">
+      <%= notification_text(notification) %>
+    </span>
+
+    <span class="text-xs text-grey-text/50">
+      <%= time_ago_in_words(notification.created_at) %> ago
+    </span>
+  </span>
+<% end %>

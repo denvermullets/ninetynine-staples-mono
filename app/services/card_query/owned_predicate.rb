@@ -1,5 +1,5 @@
 #
-# builds the HAVING fragments for the ownership terms - qty:, foil:, proxy:, needed:
+# builds the HAVING fragments for the ownership terms - qty:, foil:, proxy:, needed:, tradeable:
 #
 # These are the exception to Builder's "everything is an IN / EXISTS subquery" rule. The relation is
 # already grouped by magic_cards.id with SUM(...) aggregates in its SELECT (Search::Collection#sort_cards),

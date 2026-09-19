@@ -1,0 +1,71 @@
+<%# locals: side - one side from Trades::Detail, heading %>
+<%#
+  One side of a trade as it was agreed: every printing with its per-copy price at proposal time and
+  the line it adds up to.
+%>
+
+<div class="flex flex-col border rounded-3xl bg-foreground border-highlight">
+  <div class="flex items-baseline justify-between gap-2 p-4 border-b border-highlight">
+    <h2 class="text-lg font-semibold text-grey-text"><%= heading %></h2>
+
+    <span class="text-xs text-grey-text/50">
+      <%= pluralize(side[:copies], 'copy') %> ·
+      <%= number_to_currency(side[:retail]) %>
+    </span>
+  </div>
+
+  <% if side[:items].empty? %>
+    <p class="p-8 text-sm text-center text-grey-text/70">
+      Nothing on this side.
+    </p>
+  <% else %>
+    <div class="divide-y divide-highlight">
+      <% side[:items].each do |item| %>
+        <% card = item.magic_card %>
+
+        <div class="flex items-center gap-3 px-4 py-3">
+          <% if card.image_small.present? %>
+            <%= image_tag card.image_small,
+              alt: card.name,
+              class: 'object-cover w-10 rounded h-14 shrink-0 cursor-pointer',
+              data: {
+                controller: 'card-hover',
+                card_hover_image_value: card.image_large,
+                card_hover_name_value: card.name,
+                action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+              } %>
+          <% else %>
+            <div class="w-10 rounded h-14 shrink-0 bg-highlight"></div>
+          <% end %>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <%= tag.p card.name,
+                class: 'text-sm truncate cursor-pointer text-grey-text',
+                data: {
+                  controller: 'card-hover',
+                  card_hover_image_value: card.image_large,
+                  card_hover_name_value: card.name,
+                  action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+                } %>
+
+              <%# stamped at proposal time: the owner should know this was not something they listed %>
+              <% if item.off_list? %>
+                <%= render partial: 'trades/off_list_badge' %>
+              <% end %>
+            </div>
+
+            <p class="text-xs truncate text-grey-text/50">
+              <%= card.boxset&.code %> #<%= card.card_number %> ·
+              <%= trade_item_breakdown(item) %>
+            </p>
+          </div>
+
+          <span class="text-sm shrink-0 text-grey-text">
+            <%= number_to_currency(item.retail_value) %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

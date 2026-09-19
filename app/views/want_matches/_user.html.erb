@@ -1,0 +1,84 @@
+<%# locals: user_matches - WantList::Matches::UserMatches %>
+<%#
+  One holder: who they are, how many of the viewer's wants they could trade for out of how many they
+  own, and each matched printing. A holder without a public trade list still owns the card and is
+  still listed, but has nothing to propose against, so the button makes way for a note.
+%>
+
+<% holder = user_matches.user %>
+
+<div class="flex flex-col border rounded-3xl bg-foreground border-highlight">
+  <div
+    class="
+      flex flex-col gap-3 p-4 border-b sm:flex-row sm:items-center
+      sm:justify-between border-highlight
+    "
+  >
+    <div class="min-w-0">
+      <p class="text-lg font-semibold truncate text-grey-text">
+        <%= holder.username %>
+      </p>
+
+      <p class="text-xs text-grey-text/50">
+        <%= user_matches.tradeable_count %> of
+        <%= pluralize(user_matches.total_count, 'want') %> marked for trade
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 text-sm shrink-0">
+      <% if holder.trades_public? %>
+        <%= link_to 'View trade list', collection_trades_path(holder.username),
+          class: 'px-3 py-1.5 border rounded-md border-highlight text-grey-text hover:border-accent-50 hover:text-accent-50',
+          data: { turbo_frame: '_top' } %>
+        <%= link_to 'Propose trade',
+          new_trade_path({ with: holder.username, want_ids: want_match_ids(user_matches).presence }.compact),
+          class: 'px-3 py-1.5 rounded-md bg-highlight text-nine-white hover:opacity-90',
+          data: { turbo_frame: '_top' } %>
+      <% else %>
+        <span class="text-grey-text/50">No public trade list</span>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex flex-col divide-y divide-highlight">
+    <% user_matches.matches.each do |match| %>
+      <div class="flex items-center justify-between gap-3 px-4 py-2">
+        <div class="min-w-0">
+          <p class="text-sm truncate text-grey-text">
+            <%= match.printing.name.to_s.split('//').first %>
+          </p>
+
+          <p class="text-xs truncate text-grey-text/50">
+            <%= match.printing.boxset&.code %>
+            #<%= match.printing.card_number %> ·
+            <%= owned_marker(*want_match_counts(match)) %>
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 text-sm shrink-0">
+          <% if match.tradeable %>
+            <span
+              class="
+                px-2 py-0.5 text-xs border rounded-full border-accent-50/40
+                text-accent-50
+              "
+            >
+              For trade
+            </span>
+          <% elsif match.pending? %>
+            <span
+              class="
+                px-2 py-0.5 text-xs border rounded-full border-highlight
+                text-grey-text/50
+              "
+            >
+              Pending trade
+            </span>
+          <% end %>
+
+          <span class="text-grey-text/70"><%= want_match_prices(match) %></span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

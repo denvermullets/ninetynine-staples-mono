@@ -5,10 +5,23 @@ class User < ApplicationRecord
   has_many :collections
   has_many :tracked_decks, dependent: :destroy
   has_many :commander_games, dependent: :destroy
+  has_many :collection_magic_cards, through: :collections
+  has_many :proposed_trades, class_name: 'Trade', foreign_key: :proposer_id, dependent: :destroy,
+                             inverse_of: :proposer
+  has_many :received_trades, class_name: 'Trade', foreign_key: :recipient_id, dependent: :destroy,
+                             inverse_of: :recipient
+  has_many :notifications, dependent: :delete_all
+  has_many :want_list_items, dependent: :delete_all
+  has_many :active_follows, class_name: 'Follow', foreign_key: :follower_id, dependent: :delete_all,
+                            inverse_of: :follower
+  has_many :passive_follows, class_name: 'Follow', foreign_key: :followed_id, dependent: :delete_all,
+                             inverse_of: :followed
+  has_many :following, through: :active_follows, source: :followed
+  has_many :followers, through: :passive_follows, source: :follower
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :username, presence: true
+  validates :username, presence: true, uniqueness: { case_sensitive: false }
   validates :password, length: { minimum: 10 }, allow_nil: true
 
   normalizes :email, with: ->(email) { email.strip.downcase }
@@ -32,6 +45,26 @@ class User < ApplicationRecord
   # Game tracker visibility
   def game_tracker_public?
     game_tracker_public
+  end
+
+  def following?(user)
+    user.present? && active_follows.exists?(followed_id: user.id)
+  end
+
+  def trades
+    Trade.involving(self)
+  end
+
+  # copies marked for trade across every public collection - what other users are allowed to see
+  def tradeable_cards
+    collection_magic_cards.tradeable.merge(Collection.visible_to_public)
+  end
+
+  # Every real copy in a public collection, on the trade list or not - what a trade can be built from.
+  # The trade list is where an offer starts, not the limit of it: anything the other user could
+  # already see by browsing the collection can be asked for, and the builder marks what was not listed.
+  def offerable_cards
+    collection_magic_cards.offerable.merge(Collection.visible_to_public)
   end
 
   def ordered_collections
