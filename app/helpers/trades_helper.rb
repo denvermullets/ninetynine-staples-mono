@@ -51,12 +51,6 @@ module TradesHelper
     "#{pluralize(side[:copies], 'copy')} · #{number_to_currency(side[:buylist])} buylist"
   end
 
-  # nav_item_classes matches on substrings, and a user's own trade list lives at
-  # /collections/<username>/trades - so the inbox link only lights up on paths that start with it
-  def trades_nav_classes
-    nav_item_classes(*(request.path.start_with?('/trades') ? ['/trades'] : []))
-  end
-
   # a countered trade is declined as far as the state machine goes, but it reads as a conversation
   # still going rather than a no
   def trade_status_badge(trade)
