@@ -227,11 +227,18 @@
         <h2 class="mb-4 text-lg font-semibold">Collection Order</h2>
 
         <p class="mb-4 text-sm">
-          Use the arrows to reorder your collections. This order will be used in
-          the sidebar and dropdowns.
+          Drag rows, or use the arrows, to reorder your collections and decks.
+          This order will be used in the sidebar and dropdowns.
         </p>
 
-        <%= turbo_frame_tag "collection_list" do %>
+        <%= turbo_frame_tag "collection_list",
+            class: "block overflow-y-auto border rounded-lg max-h-80 border-highlight bg-background",
+            data: {
+              controller: "collection-order",
+              collection_order_url_value: reorder_collections_path,
+              action: "dragstart->collection-order#start dragover->collection-order#over " \
+                      "drop->collection-order#drop dragend->collection-order#end"
+            } do %>
           <%= render partial: 'collection_list', locals: { collections: @collections } %>
         <% end %>
       </section>
