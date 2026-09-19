@@ -100,7 +100,7 @@ class TradesController < ApplicationController
   def set_trade
     @trade = current_user.trades
                          .includes(:proposer, :recipient, :parent_trade, :counter_offers,
-                                   trade_events: :user, trade_items: { magic_card: :boxset })
+                                   trade_items: { magic_card: :boxset })
                          .find_by(id: params[:id])
     head :not_found if @trade.nil?
   end

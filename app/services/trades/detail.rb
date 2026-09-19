@@ -13,6 +13,8 @@
 # `parent` and `counter_offer` are the trades either side of this one in a counter-offer chain. Both
 # have the same two parties, so linking to them never shows the viewer a trade they are not on.
 #
+# `timeline` is the whole of that chain rather than this trade's leg of it - Trades::Thread.
+#
 # Only for a party to the trade - the controller has already 404'd everyone else.
 module Trades
   class Detail < Service
@@ -33,7 +35,7 @@ module Trades
         actions: Transition.allowed_events(trade: @trade, user: @viewer),
         counter?: @trade.counterable_by?(@viewer),
         parent: @trade.parent_trade, counter_offer: @trade.counter_offers.max_by(&:id),
-        timeline: @trade.trade_events.to_a }
+        timeline: Thread.call(trade: @trade) }
     end
 
     private

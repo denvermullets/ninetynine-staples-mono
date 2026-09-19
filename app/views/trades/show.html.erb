@@ -122,17 +122,6 @@
       side: @detail[:mine], heading: 'You give' } %>
   </div>
 
-  <% if @trade.message.present? %>
-    <div class="p-6 space-y-2 border rounded-3xl bg-foreground border-highlight">
-      <p class="text-sm text-grey-text/70">
-        Message from
-        <%= @trade.proposer == current_user ? 'you' : @trade.proposer.username %>
-      </p>
-
-      <p class="text-sm whitespace-pre-line text-grey-text"><%= @trade.message %></p>
-    </div>
-  <% end %>
-
   <%= render partial: 'trades/timeline', locals: {
     events: @detail[:timeline], viewer: current_user } %>
 </div>

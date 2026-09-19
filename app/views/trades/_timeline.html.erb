@@ -1,20 +1,43 @@
-<%# locals: events - the trade's TradeEvents, oldest first; viewer %>
+<%#
+  locals: events - Trades::Thread's steps, oldest first, across every offer in the counter-offer
+  chain; viewer. A step that sent an offer carries that offer's message, so the discussion reads in
+  order, and one from another offer in the chain links to it.
+%>
 
 <% if events.any? %>
   <div class="p-6 space-y-4 border rounded-3xl bg-foreground border-highlight">
     <h2 class="text-lg font-semibold text-grey-text">Timeline</h2>
 
     <ol class="space-y-3 border-l border-highlight">
-      <% events.each do |event| %>
+      <% events.each do |entry| %>
         <li class="relative pl-4">
-          <span class="absolute w-2 h-2 rounded-full -left-1 top-1.5 bg-highlight"></span>
+          <span
+            class="
+              absolute w-2 h-2 rounded-full -left-1 top-1.5
+              <%= entry[:current] ? 'bg-accent-50' : 'bg-highlight' %>
+            "
+          ></span>
 
           <p class="text-sm text-grey-text">
-            <%= trade_event_text(event, viewer) %>
+            <%= trade_event_text(entry, viewer) %>
+
+            <% unless entry[:current] %>
+              <%= link_to 'View that offer', trade_path(entry[:trade]),
+                class: 'ml-2 text-xs underline text-accent-50 hover:opacity-80' %>
+            <% end %>
           </p>
 
+          <% if entry[:message] %>
+            <p
+              class="
+                px-3 py-2 mt-1 text-sm border rounded-xl whitespace-pre-line
+                border-highlight bg-background text-grey-text
+              "
+            ><%= entry[:message] %></p>
+          <% end %>
+
           <p class="text-xs text-grey-text/50">
-            <%= trade_time(event.created_at) %>
+            <%= trade_time(entry[:event].created_at) %>
           </p>
         </li>
       <% end %>

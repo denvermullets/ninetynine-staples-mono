@@ -90,10 +90,14 @@ module TradesHelper
     user == viewer ? 'You' : user.username
   end
 
-  def trade_event_text(event, viewer)
+  # `entry` is one step of Trades::Thread. A counter-offer's own `proposed` step is the counter.
+  def trade_event_text(entry, viewer)
+    event = entry[:event]
     return 'Trade completed' if event.event == 'completed'
 
     actor = event.user ? trade_party_name(event.user, viewer) : 'A former user'
+    return "#{actor} countered with a new offer" if event.event == 'proposed' && entry[:trade].parent_trade_id
+
     "#{actor} #{EVENT_VERBS.fetch(event.event)}"
   end
 
