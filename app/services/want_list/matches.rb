@@ -4,7 +4,8 @@
 # :forward is "who has my wants": this user's want list against everyone else's public collections.
 # A holder appears whether or not the copy is marked for trade - owning it is enough to be worth a
 # message - but marked copies rank first, and only a holder with a public trade list has marks to
-# rank on.
+# rank on. Marked copies already promised to an accepted trade are not on offer either: they count as
+# pending rather than tradeable until that trade completes or falls through (WantList::MatchSql).
 #
 # :inverse is "who wants what I'm trading": this user's marked copies against every public want
 # list. Everything in it is tradeable by construction, so tradeable_count and total_count agree.
@@ -27,7 +28,12 @@ module WantList
 
     UserMatches = Data.define(:user, :matches, :tradeable_count, :total_count)
     Match = Data.define(:want, :printing, :tradeable, :quantity, :foil_quantity,
-                        :trade_quantity, :trade_foil_quantity)
+                        :trade_quantity, :trade_foil_quantity, :pending_quantity, :pending_foil_quantity) do
+      # marked for trade, but every marked copy is sitting in an accepted trade
+      def pending?
+        !tradeable && (pending_quantity + pending_foil_quantity).positive?
+      end
+    end
 
     # which side of a pair is the user asking, and which is the one they are shown
     SIDES = {
@@ -40,6 +46,9 @@ module WantList
       AND (#{MatchSql::TRADE_QUANTITY}) + (#{MatchSql::TRADE_FOIL_QUANTITY}) > 0
       AND EXISTS (SELECT 1 FROM users wanters WHERE wanters.id = wants.user_id AND wanters.wants_public = TRUE)
     SQL
+
+    COUNTS = %w[quantity foil_quantity trade_quantity trade_foil_quantity
+                pending_quantity pending_foil_quantity].freeze
 
     TRADEABLE = 'trade_quantity + trade_foil_quantity > 0'.freeze
 
@@ -100,7 +109,8 @@ module WantList
           #{pairs}
           SELECT pairs.#{sides[:theirs]} AS user_id, pairs.want_id, pairs.printing_id,
                  SUM(quantity) AS quantity, SUM(foil_quantity) AS foil_quantity,
-                 SUM(trade_quantity) AS trade_quantity, SUM(trade_foil_quantity) AS trade_foil_quantity
+                 SUM(trade_quantity) AS trade_quantity, SUM(trade_foil_quantity) AS trade_foil_quantity,
+                 SUM(pending_quantity) AS pending_quantity, SUM(pending_foil_quantity) AS pending_foil_quantity
           FROM pairs
           WHERE pairs.#{sides[:theirs]} IN (#{ids.join(', ')})
           GROUP BY pairs.#{sides[:theirs]}, pairs.want_id, pairs.printing_id
@@ -121,13 +131,10 @@ module WantList
     end
 
     def match(row)
-      trade_quantity = row['trade_quantity'].to_i
-      trade_foil_quantity = row['trade_foil_quantity'].to_i
+      counts = COUNTS.to_h { |column| [column.to_sym, row[column].to_i] }
 
       Match.new(want: wants[row['want_id'].to_i], printing: printings[row['printing_id'].to_i],
-                tradeable: (trade_quantity + trade_foil_quantity).positive?,
-                quantity: row['quantity'].to_i, foil_quantity: row['foil_quantity'].to_i,
-                trade_quantity: trade_quantity, trade_foil_quantity: trade_foil_quantity)
+                tradeable: (counts[:trade_quantity] + counts[:trade_foil_quantity]).positive?, **counts)
     end
 
     # tradeable first inside a user too, then the order a want list is read in

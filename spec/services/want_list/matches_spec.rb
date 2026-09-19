@@ -221,6 +221,79 @@ RSpec.describe WantList::Matches, type: :service do
     end
   end
 
+  describe 'copies held by a trade' do
+    let(:row) { hold(card, :tradeable, quantity: 2) }
+
+    def commit(copy, *traits, **)
+      trade = create(:trade, *traits, proposer: holder)
+      create(:trade_item, trade: trade, collection_magic_card: copy, magic_card: copy.magic_card, **)
+    end
+
+    before { create(:want_list_item, user: user, magic_card: card) }
+
+    it 'calls a match pending once an accepted trade holds every marked copy' do
+      commit(row, :accepted, quantity: 2)
+
+      expect(matches.first).to have_attributes(tradeable_count: 0, total_count: 1)
+      expect(matches.first.matches.first).to have_attributes(tradeable: false, pending?: true, quantity: 2,
+                                                             trade_quantity: 0, pending_quantity: 2)
+    end
+
+    it 'keeps the marked copies a trade has not taken' do
+      commit(row, :accepted, quantity: 1)
+
+      expect(matches.first.matches.first).to have_attributes(tradeable: true, pending?: false,
+                                                             trade_quantity: 1, pending_quantity: 1)
+    end
+
+    it 'stays pending while only one party has confirmed' do
+      commit(row, :half_confirmed, quantity: 2)
+
+      expect(matches.first.matches.first).to have_attributes(tradeable: false, pending?: true)
+    end
+
+    it 'holds each finish on its own' do
+      foils = hold(other_printing, :tradeable, quantity: 1, foil_quantity: 1)
+      commit(foils, :accepted, quantity: 0, foil_quantity: 1)
+
+      expect(matches.first.matches.find { |match| match.printing == other_printing })
+        .to have_attributes(tradeable: true, trade_quantity: 1, trade_foil_quantity: 0, pending_foil_quantity: 1)
+    end
+
+    it 'is not held by a trade that is only proposed' do
+      commit(row, quantity: 2)
+
+      expect(matches.first.matches.first).to have_attributes(tradeable: true, pending?: false, trade_quantity: 2)
+    end
+
+    it 'is let go by a trade that fell through' do
+      commit(row, :accepted, quantity: 2).trade.update!(status: 'cancelled')
+
+      expect(matches.first.matches.first).to have_attributes(tradeable: true, trade_quantity: 2)
+    end
+
+    it 'does not call unmarked copies pending' do
+      commit(hold(other_printing, quantity: 1), :accepted, quantity: 1)
+
+      expect(matches.first.matches.find { |match| match.printing == other_printing })
+        .to have_attributes(tradeable: false, pending?: false)
+    end
+
+    it 'says nothing about a private trade list' do
+      holder.update!(trades_public: false)
+      commit(row, :accepted, quantity: 2)
+
+      expect(matches.first.matches.first).to have_attributes(pending?: false, pending_quantity: 0)
+    end
+
+    it 'drops a fully held copy from the inverse direction' do
+      user.update!(wants_public: true)
+      commit(row, :accepted, quantity: 2)
+
+      expect(described_class.call(user: holder, direction: :inverse)[:users]).to be_empty
+    end
+  end
+
   describe 'the inverse direction' do
     let(:fan) { create(:user, username: 'fan', wants_public: true) }
 

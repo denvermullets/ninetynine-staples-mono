@@ -65,6 +65,15 @@
             >
               For trade
             </span>
+          <% elsif match.pending? %>
+            <span
+              class="
+                px-2 py-0.5 text-xs border rounded-full border-highlight
+                text-grey-text/50
+              "
+            >
+              Pending trade
+            </span>
           <% end %>
 
           <span class="text-grey-text/70"><%= want_match_prices(match) %></span>
