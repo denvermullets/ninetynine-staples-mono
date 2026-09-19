@@ -5,7 +5,7 @@ gem "bootsnap", require: false
 gem 'dotenv-rails'
 gem "httparty"
 gem "importmap-rails"
-gem "json", "< 3"
+gem "json", "< 4"
 gem "mission_control-jobs"
 gem "pagy"
 gem "pg", "~> 1.6.3"
