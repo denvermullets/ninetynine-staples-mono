@@ -84,6 +84,18 @@ class User < ApplicationRecord
     swap_collection_position(current_order, collection_id, direction)
   end
 
+  # Saves a full ordering (e.g. from drag and drop). Ids that aren't the user's are dropped and any
+  # collections left out keep their relative place at the end.
+  def reorder_collections(collection_ids)
+    own_ids = collections.order(:id).pluck(:id)
+    ordered = Array(collection_ids).map(&:to_i).uniq & own_ids
+    return false if ordered.empty?
+
+    known = collection_order & own_ids
+    self.collection_order = ordered + (known - ordered) + (own_ids - known - ordered)
+    save
+  end
+
   private
 
   def ensure_collection_in_order(collection_id)
@@ -97,10 +109,11 @@ class User < ApplicationRecord
 
   def swap_collection_position(current_order, collection_id, direction)
     index = current_order.index(collection_id)
-    new_index = direction == 'up' ? index - 1 : index + 1
+    new_index = { 'up' => index - 1, 'down' => index + 1, 'top' => 0 }[direction]
+    return false if new_index.nil? || new_index == index
     return false if new_index.negative? || new_index >= current_order.length
 
-    current_order[index], current_order[new_index] = current_order[new_index], current_order[index]
+    current_order.insert(new_index, current_order.delete_at(index))
     self.collection_order = current_order
     save
   end

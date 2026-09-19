@@ -10,11 +10,15 @@ class SettingsController < ApplicationController
     direction = params[:direction]
 
     if current_user.move_collection(collection_id, direction)
-      @collections = current_user.ordered_collections
-      respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_to settings_path }
-      end
+      render_collection_list
+    else
+      head :unprocessable_entity
+    end
+  end
+
+  def reorder_collections
+    if current_user.reorder_collections(params[:collection_ids])
+      render_collection_list
     else
       head :unprocessable_entity
     end
@@ -56,6 +60,14 @@ class SettingsController < ApplicationController
   end
 
   private
+
+  def render_collection_list
+    @collections = current_user.ordered_collections
+    respond_to do |format|
+      format.turbo_stream { render :move_collection }
+      format.html { redirect_to settings_path }
+    end
+  end
 
   def update_visibility(attribute)
     is_public = [true, 'true'].include?(params[:public])

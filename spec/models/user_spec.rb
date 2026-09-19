@@ -181,6 +181,57 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe '#move_collection to the top' do
+    let(:user) { create(:user) }
+    let!(:c1) { create(:collection, user: user) }
+    let!(:c2) { create(:collection, user: user) }
+    let!(:c3) { create(:collection, user: user) }
+
+    it 'moves the collection to the front and shifts the rest down' do
+      user.move_collection(c3.id, 'top')
+      expect(user.collection_order).to eq([c3.id, c1.id, c2.id])
+    end
+
+    it 'returns false when it is already first' do
+      expect(user.move_collection(c1.id, 'top')).to be false
+    end
+
+    it 'returns false for an unknown direction' do
+      expect(user.move_collection(c1.id, 'sideways')).to be false
+    end
+  end
+
+  describe '#reorder_collections' do
+    let(:user) { create(:user) }
+    let!(:c1) { create(:collection, user: user) }
+    let!(:c2) { create(:collection, user: user) }
+    let!(:c3) { create(:collection, user: user) }
+
+    it 'saves the given order' do
+      expect(user.reorder_collections([c3.id, c1.id, c2.id].map(&:to_s))).to be true
+      expect(user.reload.collection_order).to eq([c3.id, c1.id, c2.id])
+    end
+
+    it 'drops ids that belong to someone else' do
+      other = create(:collection)
+
+      user.reorder_collections([other.id, c2.id, c1.id, c3.id])
+      expect(user.collection_order).to eq([c2.id, c1.id, c3.id])
+    end
+
+    it 'keeps collections that were left out at the end' do
+      user.update!(collection_order: [c3.id, c2.id, c1.id])
+
+      user.reorder_collections([c1.id])
+      expect(user.collection_order).to eq([c1.id, c3.id, c2.id])
+    end
+
+    it 'returns false when nothing valid is given' do
+      expect(user.reorder_collections(nil)).to be false
+      expect(user.collection_order).to eq([])
+    end
+  end
+
   describe '#tradeable_cards' do
     let(:user) { create(:user) }
 

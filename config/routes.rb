@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   # Settings routes
   get 'settings', to: 'settings#show', as: :settings
   post 'settings/move_collection', to: 'settings#move_collection', as: :move_collection
+  post 'settings/reorder_collections', to: 'settings#reorder_collections', as: :reorder_collections
   post 'settings/update_column_visibility', to: 'settings#update_column_visibility', as: :update_column_visibility
   post 'settings/update_game_tracker_visibility', to: 'settings#update_game_tracker_visibility', as: :update_game_tracker_visibility
   post 'settings/update_trades_visibility', to: 'settings#update_trades_visibility', as: :update_trades_visibility
