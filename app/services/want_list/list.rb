@@ -12,27 +12,44 @@ module WantList
     PRICE_SQL = "CASE WHEN want_list_items.foil_preference = 'foil' THEN magic_cards.foil_price " \
                 'ELSE COALESCE(NULLIF(magic_cards.normal_price, 0), magic_cards.foil_price) END'.freeze
 
-    # Copies that would satisfy the want, in the finish it asks for. Correlated against
-    # want_list_items; wants always point at a front face, which is also where copies are held.
-    # :collection_ids is bound by `bind` - an empty list binds as IN (NULL) and owns nothing.
-    OWNED_SQL = <<~SQL.squish.freeze
-      SELECT COALESCE(SUM(
+    # what one copy row adds to the count, in the finish the want asks for
+    OWNED_COPIES = <<~SQL.squish.freeze
+      COALESCE(SUM(
         CASE want_list_items.foil_preference
           WHEN 'foil' THEN COALESCE(owned_copies.foil_quantity, 0)
           WHEN 'non_foil' THEN COALESCE(owned_copies.quantity, 0)
           ELSE COALESCE(owned_copies.quantity, 0) + COALESCE(owned_copies.foil_quantity, 0)
         END), 0)
-      FROM collection_magic_cards owned_copies
-      INNER JOIN magic_cards owned_cards ON owned_cards.id = owned_copies.magic_card_id
-      WHERE owned_copies.collection_id IN (:collection_ids)
+    SQL
+
+    OWNED_SCOPE = <<~SQL.squish.freeze
+      owned_copies.collection_id IN (:collection_ids)
         AND owned_copies.staged = FALSE
         AND owned_copies.needed = FALSE
-        AND (
-          owned_copies.magic_card_id = want_list_items.magic_card_id
-          OR (want_list_items.any_printing
-              AND want_list_items.scryfall_oracle_id IS NOT NULL
-              AND owned_cards.scryfall_oracle_id = want_list_items.scryfall_oracle_id)
-        )
+    SQL
+
+    # Copies that would satisfy the want, in the finish it asks for. Correlated against
+    # want_list_items; wants always point at a front face, which is also where copies are held.
+    # :collection_ids is bound by `bind` - an empty list binds as IN (NULL) and owns nothing.
+    #
+    # One subquery per way a want can match, picked by a CASE, for the reason WantList::MatchSql
+    # splits its branches: a single subquery with `magic_card_id = ... OR scryfall_oracle_id = ...`
+    # gives the planner no index to drive and it reads every copy in the collections once per want -
+    # seconds on a few hundred wants, and the pill counts run it over the whole list on every page.
+    # The oracle branch covers the want's own printing too, so nothing is counted twice.
+    OWNED_SQL = <<~SQL.squish.freeze
+      CASE WHEN want_list_items.any_printing AND want_list_items.scryfall_oracle_id IS NOT NULL THEN (
+        SELECT #{OWNED_COPIES}
+        FROM magic_cards owned_cards
+        INNER JOIN collection_magic_cards owned_copies ON owned_copies.magic_card_id = owned_cards.id
+        WHERE owned_cards.scryfall_oracle_id = want_list_items.scryfall_oracle_id
+          AND #{OWNED_SCOPE}
+      ) ELSE (
+        SELECT #{OWNED_COPIES}
+        FROM collection_magic_cards owned_copies
+        WHERE owned_copies.magic_card_id = want_list_items.magic_card_id
+          AND #{OWNED_SCOPE}
+      ) END
     SQL
 
     SORTS = {

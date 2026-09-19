@@ -1,20 +1,27 @@
-<%# locals: result - WantList::BulkImport's or ProxyImport's answer, nil before anything is sent; text - the textarea's contents %>
+<%# locals: result - WantList::BulkImport's or ProxyImport's answer, nil before anything is sent; text - the textarea's contents; pending - optional, true while WantImportJob is running %>
 <%#
-  Bulk add for the owner. Posts to WantImportsController, which swaps this panel for the report and
-  leaves the lines it could not use in the textarea to be fixed and sent again. The proxies button
+  Bulk add for the owner. Posts to WantImportsController, which hands the work to WantImportJob and
+  swaps this panel for a pending one, buttons off. The job broadcasts the panel again with the report,
+  leaving the lines it could not use in the textarea to be fixed and sent again. The proxies button
   beside the submit posts to the same controller and gets the same report back.
 %>
+
+<% pending = local_assigns[:pending] %>
 
 <% report_class = 'px-4 py-3 text-sm border rounded-xl bg-background text-grey-text' %>
 
 <div id="want_import">
-  <%= tag.details class: 'p-4 border rounded-3xl bg-foreground border-highlight', open: result.present? do %>
+  <%= tag.details class: 'p-4 border rounded-3xl bg-foreground border-highlight', open: result.present? || pending do %>
     <summary class="text-sm cursor-pointer text-nine-white">
       Bulk add cards
     </summary>
 
     <div class="flex flex-col gap-3 mt-4">
-      <% if result && !result[:success] %>
+      <% if pending %>
+        <div class="<%= report_class %> border-highlight">
+          Adding to your want list - this panel will update when it is done.
+        </div>
+      <% elsif result && !result[:success] %>
         <div class="<%= report_class %> border-accent-100/40">
           <%= result[:error] %>
         </div>
@@ -63,13 +70,13 @@
               class: 'w-full p-3 text-sm border rounded-lg resize-y bg-background border-highlight text-grey-text placeholder-grey-text/50 focus:outline-none focus:border-accent-50' %>
 
         <div class="flex flex-wrap items-center gap-2">
-          <%= f.submit 'Add to want list', data: { turbo_submits_with: 'Adding...' },
-                class: 'px-4 py-2 text-sm font-medium rounded-lg cursor-pointer bg-accent-50 text-background hover:bg-nine-white' %>
+          <%= f.submit 'Add to want list', disabled: pending, data: { turbo_submits_with: 'Adding...' },
+                class: 'px-4 py-2 text-sm font-medium rounded-lg cursor-pointer bg-accent-50 text-background hover:bg-nine-white disabled:opacity-50 disabled:cursor-not-allowed' %>
 
-          <%= button_tag 'Add my proxies', type: :submit, form: 'want_proxy_import',
+          <%= button_tag 'Add my proxies', type: :submit, form: 'want_proxy_import', disabled: pending,
                 title: 'Add every proxy in your collections and decks to your want list',
                 data: { turbo_submits_with: 'Adding...' },
-                class: 'px-4 py-2 text-sm font-medium border rounded-lg cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white' %>
+                class: 'px-4 py-2 text-sm font-medium border rounded-lg cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white disabled:opacity-50 disabled:cursor-not-allowed' %>
         </div>
       <% end %>
 

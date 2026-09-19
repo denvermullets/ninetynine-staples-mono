@@ -3,9 +3,6 @@
   Edit and remove for the owner's own rows, posting to the same WantListItemsController actions the
   card details block uses. return_to=want_list has them redirect back here instead of streaming a
   card_details frame; the forms sit inside the want_items frame, so the redirect reloads just the list.
-
-  A want the owner already has enough copies of gets its remove button called out, as the
-  "you own this now" prompt; it is still their call, nothing comes off the list by itself.
 %>
 
 <% back = view.merge(return_to: 'want_list')
@@ -54,11 +51,5 @@
     <% end %>
   </details>
 
-  <% if want_filled?(item) %>
-    <%= button_to 'Owned - remove', want_list_item_path(item), method: :delete, params: back,
-          title: 'You have enough copies to cover this want',
-          class: 'px-3 py-1 text-xs transition rounded-md cursor-pointer bg-accent-50 text-background hover:bg-nine-white' %>
-  <% else %>
-    <%= button_to 'Remove', want_list_item_path(item), method: :delete, params: back, class: button_class %>
-  <% end %>
+  <%= button_to 'Remove', want_list_item_path(item), method: :delete, params: back, class: button_class %>
 </div>

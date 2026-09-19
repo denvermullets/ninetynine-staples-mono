@@ -2,39 +2,30 @@
 # WantList::BulkImport does the parsing and name resolution. The panel's other button skips the paste
 # and adds the proxies they are holding, which is WantList::ProxyImport's job.
 #
-# Answered with turbo streams rather than a redirect, because the report of what could not be matched
-# can run to dozens of names - more than a cookie flash holds. The import panel is swapped for the
-# report, with the lines to fix left in the textarea, and the want_items frame is swapped for one that
-# reloads itself from the page, so the list and its pill counts pick up the new rows.
+# The adding is WantImportJob's: a big paste is hundreds of inserts, too long to hold a request for. The
+# answer here is a turbo stream that swaps the import panel for one that says the import is running;
+# the job broadcasts the report into the same panel, and reloads the want_items frame, when it is done.
 class WantImportsController < ApplicationController
   before_action :authenticate_user!
 
   def create
-    result = WantList::BulkImport.call(user: current_user, text: params[:decklist])
+    WantImportJob.perform_later(current_user.id, list_src, decklist: params[:decklist].to_s)
 
-    render_report(result, retry_text(result))
+    render_pending(params[:decklist].to_s)
   end
 
   def proxies
-    render_report(WantList::ProxyImport.call(user: current_user), '')
+    WantImportJob.perform_later(current_user.id, list_src)
+
+    render_pending('')
   end
 
   private
 
-  def render_report(result, text)
-    render turbo_stream: [
-      turbo_stream.replace('want_import', partial: 'collection_wants/import',
-                                          locals: { result: result, text: text }),
-      turbo_stream.replace('want_items', partial: 'collection_wants/reload_items',
-                                         locals: { src: list_src })
-    ]
-  end
-
-  # what is left to fix goes back in the textarea; a rejected paste goes back whole
-  def retry_text(result)
-    return params[:decklist] unless result[:success]
-
-    (result[:ambiguous] + result[:unresolved]).map { |line| "#{line[:quantity]} #{line[:name]}" }.join("\n")
+  # the paste stays in the textarea until the report replaces it, so nothing is lost if the job dies
+  def render_pending(text)
+    render turbo_stream: turbo_stream.replace('want_import', partial: 'collection_wants/import',
+                                                             locals: { result: nil, text: text, pending: true })
   end
 
   # the filter and sort the page was on, read back off the page's URL; the page resets, since the
