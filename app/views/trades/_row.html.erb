@@ -5,6 +5,10 @@
 
   A finish with nothing left to offer gets no input at all - the row is still listed because the
   other finish is available, and an input capped at zero would only look broken.
+
+  An input is capped at the copies owned, not the copies listed. `data-listed` is where the trade
+  list runs out, and trade-builder shows the badge once a quantity goes past it; a row with nothing
+  listed at all (a search hit from the rest of the collection) wears it from the start.
 %>
 
 <div
@@ -12,12 +16,23 @@
   data-trade-builder-target="row"
   data-side="<%= side %>"
   data-row-id="<%= row.id %>"
+  data-unlisted="<%= row.unlisted? %>"
   data-card-name="<%= row.magic_card.name.to_s.downcase %>"
 >
   <div class="min-w-0">
-    <p class="text-sm truncate text-grey-text">
-      <%= row.magic_card.name.to_s.split('//').first %>
-    </p>
+    <div class="flex items-center gap-2">
+      <%# the row has no thumbnail, so the name is what shows the card %>
+      <%= tag.p row.magic_card.name.to_s.split('//').first,
+        class: 'text-sm truncate cursor-pointer text-grey-text',
+        data: {
+          controller: 'card-hover',
+          card_hover_image_value: row.magic_card.image_large,
+          card_hover_name_value: row.magic_card.name,
+          action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+        } %>
+
+      <%= render partial: 'trades/off_list_badge', locals: { hidden: !row.unlisted? } %>
+    </div>
 
     <p class="text-xs truncate text-grey-text/50">
       <%= row.magic_card.boxset&.code %> #<%= row.magic_card.card_number %> ·
@@ -31,16 +46,24 @@
 
     <% { quantity: '', foil_quantity: 'foil' }.each do |field, finish| %>
       <% available = row.public_send(field) %>
+      <% listed = row.public_send(:"listed_#{field}") %>
 
       <% if available.positive? %>
         <div class="flex items-center gap-1 text-xs">
           <%= tag.input type: 'number', value: (start[field] if start[field].to_i.positive?),
             min: 0, max: available, step: 1, inputmode: 'numeric',
             aria: { label: "#{finish.presence || 'regular'} copies of #{row.magic_card.name} to trade" },
-            data: { trade_field: field, action: 'input->trade-builder#change' },
+            data: { trade_field: field, listed: listed, action: 'input->trade-builder#change' },
             class: 'w-14 px-2 py-1 text-sm text-right border rounded-md border-highlight bg-background text-grey-text' %>
 
-          <span><%= "/ #{available} #{finish}".strip %></span>
+          <span>
+            <%= "/ #{available} #{finish}".strip %>
+
+            <%# only worth saying when the two differ - an unlisted row already wears the badge %>
+            <% if listed.positive? && listed < available %>
+              <span class="text-grey-text/50">(<%= listed %> listed)</span>
+            <% end %>
+          </span>
         </div>
       <% end %>
     <% end %>

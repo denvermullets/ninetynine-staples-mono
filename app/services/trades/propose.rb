@@ -3,10 +3,14 @@
 # Each item names a collection row and how many regular / foil copies of it are on offer. The side
 # tells us whose row it must be: a proposer-side item has to belong to the proposer, and vice versa.
 #
-# Availability is the owner's current trade_quantity minus the copies they already have committed to
+# Availability is the copies the owner has on the row minus the ones they already have committed to
 # other open trades (proposed or accepted). Without that second half a user could offer the same
 # playset to five people and only find out when four of them accepted - the counts on the collection
 # row don't move until a trade completes, so they can't be the whole answer on their own.
+#
+# The trade list is not the ceiling. Any real copy in a public collection can be asked for, because
+# a trade rarely balances on the binder alone; an item that reaches past what is left of the owner's
+# trade list is stamped `off_list`, so the trade page can tell them that is what is being asked.
 #
 # A counter-offer is a proposal with a `parent`: the trade it answers. Only that trade's recipient can
 # send one, back to its proposer, while it is still proposed. The parent is declined - with a
@@ -90,21 +94,25 @@ module Trades
       raise ProposalError, 'Every card has to be on one side of the trade.' unless Trade::SIDES.include?(side)
 
       card = owned_row(item, side)
-      quantity = requested(item, :quantity)
-      foil_quantity = requested(item, :foil_quantity)
-      check_availability(card, side, quantity, foil_quantity)
+      wanted = { quantity: requested(item, :quantity), foil_quantity: requested(item, :foil_quantity) }
+      held = Committed.call(user: owner_of(side), collection_magic_card_ids: [card.id])[card.id]
+      check_availability(card, wanted, held)
 
       { collection_magic_card: card, magic_card_id: card.magic_card_id, side: side,
-        quantity: quantity, foil_quantity: foil_quantity }.merge(snapshots(card.magic_card))
+        off_list: off_list?(card, wanted, held) }.merge(wanted, snapshots(card.magic_card))
     end
 
-    # The row has to be one the side's owner is actually offering publicly - the same tradeable_cards
-    # set the other user browses. Anything else and the trade would be built on copies its
+    def owner_of(side)
+      side == 'proposer' ? @proposer : @recipient
+    end
+
+    # The row has to be one the other user could have found for themselves - a real copy in a public
+    # collection, User#offerable_cards. Anything else and the trade would be built on copies its
     # counterparty was never shown.
     def owned_row(item, side)
-      owner = side == 'proposer' ? @proposer : @recipient
-      row = owner.tradeable_cards.find_by(id: item[:collection_magic_card_id])
-      raise ProposalError, "#{owner.username} is not offering that card." if row.nil?
+      owner = owner_of(side)
+      row = owner.offerable_cards.find_by(id: item[:collection_magic_card_id])
+      raise ProposalError, "#{owner.username} does not have that card to trade." if row.nil?
 
       row
     end
@@ -116,13 +124,18 @@ module Trades
       value
     end
 
-    def check_availability(card, side, quantity, foil_quantity)
-      owner = side == 'proposer' ? @proposer : @recipient
-      committed = Committed.call(user: owner, collection_magic_card_ids: [card.id])[card.id]
+    # `held` is what the owner's other open trades already hold of this row - Trades::Committed
+    def check_availability(card, wanted, held)
+      name = card.magic_card.name
 
-      shortfall(card.magic_card.name, quantity, card.trade_quantity - committed[:quantity].to_i, '')
-      shortfall(card.magic_card.name, foil_quantity, card.trade_foil_quantity - committed[:foil_quantity].to_i,
-                'foil ')
+      shortfall(name, wanted[:quantity], card.quantity.to_i - held[:quantity], '')
+      shortfall(name, wanted[:foil_quantity], card.foil_quantity.to_i - held[:foil_quantity], 'foil ')
+    end
+
+    # held copies come off the trade list first, the same way Trades::AvailableRows counts them
+    def off_list?(card, wanted, held)
+      wanted[:quantity] > card.trade_quantity - held[:quantity] ||
+        wanted[:foil_quantity] > card.trade_foil_quantity - held[:foil_quantity]
     end
 
     def shortfall(name, wanted, available, finish)

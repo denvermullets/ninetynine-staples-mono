@@ -1,0 +1,7 @@
+<%# locals: item, count - how many people have this want marked for trade %>
+<% if count.positive? %>
+  <%= link_to pluralize(count, 'trader'), want_traders_path(item),
+    class: 'text-accent-50 hover:underline', data: { turbo_frame: '_top' } %>
+<% else %>
+  <span class="text-grey-text/50">-</span>
+<% end %>

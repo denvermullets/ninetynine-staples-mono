@@ -1,0 +1,8 @@
+<%# locals: hidden - the builder starts it hidden on a listed row, and shows it once the draft reaches past the list %>
+<%# The mark a card carries wherever a trade asks for copies its owner did not put on their trade list. %>
+
+<%= tag.span 'Not on trade list',
+  title: 'In a public collection, but not marked for trade',
+  data: { off_list_badge: true },
+  class: ['px-2 py-0.5 text-xs border rounded-full shrink-0 whitespace-nowrap border-yellow-400/40 text-yellow-400',
+          { hidden: local_assigns[:hidden] }] %>

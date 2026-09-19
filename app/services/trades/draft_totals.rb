@@ -6,8 +6,8 @@
 # been agreed yet, so there is nothing to have drifted from.
 #
 # Every row is resolved against its side's owner before it is priced. The ids come from the page, and
-# a row that is not on that user's public trade list is not theirs to offer - pricing it anyway would
-# show both parties a total the proposal is about to refuse.
+# a row that is not a real copy in one of that user's public collections is not theirs to offer -
+# pricing it anyway would show both parties a total the proposal is about to refuse.
 #
 # Quantities are taken as sent. The inputs are capped at what is available and Trades::Propose is the
 # thing that enforces it; a draft that asks for more copies than exist is priced honestly, and then
@@ -47,7 +47,7 @@ module Trades
       owner = side == 'proposer' ? @proposer : @recipient
       ids = @items.select { |item| item[:side].to_s == side }.map { |item| item[:collection_magic_card_id] }
 
-      owner.tradeable_cards.where(id: ids).index_by(&:id)
+      owner.offerable_cards.where(id: ids).index_by(&:id)
     end
   end
 end

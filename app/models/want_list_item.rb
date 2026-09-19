@@ -45,6 +45,11 @@ class WantListItem < ApplicationRecord
     any_printing && scryfall_oracle_id.present? && scryfall_oracle_id == card.scryfall_oracle_id
   end
 
+  # whether copies are matched on oracle id (any printing will do) or on this exact printing
+  def matches_by_oracle?
+    any_printing && scryfall_oracle_id.present?
+  end
+
   private
 
   def anchor_to_front_face

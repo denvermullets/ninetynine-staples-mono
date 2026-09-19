@@ -1,14 +1,21 @@
-<%# locals: items - WantListItem rows from WantList::List carrying owned_quantity, pagy, owner, view %>
+<%# locals: items - WantListItem rows from WantList::List carrying owned_quantity, pagy, owner, view, trader_counts %>
 <%#
   One row per want. The price is the finish the want asks for; "Owned" counts the copies that would
-  fill it, so a row with a number there is a want that has probably gone stale.
+  fill it, so a row with a number there is a want that has probably gone stale. The owner's "For
+  trade" count links into want_traders - who has that want marked for trade - from
+  WantList::Traders.counts.
+
+  A row expands into the same lazy card_details frame the boxsets table opens. Its Want List block
+  is the viewer's own, so a visitor can add the card to their list from here.
 %>
+
+<% labels = ['Name', 'Set', 'Printing', 'Qty', 'Finish', 'Price', 'Owned', ('For trade' if owner), ''].compact %>
 
 <div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
-        <% ['Name', 'Set', 'Printing', 'Qty', 'Finish', 'Price', 'Owned', ''].each do |label| %>
+        <% labels.each do |label| %>
           <th
             class="
               px-4 py-2 text-xs font-normal tracking-wider text-left normal-case
@@ -21,11 +28,18 @@
       </tr>
     </thead>
 
-    <tbody class="bg-background">
+    <tbody class="bg-background" data-controller="expandable-row">
       <% items.each do |item| %>
         <% card = item.magic_card %>
 
-        <tr class="border border-background text-grey-text bg-foreground align-top">
+        <tr
+          data-action="click->expandable-row#toggle"
+          data-card-id="<%= card.id %>"
+          class="
+            border border-background text-grey-text bg-foreground
+            hover:bg-menu hover:cursor-pointer
+          "
+        >
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset&.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
 
@@ -66,10 +80,29 @@
             <% end %>
           </td>
 
+          <% if owner %>
+            <td class="px-4 text-sm py-7 whitespace-nowrap">
+              <%= render partial: 'collection_wants/trader_count',
+                locals: { item: item, count: trader_counts[item.id].to_i } %>
+            </td>
+          <% end %>
+
           <td class="px-4 py-6 text-sm">
             <% if owner %>
               <%= render partial: 'collection_wants/owner_controls', locals: { item: item, view: view } %>
             <% end %>
+          </td>
+        </tr>
+
+        <tr
+          data-expandable-row-target="content"
+          data-card-id="<%= card.id %>"
+          class="hidden border border-background"
+        >
+          <td colspan="<%= labels.size %>">
+            <%= turbo_frame_tag "card_details_#{card.id}",
+              src: boxset_magic_card_path(card.id, show_other_printings: true),
+              loading: :lazy %>
           </td>
         </tr>
       <% end %>

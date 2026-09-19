@@ -14,6 +14,10 @@
     header: 'Want List',
     subtext: @owner ? 'The cards you are looking for.' : "The cards #{@user.username} is looking for." } %>
 
+  <% unless @owner %>
+    <%= render partial: 'follows/button', locals: { user: @user } %>
+  <% end %>
+
   <% if @owner && !@user.wants_public? %>
     <div
       class="
@@ -82,9 +86,9 @@
       <% else %>
         <% view = { filter: @filter, sort: @sort, page: params[:page] }.compact_blank %>
         <%= render partial: 'collection_wants/mobile', locals: {
-          items: @items, pagy: @pagy, owner: @owner, view: view } %>
+          items: @items, pagy: @pagy, owner: @owner, view: view, trader_counts: @trader_counts } %>
         <%= render partial: 'collection_wants/table', locals: {
-          items: @items, pagy: @pagy, owner: @owner, view: view } %>
+          items: @items, pagy: @pagy, owner: @owner, view: view, trader_counts: @trader_counts } %>
       <% end %>
     </div>
   <% end %>

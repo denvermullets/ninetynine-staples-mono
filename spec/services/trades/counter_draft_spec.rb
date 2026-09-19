@@ -20,8 +20,9 @@ RSpec.describe Trades::CounterDraft, type: :service do
 
   # the builder's rows as the counter-offer sees them: the recipient is now the one proposing
   def draft
-    rows = Trades::AvailableRows.call(user: proposer, except_trade: original) +
-           Trades::AvailableRows.call(user: recipient, except_trade: original)
+    held = original.reload.trade_items.filter_map(&:collection_magic_card_id)
+    rows = Trades::AvailableRows.call(user: proposer, except_trade: original, also: held) +
+           Trades::AvailableRows.call(user: recipient, except_trade: original, also: held)
     described_class.call(parent: original.reload, rows: rows)
   end
 
@@ -37,15 +38,23 @@ RSpec.describe Trades::CounterDraft, type: :service do
   it 'caps a row at what it can offer now' do
     mine = binder_row(proposer, lotus)
     offer(mine, 'proposer', quantity: 4)
-    mine.update!(trade_quantity: 1)
+    mine.update!(quantity: 1, trade_quantity: 1)
 
     expect(draft[mine.id]).to eq(quantity: 1, foil_quantity: 0)
   end
 
-  it 'drops a card that is no longer on offer' do
+  it 'keeps a card that has since come off the trade list - the copies are still there to ask for' do
     mine = binder_row(proposer, lotus)
     offer(mine, 'proposer')
     mine.update!(trade_quantity: 0, trade_foil_quantity: 0)
+
+    expect(draft).to eq(mine.id => { quantity: 1, foil_quantity: 0 })
+  end
+
+  it 'drops a card whose collection has since gone private' do
+    mine = binder_row(proposer, lotus)
+    offer(mine, 'proposer')
+    mine.collection.update!(is_public: false)
 
     expect(draft).to be_empty
   end

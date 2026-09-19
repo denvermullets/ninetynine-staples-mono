@@ -11,9 +11,18 @@ RSpec.describe MagicCards::TradeHolders, type: :service do
 
   let(:alice) { create(:user, username: 'alice', trades_public: true) }
   let(:binder) { create(:collection, user: alice, is_public: true) }
+  let(:viewer) { create(:user, username: 'viewer') }
 
-  def holders(card: bolt, viewer: nil)
+  before { create(:follow, follower: viewer, followed: alice) }
+
+  def holders(card: bolt, viewer: self.viewer)
     described_class.call(card: card, viewer: viewer)
+  end
+
+  def followed_trader(username)
+    create(:user, username: username, trades_public: true).tap do |user|
+      create(:follow, follower: viewer, followed: user)
+    end
   end
 
   def offer(collection, card, quantity: 0, foil_quantity: 0)
@@ -22,7 +31,7 @@ RSpec.describe MagicCards::TradeHolders, type: :service do
                                    trade_quantity: quantity, trade_foil_quantity: foil_quantity)
   end
 
-  it 'lists a public trader offering this printing, with the asking value per finish' do
+  it 'lists a followed trader offering this printing, with the asking value per finish' do
     offer(binder, bolt, quantity: 2, foil_quantity: 1)
 
     holder = holders.sole
@@ -32,7 +41,7 @@ RSpec.describe MagicCards::TradeHolders, type: :service do
   end
 
   it 'includes other printings of the same oracle id, after this one' do
-    bob = create(:user, username: 'bob', trades_public: true)
+    bob = followed_trader('bob')
     offer(create(:collection, user: bob, is_public: true), reprint, quantity: 10)
     offer(binder, bolt, quantity: 1)
 
@@ -40,7 +49,7 @@ RSpec.describe MagicCards::TradeHolders, type: :service do
   end
 
   it 'orders other printings by asking value' do
-    bob = create(:user, username: 'bob', trades_public: true)
+    bob = followed_trader('bob')
     offer(binder, reprint, quantity: 1)
     offer(create(:collection, user: bob, is_public: true), reprint, quantity: 4)
 
@@ -73,10 +82,25 @@ RSpec.describe MagicCards::TradeHolders, type: :service do
     expect(holders).to be_empty
   end
 
-  it 'leaves out the viewer\'s own copies' do
+  it 'leaves out a public trader the viewer does not follow' do
+    stranger = create(:user, username: 'stranger', trades_public: true)
+    offer(create(:collection, user: stranger, is_public: true), bolt, quantity: 1)
+
+    expect(holders).to be_empty
+  end
+
+  it 'leaves out someone who follows the viewer but is not followed back' do
+    offer(binder, bolt, quantity: 1)
+    bob = create(:user, username: 'bob', trades_public: true)
+    create(:follow, follower: alice, followed: bob)
+
+    expect(holders(viewer: bob)).to be_empty
+  end
+
+  it 'is empty for a logged-out visitor' do
     offer(binder, bolt, quantity: 1)
 
-    expect(holders(viewer: alice)).to be_empty
+    expect(holders(viewer: nil)).to be_empty
   end
 
   it 'leaves out cards of a different oracle id' do

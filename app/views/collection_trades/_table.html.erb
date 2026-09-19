@@ -6,6 +6,9 @@
   Add to trade opens the builder with this printing already on the other side. Logged-out visitors
   do not get it: the builder is authenticated, and a link that only ever bounces to the login page
   is worse than no link.
+
+  A row expands into the same lazy card_details frame the boxsets table opens - the viewer's own
+  copies of the card, which is where the owner marks and unmarks them for trade.
 %>
 
 <div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
@@ -25,9 +28,16 @@
       </tr>
     </thead>
 
-    <tbody class="bg-background">
+    <tbody class="bg-background" data-controller="expandable-row">
       <% cards.each do |card| %>
-        <tr class="border border-background text-grey-text bg-foreground">
+        <tr
+          data-action="click->expandable-row#toggle"
+          data-card-id="<%= card.id %>"
+          class="
+            border border-background text-grey-text bg-foreground
+            hover:bg-menu hover:cursor-pointer
+          "
+        >
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset&.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
 
@@ -67,6 +77,18 @@
               <%= link_to 'Add to trade', new_trade_path(with: username, card: card.id),
                 class: 'px-2 py-1 text-xs border rounded border-highlight hover:border-accent-50 hover:text-accent-50' %>
             <% end %>
+          </td>
+        </tr>
+
+        <tr
+          data-expandable-row-target="content"
+          data-card-id="<%= card.id %>"
+          class="hidden border border-background"
+        >
+          <td colspan="7">
+            <%= turbo_frame_tag "card_details_#{card.id}",
+              src: boxset_magic_card_path(card.id, show_other_printings: true),
+              loading: :lazy %>
           </td>
         </tr>
       <% end %>

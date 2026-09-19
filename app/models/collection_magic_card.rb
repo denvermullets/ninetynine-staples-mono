@@ -37,6 +37,11 @@ class CollectionMagicCard < ApplicationRecord
 
   # Trade scopes - proxies are never tradeable, and only finalized owned copies can be offered
   scope :tradeable, -> { finalized.owned.where('trade_quantity > 0 OR trade_foil_quantity > 0') }
+  # everything a trade could ask for, listed or not; `unlisted` is the part of it off the trade list
+  scope :offerable, lambda {
+    finalized.owned.where('collection_magic_cards.quantity > 0 OR collection_magic_cards.foil_quantity > 0')
+  }
+  scope :unlisted, -> { where(trade_quantity: 0, trade_foil_quantity: 0) }
 
   # Helper methods
   def total_regular

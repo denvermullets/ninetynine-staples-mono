@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_18_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_19_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -244,6 +244,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_150000) do
     t.string "name"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_finishes_on_name", unique: true
+  end
+
+  create_table "follows", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "followed_id", null: false
+    t.bigint "follower_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["followed_id"], name: "index_follows_on_followed_id"
+    t.index ["follower_id", "followed_id"], name: "index_follows_on_follower_id_and_followed_id", unique: true
   end
 
   create_table "frame_effects", force: :cascade do |t|
@@ -642,6 +651,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_150000) do
     t.datetime "created_at", null: false
     t.integer "foil_quantity", default: 0, null: false
     t.bigint "magic_card_id", null: false
+    t.boolean "off_list", default: false, null: false
     t.integer "quantity", default: 0, null: false
     t.string "side", null: false
     t.bigint "trade_id", null: false
@@ -723,6 +733,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_150000) do
   add_foreign_key "deck_combos", "collections"
   add_foreign_key "deck_combos", "combos"
   add_foreign_key "deck_rules", "brackets"
+  add_foreign_key "follows", "users", column: "followed_id"
+  add_foreign_key "follows", "users", column: "follower_id"
   add_foreign_key "game_opponents", "commander_games"
   add_foreign_key "game_opponents", "magic_cards", column: "commander_id"
   add_foreign_key "game_opponents", "magic_cards", column: "partner_commander_id"

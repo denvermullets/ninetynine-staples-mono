@@ -77,6 +77,15 @@ module TradesHelper
     (trade.proposed? && trade.recipient_id == user.id) || (trade.accepted? && !trade.confirmed_by?(user))
   end
 
+  # The other party's name wherever a trade page says it, linked to their collections. `suffix` rides
+  # along outside the link ("henry gives"), so headings can be built without concatenating markup.
+  def trade_user_link(user, suffix = nil)
+    link = link_to(user.username, collection_show_path(user.username),
+                   class: 'underline decoration-highlight underline-offset-4 hover:text-accent-50')
+
+    safe_join([link, suffix].compact, ' ')
+  end
+
   def trade_party_name(user, viewer)
     user == viewer ? 'You' : user.username
   end

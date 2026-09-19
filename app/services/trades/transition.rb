@@ -126,6 +126,8 @@ module Trades
 
     # Items whose collection row was deleted in the meantime have nothing left to decrement, which is
     # fine - the copies already stopped being on offer when the row went away.
+    # An item that reached past the trade list clamps at zero for the same reason `quantity` is left
+    # alone: the unlisted copies were never counted here, so there is nothing of theirs to take off.
     def release_traded_copies
       @trade.trade_items.includes(:collection_magic_card).each do |item|
         row = item.collection_magic_card

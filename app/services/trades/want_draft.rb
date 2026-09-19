@@ -5,6 +5,8 @@
 # list - an id that is not theirs, or was removed since the matches page loaded, is dropped. So is a
 # want nothing on the recipient's side meets any more: `rows` is Trades::AvailableRows for the
 # recipient, already net of copies other trades hold, and the builder can only draft rows it shows.
+# Only listed copies are taken: a want match is a copy somebody put up for trade, and reaching past
+# their trade list is the proposer's call to make in the builder, not something to pre-fill.
 #
 # Each want takes up to its quantity in the finishes it accepts, walking the rows in the order the
 # builder lists them; an any-finish want takes regular copies before foils. Two wants can meet the
@@ -40,7 +42,9 @@ module Trades
 
     # what each row has left once the wants before this one have taken their copies
     def left
-      @left ||= @rows.to_h { |row| [row.id, { quantity: row.quantity, foil_quantity: row.foil_quantity }] }
+      @left ||= @rows.to_h do |row|
+        [row.id, { quantity: row.listed_quantity, foil_quantity: row.listed_foil_quantity }]
+      end
     end
 
     def take(want, draft)

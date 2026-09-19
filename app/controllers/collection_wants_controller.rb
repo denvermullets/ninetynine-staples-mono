@@ -39,5 +39,7 @@ class CollectionWantsController < ApplicationController
 
     total = @counts[@filter.to_sym]
     @pagy, @items = total.zero? ? [nil, []] : pagy(:offset, list[:items], count: total, limit: PER_PAGE)
+    # only the owner gets the links into the traders page, so only the owner pays for the counts
+    @trader_counts = @owner ? WantList::Traders.counts(wants: @items.to_a, viewer: current_user) : {}
   end
 end

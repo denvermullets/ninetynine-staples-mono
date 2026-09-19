@@ -27,10 +27,38 @@ RSpec.describe Trades::AvailableRows, type: :service do
     described_class.call(user: user)
   end
 
-  it 'lists a row with the counts it has marked for trade' do
+  it 'lists a row with the copies it owns, and how many of them are marked for trade' do
     row(lotus, trade_quantity: 3, trade_foil_quantity: 1)
 
-    expect(rows.first).to have_attributes(quantity: 3, foil_quantity: 1, collection_name: 'Binder')
+    expect(rows.first).to have_attributes(quantity: 4, foil_quantity: 2, listed_quantity: 3,
+                                          listed_foil_quantity: 1, collection_name: 'Binder')
+  end
+
+  it 'leaves a row with nothing marked for trade to the search' do
+    row(lotus, trade_quantity: 0, trade_foil_quantity: 0)
+
+    expect(rows).to be_empty
+  end
+
+  it 'lists an unmarked row it was asked for by id, as unlisted' do
+    unmarked = row(lotus, trade_quantity: 0, trade_foil_quantity: 0)
+
+    found = described_class.call(user: user, also: [unmarked.id])
+
+    expect(found.map(&:id)).to eq([unmarked.id])
+    expect(found.first).to be_unlisted
+  end
+
+  it 'never lists a row in a private collection, asked for or not' do
+    hidden = row(lotus, collection: vault)
+
+    expect(described_class.call(user: user, also: [hidden.id])).to be_empty
+  end
+
+  it 'never lists proxies or a row with no real copies' do
+    row(lotus, quantity: 0, foil_quantity: 0, trade_quantity: 0, trade_foil_quantity: 0, proxy_quantity: 2)
+
+    expect(described_class.call(user: user, scope: user.offerable_cards)).to be_empty
   end
 
   it 'leaves out copies marked for trade in a private collection' do
@@ -45,8 +73,14 @@ RSpec.describe Trades::AvailableRows, type: :service do
     expect(rows.first).to have_attributes(quantity: 1, foil_quantity: 0)
   end
 
-  it 'drops a row whose every copy is already in an open trade' do
+  it 'takes committed copies off the trade list before the rest of the row' do
     open_trade(row(lotus, trade_quantity: 1, trade_foil_quantity: 0), quantity: 1)
+
+    expect(rows.first).to have_attributes(quantity: 3, listed_quantity: 0, foil_quantity: 2)
+  end
+
+  it 'drops a row whose every copy is already in an open trade' do
+    open_trade(row(lotus, quantity: 1, foil_quantity: 0, trade_quantity: 1, trade_foil_quantity: 0), quantity: 1)
 
     expect(rows).to be_empty
   end

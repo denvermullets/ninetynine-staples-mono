@@ -131,6 +131,14 @@ RSpec.describe Trades::Transition, type: :service do
       expect(row.reload).to have_attributes(trade_quantity: 0, trade_foil_quantity: 0)
     end
 
+    it 'takes nothing off a row the trade reached past the trade list for' do
+      row.update!(trade_quantity: 0, trade_foil_quantity: 0)
+      transition('complete', user: proposer)
+      transition('complete', user: recipient)
+
+      expect(row.reload).to have_attributes(quantity: 3, foil_quantity: 1, trade_quantity: 0, trade_foil_quantity: 0)
+    end
+
     it 'completes even after the binder row was deleted' do
       row.destroy
       transition('complete', user: proposer)

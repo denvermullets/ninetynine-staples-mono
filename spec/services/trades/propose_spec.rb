@@ -82,29 +82,74 @@ RSpec.describe Trades::Propose, type: :service do
 
     it 'refuses an item on a side its owner is not on' do
       mine = binder_row(proposer)
-      expect(propose([item(mine, 'recipient')])[:error]).to match(/not offering that card/)
-    end
-
-    it 'refuses a card the owner has not marked for trade' do
-      row = binder_row(proposer, trade_quantity: 0)
-      expect(propose([item(row, 'proposer')])[:error]).to match(/not offering that card/)
+      expect(propose([item(mine, 'recipient')])[:error]).to match(/does not have that card/)
     end
 
     it 'refuses a card sitting in a private collection' do
       row = binder_row(proposer, public: false)
-      expect(propose([item(row, 'proposer')])[:error]).to match(/not offering that card/)
+      expect(propose([item(row, 'proposer')])[:error]).to match(/does not have that card/)
     end
 
-    it 'refuses more copies than are marked for trade' do
-      row = binder_row(proposer, quantity: 4, trade_quantity: 1)
+    it 'refuses more copies than the row holds' do
+      row = binder_row(proposer, quantity: 1, trade_quantity: 1)
+      expect(propose([item(row, 'proposer', quantity: 2)])[:error]).to match(/Only 1 copy/)
+    end
+
+    it 'refuses proxies - only real copies count' do
+      row = binder_row(proposer, quantity: 1)
+      row.update!(proxy_quantity: 3)
+
       expect(propose([item(row, 'proposer', quantity: 2)])[:error]).to match(/Only 1 copy/)
     end
 
     it 'writes nothing when one item of many is bad' do
       good = binder_row(proposer)
-      bad = binder_row(proposer, trade_quantity: 0)
+      bad = binder_row(proposer, public: false)
 
       expect { propose([item(good, 'proposer'), item(bad, 'proposer')]) }.not_to change(Trade, :count)
+    end
+  end
+
+  describe 'cards that are not on the trade list' do
+    it 'accepts a card in a public collection that was never marked for trade, and says so on the item' do
+      row = binder_row(recipient, trade_quantity: 0)
+
+      trade = propose([item(row, 'recipient')])[:trade]
+
+      expect(trade.trade_items.first).to be_off_list
+    end
+
+    it 'flags an item that takes more copies than were listed' do
+      row = binder_row(recipient, quantity: 4, trade_quantity: 1)
+
+      trade = propose([item(row, 'recipient', quantity: 2)])[:trade]
+
+      expect(trade.trade_items.first).to be_off_list
+    end
+
+    it 'leaves an item that stays inside the trade list unflagged' do
+      row = binder_row(recipient, quantity: 4, trade_quantity: 2)
+
+      trade = propose([item(row, 'recipient', quantity: 2)])[:trade]
+
+      expect(trade.trade_items.first).not_to be_off_list
+    end
+
+    it 'counts listed copies another open trade holds as gone from the list' do
+      row = binder_row(recipient, quantity: 4, trade_quantity: 1)
+      propose([item(row, 'recipient')])
+
+      trade = propose([item(row, 'recipient')])[:trade]
+
+      expect(trade.trade_items.first).to be_off_list
+    end
+
+    it 'judges foils against the foil list' do
+      row = binder_row(recipient, quantity: 4, foil_quantity: 2, trade_foil_quantity: 0)
+
+      trade = propose([item(row, 'recipient', quantity: 1, foil_quantity: 1)])[:trade]
+
+      expect(trade.trade_items.first).to be_off_list
     end
   end
 

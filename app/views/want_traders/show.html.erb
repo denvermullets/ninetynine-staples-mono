@@ -1,0 +1,89 @@
+<%#
+  One want and everyone with a copy of it marked for trade, from WantList::Traders - people the
+  viewer follows first. Everything inside the frame moves with pagination; links that leave the page
+  target _top.
+%>
+
+<% card = @want.magic_card %>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: card.name.to_s.split('//').first.strip,
+    subtext: 'Who has this card from your want list marked for trade.' } %>
+
+  <div
+    class="
+      flex flex-col gap-3 p-4 border sm:flex-row sm:items-center
+      sm:justify-between rounded-3xl bg-foreground border-highlight
+    "
+  >
+    <div class="flex flex-wrap items-center gap-3 text-sm text-grey-text/70">
+      <span>
+        <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset&.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-2"></i>
+        <%= card.boxset&.code %> #<%= card.card_number %>
+      </span>
+
+      <%= render partial: 'collection_wants/printing_badge', locals: { item: @want } %>
+
+      <span>x<%= @want.quantity %></span>
+
+      <span>
+        <%= WantListHelper::SHORT_FOIL_PREFERENCE_LABELS.fetch(@want.foil_preference) %>
+      </span>
+
+      <span class="text-grey-text"><%= want_unit_price(@want) %></span>
+    </div>
+
+    <%= link_to 'Back to want list', collection_wants_path(current_user.username),
+      class: 'text-sm shrink-0 text-accent-50 hover:underline' %>
+  </div>
+
+  <%= turbo_frame_tag 'want_traders', data: { turbo_action: 'advance' } do %>
+    <div class="flex flex-col space-y-4">
+      <% if @traders.empty? %>
+        <div
+          class="
+            p-12 text-center border rounded-3xl bg-foreground border-highlight
+            text-grey-text
+          "
+        >
+          <p class="text-xl font-semibold">Nobody is trading this right now</p>
+
+          <p class="mt-2 text-sm text-grey-text/70">
+            Nobody with a public trade list has
+            <%= @want.any_printing ? 'this card' : 'this printing' %> marked for
+            trade.
+            <%= link_to 'See who owns it', want_matches_path,
+              class: 'text-accent-50 hover:underline', data: { turbo_frame: '_top' } %>
+          </p>
+        </div>
+      <% else %>
+        <p class="text-sm text-grey-text/70">
+          <%= pluralize(@trader_count, 'user has', plural: 'users have') %> this
+          up for trade
+        </p>
+        <div
+          class="
+            flex flex-col border divide-y rounded-3xl bg-foreground
+            border-highlight divide-highlight
+          "
+        >
+          <% @traders.each do |trader| %>
+            <%= render partial: 'want_traders/trader', locals: { trader: trader, want: @want } %>
+          <% end %>
+        </div>
+        <% if @pagy.pages > 1 %>
+          <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+            <%== @pagy.info_tag() %>
+            <%== @pagy.series_nav() %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

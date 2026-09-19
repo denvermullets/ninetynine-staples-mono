@@ -31,6 +31,8 @@
         new_trade_path(with: @user.username),
         class: 'inline-block px-4 py-2 text-sm rounded-md bg-highlight text-nine-white hover:opacity-90' %>
 
+      <%= render partial: 'follows/button', locals: { user: @user } %>
+
       <% if @wanted_count.positive? %>
         <span
           class="

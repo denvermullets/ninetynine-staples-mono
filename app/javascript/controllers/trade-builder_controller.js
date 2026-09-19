@@ -6,21 +6,34 @@ import { Controller } from "@hotwired/stimulus";
 // the quantity inputs currently say: every read of it walks the rows rather than keeping a parallel
 // copy that could drift from what is on screen.
 //
+// Each column lists its owner's trade list and searches the rest of their public collections
+// (trades#rows) into a turbo frame. A search hit is an ordinary row, so it is in the draft as soon as
+// it has a quantity - and at that moment it is moved out of the frame into the column's list, because
+// the next search replaces the frame and would take the draft with it.
+//
 // Totals come from the server (Trades::DraftTotals) rather than being added up here - the prices
 // live in the database and the same arithmetic appears on the saved trade, so doing it twice in two
 // languages would be two places for it to disagree.
 export default class extends Controller {
-  static targets = ["row", "payload", "submit"];
-  static values = { previewPath: String, with: String };
+  static targets = ["row", "payload", "submit", "list", "results", "empty"];
+  static values = { previewPath: String, rowsPath: String, with: String, counter: String };
 
   connect() {
     this.toggleSubmit();
+    // a counter-offer can start with copies from off the trade list already in it
+    this.rowTargets.forEach((row) => this.flagOffList(row));
     // a preselected card arrives with a quantity already in it, so the totals start out of date
     if (this.draft().length > 0) this.refresh();
   }
 
   disconnect() {
     clearTimeout(this.timeout);
+    clearTimeout(this.searchTimeout);
+  }
+
+  // a row already in the column must not come back as a search hit - two inputs, one draft item
+  resultsTargetConnected(frame) {
+    frame.addEventListener("turbo:frame-load", () => this.dropPinned(frame));
   }
 
   // every quantity input routes through here: clamp to what is available, then re-total
@@ -29,6 +42,10 @@ export default class extends Controller {
     const max = parseInt(input.max, 10);
     const value = Math.min(Math.max(parseInt(input.value, 10) || 0, 0), isNaN(max) ? 0 : max);
     input.value = value === 0 ? "" : value;
+
+    const row = input.closest('[data-trade-builder-target="row"]');
+    this.flagOffList(row);
+    if (value > 0) this.pin(row, input);
 
     this.toggleSubmit();
     clearTimeout(this.timeout);
@@ -40,6 +57,7 @@ export default class extends Controller {
       this.fieldsFor(row).forEach((input) => {
         input.value = "";
       });
+      this.flagOffList(row);
     });
 
     this.toggleSubmit();
@@ -57,6 +75,49 @@ export default class extends Controller {
         const hit = query === "" || row.dataset.cardName.includes(query);
         row.classList.toggle("hidden", !hit);
       });
+  }
+
+  // the rest of this side's public collections, by name; an emptied box empties the results
+  search(event) {
+    const input = event.currentTarget;
+    const frame = this.resultsTargets.find((target) => target.dataset.side === input.dataset.side);
+    if (!frame) return;
+
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      const params = new URLSearchParams({ with: this.withValue, side: input.dataset.side, q: input.value.trim() });
+      if (this.counterValue) params.set("counter", this.counterValue);
+
+      frame.src = `${this.rowsPathValue}?${params}`;
+    }, 300);
+  }
+
+  // a search hit that now holds copies joins the column's list, keeping the cursor where it was
+  pin(row, input) {
+    if (!row.closest('[data-trade-builder-target="results"]')) return;
+
+    const side = row.dataset.side;
+    this.listTargets.find((list) => list.dataset.side === side)?.prepend(row);
+    this.emptyTargets.filter((empty) => empty.dataset.side === side).forEach((empty) => empty.classList.add("hidden"));
+    input.focus();
+  }
+
+  dropPinned(frame) {
+    const list = this.listTargets.find((target) => target.dataset.side === frame.dataset.side);
+    if (!list) return;
+
+    frame.querySelectorAll('[data-trade-builder-target="row"]').forEach((row) => {
+      if (list.querySelector(`[data-row-id="${row.dataset.rowId}"]`)) row.remove();
+    });
+  }
+
+  // the badge shows while the row asks for more copies than its owner listed - always, if none are
+  flagOffList(row) {
+    const badge = row.querySelector("[data-off-list-badge]");
+    if (!badge) return;
+
+    const past = this.fieldsFor(row).some((input) => (parseInt(input.value, 10) || 0) > parseInt(input.dataset.listed, 10));
+    badge.classList.toggle("hidden", !(row.dataset.unlisted === "true" || past));
   }
 
   // the draft only becomes form fields at the last possible moment, so nothing stray is ever posted

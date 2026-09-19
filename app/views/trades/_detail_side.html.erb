@@ -39,7 +39,21 @@
           <% end %>
 
           <div class="flex-1 min-w-0">
-            <p class="text-sm truncate text-grey-text"><%= card.name %></p>
+            <div class="flex items-center gap-2">
+              <%= tag.p card.name,
+                class: 'text-sm truncate cursor-pointer text-grey-text',
+                data: {
+                  controller: 'card-hover',
+                  card_hover_image_value: card.image_large,
+                  card_hover_name_value: card.name,
+                  action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+                } %>
+
+              <%# stamped at proposal time: the owner should know this was not something they listed %>
+              <% if item.off_list? %>
+                <%= render partial: 'trades/off_list_badge' %>
+              <% end %>
+            </div>
 
             <p class="text-xs truncate text-grey-text/50">
               <%= card.boxset&.code %> #<%= card.card_number %> ·

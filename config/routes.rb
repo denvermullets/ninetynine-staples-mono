@@ -198,8 +198,15 @@ Rails.application.routes.draw do
     resources :games, only: %i[index show], controller: 'game_tracker/commander_games', as: 'commander_games'
   end
 
+  # Following other users. Session-scoped, and the username rides in the body - see FollowsController
+  get 'following', to: 'follows#index', as: :following
+  post 'follows', to: 'follows#create', as: :follows
+  delete 'follows', to: 'follows#destroy'
+
   # "Who has my wants" - always the signed-in user's own want list, so there is no username to scope by
   get 'wants/matches', to: 'want_matches#show', as: :want_matches
+  # one want, and everyone with a copy of it marked for trade
+  get 'wants/:id/traders', to: 'want_traders#show', as: :want_traders
   # a pasted decklist onto the signed-in user's own want list
   post 'wants/import', to: 'want_imports#create', as: :want_imports
 
@@ -210,6 +217,8 @@ Rails.application.routes.draw do
     resources :trades, path: '', only: %i[index show new create] do
       collection do
         post :preview
+        # the builder's search of a user's cards that are not on their trade list
+        get :rows
       end
 
       # accept / decline / cancel / complete, named in `event` - Trades::Transition decides the rest

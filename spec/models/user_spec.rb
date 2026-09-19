@@ -195,4 +195,26 @@ RSpec.describe User, type: :model do
       expect(user.tradeable_cards).to eq([offered])
     end
   end
+
+  describe '#offerable_cards' do
+    let(:user) { create(:user) }
+    let(:public_binder) { create(:collection, user: user, is_public: true) }
+
+    it 'returns every real copy in the user\'s public collections, marked for trade or not' do
+      listed = create(:collection_magic_card, :tradeable, collection: public_binder, quantity: 3)
+      unlisted = create(:collection_magic_card, collection: public_binder, quantity: 3)
+      create(:collection_magic_card, collection: create(:collection, user: user, is_public: false), quantity: 3)
+      create(:collection_magic_card, collection: create(:collection, is_public: true), quantity: 3)
+
+      expect(user.offerable_cards).to contain_exactly(listed, unlisted)
+    end
+
+    it 'leaves out proxies, staged rows and cards the deck still needs' do
+      create(:collection_magic_card, collection: public_binder, quantity: 0, proxy_quantity: 2)
+      create(:collection_magic_card, collection: public_binder, quantity: 0, staged: true, staged_quantity: 1)
+      create(:collection_magic_card, collection: public_binder, quantity: 1, needed: true)
+
+      expect(user.offerable_cards).to be_empty
+    end
+  end
 end

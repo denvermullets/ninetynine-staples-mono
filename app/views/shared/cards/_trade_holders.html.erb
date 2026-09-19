@@ -1,5 +1,5 @@
 <%#
-  Other users offering this card, from MagicCards::TradeHolders - this printing first, then every other
+  People the viewer follows offering this card, from MagicCards::TradeHolders - this printing first, then every other
   printing of the same card. Laid out like shared/cards/_other_printing_locations so the two tables
   read as a pair in the details panel.
 %>
@@ -8,6 +8,7 @@
   <div class="flex flex-col w-full gap-4 mt-6">
     <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text">
       Up for Trade
+      <span class="normal-case tracking-normal font-normal text-grey-text/50"> - from people you follow </span>
     </h4>
 
     <div class="overflow-x-auto border rounded-lg border-highlight">
@@ -25,16 +26,14 @@
               </th>
             <% end %>
 
-            <% if logged_in? %>
-              <th
-                class="
-                  px-4 py-3 text-xs font-normal tracking-wider text-left
-                  normal-case text-grey-text
-                "
-              >
-                Quick actions
-              </th>
-            <% end %>
+            <th
+              class="
+                px-4 py-3 text-xs font-normal tracking-wider text-left
+                normal-case text-grey-text
+              "
+            >
+              Quick actions
+            </th>
           </tr>
         </thead>
 
@@ -91,18 +90,16 @@
                 <%= number_to_currency(holder.value) %>
               </td>
 
-              <% if logged_in? %>
-                <td class="px-4 py-3 text-sm whitespace-nowrap">
-                  <%= link_to 'Trade',
-                    new_trade_path(with: holder.user.username, card: printing.id),
-                    data: { turbo_frame: '_top' },
-                    class: '
-                      px-3 py-1 text-xs transition border rounded-md
-                      border-highlight text-grey-text hover:bg-background
-                      hover:text-nine-white
-                    ' %>
-                </td>
-              <% end %>
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <%= link_to 'Trade',
+                  new_trade_path(with: holder.user.username, card: printing.id),
+                  data: { turbo_frame: '_top' },
+                  class: '
+                    px-3 py-1 text-xs transition border rounded-md
+                    border-highlight text-grey-text hover:bg-background
+                    hover:text-nine-white
+                  ' %>
+              </td>
             </tr>
           <% end %>
         </tbody>

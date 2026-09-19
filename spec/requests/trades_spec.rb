@@ -90,11 +90,11 @@ RSpec.describe 'Trades', type: :request do
       expect(Trade.count).to be_zero
     end
 
-    it 'refuses more copies than the owner has on offer' do
+    it 'refuses more copies than the owner has' do
       mine = binder_row(proposer, trade_quantity: 1)
 
       post trades_path, params: { with: recipient.username,
-                                  items: { '0' => item(mine, 'proposer', quantity: 3) } },
+                                  items: { '0' => item(mine, 'proposer', quantity: 5) } },
                         as: :turbo_stream
 
       expect(response).to have_http_status(:unprocessable_content)
@@ -182,6 +182,60 @@ RSpec.describe 'Trades', type: :request do
       post preview_trades_path, params: { with: 'nobody', items: [] }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  # answers with a bare turbo frame, so there is no layout in the way
+  describe 'GET /trades/rows' do
+    let(:bolt) { create(:magic_card, name: 'Lightning Bolt') }
+
+    def unlisted_bolt(user, is_public: true)
+      create(:collection_magic_card, collection: create(:collection, user: user, is_public: is_public),
+                                     magic_card: bolt, quantity: 2)
+    end
+
+    it 'sends a logged-out visitor to the login page' do
+      get rows_trades_path(with: recipient.username, q: 'bolt')
+
+      expect(response).to redirect_to(login_path)
+    end
+
+    it 'bounces a counterparty whose trade list is private' do
+      recipient.update!(trades_public: false)
+      sign_in(proposer)
+
+      get rows_trades_path(with: recipient.username, q: 'bolt')
+
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'searches the other user\'s unlisted cards, as rows of their side' do
+      row = unlisted_bolt(recipient)
+      sign_in(proposer)
+
+      get rows_trades_path(with: recipient.username, q: 'bolt')
+
+      expect(response.body).to include('trade_rows_recipient', %(data-row-id="#{row.id}"))
+    end
+
+    it 'searches the proposer\'s own cards when asked for their side' do
+      mine = unlisted_bolt(proposer)
+      theirs = unlisted_bolt(recipient)
+      sign_in(proposer)
+
+      get rows_trades_path(with: recipient.username, side: 'proposer', q: 'bolt')
+
+      expect(response.body).to include('trade_rows_proposer', %(data-row-id="#{mine.id}"))
+      expect(response.body).not_to include(%(data-row-id="#{theirs.id}"))
+    end
+
+    it 'never reaches into a private collection' do
+      hidden = unlisted_bolt(recipient, is_public: false)
+      sign_in(proposer)
+
+      get rows_trades_path(with: recipient.username, q: 'bolt')
+
+      expect(response.body).not_to include(%(data-row-id="#{hidden.id}"))
     end
   end
 

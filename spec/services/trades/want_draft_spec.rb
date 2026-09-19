@@ -55,6 +55,12 @@ RSpec.describe Trades::WantDraft, type: :service do
     expect(draft(want(lotus, quantity: 2))).to eq(row.id => { quantity: 1, foil_quantity: 1 })
   end
 
+  it 'only takes copies that are on the trade list, however many more the row holds' do
+    row = binder_row(lotus, trade_quantity: 1, trade_foil_quantity: 0)
+
+    expect(draft(want(lotus, quantity: 3))).to eq(row.id => { quantity: 1, foil_quantity: 0 })
+  end
+
   it 'caps a want at what the row has left to offer' do
     row = binder_row(lotus, trade_quantity: 1, trade_foil_quantity: 0)
 

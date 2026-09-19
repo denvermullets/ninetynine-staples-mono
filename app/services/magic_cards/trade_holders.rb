@@ -1,4 +1,10 @@
-# Who else has this card up for trade - the "Up for trade" section of the card details panel.
+# Which of the people the viewer follows have this card up for trade - the "Up for trade" section of
+# the card details panel.
+#
+# Only followed users, because this runs for every card anyone opens: across the whole user base it
+# is a table nobody can read and a query that grows with every signup. A logged-out visitor follows
+# nobody and gets nothing. Everyone offering a card is WantList::Traders' job, which is paged and
+# only reachable from a want.
 #
 # One row per user per printing, covering this printing and every other printing of the same oracle
 # id, summed across the holder's public collections. It reads the same set a trade partner is shown
@@ -6,7 +12,8 @@
 # counts rather than what is left after their open trades - the list and this section should never
 # disagree about what someone is offering.
 #
-# The viewer's own copies are left out; the card locations above this section already show them.
+# Following someone opens nothing up - their trade list still has to be public. The viewer cannot
+# follow themselves, so their own copies never show; the card locations above this section have them.
 #
 # `value` is the asking value at today's TCG retail, each finish at its own price with the
 # Trades::UnitPrice fallbacks, so it matches what the trade builder will total the copies at.
@@ -29,7 +36,7 @@ module MagicCards
     end
 
     def call
-      return [] if @card.scryfall_oracle_id.blank?
+      return [] if @viewer.nil? || @card.scryfall_oracle_id.blank?
 
       holders = grouped.map { |(user_id, card_id), counts| holder(user_id, card_id, *counts) }
       holders.sort_by { |row| [row.printing.id == @card.id ? 0 : 1, -row.value, row.user.username.downcase] }
@@ -48,13 +55,13 @@ module MagicCards
     end
 
     def scope
-      rows = CollectionMagicCard.tradeable
-                                .merge(Collection.visible_to_public)
-                                .joins(:magic_card, collection: :user)
-                                .where(users: { trades_public: true })
-                                .where(magic_cards: { scryfall_oracle_id: @card.scryfall_oracle_id,
-                                                      card_side: [nil, 'a'] })
-      @viewer ? rows.where.not(collections: { user_id: @viewer.id }) : rows
+      CollectionMagicCard.tradeable
+                         .merge(Collection.visible_to_public)
+                         .joins(:magic_card, collection: :user)
+                         .where(users: { trades_public: true })
+                         .where(collections: { user_id: @viewer.active_follows.select(:followed_id) })
+                         .where(magic_cards: { scryfall_oracle_id: @card.scryfall_oracle_id,
+                                               card_side: [nil, 'a'] })
     end
 
     def holder(user_id, card_id, quantity, foil_quantity)

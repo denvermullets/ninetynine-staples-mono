@@ -14,6 +14,10 @@
 # answered at all. The want matches page opens the same builder with `want_ids`, which pre-fills the
 # other side from those wants (Trades::WantDraft) and changes nothing else.
 #
+# Each column opens on its owner's trade list, but the list is not the limit: #rows searches the rest
+# of that user's public collections (Trades::UnlistedRows) and the hits join the draft as ordinary
+# rows, flagged as not on the trade list.
+#
 # A trade is only ever found through current_user.trades, so anyone who is not one of its two parties
 # gets a 404 - not a 403, which would confirm the trade exists.
 class TradesController < ApplicationController
@@ -27,8 +31,8 @@ class TradesController < ApplicationController
   }.freeze
 
   before_action :authenticate_user!
-  before_action :set_recipient, only: :new
-  before_action :set_parent, only: :new
+  before_action :set_recipient, only: %i[new rows]
+  before_action :set_parent, only: %i[new rows]
   before_action :find_parent, only: :create
   before_action :set_trade, only: %i[show transition]
 
@@ -55,10 +59,21 @@ class TradesController < ApplicationController
   end
 
   def new
-    @their_rows = Trades::AvailableRows.call(user: @recipient, except_trade: @parent)
-    @my_rows = Trades::AvailableRows.call(user: current_user, except_trade: @parent)
+    @their_rows = Trades::AvailableRows.call(user: @recipient, except_trade: @parent, also: parent_row_ids)
+    @my_rows = Trades::AvailableRows.call(user: current_user, except_trade: @parent, also: parent_row_ids)
     @prefill = starting_draft
     @totals = draft_totals(@recipient)
+  end
+
+  # One column's search of its owner's unlisted cards, answered as the frame the builder asked from.
+  # `side` picks whose cards: anything but 'proposer' is the other user's, the usual thing to search.
+  def rows
+    side = params[:side] == 'proposer' ? 'proposer' : 'recipient'
+    owner = side == 'proposer' ? current_user : @recipient
+    found = Trades::UnlistedRows.call(user: owner, query: params[:q], except_trade: @parent)
+
+    render partial: 'trades/search_results',
+           locals: { side: side, rows: found, query: params[:q].to_s.strip, owner: owner }
   end
 
   # totals for the draft as it stands, swapped into the page as a turbo-stream fragment
@@ -110,6 +125,12 @@ class TradesController < ApplicationController
     redirect_to trades_path, alert: 'That trade can no longer be countered.'
   end
 
+  # a counter can start from cards its original took from off the trade list, and the builder can
+  # only draft rows it shows - so those rows are listed alongside the trade list, on whichever side
+  def parent_row_ids
+    @parent ? @parent.trade_items.filter_map(&:collection_magic_card_id) : []
+  end
+
   # whether it may still be countered is Trades::Propose's call; this only makes sure it is theirs
   def find_parent
     return if params[:counter].blank?
@@ -141,7 +162,9 @@ class TradesController < ApplicationController
     row = @their_rows.find { |candidate| candidate.magic_card.id == card_id }
     return {} if row.nil?
 
-    { row.id => row.quantity.positive? ? { quantity: 1, foil_quantity: 0 } : { quantity: 0, foil_quantity: 1 } }
+    # a listed copy for preference - the link came from their trade list
+    foil = row.listed_quantity.positive? ? false : row.listed_foil_quantity.positive? || row.quantity.zero?
+    { row.id => foil ? { quantity: 0, foil_quantity: 1 } : { quantity: 1, foil_quantity: 0 } }
   end
 
   def draft_totals(recipient)

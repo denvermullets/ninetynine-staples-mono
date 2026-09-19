@@ -1,7 +1,11 @@
-<%# locals: side, heading, rows, prefill, empty_text %>
+<%# locals: side, heading, rows, prefill, empty_text, owner, search_label %>
 <%#
-  One column of the builder. Every row the owner can still offer is on the page, so the filter is a
+  One column of the builder. Every row on the owner's trade list is on the page, so the filter is a
   client-side one - there is nothing to fetch.
+
+  The rest of their public collections is not: it can run to thousands of rows, so it is searched
+  instead (trades#rows), underneath. A hit that gets a quantity is moved up into the list with the
+  rest of the draft, which is why the list is always rendered, even empty.
 %>
 
 <div class="flex flex-col border rounded-3xl bg-foreground border-highlight">
@@ -10,26 +14,48 @@
       <h2 class="text-lg font-semibold text-grey-text"><%= heading %></h2>
 
       <span class="text-xs text-grey-text/50">
-        <%= pluralize(rows.size, 'printing') %>
+        <%= pluralize(rows.size, 'printing') %> on the trade list
       </span>
     </div>
 
     <% if rows.any? %>
       <%= tag.input type: 'search', placeholder: 'Filter these cards',
-        aria: { label: "Filter #{heading}" },
+        aria: { label: "Filter #{strip_tags(heading)}" },
         data: { side: side, action: 'input->trade-builder#filter' },
         class: 'px-3 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text' %>
     <% end %>
   </div>
 
   <% if rows.empty? %>
-    <p class="p-8 text-sm text-center text-grey-text/70"><%= empty_text %></p>
-  <% else %>
-    <div class="overflow-y-auto divide-y max-h-96 divide-highlight">
-      <% rows.each do |row| %>
-        <%= render partial: 'trades/row', locals: {
-          row: row, side: side, prefill: prefill } %>
-      <% end %>
-    </div>
+    <p
+      class="p-8 text-sm text-center text-grey-text/70"
+      data-trade-builder-target="empty"
+      data-side="<%= side %>"
+    >
+      <%= empty_text %>
+    </p>
   <% end %>
+
+  <div
+    class="overflow-y-auto divide-y max-h-96 divide-highlight"
+    data-trade-builder-target="list"
+    data-side="<%= side %>"
+  >
+    <% rows.each do |row| %>
+      <%= render partial: 'trades/row', locals: {
+        row: row, side: side, prefill: prefill } %>
+    <% end %>
+  </div>
+
+  <div class="flex flex-col gap-2 p-4 border-t border-highlight">
+    <p class="text-xs text-grey-text/70"><%= search_label %></p>
+
+    <%= tag.input type: 'search', placeholder: 'Search by card name',
+      aria: { label: "Search #{owner.username}'s public collections" },
+      data: { side: side, action: 'input->trade-builder#search' },
+      class: 'px-3 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text' %>
+  </div>
+
+  <%= render partial: 'trades/search_results', locals: {
+    side: side, rows: [], query: '', owner: owner } %>
 </div>

@@ -1,0 +1,18 @@
+<%# locals: user - whoever the button is about %>
+<%#
+  Follow or unfollow, for a signed-in visitor looking at somebody else. In a frame of its own so the
+  redirect back swaps the button and leaves the page where it was.
+%>
+
+<% if logged_in? && current_user.id != user.id %>
+  <%= turbo_frame_tag dom_id(user, :follow) do %>
+    <% following = local_assigns.fetch(:following) { current_user.following?(user) } %>
+
+    <%= button_to following ? 'Following' : 'Follow',
+      follows_path,
+      method: following ? :delete : :post,
+      params: { username: user.username },
+      title: following ? "Unfollow #{user.username}" : "Follow #{user.username}",
+      class: "px-3 py-1.5 text-sm border rounded-md transition cursor-pointer #{following ? 'border-accent-50/40 text-accent-50 hover:border-accent-100/40 hover:text-accent-100' : 'border-highlight text-grey-text hover:border-accent-50 hover:text-accent-50'}" %>
+  <% end %>
+<% end %>
