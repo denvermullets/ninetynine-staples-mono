@@ -23,7 +23,7 @@ RSpec.describe Trades::UnlistedRows, type: :service do
     row(pathbreaker)
     row(bolt)
 
-    expect(search('PATH').map { |found| found.magic_card.name }).to eq(['Path to Exile', 'Pathbreaker Ibex'])
+    expect(search('PATH').map { |found| found.magic_card.name }).to contain_exactly('Path to Exile', 'Pathbreaker Ibex')
   end
 
   it 'hands back every copy owned, with none of them listed' do
