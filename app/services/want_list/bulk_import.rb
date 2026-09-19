@@ -10,9 +10,7 @@
 # form is left alone: re-pasting a list should not bump quantities or stack a second row on a
 # specific-printing want.
 #
-# The printing a new row points at is only an anchor, since any printing satisfies it. The cheapest
-# priced front face from an ordinary paper set is used, so the list's price column reads as what filling
-# the want would cost - and not what a gold-bordered World Championship copy or an Arena-only card costs.
+# Adding the rows, and choosing the printing each one is anchored to, is WantList::AddByOracle.
 module WantList
   class BulkImport < Service
     MAX_CARDS = 500
@@ -28,19 +26,6 @@ module WantList
     ].freeze
 
     LINE = /\A(?:(\d{1,3})\s*x?\s+)?(.+)\z/i
-
-    # sets whose copies are a poor stand-in for "the card": digital, gold-bordered, silver-bordered, oddball
-    UNUSUAL_SET_TYPES = %w[alchemy funny memorabilia minigame token treasure_chest vanguard].freeze
-
-    CHOOSE_PRINTING_SQL = <<~SQL.squish.freeze
-      magic_cards.scryfall_oracle_id,
-      magic_cards.card_side = 'b' ASC NULLS FIRST,
-      COALESCE(boxsets.set_type IN (#{UNUSUAL_SET_TYPES.map { |type| "'#{type}'" }.join(', ')}), FALSE) ASC,
-      magic_cards.normal_price > 0 DESC NULLS LAST,
-      magic_cards.normal_price ASC NULLS LAST,
-      boxsets.release_date DESC NULLS LAST,
-      magic_cards.id ASC
-    SQL
 
     def initialize(user:, text:)
       @user = user
@@ -107,52 +92,27 @@ module WantList
     end
 
     def candidates
-      MagicCard.where(is_token: false).where.not(scryfall_oracle_id: nil)
+      AddByOracle.candidates
     end
 
     def import(entries)
       resolved, unresolved = entries.values.partition { |entry| entry[:oracle_ids]&.one? }
-      wanted = wanted_oracle_ids(resolved)
-      new_entries, already = resolved.partition { |entry| wanted.exclude?(entry[:oracle_ids].first) }
+      result = AddByOracle.call(user: @user, quantities: quantities(resolved))
+      already = resolved.select { |entry| result[:already_wanted].include?(entry[:oracle_ids].first) }
       ambiguous, unknown = unresolved.partition { |entry| entry[:oracle_ids] }
 
-      { added: create_items(new_entries), already_wanted: report(already), ambiguous: report(ambiguous),
+      { added: result[:added], already_wanted: report(already), ambiguous: report(ambiguous),
         unresolved: report(unknown) }
     end
 
-    # any row counts, specific printing included
-    def wanted_oracle_ids(entries)
-      @user.want_list_items.where(scryfall_oracle_id: entries.map { |entry| entry[:oracle_ids].first })
-           .distinct.pluck(:scryfall_oracle_id).to_set
+    # two names can land on one card ("Fire // Ice" and a lone "Ice"), so quantities are summed
+    def quantities(entries)
+      entries.each_with_object(Hash.new(0)) { |entry, totals| totals[entry[:oracle_ids].first] += entry[:quantity] }
     end
 
     # lines as the user typed them, less the export noise, so they can be fixed and pasted back
     def report(entries)
       entries.map { |entry| entry.slice(:name, :quantity) }
-    end
-
-    def create_items(entries)
-      printings = anchor_printings(entries.map { |e| e[:oracle_ids].first })
-
-      entries.filter_map do |entry|
-        card = printings[entry[:oracle_ids].first]
-        next unless card
-
-        item = @user.want_list_items.new(magic_card: card, quantity: entry[:quantity], any_printing: true)
-        item if item.save
-      end
-    end
-
-    # one printing per oracle id, skipping any the user already has a row on
-    def anchor_printings(oracle_ids)
-      return {} if oracle_ids.empty?
-
-      candidates.left_joins(:boxset)
-                .where(scryfall_oracle_id: oracle_ids)
-                .where.not(id: @user.want_list_items.select(:magic_card_id))
-                .select('DISTINCT ON (magic_cards.scryfall_oracle_id) magic_cards.*')
-                .order(Arel.sql(CHOOSE_PRINTING_SQL))
-                .index_by(&:scryfall_oracle_id)
     end
   end
 end

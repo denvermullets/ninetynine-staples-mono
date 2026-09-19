@@ -1,7 +1,8 @@
-<%# locals: result - WantList::BulkImport's answer, nil before anything is pasted; text - the textarea's contents %>
+<%# locals: result - WantList::BulkImport's or ProxyImport's answer, nil before anything is sent; text - the textarea's contents %>
 <%#
   Bulk add for the owner. Posts to WantImportsController, which swaps this panel for the report and
-  leaves the lines it could not use in the textarea to be fixed and sent again.
+  leaves the lines it could not use in the textarea to be fixed and sent again. The proxies button
+  beside the submit posts to the same controller and gets the same report back.
 %>
 
 <% report_class = 'px-4 py-3 text-sm border rounded-xl bg-background text-grey-text' %>
@@ -61,10 +62,19 @@
               'aria-label': 'Card list',
               class: 'w-full p-3 text-sm border rounded-lg resize-y bg-background border-highlight text-grey-text placeholder-grey-text/50 focus:outline-none focus:border-accent-50' %>
 
-        <div>
+        <div class="flex flex-wrap items-center gap-2">
           <%= f.submit 'Add to want list', data: { turbo_submits_with: 'Adding...' },
                 class: 'px-4 py-2 text-sm font-medium rounded-lg cursor-pointer bg-accent-50 text-background hover:bg-nine-white' %>
+
+          <%= button_tag 'Add my proxies', type: :submit, form: 'want_proxy_import',
+                title: 'Add every proxy in your collections and decks to your want list',
+                data: { turbo_submits_with: 'Adding...' },
+                class: 'px-4 py-2 text-sm font-medium border rounded-lg cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white' %>
         </div>
+      <% end %>
+
+      <%= form_with url: want_proxy_imports_path, id: 'want_proxy_import', class: 'hidden' do %>
+        <%# empty on purpose: the proxies button sits in the form above but submits this one, since a form cannot nest %>
       <% end %>
     </div>
   <% end %>

@@ -1,5 +1,6 @@
 # Bulk add on the want list page: a pasted decklist becomes any-printing wants for the signed-in user.
-# WantList::BulkImport does the parsing and name resolution.
+# WantList::BulkImport does the parsing and name resolution. The panel's other button skips the paste
+# and adds the proxies they are holding, which is WantList::ProxyImport's job.
 #
 # Answered with turbo streams rather than a redirect, because the report of what could not be matched
 # can run to dozens of names - more than a cookie flash holds. The import panel is swapped for the
@@ -11,15 +12,23 @@ class WantImportsController < ApplicationController
   def create
     result = WantList::BulkImport.call(user: current_user, text: params[:decklist])
 
+    render_report(result, retry_text(result))
+  end
+
+  def proxies
+    render_report(WantList::ProxyImport.call(user: current_user), '')
+  end
+
+  private
+
+  def render_report(result, text)
     render turbo_stream: [
       turbo_stream.replace('want_import', partial: 'collection_wants/import',
-                                          locals: { result: result, text: retry_text(result) }),
+                                          locals: { result: result, text: text }),
       turbo_stream.replace('want_items', partial: 'collection_wants/reload_items',
                                          locals: { src: list_src })
     ]
   end
-
-  private
 
   # what is left to fix goes back in the textarea; a rejected paste goes back whole
   def retry_text(result)

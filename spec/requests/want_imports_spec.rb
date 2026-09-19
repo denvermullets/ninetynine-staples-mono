@@ -33,4 +33,24 @@ RSpec.describe 'WantImports', type: :request do
 
     expect(response.media_type).to eq(Mime[:turbo_stream])
   end
+
+  describe 'adding proxies' do
+    it 'sends a logged-out visitor to the login page' do
+      post want_proxy_imports_path
+
+      expect(response).to redirect_to(login_path)
+    end
+
+    it "adds the signed-in user's proxies" do
+      card = create(:magic_card, scryfall_oracle_id: SecureRandom.uuid)
+      create(:collection_magic_card, collection: create(:collection, user: user), magic_card: card,
+                                     quantity: 0, proxy_quantity: 1)
+      sign_in(user)
+
+      post want_proxy_imports_path, as: :turbo_stream
+
+      expect(response.media_type).to eq(Mime[:turbo_stream])
+      expect(user.want_list_items.pluck(:magic_card_id)).to eq([card.id])
+    end
+  end
 end

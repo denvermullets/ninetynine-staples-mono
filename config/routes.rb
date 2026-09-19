@@ -209,6 +209,8 @@ Rails.application.routes.draw do
   get 'wants/:id/traders', to: 'want_traders#show', as: :want_traders
   # a pasted decklist onto the signed-in user's own want list
   post 'wants/import', to: 'want_imports#create', as: :want_imports
+  # the proxies they are holding onto their own want list
+  post 'wants/import/proxies', to: 'want_imports#proxies', as: :want_proxy_imports
 
   # Trade builder, inbox and proposals. Every route here is session-scoped: who is proposing comes from
   # the session and who they are proposing to rides in the query string or the body, never the path.
