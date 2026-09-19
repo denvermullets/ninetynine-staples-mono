@@ -1,0 +1,44 @@
+<%# locals: username, search, finish, sort, counts %>
+<%#
+  Links and a GET form inside the trade_cards frame, so Turbo swaps the list and the toggles together.
+  Every control carries the other axes' current values, same rule as collection_reserved/_filters.
+%>
+
+<% carry = { username: username, search: search, finish: finish, sort: sort }.compact %>
+
+<div class="flex flex-col gap-2">
+  <%= form_with url: collection_trades_path(username), method: :get, class: 'flex gap-2' do %>
+    <%= hidden_field_tag :finish, finish %>
+    <%= hidden_field_tag :sort, sort %>
+
+    <%= search_field_tag :search, search, placeholder: 'Search cards on offer',
+      class: 'flex-1 px-3 py-1.5 text-sm rounded-md border border-highlight bg-background text-grey-text' %>
+
+    <%= submit_tag 'Search', name: nil,
+      class: 'px-3 py-1.5 text-sm rounded-md bg-highlight text-nine-white cursor-pointer' %>
+  <% end %>
+
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "all" => "All", "regular" => "Non-foil", "foil" => "Foil" }.each do |key, label| %>
+        <%= link_to collection_trades_path(**carry.merge(finish: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == finish ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" do %>
+          <%= label %>
+
+          <span class="ml-1 text-xs opacity-60">
+            <%= number_with_delimiter(counts[key.to_sym]) %>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <% { "value" => "Value", "name" => "Name", "mana" => "Mana" }.each do |key, label| %>
+        <%= link_to label, collection_trades_path(**carry.merge(sort: key)),
+          class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == sort ? "bg-highlight text-nine-white" : "bg-background text-grey-text hover:bg-menu"}" %>
+      <% end %>
+    </div>
+  </div>
+
+  <p class="text-xs text-grey-text/50"><%= trade_finish_text(finish) %></p>
+</div>

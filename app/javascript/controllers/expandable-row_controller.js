@@ -4,6 +4,9 @@ export default class extends Controller {
   static targets = ["content"];
 
   toggle(event) {
+    // a link, button or form control inside the row does its own thing - it is not a request to expand
+    if (event.target.closest("a, button, input, select, textarea, summary, label, form")) return;
+
     const cardId = event.currentTarget.dataset.cardId;
 
     const contentRow = this.contentTargets.find((content) => {

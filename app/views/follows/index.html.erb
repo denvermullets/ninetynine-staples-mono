@@ -1,0 +1,116 @@
+<%#
+  The people the signed-in user follows, and the people following them. Follows decide whose offers
+  show up in a card's "Up for Trade" section and who sorts first on a want's traders page.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Following',
+    subtext: 'Cards the people you follow have up for trade show in every card\'s details.' } %>
+
+  <%= turbo_frame_tag 'follows', data: { turbo_action: 'advance' } do %>
+    <div class="flex flex-col space-y-4">
+      <% if flash[:notice] || flash[:alert] %>
+        <div
+          class="
+            px-4 py-3 text-sm border rounded-xl bg-foreground text-grey-text
+            <%= flash[:alert] ? 'border-accent-100/40' : 'border-accent-50/40' %>
+          "
+        >
+          <%= flash[:alert] || flash[:notice] %>
+        </div>
+      <% end %>
+
+      <%= form_with url: follows_path, method: :post,
+        class: 'flex flex-col gap-2 p-4 border sm:flex-row sm:items-center rounded-3xl bg-foreground border-highlight' do |form| %>
+        <%= form.text_field :username,
+          placeholder: 'Follow someone by username',
+          autocomplete: 'off',
+          required: true,
+          class: 'flex-1 px-3 py-1.5 text-sm border rounded-md bg-background border-highlight text-grey-text focus:outline-none focus:border-accent-50' %>
+
+        <%= form.submit 'Follow',
+          class: 'px-3 py-1.5 text-sm rounded-md cursor-pointer shrink-0 bg-highlight text-nine-white hover:opacity-90' %>
+      <% end %>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <% { 'following' => 'Following', 'followers' => 'Followers' }.each do |key, label| %>
+          <%= link_to following_path(tab: key),
+            class: "px-3 py-1.5 text-sm rounded-md transition cursor-pointer #{key == @tab ? 'bg-highlight text-nine-white' : 'bg-background text-grey-text hover:bg-menu'}" do %>
+            <%= label %>
+
+            <span class="ml-1 text-xs opacity-60">
+              <%= number_with_delimiter(@counts[key]) %>
+            </span>
+          <% end %>
+        <% end %>
+      </div>
+
+      <% if @users.empty? %>
+        <div
+          class="
+            p-12 text-center border rounded-3xl bg-foreground border-highlight
+            text-grey-text
+          "
+        >
+          <p class="text-xl font-semibold">
+            <%= @tab == 'following' ? 'You are not following anyone' : 'Nobody is following you yet' %>
+          </p>
+
+          <% if @tab == 'following' %>
+            <p class="mt-2 text-sm text-grey-text/70">
+              Follow someone from their collection, trade list or want list, or
+              by username above.
+            </p>
+          <% end %>
+        </div>
+      <% else %>
+        <div
+          class="
+            flex flex-col border divide-y rounded-3xl bg-foreground
+            border-highlight divide-highlight
+          "
+        >
+          <% @users.each do |user| %>
+            <div
+              class="
+                flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center
+                sm:justify-between
+              "
+            >
+              <%= link_to user.username, collections_overview_path(user.username),
+                class: 'min-w-0 text-sm font-semibold truncate text-grey-text hover:text-accent-50',
+                data: { turbo_frame: '_top' } %>
+
+              <div class="flex flex-wrap items-center gap-3 text-sm shrink-0">
+                <% if user.trades_public? %>
+                  <%= link_to 'Trade list', collection_trades_path(user.username),
+                    class: 'text-accent-50 hover:underline', data: { turbo_frame: '_top' } %>
+                <% end %>
+
+                <% if user.wants_public? %>
+                  <%= link_to 'Want list', collection_wants_path(user.username),
+                    class: 'text-accent-50 hover:underline', data: { turbo_frame: '_top' } %>
+                <% end %>
+
+                <%= render partial: 'follows/button',
+                  locals: { user: user, following: @following_ids.include?(user.id) } %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <% if @pagy && @pagy.pages > 1 %>
+          <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+            <%== @pagy.info_tag() %>
+            <%== @pagy.series_nav() %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

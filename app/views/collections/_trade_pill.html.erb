@@ -1,0 +1,13 @@
+<% total_trade = trade_quantity.to_i + trade_foil_quantity.to_i %>
+
+<% if total_trade.positive? %>
+  <span
+    class="
+      ml-2 px-1.5 py-0.5 text-xs rounded bg-accent-50/20 text-accent-50 border
+      border-accent-50/40
+    "
+    title="<%= pluralize(total_trade, 'copy') %> for trade"
+  >
+    T
+  </span>
+<% end %>

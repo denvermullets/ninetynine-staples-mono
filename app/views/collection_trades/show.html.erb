@@ -1,0 +1,95 @@
+<%#
+  Every copy a user has marked for trade, priced. Laid out like the proxies page: summary outside the
+  frame because it is the whole side's total and does not move with the filters, everything below it
+  inside so the pills, the search and the pagination are ordinary links.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Trade List',
+    subtext: @owner ? 'The copies you have marked for trade across your public collections.' : "The copies #{@user.username} has marked for trade." } %>
+
+  <% if flash[:notice] %>
+    <div
+      class="
+        px-4 py-3 text-sm border rounded-xl border-accent-50/40 bg-foreground
+        text-grey-text
+      "
+    >
+      <%= flash[:notice] %>
+    </div>
+  <% end %>
+
+  <% if !@owner && logged_in? %>
+    <div class="flex flex-wrap items-center gap-3">
+      <%= link_to "Start a trade with #{@user.username}",
+        new_trade_path(with: @user.username),
+        class: 'inline-block px-4 py-2 text-sm rounded-md bg-highlight text-nine-white hover:opacity-90' %>
+
+      <%= render partial: 'follows/button', locals: { user: @user } %>
+
+      <% if @wanted_count.positive? %>
+        <span
+          class="
+            px-3 py-1 text-xs border rounded-full border-accent-50/40
+            text-accent-50
+          "
+        >
+          <%= pluralize(@wanted_count, 'card') %> you want
+        </span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @owner && !@user.trades_public? %>
+    <div
+      class="
+        px-4 py-3 text-sm border rounded-xl border-highlight bg-foreground
+        text-grey-text/70
+      "
+    >
+      Your trade list is private - only you can see this page.
+      <%= link_to 'Make it public in Settings', settings_path, class: 'text-accent-50 hover:underline' %>
+    </div>
+  <% end %>
+
+  <%= render partial: 'collection_trades/summary', locals: { totals: @totals } %>
+
+  <%= turbo_frame_tag 'trade_cards', data: { turbo_action: 'advance' } do %>
+    <div class="flex flex-col space-y-4">
+      <%= render partial: 'collection_trades/filters', locals: {
+        username: @user.username, search: @search, finish: @finish, sort: @sort, counts: @counts } %>
+
+      <% if @cards.empty? %>
+        <div
+          class="
+            p-12 text-center border rounded-3xl bg-foreground border-highlight
+            text-grey-text
+          "
+        >
+          <p class="text-xl font-semibold">
+            <%= @counts[:all].zero? ? 'Nothing up for trade' : 'Nothing in this list' %>
+          </p>
+
+          <p class="mt-2 text-sm text-grey-text/70">
+            <% if @counts[:all].zero? %>
+              <%= @owner ? 'Mark copies for trade from a public collection and they will show up here.' : "#{@user.username} has not marked anything for trade." %>
+            <% else %>
+              Every card on offer falls outside these filters.
+            <% end %>
+          </p>
+        </div>
+      <% else %>
+        <%= render partial: 'collection_trades/mobile', locals: {
+          cards: @cards, pagy: @pagy, owner: @owner, username: @user.username } %>
+        <%= render partial: 'collection_trades/table', locals: {
+          cards: @cards, pagy: @pagy, owner: @owner, username: @user.username } %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

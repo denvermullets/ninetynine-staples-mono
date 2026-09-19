@@ -1,0 +1,40 @@
+<%# locals: trade, viewer %>
+<%#
+  One trade in the inbox. Both sides are valued at the prices the trade was proposed at - the same
+  numbers the two parties were shown - and the whole row links through to the trade.
+%>
+
+<% mine = trade.side_for(viewer) %>
+<% theirs = mine == 'proposer' ? 'recipient' : 'proposer' %>
+<% counterparty = trade.counterparty(viewer) %>
+
+<%= link_to trade_path(trade),
+  class: 'flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 hover:bg-menu' do %>
+  <div class="min-w-0">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="font-semibold truncate text-grey-text">
+        <%= counterparty.username %>
+      </span>
+
+      <%= trade_status_badge(trade) %>
+
+      <% if trade_waiting_on_you?(trade, viewer) %>
+        <span class="text-xs text-accent-200">Waiting on you</span>
+      <% end %>
+    </div>
+
+    <p class="text-xs text-grey-text/50">
+      <%= mine == 'proposer' ? 'You proposed' : 'Proposed to you' %> · updated
+      <%= time_ago_in_words(trade.updated_at) %> ago
+    </p>
+  </div>
+
+  <div class="flex flex-col text-sm sm:items-end shrink-0 text-grey-text/70">
+    <span>
+      <%= counterparty.username %> gives
+      <%= trade_side_summary(trade, theirs) %>
+    </span>
+
+    <span>You give <%= trade_side_summary(trade, mine) %></span>
+  </div>
+<% end %>

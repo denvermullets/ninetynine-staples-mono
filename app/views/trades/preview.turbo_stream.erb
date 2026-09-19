@@ -1,0 +1,5 @@
+<%# the draft's totals, re-priced and swapped back in - nothing about the trade is saved %>
+<%= turbo_stream.replace 'trade_totals' do %>
+  <%= render partial: 'trades/totals', locals: {
+    totals: @totals, recipient: @recipient } %>
+<% end %>

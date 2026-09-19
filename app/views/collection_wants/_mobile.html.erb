@@ -1,0 +1,71 @@
+<%# locals: items, pagy, owner, view, trader_counts %>
+<div class="max-w-full mb-24 md:hidden">
+  <div class="flex flex-col gap-2">
+    <% items.each do |item| %>
+      <% card = item.magic_card %>
+
+      <div class="p-4 border rounded-xl bg-foreground border-highlight">
+        <div class="flex items-start justify-between gap-2">
+          <p class="text-sm font-semibold text-grey-text">
+            <% if owner %>
+              <%= link_to card.name.to_s.split('//').first, want_traders_path(item),
+                class: 'hover:text-accent-50 hover:underline', data: { turbo_frame: '_top' } %>
+            <% else %>
+              <%= card.name.to_s.split('//').first %>
+            <% end %>
+          </p>
+
+          <span class="text-sm shrink-0 text-grey-text">
+            <%= want_unit_price(item) %>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-grey-text/50">
+          <span><%= card.boxset&.code %> #<%= card.card_number %></span>
+
+          <span>x<%= item.quantity %></span>
+
+          <span>
+            <%= WantListHelper::SHORT_FOIL_PREFERENCE_LABELS.fetch(item.foil_preference) %>
+          </span>
+
+          <%= render partial: 'collection_wants/printing_badge', locals: { item: item } %>
+
+          <% if item.owned_quantity.to_i.positive? %>
+            <span class="text-accent-50">
+              x<%= item.owned_quantity %> owned
+            </span>
+          <% end %>
+
+          <% if owner %>
+            <%= render partial: 'collection_wants/trader_count',
+              locals: { item: item, count: trader_counts[item.id].to_i } %>
+          <% end %>
+        </div>
+
+        <% if item.notes.present? %>
+          <p class="mt-2 text-xs whitespace-pre-line text-grey-text/70"><%= item.notes %></p>
+        <% end %>
+
+        <% if owner %>
+          <div class="mt-3">
+            <%= render partial: 'collection_wants/owner_controls', locals: { item: item, view: view } %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy %>
+    <div
+      class="
+        flex flex-col w-full gap-2 px-4 py-3 mt-2 text-sm bg-foreground
+        rounded-xl
+      "
+    >
+      <div class="text-grey-text"><%== pagy.info_tag() %></div>
+
+      <div class="overflow-x-auto"><%== pagy.series_nav() %></div>
+    </div>
+  <% end %>
+</div>

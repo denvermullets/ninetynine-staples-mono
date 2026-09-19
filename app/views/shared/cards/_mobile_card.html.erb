@@ -378,6 +378,10 @@
       <% end %>
     </div>
 
+    <% if card.card_side.nil? || card.card_side == 'a' %>
+      <%= render partial: 'shared/cards/want_control', locals: { magic_card: card, mobile: true } %>
+    <% end %>
+
     <!-- Quick Actions -->
     <% if is_editable || current_user.present? %>
       <div

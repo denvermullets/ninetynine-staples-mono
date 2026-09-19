@@ -1,0 +1,5 @@
+<% counts = [] %>
+<% counts << trade_quantity.to_i.to_s if trade_quantity.to_i.positive? %>
+<% counts << "#{trade_foil_quantity.to_i} foil" if trade_foil_quantity.to_i.positive? %>
+
+<%= counts.join(' + ') %>

@@ -39,4 +39,5 @@
 node_modules/
 .pr/
 
+.DS_STORE
 .notes

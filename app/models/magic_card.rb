@@ -20,6 +20,7 @@ class MagicCard < ApplicationRecord
 
   has_many :collection_magic_cards, dependent: :destroy
   has_many :collections, through: :collection_magic_cards
+  has_many :want_list_items, dependent: :delete_all
 
   has_many :magic_card_colors
   has_many :colors, through: :magic_card_colors
@@ -73,6 +74,14 @@ class MagicCard < ApplicationRecord
     other_face_uuid.present?
   end
 
+  # Ingestion stores each face of a double-faced printing as its own row, but everywhere a card is
+  # owned, traded or wanted it is one card, and the front face ('a') stands for it.
+  def front_face
+    return self unless card_side == 'b'
+
+    other_face || self
+  end
+
   def price_change
     price_trend_service.price_change
   end
@@ -105,6 +114,23 @@ class MagicCard < ApplicationRecord
       .where.not(magic_card_id: id)
       .preload(:collection, magic_card: :boxset)
       .order('boxsets.release_date DESC NULLS LAST, collections.name ASC')
+  end
+
+  # The user's want row this printing would satisfy, preferring one that names this exact printing
+  # over an any-printing row that happens to point at a different one. The unique indexes allow at
+  # most one of each, so this loads two rows at most.
+  def want_list_item_for(user)
+    return nil if user.nil?
+
+    printing_id = front_face.id
+    items = WantListItem.where(user_id: user.id).matching(self).to_a
+    items.find { |item| item.magic_card_id == printing_id } || items.first
+  end
+
+  def wanted_by?(user)
+    return false if user.nil?
+
+    WantListItem.where(user_id: user.id).matching(self).exists?
   end
 
   def primary_type

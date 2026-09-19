@@ -46,6 +46,29 @@ RSpec.describe ImportPreconDeckJob, type: :job do
     end
   end
 
+  describe 'wants the precon fills' do
+    it 'broadcasts a toast linking to the owned filter of the want list' do
+      create(:want_list_item, user: user, magic_card: magic_card)
+      allow(Turbo::StreamsChannel).to receive(:broadcast_append_to)
+
+      described_class.new.perform(precon_deck.id, collection.id, user.id)
+
+      expect(Turbo::StreamsChannel).to have_received(:broadcast_append_to).with(
+        "user_#{user.id}_notifications",
+        target: 'toasts',
+        html: a_string_including('Review your want list', 'filter=owned')
+      )
+    end
+
+    it 'sends no want toast when nothing was filled' do
+      allow(Turbo::StreamsChannel).to receive(:broadcast_append_to)
+
+      described_class.new.perform(precon_deck.id, collection.id, user.id)
+
+      expect(Turbo::StreamsChannel).to have_received(:broadcast_append_to).once
+    end
+  end
+
   describe 'queue' do
     it 'enqueues on collection_updates' do
       expect { described_class.perform_later(precon_deck.id, collection.id, user.id) }

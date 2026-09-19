@@ -124,6 +124,18 @@
             <tr class="text-grey-text hover:bg-menu">
               <td class="px-4 py-3 text-sm whitespace-nowrap">
                 <%= location.collection.name %>
+
+                <% if editable && location.tradeable? %>
+                  <span
+                    class="
+                      ml-2 px-1.5 py-0.5 text-xs rounded bg-accent-50/20
+                      text-accent-50 border border-accent-50/40
+                    "
+                    title="<%= pluralize(location.total_trade, 'copy') %> for trade"
+                  >
+                    <%= location.total_trade %> for trade
+                  </span>
+                <% end %>
               </td>
 
               <td class="px-4 py-3 text-sm whitespace-nowrap">
@@ -179,6 +191,25 @@
                     >
                       Adjust
                     </button>
+
+                    <% if !location.staged? && !location.needed? && (location.quantity.positive? || location.foil_quantity.positive?) %>
+                      <button
+                        data-action="click->card-locations#openTradeModal"
+                        data-collection-magic-card-id="<%= location.id %>"
+                        data-collection-name="<%= location.collection.name %>"
+                        data-regular-qty="<%= location.quantity %>"
+                        data-foil-qty="<%= location.foil_quantity %>"
+                        data-trade-qty="<%= location.trade_quantity %>"
+                        data-trade-foil-qty="<%= location.trade_foil_quantity %>"
+                        class="
+                          px-3 py-1 text-xs transition border rounded-md
+                          border-highlight text-grey-text hover:bg-background
+                          hover:text-nine-white
+                        "
+                      >
+                        Trade
+                      </button>
+                    <% end %>
                   </div>
                 <% else %>
                   <span class="text-xs text-grey-text">—</span>
@@ -255,5 +286,6 @@
   <% if editable %>
     <%= render partial: 'shared/cards/transfer_modal', locals: { magic_card:, collections: } %>
     <%= render partial: 'shared/cards/adjust_modal', locals: { magic_card: } %>
+    <%= render partial: 'shared/cards/trade_modal', locals: { magic_card:, row_collection_id: local_assigns[:row_collection_id] } %>
   <% end %>
 </div>

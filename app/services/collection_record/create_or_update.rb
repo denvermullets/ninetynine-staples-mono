@@ -1,4 +1,7 @@
-# this service will create or update a collection record and update the collection totals
+# this service will create or update a collection record and update the collection totals.
+#
+# A successful result also carries `wants_filled`: the owner's want list rows these new copies have
+# just filled, so the caller can offer to take them off the list.
 module CollectionRecord
   class CreateOrUpdate < Service
     include PriceCalculator
@@ -24,11 +27,11 @@ module CollectionRecord
         if @quantity.zero? && @foil_quantity.zero? && @proxy_quantity.zero? && @proxy_foil_quantity.zero?
           delete_collection_card(collection_card)
 
-          return { action: :delete, name: collection_card.magic_card.name }
+          return { action: :delete, name: collection_card.magic_card.name, wants_filled: [] }
         else
-          update_collection_card(collection_card)
+          wants_filled = update_collection_card(collection_card)
 
-          return { action: :success, name: collection_card.magic_card.name }
+          return { action: :success, name: collection_card.magic_card.name, wants_filled: }
         end
       end
     end
@@ -77,6 +80,18 @@ module CollectionRecord
           real_price: real_price_change,
           proxy_price: proxy_price_change
         }
+      )
+
+      wants_filled(collection_card, quantity_change, foil_quantity_change)
+    end
+
+    # staged and needed rows are cards the user does not hold yet, so they fill nothing
+    def wants_filled(collection_card, quantity_change, foil_quantity_change)
+      return [] if collection_card.staged? || collection_card.needed?
+
+      WantList::Filled.call(
+        user: @collection.user,
+        additions: { @magic_card => { quantity: quantity_change, foil_quantity: foil_quantity_change } }
       )
     end
 

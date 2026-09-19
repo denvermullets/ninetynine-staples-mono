@@ -10,6 +10,8 @@ module Search
     # them when it fetches a page - the two have to agree or the table's quantity column drifts.
     QUANTITY_SQL = 'SUM(COALESCE(collection_magic_cards.quantity, 0))'.freeze
     FOIL_QUANTITY_SQL = 'SUM(COALESCE(collection_magic_cards.foil_quantity, 0))'.freeze
+    TRADE_QUANTITY_SQL = 'SUM(COALESCE(collection_magic_cards.trade_quantity, 0))'.freeze
+    TRADE_FOIL_QUANTITY_SQL = 'SUM(COALESCE(collection_magic_cards.trade_foil_quantity, 0))'.freeze
 
     # Highest price among the finishes the user actually owns. A printing owned only in
     # foil sorts on foil_price, and vice versa; a proxy-only row (no quantities) falls to 0.
@@ -77,7 +79,8 @@ module Search
         # CollectionQuery::CollectionSort reorders this relation when the user picks a column.
         @cards
           .joins(:collection_magic_cards)
-          .select("magic_cards.*, #{QUANTITY_SQL} AS quantity, #{FOIL_QUANTITY_SQL} AS foil_quantity")
+          .select("magic_cards.*, #{QUANTITY_SQL} AS quantity, #{FOIL_QUANTITY_SQL} AS foil_quantity, " \
+                  "#{TRADE_QUANTITY_SQL} AS trade_quantity, #{TRADE_FOIL_QUANTITY_SQL} AS trade_foil_quantity")
           .group('magic_cards.id')
           .order(Arel.sql("#{OWNED_PRICE_SQL} DESC NULLS LAST"))
       else

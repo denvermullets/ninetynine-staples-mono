@@ -67,6 +67,10 @@ class Collection < ApplicationRecord
     collection_magic_cards.commanders.includes(:magic_card)
   end
 
+  def tradeable_cards
+    collection_magic_cards.tradeable
+  end
+
   def commander_deck?
     collection_type == 'commander_deck'
   end

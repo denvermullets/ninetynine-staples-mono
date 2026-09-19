@@ -28,6 +28,8 @@ Rails.application.routes.draw do
   post 'settings/move_collection', to: 'settings#move_collection', as: :move_collection
   post 'settings/update_column_visibility', to: 'settings#update_column_visibility', as: :update_column_visibility
   post 'settings/update_game_tracker_visibility', to: 'settings#update_game_tracker_visibility', as: :update_game_tracker_visibility
+  post 'settings/update_trades_visibility', to: 'settings#update_trades_visibility', as: :update_trades_visibility
+  post 'settings/update_wants_visibility', to: 'settings#update_wants_visibility', as: :update_wants_visibility
   post 'settings/update_theme', to: 'settings#update_theme', as: :update_theme
 
   mount MissionControl::Jobs::Engine, at: '/jobs'
@@ -89,6 +91,12 @@ Rails.application.routes.draw do
   post 'collection_magic_cards/update_collection', to: 'collection_magic_cards#update_collection', as: :collection_magic_cards_update
   post 'collection_magic_cards/transfer', to: 'collection_magic_cards#transfer', as: :transfer_collection_magic_cards
   post 'collection_magic_cards/adjust', to: 'collection_magic_cards#adjust', as: :adjust_collection_magic_cards
+  post 'collection_magic_cards/update_trade', to: 'collection_magic_cards#update_trade', as: :update_trade_collection_magic_cards
+
+  # want control inside the expanded card details; the user comes from the session
+  post 'want_list_items', to: 'want_list_items#create', as: :want_list_items
+  patch 'want_list_items/:id', to: 'want_list_items#update', as: :want_list_item
+  delete 'want_list_items/:id', to: 'want_list_items#destroy'
 
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
   resources :collections, only: %w[new create update destroy] do
@@ -116,6 +124,12 @@ Rails.application.routes.draw do
   get 'collections/:username/reserved', to: 'collection_reserved#show', as: :collection_reserved
   # commanders ranked by how much of the deck this collection could already fill
   get 'collections/:username/brew', to: 'brew#index', as: :collection_brew
+  # every copy marked for trade across this user's public collections - above the catch-all below,
+  # or 'trades' is swallowed as a collection_id
+  get 'collections/:username/trades', to: 'collection_trades#show', as: :collection_trades
+  # the cards this user is looking for - above the catch-all below, or 'wants' is swallowed as a
+  # collection_id
+  get 'collections/:username/wants', to: 'collection_wants#show', as: :collection_wants
   get 'collections/:username(/:collection_id)', to: 'collections#show', as: :collection_show
   # Decks index and show routes
   get 'decks/:username', to: 'decks#index', as: :decks_index
@@ -182,6 +196,49 @@ Rails.application.routes.draw do
     get '/', to: 'game_tracker#show', as: ''
     resources :decks, only: %i[index show], controller: 'game_tracker/tracked_decks', as: 'tracked_decks'
     resources :games, only: %i[index show], controller: 'game_tracker/commander_games', as: 'commander_games'
+  end
+
+  # Following other users. Session-scoped, and the username rides in the body - see FollowsController
+  get 'following', to: 'follows#index', as: :following
+  post 'follows', to: 'follows#create', as: :follows
+  delete 'follows', to: 'follows#destroy'
+
+  # "Who has my wants" - always the signed-in user's own want list, so there is no username to scope by
+  get 'wants/matches', to: 'want_matches#show', as: :want_matches
+  # one want, and everyone with a copy of it marked for trade
+  get 'wants/:id/traders', to: 'want_traders#show', as: :want_traders
+  # a pasted decklist onto the signed-in user's own want list
+  post 'wants/import', to: 'want_imports#create', as: :want_imports
+  # the proxies they are holding onto their own want list
+  post 'wants/import/proxies', to: 'want_imports#proxies', as: :want_proxy_imports
+
+  # Trade builder, inbox and proposals. Every route here is session-scoped: who is proposing comes from
+  # the session and who they are proposing to rides in the query string or the body, never the path.
+  # Same split as the game tracker, where the username-scoped routes are the read-only half.
+  scope 'trades' do
+    resources :trades, path: '', only: %i[index show new create] do
+      collection do
+        post :preview
+        # the builder's search of a user's cards that are not on their trade list
+        get :rows
+      end
+
+      # accept / decline / cancel / complete, named in `event` - Trades::Transition decides the rest
+      member do
+        patch :transition
+      end
+    end
+  end
+
+  # In-app notifications, always the signed-in user's own. Reading one goes on to whatever it is about.
+  resources :notifications, only: :index do
+    member do
+      patch :read
+    end
+
+    collection do
+      patch :read_all
+    end
   end
 
   # Card scanner routes

@@ -32,6 +32,19 @@ RSpec.describe User, type: :model do
       expect(user.errors[:username]).to be_present
     end
 
+    it 'requires username uniqueness (case-insensitive)' do
+      create(:user, username: 'Planeswalker')
+      user = build(:user, username: 'planeswalker')
+      expect(user).not_to be_valid
+      expect(user.errors[:username]).to include('has already been taken')
+    end
+
+    it 'enforces username uniqueness at the database level' do
+      create(:user, username: 'Planeswalker')
+      user = build(:user, username: 'PLANESWALKER')
+      expect { user.save(validate: false) }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
     it 'validates password minimum length of 10 characters' do
       user = build(:user, password: 'short')
       expect(user).not_to be_valid
@@ -165,6 +178,43 @@ RSpec.describe User, type: :model do
         expect(result).to be_truthy
         expect(user.collection_order).to eq([c2.id, c1.id, c3.id])
       end
+    end
+  end
+
+  describe '#tradeable_cards' do
+    let(:user) { create(:user) }
+
+    it 'returns trade-marked rows across the user\'s public collections only' do
+      public_binder = create(:collection, user: user, is_public: true)
+      hidden_binder = create(:collection, user: user, is_public: false)
+      offered = create(:collection_magic_card, :tradeable, collection: public_binder, quantity: 3)
+      create(:collection_magic_card, collection: public_binder, quantity: 3)
+      create(:collection_magic_card, :tradeable, collection: hidden_binder, quantity: 3)
+      create(:collection_magic_card, :tradeable, collection: create(:collection, is_public: true))
+
+      expect(user.tradeable_cards).to eq([offered])
+    end
+  end
+
+  describe '#offerable_cards' do
+    let(:user) { create(:user) }
+    let(:public_binder) { create(:collection, user: user, is_public: true) }
+
+    it 'returns every real copy in the user\'s public collections, marked for trade or not' do
+      listed = create(:collection_magic_card, :tradeable, collection: public_binder, quantity: 3)
+      unlisted = create(:collection_magic_card, collection: public_binder, quantity: 3)
+      create(:collection_magic_card, collection: create(:collection, user: user, is_public: false), quantity: 3)
+      create(:collection_magic_card, collection: create(:collection, is_public: true), quantity: 3)
+
+      expect(user.offerable_cards).to contain_exactly(listed, unlisted)
+    end
+
+    it 'leaves out proxies, staged rows and cards the deck still needs' do
+      create(:collection_magic_card, collection: public_binder, quantity: 0, proxy_quantity: 2)
+      create(:collection_magic_card, collection: public_binder, quantity: 0, staged: true, staged_quantity: 1)
+      create(:collection_magic_card, collection: public_binder, quantity: 1, needed: true)
+
+      expect(user.offerable_cards).to be_empty
     end
   end
 end
