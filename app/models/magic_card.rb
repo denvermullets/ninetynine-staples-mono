@@ -138,8 +138,12 @@ class MagicCard < ApplicationRecord
     types.find { |t| card_type&.include?(t) } || card_type&.split(' - ')&.first
   end
 
+  # `.includes` on the association queries even when it is preloaded - once per card when a whole deck
+  # is grouped by color identity - so a loaded association is read as it is
   def color_identity_string
-    magic_card_color_idents.includes(:color).map { |mci| mci.color.name }.sort.join
+    idents = magic_card_color_idents
+    idents = idents.includes(:color) unless association(:magic_card_color_idents).loaded?
+    idents.map { |mci| mci.color.name }.sort.join
   end
 
   # exists? ignores an already-loaded :finishes association and re-queries on every call, so a card

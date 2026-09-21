@@ -13,6 +13,7 @@ module DeckComparison
   class LoadSide
     class FromDeck < Service
       ERROR = 'Pick one of your decks.'.freeze
+      PRELOAD = [:boxset, :sub_types, :colors, { magic_card_color_idents: :color }].freeze
 
       def initialize(viewer:, deck_id:)
         @viewer = viewer
@@ -31,7 +32,7 @@ module DeckComparison
       # the sideboard is dropped in Ruby: board_type is nullable, and a SQL `!=` would lose those rows too
       def rows(deck)
         all_cards = deck.collection_magic_cards
-                        .includes(magic_card: %i[boxset sub_types colors magic_card_color_idents])
+                        .includes(magic_card: PRELOAD)
 
         (all_cards.staged + all_cards.needed + all_cards.finalized.owned)
           .uniq.reject { |row| row.board_type == 'sideboard' }
@@ -62,7 +63,7 @@ module DeckComparison
         return {} if uuids.empty?
 
         MagicCard.where(card_uuid: uuids)
-                 .includes(:boxset, :sub_types, :colors, :magic_card_color_idents)
+                 .includes(*PRELOAD)
                  .index_by(&:card_uuid)
       end
     end
