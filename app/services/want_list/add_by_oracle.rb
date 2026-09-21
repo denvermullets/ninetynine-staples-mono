@@ -22,9 +22,9 @@ module WantList
       magic_cards.id ASC
     SQL
 
-    # the cards a want can be anchored to
+    # the cards a want can be anchored to - the same ones a typed name can resolve to
     def self.candidates
-      MagicCard.where(is_token: false).where.not(scryfall_oracle_id: nil)
+      Decklist::Resolve.candidates
     end
 
     def initialize(user:, quantities:)
