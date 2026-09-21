@@ -36,8 +36,9 @@ module CardQuery
       # --- text-ish columns on magic_cards ------------------------------------------
       'o' => { handler: :ilike, kind: :card, column: 'text' },
       'oracle' => { handler: :ilike, kind: :card, column: 'text' },
-      'n' => { handler: :ilike, kind: :card, column: 'name' },
-      'name' => { handler: :ilike, kind: :card, column: 'name' },
+      # a name also matches the alternate one a printing may carry - see MagicCard.name_matching
+      'n' => { handler: :ilike, kind: :card, column: 'name', also: 'flavor_name' },
+      'name' => { handler: :ilike, kind: :card, column: 'name', also: 'flavor_name' },
       'm' => { handler: :ilike, kind: :card, column: 'mana_cost' },
       'mana' => { handler: :ilike, kind: :card, column: 'mana_cost' },
       'ft' => { handler: :ilike, kind: :card, column: 'flavor_text' },

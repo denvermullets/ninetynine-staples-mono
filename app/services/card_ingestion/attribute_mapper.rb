@@ -39,6 +39,20 @@ module CardIngestion
       }
     end
 
+    # The alternate name on this printing, if it has one - "Balin's Tomb" on an LTC Ancient Tomb. Read
+    # per face first, so each side of a double-faced card keeps its own.
+    #
+    # mtgjson is not consistent about where it puts these: most are flavorName, but some Secret Lair
+    # drops (Stranger Things, the D&D movie) only have printedName. printedName is on plenty of ordinary
+    # cards too, repeating the real name, so it only counts when it says something different.
+    def flavor_name
+      flavor = @card_data['faceFlavorName'] || @card_data['flavorName']
+      return flavor if flavor.present?
+
+      printed = @card_data['facePrintedName'] || @card_data['printedName']
+      printed if printed.present? && printed != (@card_data['faceName'] || @card_data['name'])
+    end
+
     # Tokens are excluded from all of this, which is why is_reserved sits here rather than next to
     # is_reprint above: nothing on the Reserved List is a token, so a token has no answer to give.
     def card_specific_attributes
@@ -52,6 +66,7 @@ module CardIngestion
         edhrec_rank: @card_data['edhrecRank'],
         edhrec_saltiness: @card_data['edhrecSaltiness'],
         converted_mana_cost: @card_data['convertedManaCost'],
+        flavor_name: flavor_name,
         flavor_text: @card_data['flavorText'],
         mana_cost: @card_data['manaCost'],
         mana_value: @card_data['manaValue']

@@ -59,11 +59,7 @@ module Search
     # the caller's user scope, so searching the "all cards" view - where neither a boxset nor
     # a collection is selected - returned every user's cards.
     def handle_search
-      @cards = if @search_term.present? && @boxset_id.present?
-                 @cards.where('magic_cards.name ILIKE ? AND magic_cards.boxset_id = ?', "%#{@search_term}%", @boxset_id)
-               else
-                 @cards.where('magic_cards.name ILIKE ?', "%#{@search_term}%")
-               end
+      @cards.where(*MagicCard.name_containing(@search_term))
     end
 
     def sort_cards

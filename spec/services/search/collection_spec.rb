@@ -23,6 +23,14 @@ RSpec.describe Search::Collection, type: :service do
       expect(result.map(&:name)).not_to include('Dark Ritual')
     end
 
+    it 'finds a printing by the alternate name it carries' do
+      card_b.update!(flavor_name: 'Shadowbringers')
+
+      result = described_class.call(cards: cards, search_term: 'shadowbr', sort_by: :price)
+
+      expect(result.map(&:name)).to contain_exactly('Dark Ritual')
+    end
+
     # this used to rebuild the relation from MagicCard when neither a boxset nor a collection
     # was selected, which handed back every user's cards on the "all cards" view
     it 'keeps the scope it was given when no boxset or collection is set' do

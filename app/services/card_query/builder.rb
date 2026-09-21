@@ -98,13 +98,12 @@ module CardQuery
 
     # `:` is a substring match, `=` pins the whole value
     def predicate_for_ilike(field, term)
-      column = "magic_cards.#{field[:column]}"
+      columns = [field[:column], field[:also]].compact
+      sql = columns.map { |column| "COALESCE(magic_cards.#{column} ILIKE :value, FALSE)" }.join(' OR ')
 
-      case term.op
-      when '=' then ["#{column} ILIKE ?", term.value]
-      when '!=' then ["NOT COALESCE((#{column} ILIKE ?), FALSE)", term.value]
-      else ["#{column} ILIKE ?", "%#{sanitize_like(term.value)}%"]
-      end
+      return ["(#{sql})", { value: "%#{sanitize_like(term.value)}%" }] unless %w[= !=].include?(term.op)
+
+      [term.op == '=' ? "(#{sql})" : "NOT (#{sql})", { value: term.value }]
     end
 
     # rarity is a varchar with no natural ordering, so `r>=rare` compares positions in the

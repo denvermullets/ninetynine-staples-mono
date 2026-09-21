@@ -2,8 +2,9 @@
 #
 # Nothing else in the app resolves a typed card name: precons arrive keyed by MTGJSON uuid, CSV imports
 # by Scryfall id, and the deck builder's bulk import searches one line at a time for the user to pick.
-# A pasted list can be hundreds of lines, so names are resolved in two batched lookups - full names
-# first ("Fire // Ice"), then single faces ("Fire") for whatever is left.
+# A pasted list can be hundreds of lines, so names are resolved in batched lookups - full names first
+# ("Fire // Ice"), then single faces ("Fire") for whatever is left, then the alternate names some
+# printings carry ("Balin's Tomb" for Ancient Tomb), which deck sites export as typed.
 #
 # A name that lands on more than one oracle id (the Unfinity attraction variants, "Fire" as a face of
 # two split cards) is handed back as ambiguous rather than guessed.
@@ -19,14 +20,18 @@ module Decklist
       MagicCard.where(is_token: false).where.not(scryfall_oracle_id: nil)
     end
 
+    # tried in this order, each only for the names the ones before it left over
+    NAME_COLUMNS = %i[name face_name flavor_name].freeze
+
     # entries is Decklist::Parse's hash, keyed by normalized name
     def initialize(entries:)
       @entries = entries
     end
 
     def call
-      oracle_ids = lookup(:name, @entries.keys)
-      oracle_ids.merge!(lookup(:face_name, @entries.keys - oracle_ids.keys))
+      oracle_ids = NAME_COLUMNS.each_with_object({}) do |column, found|
+        found.merge!(lookup(column, @entries.keys - found.keys))
+      end
 
       @entries.each_with_object({ resolved: [], ambiguous: [], unresolved: [] }) do |(key, entry), result|
         ids = oracle_ids[key]

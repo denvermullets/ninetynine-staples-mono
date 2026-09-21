@@ -175,7 +175,7 @@ module DeckBuilder
     def name_matching(cards)
       return cards if @card_query.free_text.blank?
 
-      cards.where('magic_cards.name ILIKE ?', "%#{ActiveRecord::Base.sanitize_sql_like(@card_query.free_text)}%")
+      cards.where(*MagicCard.name_containing(@card_query.free_text))
     end
 
     def append_browse_entries(results)
