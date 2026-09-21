@@ -6,13 +6,13 @@
       </h3>
 
       <div class="relative" data-controller="card-stack">
-        <% cards.each_with_index do |card, index| %>
+        <% cards.each do |card| %>
           <div
             data-card-stack-target="card"
-            data-image-large="<%= card.magic_card.image_large %>"
-            data-action="mouseenter->card-stack#showPreview mouseleave->card-stack#hidePreview"
+            data-action="mouseenter->card-stack#expand mouseenter->precon-deck#previewCard mouseleave->card-stack#collapse"
+            data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
+            data-card-name="<%= card.magic_card.name %>"
             class="relative cursor-pointer rounded-lg overflow-hidden"
-            style="<%= 'margin-top: -80px;' if index > 0 %>"
           >
             <% if card.magic_card.image_medium.present? %>
               <%= image_tag card.magic_card.image_medium,
@@ -57,13 +57,6 @@
             <% end %>
           </div>
         <% end %>
-
-        <!-- Hover preview -->
-        <img
-          data-card-stack-target="hoverPreview"
-          class="fixed z-50 hidden w-64 rounded-lg shadow-2xl pointer-events-none"
-          alt="Card preview"
-        >
       </div>
     </div>
   <% end %>
