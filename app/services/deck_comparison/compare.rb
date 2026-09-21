@@ -54,8 +54,16 @@ module DeckComparison
       [card_a, card_b].any? { |card| card[:board_type] == 'commander' } ? 'commander' : card_a[:board_type]
     end
 
+    # `cards` is distinct cards, `quantity` copies - they part ways on basic lands. The label is the
+    # copy count the page shows: "44 / 22" when the decks hold the shared cards in different numbers
     def stats(rows)
-      { cards: rows.size, quantity: rows.sum(&:quantity), value: rows.sum(&:value) }
+      { cards: rows.size, quantity: rows.sum(&:quantity), quantity_label: quantity_label(rows),
+        value: rows.sum(&:value) }
+    end
+
+    def quantity_label(rows)
+      totals = [rows.sum { |row| row.quantity_a.to_i }, rows.sum { |row| row.quantity_b.to_i }]
+      totals.reject(&:zero?).uniq.join(' / ').presence || '0'
     end
   end
 end

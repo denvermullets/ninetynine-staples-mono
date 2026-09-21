@@ -114,9 +114,9 @@ RSpec.describe DeckComparison::Compare, type: :service do
     end
 
     it 'counts cards, copies and value per tab' do
-      expect(result[:stats]).to eq(shared: { cards: 1, quantity: 12, value: 6.0 },
-                                   only_a: { cards: 1, quantity: 1, value: 2.0 },
-                                   only_b: { cards: 1, quantity: 3, value: 3.0 })
+      expect(result[:stats]).to eq(shared: { cards: 1, quantity: 12, quantity_label: '12 / 9', value: 6.0 },
+                                   only_a: { cards: 1, quantity: 1, quantity_label: '1', value: 2.0 },
+                                   only_b: { cards: 1, quantity: 3, quantity_label: '3', value: 3.0 })
     end
   end
 end
