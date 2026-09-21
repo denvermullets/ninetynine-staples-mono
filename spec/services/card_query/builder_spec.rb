@@ -39,6 +39,15 @@ RSpec.describe CardQuery::Builder, type: :service do
             types: ['Sorcery'])
     end
 
+    it 'matches a name against the alternate name a printing carries too' do
+      wrath.update!(flavor_name: 'Meteorfall')
+
+      expect(build('name:meteor')).to contain_exactly(wrath)
+      expect(build('name=meteorfall')).to contain_exactly(wrath)
+      expect(build('-name:meteor')).to contain_exactly(goblin)
+      expect(build('name!=meteorfall')).to contain_exactly(goblin)
+    end
+
     it 'matches card types, sub types and super types alike' do
       expect(build('t:goblin')).to contain_exactly(goblin)
       expect(build('t:creature')).to contain_exactly(goblin)

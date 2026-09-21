@@ -64,6 +64,15 @@ class MagicCard < ApplicationRecord
                                .select(:magic_card_id))
   }
 
+  # Searching by name has to reach the alternate name some printings carry (flavor_name - "Balin's
+  # Tomb" on an Ancient Tomb) or those printings cannot be found under the name on the cardboard.
+  # SQL rather than a scope because the searches run it against relations rooted on other tables.
+  NAME_MATCH = '(magic_cards.name ILIKE :name OR magic_cards.flavor_name ILIKE :name)'.freeze
+
+  def self.name_containing(term)
+    [NAME_MATCH, { name: "%#{sanitize_sql_like(term.to_s)}%" }]
+  end
+
   def other_face
     return nil unless other_face_uuid.present?
 

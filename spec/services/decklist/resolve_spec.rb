@@ -33,6 +33,23 @@ RSpec.describe Decklist::Resolve, type: :service do
     expect(resolve('Ice')[:resolved].map { |entry| entry[:oracle_id] }).to eq([ice.scryfall_oracle_id])
   end
 
+  # Universes Beyond and Secret Lair printings carry a second name, and deck sites export it as typed
+  describe 'an alternate name' do
+    it 'resolves to the card it is printed on' do
+      tomb = card('Ancient Tomb', flavor_name: "Balin's Tomb")
+
+      expect(resolve("1 Balin's Tomb")[:resolved].map { |entry| entry[:oracle_id] })
+        .to eq([tomb.scryfall_oracle_id])
+    end
+
+    it 'loses to a card really called that' do
+      real = card('Cybertron')
+      card('Command Tower', flavor_name: 'Cybertron')
+
+      expect(resolve('Cybertron')[:resolved].map { |entry| entry[:oracle_id] }).to eq([real.scryfall_oracle_id])
+    end
+  end
+
   describe 'a split card' do
     let(:oracle_id) { SecureRandom.uuid }
 

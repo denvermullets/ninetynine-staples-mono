@@ -42,6 +42,33 @@ RSpec.describe CardIngestion::AttributeMapper, type: :service do
       expect(result[:is_reserved]).to be true
     end
 
+    describe 'flavor_name' do
+      def flavor_name(extra)
+        described_class.call(boxset: boxset, card_data: card_data.merge(extra))[:flavor_name]
+      end
+
+      it 'is nil for a card with only its own name' do
+        expect(flavor_name('printedName' => 'Lightning Bolt')).to be_nil
+      end
+
+      it 'reads flavorName' do
+        expect(flavor_name('flavorName' => 'Zap')).to eq('Zap')
+      end
+
+      it "prefers the face's own over the whole card's" do
+        expect(flavor_name('flavorName' => 'Zap // Zop', 'faceFlavorName' => 'Zap')).to eq('Zap')
+      end
+
+      # some Secret Lair drops carry the alternate name only as printedName
+      it 'falls back to a printedName that differs from the real name' do
+        expect(flavor_name('printedName' => 'Zap')).to eq('Zap')
+      end
+
+      it 'ignores a facePrintedName that repeats the face name' do
+        expect(flavor_name('name' => 'Fire // Ice', 'faceName' => 'Fire', 'facePrintedName' => 'Fire')).to be_nil
+      end
+    end
+
     # mtgjson omits isReserved entirely rather than sending false, and is_reserved is NOT NULL, so
     # passing the missing key straight through would blow up the insert on almost every card
     it 'reads a missing isReserved as false rather than nil' do
