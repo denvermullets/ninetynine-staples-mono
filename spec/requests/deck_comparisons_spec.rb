@@ -68,8 +68,7 @@ RSpec.describe 'DeckComparisons', type: :request do
 
     paste('12 Forest', '9 Forest')
 
-    expect_counts(shared: 1, only_a: 0, only_b: 0)
-    expect(body).to include('12 / 9')
+    expect_counts(shared: '12 / 9', only_a: 0, only_b: 0)
   end
 
   it 'renders the asked-for tab open and the others hidden' do

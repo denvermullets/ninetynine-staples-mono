@@ -47,7 +47,7 @@
               class="<%= tab_class %> <%= tab == stat_tab.to_s ? active_class : 'text-grey-text' %>"
             >
               <%= deck_compare_tab_label(stat_tab, sides) %>
-              (<%= stats[:cards] %>)
+              (<%= stats[:quantity_label] %>)
             </button>
           <% end %>
         </div>

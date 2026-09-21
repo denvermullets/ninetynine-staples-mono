@@ -39,7 +39,8 @@
           </span>
 
           <span class="text-white font-medium shrink-0">
-            <%= pluralize(stats[:cards], 'card') %>
+            <%= stats[:quantity_label] %>
+            <%= 'card'.pluralize(stats[:quantity]) %>
             <span class="text-grey-text/50">-</span>
             <%= deck_compare_value(stat_tab, sides, stats[:value]) %>
           </span>
