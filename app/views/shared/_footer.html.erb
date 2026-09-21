@@ -81,6 +81,7 @@
               <%= link_to 'Sign up to start', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
             <% end %>
           </li>
+
           <% if current_user %>
             <li>
               <%= link_to 'All Cards', collection_show_path(current_user.username), class: 'text-grey-text hover:text-white transition-colors' %>
@@ -113,6 +114,14 @@
           <li>
             <%= link_to 'Deck Builder', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
           </li>
+
+          <li>
+            <% if current_user %>
+              <%= link_to 'Compare Decks', deck_compare_path, class: 'text-grey-text hover:text-white transition-colors' %>
+            <% else %>
+              <%= link_to 'Compare Decks', sign_up_path, class: 'text-grey-text hover:text-white transition-colors' %>
+            <% end %>
+          </li>
         </ul>
       </div>
 
@@ -130,6 +139,7 @@
               <%= link_to 'Log in', login_path, class: 'text-grey-text hover:text-white transition-colors' %>
             <% end %>
           </li>
+
           <li>
             <% if current_user %>
               <%= link_to 'Sign out', logout_path, data: { turbo_method: :delete }, class: 'text-grey-text hover:text-white transition-colors' %>

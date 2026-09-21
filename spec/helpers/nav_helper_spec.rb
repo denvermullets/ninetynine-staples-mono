@@ -44,6 +44,19 @@ RSpec.describe NavHelper, type: :helper do
     expect(section_for('/game-tracker/staples')).to eq(:decks)
   end
 
+  it 'offers deck compare in the decks menu and files its page under decks' do
+    decks = helper.nav_menus.find { |menu| menu[:key] == :decks }
+
+    expect(decks[:items].pluck(:path)).to include(helper.deck_compare_path)
+    expect(section_for('/deck-compare')).to eq(:decks)
+  end
+
+  it 'keeps deck compare away from visitors, who cannot open it' do
+    sign_in_as(nil)
+
+    expect(helper.nav_menus.flat_map { |menu| menu[:items] }.pluck(:path)).not_to include(helper.deck_compare_path)
+  end
+
   it 'files the rest of the collection under collection' do
     expect(section_for('/collections/staples')).to eq(:collection)
     expect(section_for('/collections/staples/stats')).to eq(:collection)
