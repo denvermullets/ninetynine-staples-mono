@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_19_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_21_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -496,6 +496,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_19_130000) do
     t.string "text"
     t.string "toughness"
     t.datetime "updated_at", null: false
+    t.index "lower((face_name)::text)", name: "index_magic_cards_on_lower_face_name"
+    t.index "lower((name)::text)", name: "index_magic_cards_on_lower_name"
     t.index ["boxset_id"], name: "index_magic_cards_on_boxset_id"
     t.index ["can_be_commander", "boxset_id"], name: "index_magic_cards_on_can_be_commander_and_boxset_id"
     t.index ["can_be_commander"], name: "index_magic_cards_on_can_be_commander"

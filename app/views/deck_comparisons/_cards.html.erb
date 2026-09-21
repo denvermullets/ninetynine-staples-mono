@@ -1,0 +1,18 @@
+<%# one tab's cards: an empty state, or the list / card view the form asked for %>
+<% if grouped_cards.empty? %>
+  <div
+    class="
+      flex flex-col items-center justify-center p-12 border rounded-xl
+      bg-foreground border-highlight
+    "
+  >
+    <h3 class="mb-2 text-lg font-semibold text-white">No cards</h3>
+    <p class="text-grey-text"><%= empty_message %></p>
+  </div>
+<% elsif view_mode == 'card' %>
+  <%= render partial: 'deck_comparisons/cards_visual', locals: { grouped_cards: grouped_cards } %>
+<% else %>
+  <div class="p-4 border rounded-xl bg-foreground border-highlight">
+    <%= render partial: 'deck_comparisons/cards_list', locals: { grouped_cards: grouped_cards, sort_by: sort_by } %>
+  </div>
+<% end %>

@@ -1,0 +1,22 @@
+<%# what one side could not use, named as it was typed so the list can be fixed and pasted again %>
+<% report_class = 'px-3 py-2 text-sm border rounded-lg bg-foreground text-grey-text' %>
+
+<% if side[:error] %>
+  <div class="<%= report_class %> border-accent-100/40">
+    Deck <%= side[:label] %>: <%= side[:error] %>
+  </div>
+<% end %>
+
+<% if side[:unresolved].any? %>
+  <div class="<%= report_class %> border-accent-100/40">
+    Deck <%= side[:label] %>: No card found for
+    <%= deck_compare_skipped_names(side[:unresolved]) %>
+  </div>
+<% end %>
+
+<% if side[:ambiguous].any? %>
+  <div class="<%= report_class %> border-accent-100/40">
+    Deck <%= side[:label] %>: More than one card goes by this name, so it was
+    left out: <%= deck_compare_skipped_names(side[:ambiguous]) %>
+  </div>
+<% end %>

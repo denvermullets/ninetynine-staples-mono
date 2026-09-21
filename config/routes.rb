@@ -136,6 +136,10 @@ Rails.application.routes.draw do
   get 'decks/:username', to: 'decks#index', as: :decks_index
   get 'decks/:username/:collection_id', to: 'collections#show_decks', as: :deck_show
 
+  # Deck comparison: nothing is saved, so the POST computes and answers with a turbo stream
+  get 'deck-compare', to: 'deck_comparisons#show', as: :deck_compare
+  post 'deck-compare', to: 'deck_comparisons#create'
+
   # Deck builder routes
   resources :deck_builder, path: 'deck-builder', only: [:show] do
     member do

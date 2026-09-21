@@ -44,7 +44,8 @@ module NavHelper
     return false unless current_user
 
     username = current_user.username
-    path.start_with?("/decks/#{username}", "/game-tracker/#{username}") || path == "/collections/#{username}/brew"
+    path.start_with?("/decks/#{username}", "/game-tracker/#{username}", '/deck-compare') ||
+      path == "/collections/#{username}/brew"
   end
 
   def collection_nav_path?(path)
@@ -84,6 +85,7 @@ module NavHelper
     { key: :decks, label: 'Decks', items: [
       { label: 'My Decks', path: decks_index_path(username) },
       { label: 'Brew', path: collection_brew_path(username) },
+      { label: 'Compare Decks', path: deck_compare_path },
       { label: 'Game Tracker', path: game_tracker_path(username) }
     ] }
   end

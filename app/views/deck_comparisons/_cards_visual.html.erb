@@ -1,3 +1,4 @@
+<%# the deck builder's card stacks without its staged / needed markers; each card is a DeckComparison::Row %>
 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
   <% grouped_cards.each do |group_name, cards| %>
     <div class="p-4 border rounded-xl bg-foreground border-highlight">
@@ -9,20 +10,20 @@
         <% cards.each do |card| %>
           <div
             data-card-stack-target="card"
-            data-action="mouseenter->card-stack#expand mouseenter->precon-deck#previewCard mouseleave->card-stack#collapse"
+            data-action="mouseenter->card-stack#expand mouseenter->deck-compare#previewCard mouseleave->card-stack#collapse"
             data-card-image="<%= card.magic_card.image_large || card.magic_card.image_medium %>"
             data-card-name="<%= card.magic_card.name %>"
-            class="relative cursor-pointer rounded-lg overflow-hidden"
+            class="relative cursor-pointer rounded-2xl overflow-hidden"
           >
             <% if card.magic_card.image_medium.present? %>
               <%= image_tag card.magic_card.image_medium,
                 alt: card.magic_card.name,
-                class: "w-full rounded-lg shadow-lg",
+                class: "w-full rounded-2xl shadow-lg",
                 loading: "lazy" %>
             <% else %>
               <div
                 class="
-                  flex items-center justify-center w-full h-48 rounded-lg
+                  flex items-center justify-center w-full h-48 rounded-2xl
                   bg-background
                 "
               >
@@ -32,28 +33,30 @@
               </div>
             <% end %>
 
-            <!-- Quantity Badge -->
-            <% if card.quantity > 1 %>
+            <!-- Quantity Badge: "12 / 9" when the decks disagree -->
+            <% if card.quantity_label != '1' %>
               <span
                 class="
                   absolute px-2 py-1 text-xs font-bold rounded-full top-2
                   right-2 bg-background text-white shadow
                 "
               >
-                x<%= card.quantity %>
+                <%= card.quantity_label.include?('/') ? card.quantity_label : "x#{card.quantity_label}" %>
               </span>
             <% end %>
 
-            <!-- Foil Badge -->
-            <% if card.is_foil %>
-              <span
-                class="
-                  absolute px-2 py-1 text-xs font-bold rounded-full top-2
-                  left-2 bg-yellow-500/80 text-black shadow
-                "
-              >
-                Foil
-              </span>
+            <% if card.magic_card.game_changer.present? %>
+              <div class="absolute top-2 left-2 flex gap-1">
+                <span
+                  class="
+                    px-1 text-[10px] font-bold rounded bg-yellow-500/90
+                    text-background shadow
+                  "
+                  title="Game Changer"
+                >
+                  &#9733;
+                </span>
+              </div>
             <% end %>
           </div>
         <% end %>
