@@ -25,7 +25,7 @@
 <!-- Desktop Table View -->
 <div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
   <table class="min-w-full divide-y table-auto divide-background">
-    <thead class="bg-background">
+    <thead class="bg-background" data-controller="table-sort">
       <tr>
         <% if column_visible?('card_number', 'boxsets') %>
           <th
@@ -45,7 +45,7 @@
           normal-case text-grey-text
           "
           >
-            Name
+            <%= render 'boxsets/sort_header', column: :name, label: 'Name' %>
           </th>
         <% end %>
 
@@ -78,7 +78,7 @@
           normal-case text-grey-text
           "
           >
-            Regular
+            <%= render 'boxsets/sort_header', column: :normal_price, label: 'Regular' %>
           </th>
         <% end %>
 
@@ -89,7 +89,7 @@
           normal-case text-grey-text
           "
           >
-            Foil
+            <%= render 'boxsets/sort_header', column: :foil_price, label: 'Foil' %>
           </th>
         <% end %>
 
