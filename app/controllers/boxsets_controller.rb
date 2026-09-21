@@ -1,4 +1,14 @@
 class BoxsetsController < ApplicationController
+  # card_number is the default and has no clickable heading - it's the set order the table opens in
+  SORT_COLUMNS = %w[card_number name normal_price foil_price].freeze
+  # SortConfig builds the header links from only these keys. page is excluded on purpose -
+  # sorting starts over from the first page
+  PRESERVE_PARAMS = %i[
+    code search rarity mana view_mode grouping valuable_only exact_color_match price_change_range
+  ].freeze
+
+  helper_method :sort_config, :sort_link_params
+
   def index
     setup_index_defaults
     load_boxset_for_index
@@ -45,7 +55,28 @@ class BoxsetsController < ApplicationController
     @cards = filter_cards
     # Sort returns a relation, not an Array - keep it that way so pagy can push the LIMIT/OFFSET
     # down to Postgres instead of us instantiating every row in the set to render one page
-    CollectionQuery::Sort.call(cards: @cards, sort_by: :id)
+    sort_cards
+  end
+
+  def sort_cards
+    return CollectionQuery::Sort.call(cards: @cards, sort_by: :id) if sort_config.column == 'card_number'
+
+    # prices and names repeat, so id is the tiebreak that keeps pages from overlapping
+    CollectionQuery::ColumnSort.call(
+      records: @cards, column: sort_config.column, direction: sort_config.direction, table_name: 'magic_cards'
+    ).order('magic_cards.id' => :asc)
+  end
+
+  # the default boxset loads with no code in the URL, and load_boxset ignores a request
+  # without one, so the link always names the set on screen
+  def sort_link_params(column)
+    sort_config.link_params(column).merge(code: @boxset&.code || 'all')
+  end
+
+  def sort_config
+    @sort_config ||= CollectionQuery::SortConfig.new(
+      params: params, allowed_columns: SORT_COLUMNS, preserve_params: PRESERVE_PARAMS
+    )
   end
 
   def search_cards

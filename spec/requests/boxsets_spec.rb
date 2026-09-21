@@ -100,4 +100,45 @@ RSpec.describe 'Boxsets', type: :request do
       expect(queries.grep(/FROM "colors"/)).to be_empty
     end
   end
+
+  # the rows come back in a turbo stream with no layout, so the order is read off the row markup
+  describe 'GET load_boxset sorted' do
+    let(:sorted_set) { create(:boxset, code: 'SRT', name: 'Sorted Set') }
+
+    def rendered_order(params)
+      get load_boxset_path, params: params.merge(code: 'SRT'), as: :turbo_stream
+
+      response.body.scan(/expandable-row#toggle"\s+data-card-id="(\d+)"/).flatten.map(&:to_i)
+    end
+
+    let!(:cheap) do
+      create(:magic_card, boxset: sorted_set, card_number: '1', name: 'Zebra', normal_price: 1, foil_price: 30)
+    end
+    let!(:pricey) do
+      create(:magic_card, boxset: sorted_set, card_number: '2', name: 'Aardvark', normal_price: 20, foil_price: 2)
+    end
+    let!(:unpriced) do
+      create(:magic_card, boxset: sorted_set, card_number: '3', name: 'Mongoose', normal_price: nil, foil_price: nil)
+    end
+
+    it 'defaults to card number order' do
+      expect(rendered_order({})).to eq([cheap.id, pricey.id, unpriced.id])
+    end
+
+    it 'sorts by name' do
+      expect(rendered_order(sort: 'name')).to eq([pricey.id, unpriced.id, cheap.id])
+    end
+
+    it 'sorts by regular price, unpriced cards last' do
+      expect(rendered_order(sort: 'normal_price', direction: 'desc')).to eq([pricey.id, cheap.id, unpriced.id])
+    end
+
+    it 'sorts by foil price, unpriced cards last' do
+      expect(rendered_order(sort: 'foil_price', direction: 'desc')).to eq([cheap.id, pricey.id, unpriced.id])
+    end
+
+    it 'ignores a column it does not sort by' do
+      expect(rendered_order(sort: 'id; DROP TABLE magic_cards')).to eq([cheap.id, pricey.id, unpriced.id])
+    end
+  end
 end
