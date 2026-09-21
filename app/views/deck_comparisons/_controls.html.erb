@@ -1,0 +1,82 @@
+<%# the selects sit outside the form and join it by id, so a change re-submits both decks along with them %>
+<% button_class = 'px-3 py-1.5 text-sm border rounded-lg border-highlight text-grey-text hover:text-white transition flex items-center gap-1 cursor-pointer'
+  active_class = 'bg-accent-50/20 text-accent-50 border-accent-50'
+  select_class = 'px-3 py-1.5 text-sm border rounded-lg bg-background border-highlight text-grey-text focus:border-accent-50 focus:outline-none'
+  grouping_options = [['Type', 'type'], ['Mana Value', 'mana_value'], ['Color', 'color'],
+                      ['Color Identity', 'color_identity'], ['Rarity', 'rarity'], ['Set', 'set'], ['None', 'none']]
+  sort_options = [['Name', 'name'], ['Mana Value', 'mana_value'], ['Price', 'price'], ['Rarity', 'rarity'],
+                  ['EDHREC', 'edhrec'], ['Salt', 'salt']] %>
+
+<div
+  class="
+    flex flex-wrap items-center justify-between gap-4 p-4 mb-4 border rounded-xl
+    bg-foreground border-highlight
+  "
+>
+  <!-- View Mode Toggle -->
+  <div class="flex items-center gap-2">
+    <span class="text-sm text-grey-text">View:</span>
+
+    <button
+      type="button"
+      data-action="click->deck-compare#setViewMode"
+      data-mode="list"
+      class="<%= button_class %> <%= active_class if view_mode == 'list' %>"
+    >
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16"
+        />
+      </svg>
+      List
+    </button>
+
+    <button
+      type="button"
+      data-action="click->deck-compare#setViewMode"
+      data-mode="card"
+      class="<%= button_class %> <%= active_class if view_mode == 'card' %>"
+    >
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z"
+        />
+      </svg>
+      Cards
+    </button>
+  </div>
+
+  <!-- Grouping Selector -->
+  <div class="flex items-center gap-2">
+    <span class="text-sm text-grey-text">Group:</span>
+
+    <%= select_tag :grouping, options_for_select(grouping_options, grouping),
+          id: nil, form: 'deck_compare_form', 'aria-label': 'Group cards by',
+          data: { action: 'change->deck-compare#changeOption' }, class: select_class %>
+  </div>
+
+  <!-- Sort Selector -->
+  <div class="flex items-center gap-2">
+    <span class="text-sm text-grey-text">Sort:</span>
+
+    <%= select_tag :sort_by, options_for_select(sort_options, sort_by),
+          id: nil, form: 'deck_compare_form', 'aria-label': 'Sort cards by',
+          data: { action: 'change->deck-compare#changeOption' }, class: select_class %>
+  </div>
+</div>

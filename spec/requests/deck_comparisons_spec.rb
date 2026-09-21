@@ -23,8 +23,13 @@ RSpec.describe 'DeckComparisons', type: :request do
     response.body.squish
   end
 
-  def expect_counts(shared:, only_a:, only_b:)
-    expect(body).to include("Shared #{shared}", "Only in A #{only_a}", "Only in B #{only_b}")
+  def expect_counts(shared:, only_a:, only_b:, name_a: 'A')
+    expect(body).to include("Shared (#{shared})", "Only in #{name_a} (#{only_a})", "Only in B (#{only_b})")
+  end
+
+  # the opening tag of one tab's pane, which carries `hidden` unless it is the active tab
+  def pane(tab)
+    body[/<div data-deck-compare-target="pane" data-tab="#{tab}"[^>]*>/]
   end
 
   it 'sends a logged-out visitor to the login page' do
@@ -54,7 +59,47 @@ RSpec.describe 'DeckComparisons', type: :request do
 
     paste("1 Alpha\n1 Sol Rnig", '1 Alpha')
 
-    expect(body).to include('Deck A: could not match Sol Rnig.')
+    expect(body).to include('Deck A: No card found for 1 Sol Rnig')
+  end
+
+  it 'shows both counts for a shared card the decks hold in different numbers' do
+    sign_in(user)
+    card('Forest')
+
+    paste('12 Forest', '9 Forest')
+
+    expect_counts(shared: 1, only_a: 0, only_b: 0)
+    expect(body).to include('12 / 9')
+  end
+
+  it 'renders the asked-for tab open and the others hidden' do
+    %w[Alpha Bravo].each { |name| card(name) }
+    sign_in(user)
+
+    paste('1 Alpha', '1 Bravo', tab: 'only_b')
+
+    expect(pane('only_b')).not_to include('hidden')
+    expect(pane('shared')).to include('hidden')
+    expect(pane('only_a')).to include('hidden')
+  end
+
+  it 'still compares when one side is empty' do
+    sign_in(user)
+    card('Alpha')
+
+    paste('1 Alpha', '')
+
+    expect_counts(shared: 0, only_a: 1, only_b: 0)
+    expect(body).to include('Deck B is empty')
+  end
+
+  it 'renders the card view' do
+    sign_in(user)
+    card('Alpha')
+
+    paste('1 Alpha', '1 Alpha', view_mode: 'card')
+
+    expect(body).to include('data-view-mode="card"', 'data-controller="card-stack"')
   end
 
   it 'falls back to the defaults for view options it does not know' do
@@ -88,7 +133,7 @@ RSpec.describe 'DeckComparisons', type: :request do
                                       b_text: "1 Alpha\n1 Charlie" }
 
     expect(response).to have_http_status(:ok)
-    expect_counts(shared: 1, only_a: 1, only_b: 1)
+    expect_counts(shared: 1, only_a: 1, only_b: 1, name_a: 'Atraxa')
   end
 
   it 'refuses another user\'s deck without showing what is in it' do
