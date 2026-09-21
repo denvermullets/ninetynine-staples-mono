@@ -15,10 +15,15 @@
     "
   >
     <% if @is_owner %>
-      <%= link_to new_collection_path(collection_type: 'commander_deck'),
-          class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' do %>
-        + New Deck
-      <% end %>
+      <div class="flex flex-wrap items-center gap-3">
+        <%= link_to new_collection_path(collection_type: 'commander_deck'),
+            class: 'px-4 py-2 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' do %>
+          + New Deck
+        <% end %>
+
+        <%= link_to 'Compare decks', deck_compare_path,
+            class: 'px-4 py-2 border border-highlight rounded-lg text-grey-text hover:bg-foreground hover:text-accent-50 hover:border-accent-50 transition cursor-pointer' %>
+      </div>
     <% else %>
       <div></div>
     <% end %>

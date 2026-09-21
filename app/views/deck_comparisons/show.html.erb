@@ -1,0 +1,31 @@
+<%# the page shell - the form is the only state, so it stays in the DOM while the results below are swapped %>
+<div class="flex flex-col min-h-screen" data-controller="deck-compare">
+  <div class="px-4 py-4 border-b md:px-12 border-highlight bg-foreground">
+    <h1 class="text-2xl font-semibold text-white">Compare Decks</h1>
+
+    <p class="text-sm text-grey-text">
+      Paste two decklists, or pick your own decks, to see what they share and
+      what is only in one of them. Nothing is saved.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-4 p-4 md:p-8">
+    <details open class="border rounded-lg border-highlight bg-foreground">
+      <summary
+        class="
+          px-4 py-3 text-sm font-medium cursor-pointer text-grey-text
+          hover:text-nine-white
+        "
+      >
+        Decks
+      </summary>
+
+      <div class="p-4 border-t border-highlight">
+        <%= render partial: 'deck_comparisons/form', locals: {
+          decks: @decks, prefill_a: @prefill_a, view_mode: @view_mode, tab: @tab } %>
+      </div>
+    </details>
+
+    <div id="deck_compare_results"></div>
+  </div>
+</div>

@@ -4,29 +4,10 @@
 # A card the user already wants in any form is left alone and handed back in :already_wanted: adding a
 # list twice should not bump quantities or stack a second row on a specific-printing want.
 #
-# The printing a new row points at is only an anchor, since any printing satisfies it. The cheapest
-# priced front face from an ordinary paper set is used, so the list's price column reads as what filling
-# the want would cost - and not what a gold-bordered World Championship copy or an Arena-only card costs.
+# The printing a new row points at is only an anchor, since any printing satisfies it. Which one, and
+# why the cheapest ordinary printing, is Decklist::DefaultPrintings.
 module WantList
   class AddByOracle < Service
-    # sets whose copies are a poor stand-in for "the card": digital, gold-bordered, silver-bordered, oddball
-    UNUSUAL_SET_TYPES = %w[alchemy funny memorabilia minigame token treasure_chest vanguard].freeze
-
-    CHOOSE_PRINTING_SQL = <<~SQL.squish.freeze
-      magic_cards.scryfall_oracle_id,
-      magic_cards.card_side = 'b' ASC NULLS FIRST,
-      COALESCE(boxsets.set_type IN (#{UNUSUAL_SET_TYPES.map { |type| "'#{type}'" }.join(', ')}), FALSE) ASC,
-      magic_cards.normal_price > 0 DESC NULLS LAST,
-      magic_cards.normal_price ASC NULLS LAST,
-      boxsets.release_date DESC NULLS LAST,
-      magic_cards.id ASC
-    SQL
-
-    # the cards a want can be anchored to
-    def self.candidates
-      MagicCard.where(is_token: false).where.not(scryfall_oracle_id: nil)
-    end
-
     def initialize(user:, quantities:)
       @user = user
       @quantities = quantities
@@ -59,14 +40,8 @@ module WantList
 
     # one printing per oracle id, skipping any the user already has a row on
     def anchor_printings(oracle_ids)
-      return {} if oracle_ids.empty?
-
-      self.class.candidates.left_joins(:boxset)
-          .where(scryfall_oracle_id: oracle_ids)
-          .where.not(id: @user.want_list_items.select(:magic_card_id))
-          .select('DISTINCT ON (magic_cards.scryfall_oracle_id) magic_cards.*')
-          .order(Arel.sql(CHOOSE_PRINTING_SQL))
-          .index_by(&:scryfall_oracle_id)
+      Decklist::DefaultPrintings.call(oracle_ids: oracle_ids,
+                                      except_card_ids: @user.want_list_items.select(:magic_card_id))
     end
   end
 end

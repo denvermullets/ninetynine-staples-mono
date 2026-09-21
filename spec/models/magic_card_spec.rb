@@ -321,6 +321,37 @@ RSpec.describe MagicCard, type: :model do
     end
   end
 
+  describe '#color_identity_string' do
+    let(:card) do
+      create(:magic_card).tap do |card|
+        %w[U B].each { |name| MagicCardColorIdent.create!(magic_card: card, color: create(:color, name: name)) }
+      end
+    end
+
+    def query_count(&)
+      count = 0
+      counter = ->(*, payload) { count += 1 unless payload[:name] == 'SCHEMA' }
+      ActiveSupport::Notifications.subscribed(counter, 'sql.active_record', &)
+      count
+    end
+
+    it 'joins the sorted color names' do
+      expect(described_class.find(card.id).color_identity_string).to eq('BU')
+    end
+
+    it 'is empty for a colorless card' do
+      expect(create(:magic_card).color_identity_string).to eq('')
+    end
+
+    it 'does not query when the identity is preloaded' do
+      preloaded = described_class.includes(magic_card_color_idents: :color).find(card.id)
+      string = nil
+
+      expect(query_count { string = preloaded.color_identity_string }).to eq(0)
+      expect(string).to eq('BU')
+    end
+  end
+
   describe 'finish predicates' do
     def card_with_finishes(*names)
       create(:magic_card).tap do |card|

@@ -1,0 +1,50 @@
+<%# the hover preview and the per-tab totals. The preview is desktop only - there is no hover on a phone, where card view is the answer %>
+<% preview_card = grouped[tab.to_sym].values.flatten.first&.magic_card %>
+
+<div class="w-full md:w-80 shrink-0 space-y-4">
+  <div class="hidden md:block">
+    <div class="overflow-hidden border rounded-xl bg-foreground border-highlight">
+      <%= image_tag (preview_card&.image_large || preview_card&.image_medium || ''),
+        alt: "Card preview",
+        class: "w-full rounded-3xl #{preview_card ? '' : 'hidden'}",
+        data: { deck_compare_target: "cardPreview" } %>
+
+      <% unless preview_card %>
+        <div class="flex items-center justify-center h-64 text-grey-text">
+          <span>No cards to preview</span>
+        </div>
+      <% end %>
+
+      <div class="px-3 py-2 text-center">
+        <span
+          data-deck-compare-target="cardPreviewName"
+          class="text-sm font-medium text-grey-text"
+        >
+          <%= preview_card&.name || '' %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4 border rounded-xl bg-foreground border-highlight">
+    <h3 class="mb-3 text-sm font-semibold text-grey-text">
+      Comparison Statistics
+    </h3>
+
+    <div class="space-y-2 text-sm">
+      <% comparison[:stats].each do |stat_tab, stats| %>
+        <div class="flex justify-between gap-2">
+          <span class="truncate text-grey-text">
+            <%= deck_compare_tab_label(stat_tab, sides) %>:
+          </span>
+
+          <span class="text-white font-medium shrink-0">
+            <%= pluralize(stats[:cards], 'card') %>
+            <span class="text-grey-text/50">-</span>
+            <%= deck_compare_value(stat_tab, sides, stats[:value]) %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

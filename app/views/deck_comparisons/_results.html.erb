@@ -1,0 +1,72 @@
+<%# the outer id is what the turbo stream replaces, so it has to survive every render %>
+<% tab_class = 'px-3 py-1.5 text-sm border rounded-lg border-highlight hover:text-white transition cursor-pointer'
+  active_class = 'bg-accent-50/20 text-accent-50 border-accent-50' %>
+
+<div
+  id="deck_compare_results"
+  data-tab="<%= tab %>"
+  data-view-mode="<%= view_mode %>"
+  class="flex flex-col gap-4"
+>
+  <% if sides.all? { |side| side[:blank] } %>
+    <p class="text-grey-text">Paste a decklist or pick a deck on each side.</p>
+  <% else %>
+    <div class="flex flex-col gap-2">
+      <% sides.each do |side| %>
+        <%= render partial: 'deck_comparisons/side_report', locals: { side: side } %>
+
+        <% if comparison && side[:blank] %>
+          <div
+            class="
+              px-3 py-2 text-sm border rounded-lg bg-foreground text-grey-text
+              border-highlight
+            "
+          >
+            Deck <%= side[:label] %> is empty, so every card is only in the
+            other deck.
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if comparison %>
+    <div class="flex flex-col gap-4 md:flex-row">
+      <%= render partial: 'deck_comparisons/sidebar', locals: {
+        sides: sides, comparison: comparison, grouped: grouped, tab: tab } %>
+
+      <div class="flex-1 min-w-0">
+        <!-- Tabs: switching is client-side and costs no request -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <% comparison[:stats].each do |stat_tab, stats| %>
+            <button
+              type="button"
+              data-deck-compare-target="tab"
+              data-action="click->deck-compare#switchTab"
+              data-tab="<%= stat_tab %>"
+              class="<%= tab_class %> <%= tab == stat_tab.to_s ? active_class : 'text-grey-text' %>"
+            >
+              <%= deck_compare_tab_label(stat_tab, sides) %>
+              (<%= stats[:cards] %>)
+            </button>
+          <% end %>
+        </div>
+
+        <%= render partial: 'deck_comparisons/controls', locals: {
+          view_mode: view_mode, grouping: grouping, sort_by: sort_by } %>
+
+        <% grouped.each do |pane_tab, grouped_cards| %>
+          <div
+            data-deck-compare-target="pane"
+            data-tab="<%= pane_tab %>"
+            class="<%= 'hidden' unless tab == pane_tab.to_s %>"
+          >
+            <%= render partial: 'deck_comparisons/cards', locals: {
+              grouped_cards: grouped_cards, view_mode: view_mode, sort_by: sort_by,
+              empty_message: pane_tab == :shared ? 'These decks have no cards in common.' : 'Every card in this deck is in the other one too.' } %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

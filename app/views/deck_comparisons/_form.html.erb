@@ -1,0 +1,16 @@
+<%# one form for both sides: every grouping, sort and view change re-submits it, so nothing here may be lost on submit %>
+<%= form_with url: deck_compare_path, id: 'deck_compare_form', class: 'flex flex-col gap-4',
+      data: { deck_compare_target: 'form' } do |f| %>
+  <%= f.hidden_field :view_mode, value: view_mode, id: nil, data: { deck_compare_target: 'viewModeInput' } %>
+  <%= f.hidden_field :tab, value: tab, id: nil, data: { deck_compare_target: 'tabInput' } %>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <%= render partial: 'deck_comparisons/side_fields', locals: { f: f, side: 'a', decks: decks, prefill_id: prefill_a } %>
+    <%= render partial: 'deck_comparisons/side_fields', locals: { f: f, side: 'b', decks: decks, prefill_id: nil } %>
+  </div>
+
+  <div>
+    <%= f.submit 'Compare', data: { turbo_submits_with: 'Comparing...' },
+          class: 'px-4 py-2 rounded-md cursor-pointer bg-accent-50 text-background transition duration-300 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed' %>
+  </div>
+<% end %>
