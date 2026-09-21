@@ -1,0 +1,6 @@
+<%# the comparison as it stands, swapped back in - nothing about it is saved %>
+<%= turbo_stream.replace 'deck_compare_results' do %>
+  <%= render partial: 'deck_comparisons/results', locals: {
+    sides: @sides, comparison: @comparison, grouped: @grouped,
+    view_mode: @view_mode, tab: @tab, grouping: @grouping, sort_by: @sort_by } %>
+<% end %>

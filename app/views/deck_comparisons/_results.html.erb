@@ -1,0 +1,43 @@
+<%# the outer id is what the turbo stream replaces, so it has to survive every render %>
+<div
+  id="deck_compare_results"
+  data-tab="<%= tab %>"
+  data-view-mode="<%= view_mode %>"
+>
+  <% sides.each do |side| %>
+    <% if side[:error] %>
+      <p class="text-accent-100">
+        Deck <%= side[:label] %>: <%= side[:error] %>
+      </p>
+    <% end %>
+
+    <% skipped = side[:unresolved] + side[:ambiguous] %>
+
+    <% if skipped.any? %>
+      <p class="text-grey-text">
+        Deck <%= side[:label] %>: could not match
+        <%= skipped.map { |entry| entry[:name] }.to_sentence %>.
+      </p>
+    <% end %>
+  <% end %>
+
+  <% if comparison %>
+    <ul class="flex gap-4 text-grey-text">
+      <li data-count="shared">
+        Shared <%= comparison[:stats][:shared][:cards] %>
+      </li>
+
+      <li data-count="only_a">
+        Only in A <%= comparison[:stats][:only_a][:cards] %>
+      </li>
+
+      <li data-count="only_b">
+        Only in B <%= comparison[:stats][:only_b][:cards] %>
+      </li>
+    </ul>
+  <% elsif sides.all? { |side| side[:blank] } %>
+    <p class="text-grey-text">
+      Paste a decklist or pick a deck on each side to compare them.
+    </p>
+  <% end %>
+</div>

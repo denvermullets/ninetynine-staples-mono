@@ -20,6 +20,12 @@ Rack::Attack.throttle('password_resets/email', limit: 3, period: 1.hour) do |req
   req.params.dig('user', 'email').to_s.strip.downcase.presence if req.path == '/password_resets' && req.post?
 end
 
+# Throttle deck comparisons by IP — 30 per minute. Loose on purpose: every grouping, sort and view
+# change re-submits the form
+Rack::Attack.throttle('deck_compare/ip', limit: 30, period: 1.minute) do |req|
+  req.ip if req.path == '/deck-compare' && req.post?
+end
+
 THROTTLED_HTML = <<~HTML.freeze
   <!DOCTYPE html>
   <html>
