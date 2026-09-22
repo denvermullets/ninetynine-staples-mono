@@ -15,8 +15,7 @@ export default class extends Controller {
     viewCombosUrl: String,
     findReplacementsUrl: String,
     changeCardTypeUrl: String,
-    deleteUrl: String,
-    destroyDeckUrl: String,
+    destroyUrl: String,
     frameId: { type: String, default: "deck_modal" },
   };
 
@@ -52,7 +51,24 @@ export default class extends Controller {
   open(event) {
     event.preventDefault();
     event.stopPropagation();
+    this.showMenuAt(event.clientX, event.clientY);
+  }
 
+  // Ellipsis button on hover: same menu, anchored under the button so keyboard clicks land right too
+  openFromButton(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.menuTarget.classList.contains("hidden")) {
+      this.menuTarget.classList.add("hidden");
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    this.showMenuAt(rect.left, rect.bottom, 0);
+  }
+
+  showMenuAt(clientX, clientY, offset = 10) {
     // Close any other open context menus
     document.querySelectorAll("[data-context-menu-target='menu']").forEach((menu) => {
       if (menu !== this.menuTarget) {
@@ -60,11 +76,10 @@ export default class extends Controller {
       }
     });
 
-    // Position and show the menu
+    // Position and show the menu, offset to the right of the click position
     const menu = this.menuTarget;
-    const offset = 10; // Offset to the right of click position
-    let x = event.clientX + offset;
-    let y = event.clientY;
+    let x = clientX + offset;
+    let y = clientY;
 
     menu.style.left = `${x}px`;
     menu.style.top = `${y}px`;
@@ -73,7 +88,7 @@ export default class extends Controller {
     // Adjust position if menu would go off screen
     const rect = menu.getBoundingClientRect();
     if (rect.right > window.innerWidth) {
-      x = event.clientX - rect.width - offset;
+      x = clientX - rect.width - offset;
       menu.style.left = `${x}px`;
     }
     if (rect.bottom > window.innerHeight) {
@@ -318,43 +333,12 @@ export default class extends Controller {
     Turbo.visit(this.urlWithViewState(url));
   }
 
-  deleteDeck(event) {
+  confirmDestroy(event) {
     event.preventDefault();
     event.stopPropagation();
     this.menuTarget.classList.add("hidden");
 
-    const url = this.deleteUrlValue;
-    if (!url) return;
-
-    if (!confirm("Are you sure you want to delete this deck? This cannot be undone.")) return;
-
-    fetch(url, {
-      method: "DELETE",
-      headers: {
-        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
-        Accept: "text/html",
-      },
-    })
-      .then((response) => {
-        if (response.redirected) {
-          Turbo.visit(response.url);
-        } else if (response.ok) {
-          window.location.reload();
-        } else {
-          throw new Error("Failed to delete deck");
-        }
-      })
-      .catch((error) => {
-        console.error("Error deleting deck:", error);
-      });
-  }
-
-  destroyDeck(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.menuTarget.classList.add("hidden");
-
-    const url = this.destroyDeckUrlValue;
+    const url = this.destroyUrlValue;
     if (!url) return;
 
     const frame = document.querySelector(`turbo-frame#${this.frameIdValue}`);
