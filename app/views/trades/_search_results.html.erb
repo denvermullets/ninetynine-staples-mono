@@ -9,7 +9,7 @@
   <% if rows.any? %>
     <div class="overflow-y-auto divide-y max-h-64 divide-highlight">
       <% rows.each do |row| %>
-        <%= render partial: 'trades/row', locals: { row: row, side: side, prefill: {} } %>
+        <%= render partial: 'trades/row', locals: { row: row, side: side, prefill: {}, matched: false } %>
       <% end %>
     </div>
     <% if rows.size >= Trades::UnlistedRows::LIMIT %>

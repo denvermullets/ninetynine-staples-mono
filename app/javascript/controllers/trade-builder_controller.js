@@ -19,6 +19,8 @@ export default class extends Controller {
   static values = { previewPath: String, rowsPath: String, with: String, counter: String };
 
   connect() {
+    // one entry per column: the name box and the "matched only" toggle both narrow the same list
+    this.filters = {};
     this.toggleSubmit();
     // a counter-offer can start with copies from off the trade list already in it
     this.rowTargets.forEach((row) => this.flagOffList(row));
@@ -48,6 +50,9 @@ export default class extends Controller {
     if (value > 0) this.pin(row, input);
 
     this.toggleSubmit();
+    // a row that just gained or lost copies may now belong on the other side of "matched only" -
+    // only worth walking the column when that is actually what it is narrowed to
+    if (this.filters[row.dataset.side]?.matchedOnly) this.applyFilters(row.dataset.side);
     clearTimeout(this.timeout);
     this.timeout = setTimeout(() => this.refresh(), 250);
   }
@@ -61,20 +66,51 @@ export default class extends Controller {
     });
 
     this.toggleSubmit();
+    // every row is out of the draft now, so a column narrowed to matches has rows to hide
+    Object.keys(this.filters)
+      .filter((side) => this.filters[side].matchedOnly)
+      .forEach((side) => this.applyFilters(side));
     this.refresh();
   }
 
   // client-side because the rows are already all on the page - a round trip would only re-send them
   filter(event) {
     const side = event.currentTarget.dataset.side;
-    const query = event.currentTarget.value.trim().toLowerCase();
+    this.filterState(side).query = event.currentTarget.value.trim().toLowerCase();
+    this.applyFilters(side);
+  }
+
+  // Narrows a column to the rows the want matches page sent the proposer here for. A row already
+  // holding copies stays whatever the toggle says: hiding part of the draft would be lying about
+  // what is on the table, and it is also what keeps a search hit visible after it has been pinned.
+  matchedOnly(event) {
+    const button = event.currentTarget;
+    const side = button.dataset.side;
+    const state = this.filterState(side);
+
+    state.matchedOnly = !state.matchedOnly;
+    button.setAttribute("aria-pressed", String(state.matchedOnly));
+    this.applyFilters(side);
+  }
+
+  applyFilters(side) {
+    const { query, matchedOnly } = this.filterState(side);
 
     this.rowTargets
       .filter((row) => row.dataset.side === side)
       .forEach((row) => {
-        const hit = query === "" || row.dataset.cardName.includes(query);
-        row.classList.toggle("hidden", !hit);
+        const byName = query === "" || row.dataset.cardName.includes(query);
+        const byMatch = !matchedOnly || row.dataset.matched === "true" || this.inDraft(row);
+        row.classList.toggle("hidden", !(byName && byMatch));
       });
+  }
+
+  filterState(side) {
+    return (this.filters[side] ||= { query: "", matchedOnly: false });
+  }
+
+  inDraft(row) {
+    return this.fieldsFor(row).some((input) => (parseInt(input.value, 10) || 0) > 0);
   }
 
   // the rest of this side's public collections, by name; an emptied box empties the results

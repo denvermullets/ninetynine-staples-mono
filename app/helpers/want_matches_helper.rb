@@ -16,9 +16,4 @@ module WantMatchesHelper
     parts << "#{number_to_currency(foil_price)} foil" if foil_count.positive?
     parts.join(' / ')
   end
-
-  # the wants the builder should start their side from - only the ones they have marked for trade
-  def want_match_ids(user_matches)
-    user_matches.matches.select(&:tradeable).map { |match| match.want.id }.uniq.join(',')
-  end
 end

@@ -1,4 +1,4 @@
-<%# locals: side, heading, rows, prefill, empty_text, owner, search_label %>
+<%# locals: side, heading, rows, prefill, empty_text, owner, search_label, matched - Set of row ids %>
 <%#
   One column of the builder. Every row on the owner's trade list is on the page, so the filter is a
   client-side one - there is nothing to fetch.
@@ -6,6 +6,10 @@
   The rest of their public collections is not: it can run to thousands of rows, so it is searched
   instead (trades#rows), underneath. A hit that gets a quantity is moved up into the list with the
   rest of the draft, which is why the list is always rendered, even empty.
+
+  Opened from the want matches page, this column also holds the rows that page matched - mixed in
+  alphabetically, and for "every match" including copies off the trade list. `matched` names them, so
+  the column can be narrowed back down to just those; the toggle stays off the page otherwise.
 %>
 
 <div class="flex flex-col border rounded-3xl bg-foreground border-highlight">
@@ -13,16 +17,36 @@
     <div class="flex items-baseline justify-between gap-2">
       <h2 class="text-lg font-semibold text-grey-text"><%= heading %></h2>
 
+      <%# not "on the trade list": a counter-offer or a want match puts unlisted rows here too %>
       <span class="text-xs text-grey-text/50">
-        <%= pluralize(rows.size, 'printing') %> on the trade list
+        <%= pluralize(rows.size, 'printing') %>
       </span>
     </div>
 
     <% if rows.any? %>
-      <%= tag.input type: 'search', placeholder: 'Filter these cards',
-        aria: { label: "Filter #{strip_tags(heading)}" },
-        data: { side: side, action: 'input->trade-builder#filter' },
-        class: 'px-3 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text' %>
+      <div class="flex items-center gap-2">
+        <%= tag.input type: 'search', placeholder: 'Filter these cards',
+          aria: { label: "Filter #{strip_tags(heading)}" },
+          data: { side: side, action: 'input->trade-builder#filter' },
+          class: 'flex-auto px-3 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text' %>
+
+        <% if matched.any? %>
+          <button
+            type="button"
+            aria-pressed="false"
+            data-side="<%= side %>"
+            data-action="trade-builder#matchedOnly"
+            title="Show only the <%= pluralize(matched.size, 'card') %> from your want list, and anything already in the draft."
+            class="
+              px-3 py-1.5 text-xs border rounded-md cursor-pointer shrink-0
+              border-highlight text-grey-text/70 hover:text-grey-text
+              aria-pressed:border-accent-50/40 aria-pressed:text-accent-50
+            "
+          >
+            Matched only
+          </button>
+        <% end %>
+      </div>
     <% end %>
   </div>
 
@@ -43,7 +67,7 @@
   >
     <% rows.each do |row| %>
       <%= render partial: 'trades/row', locals: {
-        row: row, side: side, prefill: prefill } %>
+        row: row, side: side, prefill: prefill, matched: matched.include?(row.id) } %>
     <% end %>
   </div>
 

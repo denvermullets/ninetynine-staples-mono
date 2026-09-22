@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["content", "icon"]
+  static targets = ["content", "icon", "toggle"]
   static values = { expanded: { type: Boolean, default: true } }
 
   connect() {
@@ -19,6 +19,10 @@ export default class extends Controller {
     }
     if (this.hasIconTarget) {
       this.iconTarget.style.transform = this.expandedValue ? "rotate(0deg)" : "rotate(-90deg)"
+    }
+    // optional: a toggle that is a button rather than a whole header row says so to a screen reader
+    if (this.hasToggleTarget) {
+      this.toggleTarget.setAttribute("aria-expanded", String(this.expandedValue))
     }
   }
 }

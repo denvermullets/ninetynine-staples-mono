@@ -11,8 +11,12 @@
 #
 # A counter-offer is the same builder and the same #create, with `counter` naming the trade being
 # answered. The builder starts pre-filled from it, and Trades::Propose decides whether it may be
-# answered at all. The want matches page opens the same builder with `want_ids`, which pre-fills the
-# other side from those wants (Trades::WantDraft) and changes nothing else.
+# answered at all. The want matches page opens the same builder with `wants`, which pre-fills the
+# other side from what that page matched (Trades::WantDraft) and changes nothing else: `tradeable`
+# takes the copies the holder marked, `all` reaches past the trade list for the ones they only own.
+# The wants are looked up again here rather than carried in the query string - a want list runs to
+# thousands of rows and a comma-separated id list that long does not fit in a URL. `want_ids` is the
+# same pre-fill for the one want a want traders row names.
 #
 # Each column opens on its owner's trade list, but the list is not the limit: #rows searches the rest
 # of that user's public collections (Trades::UnlistedRows) and the hits join the draft as ordinary
@@ -23,6 +27,7 @@
 class TradesController < ApplicationController
   PER_PAGE = 25
   WANTERS_SHOWN = 5
+  WANT_SCOPES = %w[tradeable all].freeze
   TRANSITION_NOTICES = {
     'accept' => 'Trade accepted. Swap the cards, then confirm once yours arrive.',
     'decline' => 'Trade declined.',
@@ -59,9 +64,11 @@ class TradesController < ApplicationController
   end
 
   def new
-    @their_rows = Trades::AvailableRows.call(user: @recipient, except_trade: @parent, also: parent_row_ids)
+    @their_rows = Trades::AvailableRows.call(user: @recipient, except_trade: @parent,
+                                             also: parent_row_ids + unmarked_match_row_ids)
     @my_rows = Trades::AvailableRows.call(user: current_user, except_trade: @parent, also: parent_row_ids)
     @prefill = starting_draft
+    @matched_rows = matched_row_ids
     @totals = draft_totals(@recipient)
   end
 
@@ -139,18 +146,62 @@ class TradesController < ApplicationController
     render_error_toast('We could not find that trade.') if @parent.nil?
   end
 
-  # a counter-offer starts from the trade it answers, "Propose trade" on the want matches page from the
-  # wants it named, and "Add to trade" from one printing
+  # a counter-offer starts from the trade it answers, the want matches page's propose buttons from
+  # what that page matched, a want traders row from the one want it is about, and "Add to trade"
+  # from one printing
   def starting_draft
     return Trades::CounterDraft.call(parent: @parent, rows: @their_rows + @my_rows) if @parent
+    return want_match_draft if want_scope
     return preselected if params[:want_ids].blank?
 
     Trades::WantDraft.call(proposer: current_user, want_ids: want_ids, rows: @their_rows)
   end
 
-  # comma-separated, as the matches page writes it; anything that is not a positive id is ignored
+  # comma-separated, as a want traders row writes it; anything that is not a positive id is ignored
   def want_ids
     params[:want_ids].to_s.split(',').map(&:to_i).select(&:positive?)
+  end
+
+  # which of the matches page's propose buttons opened this, if either. A counter-offer starts from
+  # the trade it answers whatever else is in the query string, so it never has one.
+  def want_scope
+    return nil if @parent
+
+    @want_scope ||= WANT_SCOPES.find { |scope| scope == params[:wants].to_s }
+  end
+
+  # the matches the button covers, asked for again rather than trusted from the query string
+  def matched_wants
+    @matched_wants ||= begin
+      matched = WantList::Matches.call(user: current_user, with: @recipient)[:users].first&.matches || []
+      want_scope == 'all' ? matched : matched.select(&:tradeable)
+    end
+  end
+
+  def want_match_draft
+    Trades::WantDraft.call(proposer: current_user, rows: @their_rows,
+                           want_ids: matched_wants.map { |match| match.want.id }.uniq,
+                           include_unlisted: want_scope == 'all')
+  end
+
+  # Which of the recipient's rows the matches page sent the proposer here for. The builder mixes them
+  # in with the rest of the trade list alphabetically, so without this there is no telling a matched
+  # row from an ordinary one once the draft has been cleared - which is the whole point of arriving
+  # from that page. An empty set leaves the column's "matched only" toggle off the page entirely.
+  def matched_row_ids
+    return [] unless want_scope
+
+    card_ids = matched_wants.to_set { |match| match.printing.id }
+    @their_rows.filter_map { |row| row.id if card_ids.include?(row.magic_card.id) }.to_set
+  end
+
+  # "Propose for every match" drafts copies the holder never put on their trade list, so those rows
+  # have to join the page the way a counter-offer's do - the builder can only draft rows it shows
+  def unmarked_match_row_ids
+    return [] unless want_scope == 'all'
+
+    @recipient.offerable_cards.unlisted
+              .where(magic_card_id: matched_wants.map { |match| match.printing.id }.uniq).ids
   end
 
   # "Add to trade" on a trade list names a printing, but a proposal is written in collection rows -
