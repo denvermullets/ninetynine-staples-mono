@@ -1,4 +1,4 @@
-<%# locals: row - Trades::AvailableRows::Row, side, prefill - { row_id => { quantity:, foil_quantity: } } %>
+<%# locals: row - Trades::AvailableRows::Row, side, prefill - { row_id => { quantity:, foil_quantity: } }, matched %>
 <%#
   One collection row on one side of the draft. The inputs carry no name: the draft only becomes form
   fields when trade-builder#submit writes them, so nothing here is posted by accident.
@@ -9,6 +9,9 @@
   An input is capped at the copies owned, not the copies listed. `data-listed` is where the trade
   list runs out, and trade-builder shows the badge once a quantity goes past it; a row with nothing
   listed at all (a search hit from the rest of the collection) wears it from the start.
+
+  `data-matched` marks a row the want matches page sent the proposer here for, which is what that
+  column's "matched only" toggle filters on.
 %>
 
 <div
@@ -17,6 +20,7 @@
   data-side="<%= side %>"
   data-row-id="<%= row.id %>"
   data-unlisted="<%= row.unlisted? %>"
+  data-matched="<%= matched %>"
   data-card-name="<%= row.magic_card.name.to_s.downcase %>"
 >
   <div class="min-w-0">

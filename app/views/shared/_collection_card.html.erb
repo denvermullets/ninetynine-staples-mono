@@ -6,6 +6,7 @@
     - is_owner: Boolean for edit permissions
   Optional locals:
     - edit_url: URL for edit modal (required if is_owner)
+    - destroy_url: URL for the delete confirmation modal
     - frame_id: Turbo frame ID for modal (default: 'collection_modal')
     - show_proxy_value: Boolean to show proxy value (default: false)
 %>
@@ -13,15 +14,16 @@
 <% show_proxy_value = local_assigns[:show_proxy_value] || false %>
 <% commander = collection.commanders.first&.magic_card %>
 <% card = collection.display_cover_card %>
+<% show_menu = is_owner && local_assigns[:edit_url] %>
 
 <div
   id="collection_card_<%= collection.id %>"
-  class="relative"
-  <% if is_owner && local_assigns[:edit_url] %>
+  class="relative group/card"
+  <% if show_menu %>
     data-controller="context-menu"
     data-context-menu-edit-url-value="<%= edit_url %>"
-    <% if local_assigns[:destroy_deck_url] %>
-      data-context-menu-destroy-deck-url-value="<%= destroy_deck_url %>"
+    <% if local_assigns[:destroy_url] %>
+      data-context-menu-destroy-url-value="<%= destroy_url %>"
     <% end %>
     data-context-menu-frame-id-value="<%= frame_id %>"
     data-action="contextmenu->context-menu#open"
@@ -138,7 +140,12 @@
           <% end %>
         </div>
 
-        <div class="flex items-center justify-between text-sm text-grey-text mt-auto">
+        <div
+          class="
+            flex items-center justify-between text-sm text-grey-text mt-auto
+            <%= 'pr-7' if show_menu %>
+          "
+        >
           <span><%= collection.total_cards %> cards</span>
 
           <div class="flex items-center gap-1.5">
@@ -167,7 +174,24 @@
     </div>
   <% end %>
 
-  <% if is_owner && local_assigns[:edit_url] %>
+  <% if show_menu %>
+    <!-- Menu Button: same options as right click -->
+    <button
+      type="button"
+      data-action="click->context-menu#openFromButton"
+      aria-label="<%= collection.name %> options"
+      class="
+        absolute bottom-3 right-2 p-1 rounded text-grey-text
+        hover:text-white hover:bg-background transition cursor-pointer
+        md:opacity-0 md:group-hover/card:opacity-100 focus-visible:opacity-100
+      "
+    >
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="5" r="1.75" />
+        <circle cx="12" cy="12" r="1.75" />
+        <circle cx="12" cy="19" r="1.75" />
+      </svg>
+    </button>
     <!-- Context Menu -->
     <div
       data-context-menu-target="menu"
@@ -186,17 +210,19 @@
       >
         Edit
       </button>
-      <% if local_assigns[:destroy_deck_url] %>
+
+      <% if local_assigns[:destroy_url] %>
         <hr class="border-highlight my-1">
         <button
           type="button"
-          data-action="click->context-menu#destroyDeck"
+          data-action="click->context-menu#confirmDestroy"
           class="
             w-full px-4 py-2 text-left text-sm text-red-400
             hover:bg-background hover:text-red-300 transition cursor-pointer
           "
         >
-          Delete Deck
+          Delete
+          <%= Collection.deck_type?(collection.collection_type) ? 'Deck' : 'Collection' %>
         </button>
       <% end %>
     </div>

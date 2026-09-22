@@ -47,13 +47,13 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <%= render partial: 'trades/side', locals: {
         side: 'recipient', heading: trade_user_link(@recipient, 'gives'), rows: @their_rows,
-        prefill: @prefill, owner: @recipient,
+        prefill: @prefill, owner: @recipient, matched: @matched_rows,
         search_label: "Not enough on the list? Search the rest of #{@recipient.username}'s public collections.",
         empty_text: "#{@recipient.username} has nothing left up for trade right now." } %>
 
       <%= render partial: 'trades/side', locals: {
         side: 'proposer', heading: 'You give', rows: @my_rows, prefill: @prefill,
-        owner: current_user,
+        owner: current_user, matched: [],
         search_label: 'Offer something that is not on your trade list, from your public collections.',
         empty_text: 'Mark copies for trade in a public collection and they will show up here.' } %>
     </div>

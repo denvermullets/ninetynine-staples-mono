@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe DestroyDeckJob, type: :job do
+RSpec.describe DestroyCollectionJob, type: :job do
   let(:user) { create(:user) }
   let(:deck) { create(:collection, user: user, collection_type: 'commander_deck') }
   let(:magic_card) { create(:magic_card, normal_price: 5.0, foil_price: 10.0, card_uuid: 'destroy-deck-uuid') }
@@ -115,6 +115,44 @@ RSpec.describe DestroyDeckJob, type: :job do
       it 'does not delete the sourced card in the other deck' do
         described_class.new.perform(deck.id, user.id)
         expect(CollectionMagicCard.find_by(id: sourced_card.id)).to be_present
+      end
+    end
+
+    context 'when it is a regular collection with finalized cards' do
+      let(:collection) { create(:collection, user: user, collection_type: 'binder') }
+
+      let!(:collection_card) do
+        create(:collection_magic_card,
+               collection: collection,
+               magic_card: magic_card,
+               quantity: 3,
+               foil_quantity: 1,
+               staged: false,
+               needed: false)
+      end
+
+      it 'deletes the cards and the collection' do
+        described_class.new.perform(collection.id, user.id)
+
+        expect(CollectionMagicCard.find_by(id: collection_card.id)).to be_nil
+        expect(Collection.find_by(id: collection.id)).to be_nil
+      end
+
+      it 'drops the collection from the user total' do
+        collection.update!(total_value: 25.0)
+        create(:collection, user: user, total_value: 10.0)
+
+        expect { described_class.new.perform(collection.id, user.id) }
+          .to change { user.collections.sum(:total_value) }.from(35.0).to(10.0)
+      end
+
+      # a finished trade keeps its item even after the binder row it came from is gone
+      it 'detaches trade items instead of failing on the foreign key' do
+        trade_item = create(:trade_item, magic_card: magic_card, collection_magic_card: collection_card)
+
+        described_class.new.perform(collection.id, user.id)
+
+        expect(trade_item.reload.collection_magic_card_id).to be_nil
       end
     end
 

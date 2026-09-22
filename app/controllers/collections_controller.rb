@@ -1,9 +1,9 @@
 class CollectionsController < ApplicationController
   include CollectionSorting
 
-  before_action :authenticate_user!, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
-  before_action :set_collection, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
-  before_action :ensure_owner, only: %i[edit_collection_modal update destroy confirm_destroy_deck destroy_deck]
+  before_action :authenticate_user!, only: %i[edit_collection_modal update confirm_destroy destroy]
+  before_action :set_collection, only: %i[edit_collection_modal update confirm_destroy destroy]
+  before_action :ensure_owner, only: %i[edit_collection_modal update confirm_destroy destroy]
   before_action :set_user_and_ownership, only: %i[show show_decks overview]
   before_action :enforce_visibility, only: %i[show show_decks]
 
@@ -35,37 +35,25 @@ class CollectionsController < ApplicationController
     end
   end
 
-  def destroy
-    unless @collection.deletable?
-      redirect_back fallback_location: root_path, alert: 'Cannot delete a deck that has finalized cards'
-      return
-    end
+  def confirm_destroy
+    kind = Collection.deck_type?(@collection.collection_type) ? 'Deck' : 'Collection'
+    frame_id = turbo_frame_request_id || 'deck_modal'
 
-    @collection.collection_magic_cards.destroy_all
-    @collection.destroy
-
-    if Collection.deck_type?(@collection.collection_type)
-      redirect_to decks_index_path(current_user.username), notice: 'Deck deleted successfully'
-    else
-      redirect_to root_path, notice: 'Collection deleted successfully'
-    end
-  end
-
-  def confirm_destroy_deck
     render partial: 'deck_builder/confirm_modal', locals: {
-      title: 'Delete Deck', confirm_text: 'Delete Deck', turbo_frame: 'deck_modal', danger: true,
-      message: 'Are you sure? This will permanently delete this deck and all cards in it from your collection.',
-      confirm_url: destroy_deck_collection_path(@collection), confirm_method: :delete
+      title: "Delete #{kind}", confirm_text: "Delete #{kind}", frame_id: frame_id, turbo_frame: frame_id,
+      danger: true, message: destroy_confirmation_message, confirm_url: collection_path(@collection),
+      confirm_method: :delete
     }
   end
 
-  def destroy_deck
-    DestroyDeckJob.perform_later(@collection.id, current_user.id)
+  def destroy
+    DestroyCollectionJob.perform_later(@collection.id, current_user.id)
     toast_html = ApplicationController.render(
       partial: 'shared/broadcast_toast',
       locals: { message: "\"#{@collection.name}\" queued for deletion", type: 'success' }
     )
-    render turbo_stream: [turbo_stream.replace('deck_modal', ''), turbo_stream.append('toasts', toast_html)]
+    frame_id = turbo_frame_request_id || 'deck_modal'
+    render turbo_stream: [turbo_stream.update(frame_id, ''), turbo_stream.append('toasts', toast_html)]
   end
 
   def overview
@@ -147,6 +135,12 @@ class CollectionsController < ApplicationController
   end
 
   def set_collection = @collection = Collection.find(params[:id])
+
+  def destroy_confirmation_message
+    value = helpers.number_to_currency(@collection.total_value || 0)
+    "Are you sure? This permanently deletes \"#{@collection.name}\" and removes its " \
+      "#{@collection.total_cards} cards (#{value}) from your collection. This cannot be undone."
+  end
 
   def ensure_owner
     redirect_to root_path, alert: 'Access denied' unless @collection.user_id == current_user.id

@@ -1,4 +1,4 @@
-<%= turbo_frame_tag "deck_modal" do %>
+<%= turbo_frame_tag local_assigns[:frame_id] || "deck_modal" do %>
   <dialog
     id="confirm-dialog"
     class="

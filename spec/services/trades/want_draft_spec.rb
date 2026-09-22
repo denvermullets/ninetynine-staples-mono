@@ -73,6 +73,34 @@ RSpec.describe Trades::WantDraft, type: :service do
     expect(draft(want(lotus, :specific_printing), want(reprint))).to eq(row.id => { quantity: 1, foil_quantity: 0 })
   end
 
+  # "Propose for every match" on the matches page. trades#new puts the unmarked rows on the page with
+  # `also` first, so there is something for the draft to reach past the trade list into.
+  describe 'with unlisted copies included' do
+    def full_draft(*wants)
+      rows = Trades::AvailableRows.call(user: recipient, also: recipient.collection_magic_cards.ids)
+
+      described_class.call(proposer: proposer, want_ids: wants.map(&:id), rows: rows, include_unlisted: true)
+    end
+
+    it 'takes copies the holder never marked for trade' do
+      row = binder_row(lotus, trade_quantity: 0, trade_foil_quantity: 0)
+
+      expect(full_draft(want(lotus, quantity: 2))).to eq(row.id => { quantity: 2, foil_quantity: 0 })
+    end
+
+    it 'reaches past the trade list on a row that is only part listed' do
+      row = binder_row(lotus, quantity: 4, foil_quantity: 0, trade_quantity: 1, trade_foil_quantity: 0)
+
+      expect(full_draft(want(lotus, quantity: 3))).to eq(row.id => { quantity: 3, foil_quantity: 0 })
+    end
+
+    it 'still caps a want at the copies the holder owns' do
+      row = binder_row(lotus, quantity: 1, foil_quantity: 0, trade_quantity: 0, trade_foil_quantity: 0)
+
+      expect(full_draft(want(lotus, quantity: 3))).to eq(row.id => { quantity: 1, foil_quantity: 0 })
+    end
+  end
+
   # the ids ride in the query string: somebody else's, a removed one and one with no copies left are
   # all just ignored
   describe 'ids that are no longer available' do

@@ -71,6 +71,7 @@
             link_path: collection_show_path(username: @user.username, collection_id: collection.id),
             is_owner: @is_owner,
             edit_url: edit_collection_modal_collection_path(collection),
+            destroy_url: @is_owner ? confirm_destroy_collection_path(collection) : nil,
             frame_id: 'collection_modal'
           } %>
         <% end %>
@@ -120,6 +121,7 @@
             link_path: deck_show_path(username: @user.username, collection_id: collection.id),
             is_owner: @is_owner,
             edit_url: edit_collection_modal_collection_path(collection),
+            destroy_url: @is_owner ? confirm_destroy_collection_path(collection) : nil,
             frame_id: 'collection_modal',
             show_proxy_value: true
           } %>
