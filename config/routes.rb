@@ -70,6 +70,7 @@ Rails.application.routes.draw do
   post 'dashboard/ingest-oracle-tags', to: 'dashboard#ingest_oracle_tags', as: :dashboard_ingest_oracle_tags
 
   resources :collection_imports, only: %i[new create], path: 'import-collection'
+  resources :collection_exports, only: %i[index show], path: 'export-collection'
 
   get 'load_boxset', to: 'boxsets#load_boxset', as: :load_boxset
   get 'bulk-edit', to: 'bulk_edits#index', as: :bulk_edit

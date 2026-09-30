@@ -108,6 +108,35 @@ RSpec.describe CollectionImporter::CsvParser, type: :service do
       end
     end
 
+    context 'with a per-finish count export' do
+      let(:csv_data) do
+        <<~CSV
+          Scryfall ID,Name,Edition Code,Collector Number,Quantity,Foil Quantity,Proxy Quantity,Proxy Foil Quantity
+          #{SecureRandom.uuid},Lightning Bolt,2XM,141,0,0,2,1
+          #{SecureRandom.uuid},Ad Nauseam,2XM,99,0,1,0,0
+        CSV
+      end
+
+      it 'queues every count, including a row with no normal copies' do
+        expect(ImportCollectionRowJob).to receive(:perform_later)
+          .with(collection.id, hash_including(quantity: 0, foil_quantity: 0, proxy_quantity: 2, proxy_foil_quantity: 1),
+                skip_existing: false)
+        expect(ImportCollectionRowJob).to receive(:perform_later)
+          .with(collection.id, hash_including(foil_quantity: 1), skip_existing: false)
+
+        described_class.call(csv_data: csv_data, collection: collection, user: user)
+      end
+
+      it 'zeroes proxies and drops proxy-only rows when skipping proxies' do
+        expect(ImportCollectionRowJob).to receive(:perform_later)
+          .with(collection.id, hash_including(foil_quantity: 1, proxy_quantity: 0, proxy_foil_quantity: 0),
+                skip_existing: false).once
+
+        result = described_class.call(csv_data: csv_data, collection: collection, user: user, skip_proxies: true)
+        expect(result[:rows_queued]).to eq(1)
+      end
+    end
+
     context 'with zero quantity rows' do
       let(:csv_data) do
         <<~CSV

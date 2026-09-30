@@ -103,6 +103,11 @@ export default class extends Controller {
     }
   }
 
+  // for plain links in the menu, like a download, that should not stop the browser acting on them
+  close() {
+    this.menuTarget.classList.add("hidden");
+  }
+
   edit(event) {
     event.preventDefault();
     event.stopPropagation();

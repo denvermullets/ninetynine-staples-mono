@@ -41,6 +41,27 @@ RSpec.describe CollectionImporter::Archidekt, type: :service do
       end
     end
 
+    context 'with per-finish count columns' do
+      let(:row_data) do
+        { scryfall_id: scryfall_id, quantity: 1, foil_quantity: 2, proxy_quantity: 3, proxy_foil_quantity: 4 }
+      end
+
+      it 'sets every count' do
+        described_class.call(row_data: row_data, collection: collection)
+        cmc = collection.collection_magic_cards.find_by(magic_card: magic_card)
+        expect([cmc.quantity, cmc.foil_quantity, cmc.proxy_quantity, cmc.proxy_foil_quantity]).to eq([1, 2, 3, 4])
+      end
+
+      it 'updates real and proxy totals' do
+        described_class.call(row_data: row_data, collection: collection)
+        collection.reload
+        expect(collection.total_proxy_quantity).to eq(3)
+        expect(collection.total_proxy_foil_quantity).to eq(4)
+        expect(collection.total_value).to eq(25) # 1 x 5 + 2 x 10
+        expect(collection.proxy_total_value).to eq(55) # 3 x 5 + 4 x 10
+      end
+    end
+
     context 'with a foil card' do
       let(:row_data) do
         { scryfall_id: scryfall_id, quantity: 2, finish: 'Foil', name: 'Lightning Bolt', edition_code: '2XM' }
