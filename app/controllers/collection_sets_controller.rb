@@ -76,11 +76,20 @@ class CollectionSetsController < ApplicationController
 
     @sets = CollectionStats::OwnedSets.call(collection_ids: ids)
     @stats = CollectionStats::SetDetail.call(collection_ids: ids, boxset: @boxset)
+    @owned_history = CollectionStats::SetValueHistory.call(collection_ids: ids, boxset: @boxset)
+    @set_history = set_value_history
     cards = CollectionStats::SetCards.call(collection_ids: ids, boxset: @boxset,
                                            filter: @filter, unit: unit)
     @counts = cards[:counts]
     @pagy, @rows = pagy(:offset, cards[:rows], limit: PER_PAGE)
     @labels = CollectionStats::PrintingLabels.call(magic_card_ids: page_printing_ids)
+  end
+
+  # The whole set's market value, the same series the boxset browser charts behind its '?' button.
+  # nil when the jobs have not recorded anything for this set yet, so the view has one thing to ask
+  def set_value_history
+    history = @boxset.value_history || {}
+    history if history['normal'].present? || history['foil'].present?
   end
 
   # The grid is a wall of art, so it is printings; the table is a list of cards you either have or
