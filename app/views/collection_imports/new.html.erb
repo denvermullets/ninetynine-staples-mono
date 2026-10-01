@@ -5,8 +5,8 @@
   <h1 class="text-2xl font-semibold text-white">Import Collection</h1>
 
   <p class="text-grey-text text-sm">
-    Upload a CSV file exported from Archidekt to import cards into your
-    collection. The CSV must include
+    Upload a CSV exported from this app or from Archidekt to import cards into
+    your collection. The CSV must include
     <strong class="text-white">Scryfall ID</strong> and
     <strong class="text-white">Quantity</strong> columns.
   </p>
@@ -105,6 +105,21 @@
       <p class="text-xs text-grey-text/60 mt-1 ml-6">
         When unchecked, importing a card that already exists will add to its
         quantity.
+      </p>
+
+      <label class="flex items-center gap-2 cursor-pointer mt-3">
+        <input
+          type="checkbox"
+          name="skip_proxies"
+          value="1"
+          class="accent-accent-50"
+        >
+
+        <span class="text-sm">Skip proxies</span>
+      </label>
+
+      <p class="text-xs text-grey-text/60 mt-1 ml-6">
+        Leaves out the proxy counts from an export made in this app.
       </p>
     </div>
 
