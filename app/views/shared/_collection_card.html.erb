@@ -211,6 +211,11 @@
         Edit
       </button>
 
+      <%= link_to 'Export CSV',
+      collection_export_path(collection),
+      data: { turbo: false, action: 'click->context-menu#close' },
+      class: 'block w-full px-4 py-2 text-left text-sm text-grey-text hover:bg-background hover:text-white transition' %>
+
       <% if local_assigns[:destroy_url] %>
         <hr class="border-highlight my-1">
         <button

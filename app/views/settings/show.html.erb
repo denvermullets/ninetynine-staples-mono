@@ -23,7 +23,8 @@
           ['appearance', 'Appearance'],
           ['privacy', 'Privacy'],
           ['collection-order', 'Collection Order'],
-          ['table-columns', 'Table Columns']
+          ['table-columns', 'Table Columns'],
+          ['data', 'Import & Export']
         ].each_with_index do |(key, label), index| %>
           <a
             href="#<%= key %>"
@@ -424,6 +425,43 @@
                 At least one column must remain visible.
               </p>
             </div>
+          </section>
+        </div>
+
+        <div
+          data-settings-nav-target="panel"
+          data-section="data"
+          class="space-y-8 hidden"
+        >
+          <section>
+            <h2 class="mb-4 text-lg font-semibold">Export All Cards</h2>
+
+            <p class="mb-4 text-sm">
+              Download every card you own, across all collections and decks, as
+              a CSV with one row per printing. It includes normal, foil and
+              proxy counts, so it can be imported back in. To export a single
+              collection, use Export CSV in that collection's menu.
+            </p>
+
+            <%= link_to 'Download CSV',
+            collection_exports_path,
+            data: { turbo: false },
+            class: 'inline-block px-4 py-2 text-sm text-white rounded-lg bg-highlight hover:bg-highlight/80 transition' %>
+          </section>
+
+          <hr class="border-highlight">
+
+          <section>
+            <h2 class="mb-4 text-lg font-semibold">Import Cards</h2>
+
+            <p class="mb-4 text-sm">
+              Import a CSV from this app or from Archidekt into a new or
+              existing collection.
+            </p>
+
+            <%= link_to 'Import CSV',
+            new_collection_import_path,
+            class: 'inline-block px-4 py-2 text-sm text-white rounded-lg bg-highlight hover:bg-highlight/80 transition' %>
           </section>
         </div>
       </div>

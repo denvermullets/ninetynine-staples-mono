@@ -28,7 +28,8 @@ class CollectionImportsController < ApplicationController
       csv_data: params[:csv_file].read,
       collection: collection,
       user: current_user,
-      skip_existing: params[:skip_existing] == '1'
+      skip_existing: params[:skip_existing] == '1',
+      skip_proxies: params[:skip_proxies] == '1'
     )
   end
 
