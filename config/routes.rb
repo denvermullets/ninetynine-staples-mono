@@ -101,6 +101,7 @@ Rails.application.routes.draw do
   delete 'want_list_items/:id', to: 'want_list_items#destroy'
 
   get 'boxset_card/:id', to: 'magic_cards#show_boxset_card', as: :boxset_magic_card
+  get 'mobile_card_locations/:id', to: 'magic_cards#mobile_locations', as: :mobile_card_locations
   resources :collections, only: %w[new create update destroy] do
     member do
       get :edit_collection_modal

@@ -4,7 +4,7 @@
 <!-- Mobile Card View -->
 <div class="lg:hidden mb-24 max-w-full">
   <% magic_cards.each do |card| %>
-    <%= render partial: 'shared/cards/mobile_card', locals: { card: card, is_owner: is_owner, collections: collections || [], collection: collection } %>
+    <%= render partial: 'shared/cards/mobile_card', locals: { card: card, collection: collection } %>
   <% end %>
 
   <% if pagy %>

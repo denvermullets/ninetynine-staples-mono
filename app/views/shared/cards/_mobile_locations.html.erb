@@ -1,0 +1,259 @@
+<%# locals: magic_card, card_locations, other_printing_locations, collections %>
+<%#
+  The mobile card's take on shared/cards/_card_locations: the viewer's own copies stacked one
+  collection per row, the want list, then other printings they own. It is about current_user, so it
+  reads the same on anyone's collection or a set page. A lazy frame loaded when the card expands;
+  forms inside it send its id as Turbo-Frame, which collection_magic_cards uses to refresh it.
+%>
+<%
+  # Same filter as shared/cards/_card_locations: 0/0/0/0 rows are typically staged deck records
+  visible_row = ->(loc) { current_user_admin? || [loc.quantity, loc.foil_quantity, loc.proxy_quantity, loc.proxy_foil_quantity].any? { |qty| qty.to_i.positive? } }
+  rows = card_locations.select(&visible_row)
+  other_rows = other_printing_locations.select(&visible_row)
+
+  totals = {
+    'Regular' => rows.sum { |loc| loc.quantity.to_i },
+    'Foil' => rows.sum { |loc| loc.foil_quantity.to_i },
+    'Proxy' => rows.sum { |loc| loc.proxy_quantity.to_i },
+    'Proxy Foil' => rows.sum { |loc| loc.proxy_foil_quantity.to_i }
+  }
+  # the per-row counts line, skipping proxies the row doesn't have
+  row_counts = lambda do |loc|
+    counts = { 'Regular' => loc.quantity.to_i, 'Foil' => loc.foil_quantity.to_i,
+               'Proxy' => loc.proxy_quantity.to_i, 'Proxy Foil' => loc.proxy_foil_quantity.to_i }
+    counts.reject { |label, qty| label.start_with?('Proxy') && qty.zero? }
+  end
+  button_class = 'px-3 py-1.5 text-xs transition border rounded-md border-highlight text-grey-text hover:bg-background hover:text-nine-white'
+%>
+
+<%= turbo_frame_tag "mobile_locations_#{magic_card.id}" do %>
+  <div
+    class="p-4 border-t border-highlight/50"
+    data-controller="card-locations"
+  >
+    <h4 class="mb-3 text-xs font-semibold tracking-wider uppercase text-grey-text">
+      Your Copies
+    </h4>
+
+    <div class="grid grid-cols-4 gap-3">
+      <% totals.each do |label, qty| %>
+        <div class="flex flex-col">
+          <span class="text-xs text-grey-text"><%= label %></span>
+
+          <span class="text-lg font-medium <%= qty.positive? ? 'text-nine-white' : 'text-grey-text' %>">
+            <%= qty %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+
+    <% if rows.any? %>
+      <div class="flex flex-col gap-2 mt-4">
+        <% rows.each do |location| %>
+          <div class="p-3 border rounded-lg border-highlight bg-background">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-medium truncate text-nine-white">
+                <%= location.collection.name %>
+              </span>
+
+              <% if location.tradeable? %>
+                <span
+                  class="
+                    flex-shrink-0 px-1.5 py-0.5 text-xs rounded bg-accent-50/20
+                    text-accent-50 border border-accent-50/40
+                  "
+                >
+                  <%= location.total_trade %> for trade
+                </span>
+              <% end %>
+            </div>
+
+            <div class="flex flex-wrap mt-1 text-xs gap-x-3 text-grey-text">
+              <% row_counts.call(location).each do |label, qty| %>
+                <span>
+                  <%= label %>
+                  <span class="text-nine-white"><%= qty %></span>
+                </span>
+              <% end %>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mt-3">
+              <button
+                type="button"
+                data-action="click->card-locations#openTransferModal"
+                data-collection-id="<%= location.collection_id %>"
+                data-collection-name="<%= location.collection.name %>"
+                data-regular-qty="<%= location.quantity %>"
+                data-foil-qty="<%= location.foil_quantity %>"
+                data-proxy-qty="<%= location.proxy_quantity %>"
+                data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
+                class="<%= button_class %>"
+              >
+                Transfer
+              </button>
+
+              <button
+                type="button"
+                data-action="click->card-locations#openAdjustModal"
+                data-collection-id="<%= location.collection_id %>"
+                data-collection-name="<%= location.collection.name %>"
+                data-regular-qty="<%= location.quantity %>"
+                data-foil-qty="<%= location.foil_quantity %>"
+                data-proxy-qty="<%= location.proxy_quantity %>"
+                data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
+                class="<%= button_class %>"
+              >
+                Adjust
+              </button>
+
+              <% if !location.staged? && !location.needed? && (location.quantity.positive? || location.foil_quantity.positive?) %>
+                <button
+                  type="button"
+                  data-action="click->card-locations#openTradeModal"
+                  data-collection-magic-card-id="<%= location.id %>"
+                  data-collection-name="<%= location.collection.name %>"
+                  data-regular-qty="<%= location.quantity %>"
+                  data-foil-qty="<%= location.foil_quantity %>"
+                  data-trade-qty="<%= location.trade_quantity %>"
+                  data-trade-foil-qty="<%= location.trade_foil_quantity %>"
+                  class="<%= button_class %>"
+                >
+                  Trade
+                </button>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-3 text-sm text-grey-text">
+        Not in any of your collections yet.
+      </p>
+    <% end %>
+
+    <% if collections.any? %>
+      <div class="flex items-center gap-2 mt-4">
+        <select
+          data-card-locations-target="newCollectionSelect"
+          class="
+            flex-1 min-w-0 px-3 py-2.5 text-sm border rounded-lg
+            border-highlight bg-background text-grey-text
+            focus:border-accent-50 focus:ring-accent-50
+          "
+        >
+          <option value="">Add to collection...</option>
+
+          <% collections.each do |collection| %>
+            <option value="<%= collection.id %>">
+              <%= collection.name %>
+            </option>
+          <% end %>
+        </select>
+
+        <button
+          type="button"
+          data-action="click->card-locations#openAdjustModal"
+          data-collection-id
+          data-collection-name
+          data-regular-qty="0"
+          data-foil-qty="0"
+          data-proxy-qty="0"
+          data-proxy-foil-qty="0"
+          data-is-new="true"
+          class="
+            px-4 py-2.5 text-sm font-medium rounded-lg bg-accent-50
+            text-background hover:bg-nine-white transition-colors
+          "
+        >
+          Add
+        </button>
+      </div>
+      <%= render partial: 'shared/cards/transfer_modal', locals: { magic_card:, collections: } %>
+      <%= render partial: 'shared/cards/adjust_modal', locals: { magic_card: } %>
+      <%= render partial: 'shared/cards/trade_modal', locals: { magic_card: } %>
+    <% end %>
+  </div>
+
+  <%= render partial: 'shared/cards/want_control', locals: { magic_card:, mobile: true } %>
+
+  <% if other_rows.any? %>
+    <div class="p-4 border-t border-highlight/50">
+      <h4 class="mb-3 text-xs font-semibold tracking-wider uppercase text-grey-text">
+        Other Printings You Own
+      </h4>
+
+      <div class="flex flex-col gap-2">
+        <% other_rows.each do |location| %>
+          <% printing = location.magic_card %>
+
+          <%# each row gets its own card-locations scope so its buttons resolve to its own %>
+          <%# modals - the transfer/adjust modals are hard-bound to a single printing %>
+          <div
+            class="p-3 border rounded-lg border-highlight bg-background"
+            data-controller="card-locations"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span
+                class="inline-flex items-center min-w-0 text-sm text-nine-white"
+                title="<%= printing.boxset.name %>"
+              >
+                <i class="drop-shadow-nine rounded-xl ss ss-grad ss-<%= printing.boxset.keyrune_code&.downcase %> ss-<%= printing.rarity&.downcase || 'common' %> ss-fw ss-lg mr-2"></i>
+                <%= printing.boxset.code&.upcase %>
+
+                <span class="ml-2 text-xs text-grey-text">
+                  #<%= printing.card_number %>
+                </span>
+              </span>
+
+              <span class="text-xs truncate text-grey-text">
+                <%= location.collection.name %>
+              </span>
+            </div>
+
+            <div class="flex flex-wrap mt-1 text-xs gap-x-3 text-grey-text">
+              <% row_counts.call(location).each do |label, qty| %>
+                <span>
+                  <%= label %>
+                  <span class="text-nine-white"><%= qty %></span>
+                </span>
+              <% end %>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mt-3">
+              <button
+                type="button"
+                data-action="click->card-locations#openTransferModal"
+                data-collection-id="<%= location.collection_id %>"
+                data-collection-name="<%= location.collection.name %>"
+                data-regular-qty="<%= location.quantity %>"
+                data-foil-qty="<%= location.foil_quantity %>"
+                data-proxy-qty="<%= location.proxy_quantity %>"
+                data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
+                class="<%= button_class %>"
+              >
+                Transfer
+              </button>
+
+              <button
+                type="button"
+                data-action="click->card-locations#openAdjustModal"
+                data-collection-id="<%= location.collection_id %>"
+                data-collection-name="<%= location.collection.name %>"
+                data-regular-qty="<%= location.quantity %>"
+                data-foil-qty="<%= location.foil_quantity %>"
+                data-proxy-qty="<%= location.proxy_quantity %>"
+                data-proxy-foil-qty="<%= location.proxy_foil_quantity %>"
+                class="<%= button_class %>"
+              >
+                Adjust
+              </button>
+            </div>
+
+            <%= render partial: 'shared/cards/transfer_modal', locals: { magic_card: printing, collections:, refresh_card_id: magic_card.id } %>
+            <%= render partial: 'shared/cards/adjust_modal', locals: { magic_card: printing, refresh_card_id: magic_card.id } %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
