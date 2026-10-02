@@ -1,5 +1,6 @@
 class MagicCardsController < ApplicationController
   include CardDetailsLocals
+  include MobileCardLocations
 
   before_action :authenticate_admin!, only: [:destroy]
 
@@ -13,6 +14,14 @@ class MagicCardsController < ApplicationController
     card = MagicCard.find(params[:id])
 
     render partial: 'magic_cards/details', locals: card_details_locals(card)
+  end
+
+  def mobile_locations
+    return head :unauthorized unless current_user
+
+    card = MagicCard.find(params[:id])
+
+    render partial: 'shared/cards/mobile_locations', locals: mobile_locations_locals(card)
   end
 
   def destroy

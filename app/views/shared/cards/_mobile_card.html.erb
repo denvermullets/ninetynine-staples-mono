@@ -1,7 +1,5 @@
 <%
-  # Determine editability and available collections from locals
-  is_editable = local_assigns.fetch(:editable, local_assigns.fetch(:is_owner, false))
-  available_collections = local_assigns.fetch(:collections, [])
+  # The viewer's copies and their actions load into the mobile_locations frame when the card expands
   current_collection = local_assigns.fetch(:collection, nil)
 
   # Get aggregated quantities across all user's collections for this card
@@ -230,47 +228,6 @@
       <% end %>
     </div>
 
-    <!-- Ownership Section -->
-    <div class="p-4 border-t border-highlight/50">
-      <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">
-        Ownership
-      </h4>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col">
-          <span class="text-xs text-grey-text">Regular</span>
-
-          <span class="text-lg font-medium <%= normal_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
-            <%= normal_qty %>
-          </span>
-        </div>
-
-        <div class="flex flex-col">
-          <span class="text-xs text-grey-text">Foil</span>
-
-          <span class="text-lg font-medium <%= foil_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
-            <%= foil_qty %>
-          </span>
-        </div>
-
-        <div class="flex flex-col">
-          <span class="text-xs text-grey-text">Proxy</span>
-
-          <span class="text-lg font-medium <%= proxy_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
-            <%= proxy_qty %>
-          </span>
-        </div>
-
-        <div class="flex flex-col">
-          <span class="text-xs text-grey-text">Proxy Foil</span>
-
-          <span class="text-lg font-medium <%= proxy_foil_qty > 0 ? 'text-nine-white' : 'text-grey-text' %>">
-            <%= proxy_foil_qty %>
-          </span>
-        </div>
-      </div>
-    </div>
-
     <!-- Price Section -->
     <div class="p-4 border-t border-highlight/50">
       <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">
@@ -319,20 +276,36 @@
 
       <% show_ck_normal = has_normal_in_collection && card.ck_buylist_normal_price.to_f.positive? %>
       <% show_ck_foil = has_foil_in_collection && card.ck_buylist_foil_price.to_f.positive? %>
+
       <% if show_ck_normal || show_ck_foil %>
         <div class="grid grid-cols-2 gap-3 mt-3">
           <% if show_ck_normal %>
             <div class="flex flex-col">
               <span class="text-xs text-grey-text">Sell Regular</span>
-              <span class="text-lg font-medium text-nine-white"><%= number_to_currency(card.ck_buylist_normal_price) %></span>
-              <span class="text-xs text-grey-text">Credit: <%= number_to_currency(card.ck_buylist_normal_price * 1.3) %></span>
+
+              <span class="text-lg font-medium text-nine-white">
+                <%= number_to_currency(card.ck_buylist_normal_price) %>
+              </span>
+
+              <span class="text-xs text-grey-text">
+                Credit:
+                <%= number_to_currency(card.ck_buylist_normal_price * 1.3) %>
+              </span>
             </div>
           <% end %>
+
           <% if show_ck_foil %>
             <div class="flex flex-col">
               <span class="text-xs text-grey-text">Sell Foil</span>
-              <span class="text-lg font-medium text-nine-white"><%= number_to_currency(card.ck_buylist_foil_price) %></span>
-              <span class="text-xs text-grey-text">Credit: <%= number_to_currency(card.ck_buylist_foil_price * 1.3) %></span>
+
+              <span class="text-lg font-medium text-nine-white">
+                <%= number_to_currency(card.ck_buylist_foil_price) %>
+              </span>
+
+              <span class="text-xs text-grey-text">
+                Credit:
+                <%= number_to_currency(card.ck_buylist_foil_price * 1.3) %>
+              </span>
             </div>
           <% end %>
         </div>
@@ -378,121 +351,29 @@
       <% end %>
     </div>
 
-    <% if card.card_side.nil? || card.card_side == 'a' %>
-      <%= render partial: 'shared/cards/want_control', locals: { magic_card: card, mobile: true } %>
+    <% if logged_in? && (card.card_side.nil? || card.card_side == 'a') %>
+      <%# loads when the card expands - a hidden frame never scrolls into view %>
+      <%= turbo_frame_tag "mobile_locations_#{card.id}", src: mobile_card_locations_path(card.id), loading: :lazy do %>
+        <p class="p-4 text-sm border-t border-highlight/50 text-grey-text">
+          Loading your copies...
+        </p>
+      <% end %>
     <% end %>
 
-    <!-- Quick Actions -->
-    <% if is_editable || current_user.present? %>
-      <div
-        class="p-4 border-t border-highlight/50 space-y-2"
-        data-controller="card-locations"
-      >
-        <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text mb-3">
-          Actions
-        </h4>
-
-        <% if available_collections.present? %>
-          <!-- Add to Collection -->
-          <div class="flex items-center gap-2">
-            <select
-              data-card-locations-target="newCollectionSelect"
-              class="
-                flex-1 px-3 py-2.5 text-sm border rounded-lg
-                border-highlight bg-background text-grey-text
-                focus:border-accent-50 focus:ring-accent-50
-              "
-            >
-              <option value="">Select collection...</option>
-
-              <% available_collections.each do |collection| %>
-                <option value="<%= collection.id %>">
-                  <%= collection.name %>
-                </option>
-              <% end %>
-            </select>
-
-            <button
-              data-action="click->card-locations#openAdjustModal"
-              data-collection-id
-              data-collection-name
-              data-regular-qty="0"
-              data-foil-qty="0"
-              data-proxy-qty="0"
-              data-proxy-foil-qty="0"
-              data-is-new="true"
-              class="
-                px-4 py-2.5 text-sm font-medium rounded-lg bg-accent-50
-                text-background hover:bg-nine-white transition-colors
-              "
-            >
-              Add
-            </button>
-          </div>
-        <% end %>
-
-        <% if is_editable && has_any_cards %>
-          <%
-            # Use current collection if viewing one, otherwise use the first available collection
-            action_collection = current_collection || available_collections&.first
-          %>
-          <% if action_collection %>
-            <!-- Transfer/Adjust buttons -->
-            <button
-              data-action="click->card-locations#openTransferModal"
-              data-collection-id="<%= action_collection.id %>"
-              data-collection-name="<%= action_collection.name %>"
-              data-regular-qty="<%= normal_qty %>"
-              data-foil-qty="<%= foil_qty %>"
-              data-proxy-qty="<%= proxy_qty %>"
-              data-proxy-foil-qty="<%= proxy_foil_qty %>"
-              class="
-                w-full px-4 py-2.5 text-sm font-medium rounded-lg border
-                border-highlight text-grey-text hover:bg-background
-                hover:text-nine-white hover:border-accent-50 transition-colors
-              "
-            >
-              Transfer
-            </button>
-            <button
-              data-action="click->card-locations#openAdjustModal"
-              data-collection-id="<%= action_collection.id %>"
-              data-collection-name="<%= action_collection.name %>"
-              data-regular-qty="<%= normal_qty %>"
-              data-foil-qty="<%= foil_qty %>"
-              data-proxy-qty="<%= proxy_qty %>"
-              data-proxy-foil-qty="<%= proxy_foil_qty %>"
-              class="
-                w-full px-4 py-2.5 text-sm font-medium rounded-lg border
-                border-highlight text-grey-text hover:bg-background
-                hover:text-nine-white hover:border-accent-50 transition-colors
-              "
-            >
-              Adjust Quantity
-            </button>
-          <% end %>
-        <% end %>
-
-        <% if show_ck_normal || show_ck_foil %>
-          <a
-            href="https://www.cardkingdom.com/purchasing/mtg_singles?filter%5Bsort%5D=price_desc&filter%5Bsearch%5D=mtg_advanced&filter%5Bname%5D=<%= CGI.escape(card.name) %>&filter%5Bedition%5D=&filter%5Bformat%5D=&filter%5Bfoils%5D=1&filter%5Bsingles%5D=1&filter%5Bprice_op%5D=&filter%5Bprice%5D="
-            target="_blank"
-            rel="noopener noreferrer"
-            class="
-              block w-full px-4 py-2.5 text-sm font-medium text-center rounded-lg
-              border border-highlight text-grey-text hover:bg-background
-              hover:text-nine-white hover:border-accent-50 transition-colors
-            "
-          >
-            Sell to Card Kingdom
-          </a>
-        <% end %>
-
-        <!-- Render modals -->
-        <% if available_collections.present? %>
-          <%= render partial: 'shared/cards/transfer_modal', locals: { magic_card: card, collections: available_collections } %>
-          <%= render partial: 'shared/cards/adjust_modal', locals: { magic_card: card } %>
-        <% end %>
+    <% if show_ck_normal || show_ck_foil %>
+      <div class="p-4 border-t border-highlight/50">
+        <a
+          href="https://www.cardkingdom.com/purchasing/mtg_singles?filter%5Bsort%5D=price_desc&filter%5Bsearch%5D=mtg_advanced&filter%5Bname%5D=<%= CGI.escape(card.name) %>&filter%5Bedition%5D=&filter%5Bformat%5D=&filter%5Bfoils%5D=1&filter%5Bsingles%5D=1&filter%5Bprice_op%5D=&filter%5Bprice%5D="
+          target="_blank"
+          rel="noopener noreferrer"
+          class="
+            block w-full px-4 py-2.5 text-sm font-medium text-center rounded-lg
+            border border-highlight text-grey-text hover:bg-background
+            hover:text-nine-white hover:border-accent-50 transition-colors
+          "
+        >
+          Sell to Card Kingdom
+        </a>
       </div>
     <% end %>
 

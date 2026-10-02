@@ -104,6 +104,16 @@ RSpec.describe 'CollectionMagicCards', type: :request do
 
       expect(response.body).not_to include('to cover your want list')
     end
+
+    it "refreshes the mobile card's copies when the form came from there" do
+      post adjust_collection_magic_cards_path,
+           params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 3 },
+           headers: { 'Turbo-Frame' => "mobile_locations_#{expanded_card.id}" },
+           as: :turbo_stream
+
+      expect(response.body).to include("mobile_locations_#{expanded_card.id}", 'Your Copies')
+      expect(response.body).not_to include("card_details_#{expanded_card.id}")
+    end
   end
 
   describe 'POST /collection_magic_cards/update_trade' do

@@ -1,5 +1,6 @@
 class CollectionMagicCardsController < ApplicationController
   include WantsFilledToast
+  include MobileCardLocations
 
   def update_collection
     result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
@@ -68,11 +69,7 @@ class CollectionMagicCardsController < ApplicationController
     card_id = refresh_card_id(result[:card_id])
 
     render turbo_stream: [
-      turbo_stream.replace(
-        "card_details_#{card_id}",
-        partial: 'magic_cards/details',
-        locals: reload_card_details(card_id)
-      ),
+      refresh_card_frame(card_id),
       render_success_toast(transfer_message(result))
     ]
   end
@@ -82,11 +79,7 @@ class CollectionMagicCardsController < ApplicationController
     card_id = refresh_card_id(params[:magic_card_id])
 
     render turbo_stream: [
-      turbo_stream.replace(
-        "card_details_#{card_id}",
-        partial: 'magic_cards/details',
-        locals: reload_card_details(card_id)
-      ),
+      refresh_card_frame(card_id),
       render_success_toast(adjust_message(result)),
       *wants_filled_toast(result, want_frame_context(card_id))
     ]
@@ -106,8 +99,7 @@ class CollectionMagicCardsController < ApplicationController
     counts = { card_id:, trade_quantity:, trade_foil_quantity: }
 
     render turbo_stream: [
-      turbo_stream.replace("card_details_#{card_id}", partial: 'magic_cards/details',
-                                                      locals: reload_card_details(card_id)),
+      refresh_card_frame(card_id),
       turbo_stream.update("trade_pill_#{card_id}", partial: 'collections/trade_pill', locals: counts),
       turbo_stream.update("trade_cell_#{card_id}", partial: 'collections/trade_cell', locals: counts),
       render_success_toast("Updated trade copies of #{result[:name]}.")
@@ -120,6 +112,17 @@ class CollectionMagicCardsController < ApplicationController
     records = records.where(collection_id: params[:row_collection_id]) if params[:row_collection_id].present?
 
     records.pick(Arel.sql('COALESCE(SUM(trade_quantity), 0)'), Arel.sql('COALESCE(SUM(trade_foil_quantity), 0)'))
+  end
+
+  # the open desktop card_details frame, or the mobile card's copies section when the form came from there
+  def refresh_card_frame(card_id)
+    if mobile_frame_request?
+      turbo_stream.replace("mobile_locations_#{card_id}", partial: 'shared/cards/mobile_locations',
+                                                          locals: mobile_locations_locals(MagicCard.find(card_id)))
+    else
+      turbo_stream.replace("card_details_#{card_id}", partial: 'magic_cards/details',
+                                                      locals: reload_card_details(card_id))
+    end
   end
 
   # Edits made from the "other printings" table mutate a printing whose expanded row isn't on
