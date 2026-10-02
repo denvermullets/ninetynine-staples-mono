@@ -49,6 +49,31 @@ export default class extends Controller {
     return `${month}/${day}`;
   }
 
+  // Custom plugin to draw a vertical crosshair line on hover
+  verticalLinePlugin() {
+    return {
+      id: "verticalLine",
+      afterDraw: (chart) => {
+        if (chart.tooltip?._active?.length) {
+          const activePoint = chart.tooltip._active[0];
+          const ctx = chart.ctx;
+          const x = activePoint.element.x;
+          const topY = chart.scales.y.top;
+          const bottomY = chart.scales.y.bottom;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, topY);
+          ctx.lineTo(x, bottomY);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+          ctx.stroke();
+          ctx.restore();
+        }
+      },
+    };
+  }
+
   renderCharts() {
     this.renderNormalChart();
     this.renderFoilChart();
@@ -110,6 +135,7 @@ export default class extends Controller {
           },
         ],
       },
+      plugins: [this.verticalLinePlugin()],
       options: this.getChartOptions(minValue, maxValue),
     });
   }
@@ -170,6 +196,7 @@ export default class extends Controller {
           },
         ],
       },
+      plugins: [this.verticalLinePlugin()],
       options: this.getChartOptions(minValue, maxValue),
     });
   }
@@ -178,6 +205,10 @@ export default class extends Controller {
     return {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        mode: "index",
+        intersect: false,
+      },
       scales: {
         y: {
           suggestedMin: this.getSuggestedMin(minValue),
@@ -229,8 +260,7 @@ export default class extends Controller {
         },
         point: {
           radius: 0,
-          hoverRadius: 5,
-          pointHitRadius: 15,
+          hoverRadius: 6,
         },
       },
     };
