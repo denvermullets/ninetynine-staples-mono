@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Card batch",
+  "description": "POST /cards/batch. cards are in the order the ids were sent; ids that matched nothing are in missing, exactly as sent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["cards", "missing"],
+  "properties": {
+    "cards": { "type": "array", "items": { "$ref": "card.json" } },
+    "missing": { "type": "array", "items": { "type": "string" } }
+  }
+}

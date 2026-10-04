@@ -1,5 +1,7 @@
 # Shared bits for spec/requests/api/v1. Require it from the spec:
 #   require 'support/api/v1_helpers'
+require 'support/api/schemas'
+
 module ApiV1Helpers
   def json_body
     JSON.parse(response.body)
@@ -9,6 +11,7 @@ module ApiV1Helpers
     expect(response).to have_http_status(status)
     expect(response.media_type).to eq('application/json')
     expect(json_body['error']).to include('code' => code, 'message' => a_kind_of(String))
+    expect(json_body).to match_api_schema(:error)
   end
 end
 

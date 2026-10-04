@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Session",
+  "description": "201 from POST /sessions. The raw token appears only here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["token", "expires_at", "user"],
+  "properties": {
+    "token": { "type": "string", "pattern": "^mtg_", "description": "Send as Authorization: Bearer <token>. Keep it in the OS keychain." },
+    "expires_at": { "type": "string", "format": "date-time", "description": "Slides forward 90 days on every use." },
+    "user": { "$ref": "user.json" }
+  }
+}

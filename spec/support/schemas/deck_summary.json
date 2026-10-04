@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Deck summary",
+  "description": "A user's deck as the deck picker shows it, without its cards. GET /decks/:id nests the same object under deck.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "collection_type", "is_public", "bracket_level", "card_count", "commanders",
+               "color_identity", "cover_image", "updated_at"],
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "collection_type": { "type": "string", "pattern": "^(.+_)?deck$", "description": "deck, commander_deck, or another *_deck type." },
+    "is_public": { "type": "boolean" },
+    "bracket_level": { "type": ["integer", "null"], "minimum": 1, "maximum": 5, "description": "null when the owner hasn't set one." },
+    "card_count": { "type": "integer", "minimum": 0, "description": "Every board, counted by the decklist rule in docs/api/v1.md." },
+    "commanders": { "type": "array", "items": { "$ref": "#/$defs/commander" }, "description": "The commander board: usually one card, two for partners, empty for a deck with none." },
+    "color_identity": { "$ref": "card.json#/$defs/colors", "description": "Union of the commanders' identities, WUBRG order. [] without a commander." },
+    "cover_image": { "$ref": "card.json#/$defs/image", "description": "Art crop of the chosen cover card, else the first commander's." },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "commander": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["card_uuid", "oracle_id", "name", "image_art_crop", "image_normal"],
+      "properties": {
+        "card_uuid": { "type": "string" },
+        "oracle_id": { "type": ["string", "null"] },
+        "name": { "type": "string" },
+        "image_art_crop": { "$ref": "card.json#/$defs/image" },
+        "image_normal": { "$ref": "card.json#/$defs/image" }
+      }
+    }
+  }
+}

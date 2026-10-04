@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Error",
+  "description": "The envelope every error response uses. Branch on code; message is for logs and its wording can change.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["error"],
+  "properties": {
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "enum": ["unauthorized", "invalid_credentials", "not_found", "parameter_missing", "invalid_parameter",
+                   "too_many_ids", "throttled", "internal_error"]
+        },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

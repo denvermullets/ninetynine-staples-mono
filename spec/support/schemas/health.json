@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Health",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "api_version", "min_client_version"],
+  "properties": {
+    "status": { "const": "ok" },
+    "api_version": { "const": "v1" },
+    "min_client_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "Below this, the client shows a 'please update' message." }
+  }
+}
