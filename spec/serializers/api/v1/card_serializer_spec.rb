@@ -103,13 +103,21 @@ RSpec.describe Api::V1::CardSerializer do
     end
   end
 
-  it 'serializes a planeswalker with no power or toughness' do
+  it 'serializes a planeswalker with loyalty and no power or toughness' do
     card = card_row(name: 'Karn Liberated', mana_cost: '{7}', mana_value: 7, card_type: 'Legendary Planeswalker — Karn',
-                    supertypes: ['Legendary'], types: ['Planeswalker'], subtypes: ['Karn'], text: '[+4]: ...')
+                    supertypes: ['Legendary'], types: ['Planeswalker'], subtypes: ['Karn'], text: '[+4]: ...',
+                    loyalty: '6')
 
     expect(serialize(card)[:faces].first).to include(
-      types: ['Planeswalker'], subtypes: ['Karn'], power: nil, toughness: nil, loyalty: nil, colors: []
+      types: ['Planeswalker'], subtypes: ['Karn'], power: nil, toughness: nil, loyalty: '6', defense: nil, colors: []
     )
+  end
+
+  it 'serializes a battle with defense' do
+    card = card_row(name: 'Invasion of Zendikar', mana_cost: '{3}{G}', mana_value: 4, card_type: 'Battle — Siege',
+                    types: ['Battle'], subtypes: ['Siege'], colors: ['G'], defense: '3')
+
+    expect(serialize(card)[:faces].first).to include(types: ['Battle'], loyalty: nil, defense: '3')
   end
 
   describe 'a transform double-faced card' do

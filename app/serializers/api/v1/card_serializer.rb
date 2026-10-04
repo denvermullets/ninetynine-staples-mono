@@ -98,9 +98,8 @@ class Api::V1::CardSerializer
       oracle_text: face.text,
       power: face.power,
       toughness: face.toughness,
-      # no columns for these yet - try reads them once they exist and returns nil until then
-      loyalty: face.try(:loyalty),
-      defense: face.try(:defense),
+      loyalty: face.loyalty,
+      defense: face.defense,
       colors: color_names(face.colors),
       keywords: face.keywords.map(&:keyword).sort,
       images: images_json(face)
