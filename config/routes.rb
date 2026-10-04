@@ -247,6 +247,16 @@ Rails.application.routes.draw do
     end
   end
 
+  # JSON API for the Godot game client - see docs/api/v1.md
+  namespace :api, defaults: { format: :json } do
+    namespace :v1 do
+      get 'health', to: 'health#show'
+
+      # keep last: anything unmatched under /api/v1 gets a JSON 404, not the HTML error page
+      match '*unmatched', to: 'base#route_not_found', via: :all
+    end
+  end
+
   # Card scanner routes
   get 'scan-cards', to: 'card_scanner#show', as: :card_scanner
   get 'scan-cards/search', to: 'card_scanner#search', as: :card_scanner_search
