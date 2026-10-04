@@ -90,4 +90,41 @@ RSpec.describe PreconDecks::GroupCards, type: :service do
       expect(names).to eq(names.sort)
     end
   end
+
+  # a mono-red card with a {G} ability: red by color, red-green by identity. The land has no color
+  # but a green identity from its mana ability
+  context 'when color and color identity differ' do
+    def add_colors(join_model, card, *names)
+      names.each { |name| join_model.create!(magic_card: card, color: Color.find_or_create_by!(name: name)) }
+    end
+
+    let(:color_deck) { PreconDeck.create!(code: 'CLR', file_name: 'color_deck', name: 'Color Deck') }
+    let(:red_card) { create(:magic_card, card_type: 'Creature', boxset: boxset) }
+    let(:green_land) { create(:magic_card, card_type: 'Land', boxset: boxset) }
+
+    let(:color_cards) do
+      add_colors(MagicCardColor, red_card, 'R')
+      add_colors(MagicCardColorIdent, red_card, 'R', 'G')
+      add_colors(MagicCardColorIdent, green_land, 'G')
+
+      [red_card, green_land].each do |card|
+        PreconDeckCard.create!(precon_deck: color_deck, magic_card: card, board_type: 'mainBoard', quantity: 1)
+      end
+      color_deck.precon_deck_cards.includes(magic_card: [:colors, { magic_card_color_idents: :color }])
+    end
+
+    def group_names(grouping)
+      described_class.call(cards: color_cards, grouping: grouping).transform_values do |pdcs|
+        pdcs.map(&:magic_card)
+      end
+    end
+
+    it 'groups Color by the card color' do
+      expect(group_names('color')).to eq('R' => [red_card], 'Colorless' => [green_land])
+    end
+
+    it 'groups Color Identity by the identity' do
+      expect(group_names('color_identity')).to eq('GR' => [red_card], 'G' => [green_land])
+    end
+  end
 end

@@ -182,4 +182,40 @@ RSpec.describe DeckBuilder::GroupCards, type: :service do
       end
     end
   end
+
+  # a mono-red card with a {G} ability: red by color, red-green by identity. The land has no color
+  # but a green identity from its mana ability
+  context 'when color and color identity differ' do
+    def add_colors(join_model, card, *names)
+      names.each { |name| join_model.create!(magic_card: card, color: Color.find_or_create_by!(name: name)) }
+    end
+
+    let(:red_card) { create(:magic_card, card_type: 'Creature', boxset: create(:boxset)) }
+    let(:green_land) { create(:magic_card, card_type: 'Land', boxset: create(:boxset)) }
+
+    let(:color_cards) do
+      add_colors(MagicCardColor, red_card, 'R')
+      add_colors(MagicCardColorIdent, red_card, 'R', 'G')
+      add_colors(MagicCardColorIdent, green_land, 'G')
+
+      [red_card, green_land].map do |card|
+        create(:collection_magic_card, collection: deck, magic_card: card, staged: false, needed: false,
+                                       quantity: 1, foil_quantity: 0)
+      end
+    end
+
+    def group_names(grouping)
+      described_class.call(cards: color_cards, grouping: grouping, sort_by: 'name').transform_values do |cmcs|
+        cmcs.map(&:magic_card)
+      end
+    end
+
+    it 'groups Color by the card color' do
+      expect(group_names('color')).to eq('R' => [red_card], 'Colorless' => [green_land])
+    end
+
+    it 'groups Color Identity by the identity' do
+      expect(group_names('color_identity')).to eq('GR' => [red_card], 'G' => [green_land])
+    end
+  end
 end

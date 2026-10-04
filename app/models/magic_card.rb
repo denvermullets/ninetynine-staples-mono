@@ -26,7 +26,7 @@ class MagicCard < ApplicationRecord
   has_many :colors, through: :magic_card_colors
 
   has_many :magic_card_color_idents
-  has_many :colors, through: :magic_card_color_idents
+  has_many :color_identities, through: :magic_card_color_idents, source: :color
 
   has_many :magic_card_rulings
   has_many :rulings, through: :magic_card_rulings

@@ -15,10 +15,10 @@ RSpec.describe 'Boxsets', type: :request do
     end
   end
 
-  # no color factory either - MagicCardColorIdent is the association :colors actually resolves to
-  def color_ident(card, *color_names)
+  # MagicCardColor is the join behind card.colors, which the color grouping reads
+  def card_color(card, *color_names)
     color_names.each do |name|
-      MagicCardColorIdent.create!(magic_card: card, color: Color.find_or_create_by!(name: name))
+      MagicCardColor.create!(magic_card: card, color: Color.find_or_create_by!(name: name))
     end
   end
 
@@ -72,7 +72,7 @@ RSpec.describe 'Boxsets', type: :request do
   # Grouping needs a specific boxset selected, so these pass a real code rather than 'all'
   describe 'GET load_boxset grouped in visual view' do
     before do
-      alpha_set.magic_cards.each { |card| color_ident(card, 'White') }
+      alpha_set.magic_cards.each { |card| card_color(card, 'W') }
     end
 
     it 'loads colors once for the whole group instead of per card' do
@@ -84,7 +84,15 @@ RSpec.describe 'Boxsets', type: :request do
     it 'does not count or check colors one card at a time' do
       queries = queries_for(code: 'ALP', view_mode: 'visual', grouping: 'color')
 
-      expect(queries.grep(/COUNT\(\*\).*"magic_card_color_idents"/)).to be_empty
+      expect(queries.grep(/COUNT\(\*\).*"magic_card_colors"/)).to be_empty
+      expect(queries.grep(/FROM "magic_card_colors"/).size).to eq(1)
+    end
+
+    # colors.name holds MTGJSON letters, so the heading has to spell the color out
+    it 'labels the group with the color name' do
+      queries_for(code: 'ALP', view_mode: 'visual', grouping: 'color')
+
+      expect(response.body).to match(/White \(2\)/)
     end
 
     it 'renders the grouped view' do

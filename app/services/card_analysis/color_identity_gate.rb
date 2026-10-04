@@ -2,10 +2,6 @@ module CardAnalysis
   # Commander color identity is a hard filter, not a score: a card outside the commander's identity is
   # not a worse suggestion, it is an illegal one. Shared by ReplacementFinder (card -> similar cards) and
   # CommanderSynergy (commander -> pool) so the two cannot drift apart on what "legal in this deck" means.
-  #
-  # Identity comes from MagicCardColorIdent directly rather than magic_card.colors: MagicCard declares
-  # has_many :colors twice and the color-identity version silently shadows the mana-cost one, so the
-  # association reads correctly today only by accident.
   class ColorIdentityGate < Service
     def self.color_ids_for(magic_card_ids:)
       MagicCardColorIdent.where(magic_card_id: magic_card_ids).pluck(:color_id).to_set
