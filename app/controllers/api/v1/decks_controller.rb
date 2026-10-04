@@ -9,7 +9,7 @@ class Api::V1::DecksController < Api::V1::BaseController
   # 404, same as a deck that doesn't exist. Answers 304 to a client whose copy is still current
   def show
     deck = visible_decks.find(params[:id])
-    return unless stale?(**cache_validators(deck))
+    return unless stale?(**deck_cache_validators(deck, deck.collection_magic_cards))
 
     render json: Api::V1::DeckSerializer.new(deck, rulings: params[:include] == 'rulings')
   end
@@ -24,19 +24,5 @@ class Api::V1::DecksController < Api::V1::BaseController
 
   def visible_decks
     Collection.decks.where(user_id: current_api_user.id).or(Collection.decks.visible_to_public)
-  end
-
-  # Last-Modified is the newest of the deck, its rows and their cards. The ETag keeps each of those to
-  # the microsecond (Last-Modified only has whole seconds) plus the row count, since removing a row
-  # changes the deck without touching any timestamp that is left
-  def cache_validators(deck)
-    rows_changed, cards_changed, row_count =
-      deck.collection_magic_cards.joins(:magic_card)
-          .pick(Arel.sql('MAX(collection_magic_cards.updated_at)'), Arel.sql('MAX(magic_cards.updated_at)'),
-                Arel.sql('COUNT(*)'))
-    stamps = [deck.updated_at, rows_changed, cards_changed]
-
-    { etag: [deck.id, *stamps.map { |t| t&.utc&.iso8601(6) }, row_count, params[:include]],
-      last_modified: stamps.compact.max }
   end
 end

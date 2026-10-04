@@ -52,4 +52,19 @@ class Api::V1::BaseController < ActionController::API
     records = scope.offset((page - 1) * per_page).limit(per_page)
     [records, { page: page, per_page: per_page, total: scope.count }]
   end
+
+  # ETag/Last-Modified for a deck and its card rows (collection_magic_cards or precon_deck_cards).
+  # Last-Modified is the newest of the deck, its rows and their cards. The ETag keeps each of those to
+  # the microsecond (Last-Modified only has whole seconds) plus the row count, since removing a row
+  # changes the deck without touching any timestamp that is left
+  def deck_cache_validators(deck, rows)
+    rows_changed, cards_changed, row_count =
+      rows.joins(:magic_card)
+          .pick(Arel.sql("MAX(#{rows.table_name}.updated_at)"), Arel.sql('MAX(magic_cards.updated_at)'),
+                Arel.sql('COUNT(*)'))
+    stamps = [deck.updated_at, rows_changed, cards_changed]
+
+    { etag: [deck.class.name, deck.id, *stamps.map { |t| t&.utc&.iso8601(6) }, row_count, params[:include]],
+      last_modified: stamps.compact.max }
+  end
 end

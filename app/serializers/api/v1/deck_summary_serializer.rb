@@ -31,6 +31,23 @@ class Api::V1::DeckSummarySerializer
 
   private_class_method :load_commanders
 
+  # the commanders, their color identity and the cover fallback, as every deck summary shows them -
+  # precon summaries share these
+  def self.commander_json(card)
+    { card_uuid: card.card_uuid, oracle_id: card.scryfall_oracle_id, name: card.name,
+      image_art_crop: image_url(card.art_crop), image_normal: image_url(card.image_medium) }
+  end
+
+  # the union of the commanders' identities, so a deck with no commander has none
+  def self.color_identity(commanders)
+    commanders.flat_map { |card| card.color_identities.map(&:name) }.uniq
+              .sort_by { |name| COLOR_ORDER.index(name) || COLOR_ORDER.length }
+  end
+
+  def self.image_url(url)
+    url.presence unless url.to_s.include?(PLACEHOLDER_IMAGE)
+  end
+
   def initialize(deck, card_count: nil, commanders: nil)
     @deck = deck
     @card_count = card_count
@@ -51,27 +68,18 @@ class Api::V1::DeckSummarySerializer
       is_public: @deck.is_public,
       bracket_level: @deck.bracket_level,
       card_count: @card_count,
-      commanders: @commanders.map { |card| commander_json(card) },
-      color_identity: color_identity,
-      cover_image: image_url(@deck.cover_card&.art_crop) || @commanders.filter_map { |c| image_url(c.art_crop) }.first,
+      commanders: @commanders.map { |card| self.class.commander_json(card) },
+      color_identity: self.class.color_identity(@commanders),
+      cover_image: cover_image,
       updated_at: @deck.updated_at
     }
   end
 
   private
 
-  def commander_json(card)
-    { card_uuid: card.card_uuid, oracle_id: card.scryfall_oracle_id, name: card.name,
-      image_art_crop: image_url(card.art_crop), image_normal: image_url(card.image_medium) }
-  end
-
-  # the union of the commanders' identities, so a deck with no commander has none
-  def color_identity
-    @commanders.flat_map { |card| card.color_identities.map(&:name) }.uniq
-               .sort_by { |name| COLOR_ORDER.index(name) || COLOR_ORDER.length }
-  end
-
-  def image_url(url)
-    url.presence unless url.to_s.include?(PLACEHOLDER_IMAGE)
+  # art crop of the chosen cover card, falling back to the first commander that has one
+  def cover_image
+    self.class.image_url(@deck.cover_card&.art_crop) ||
+      @commanders.filter_map { |card| self.class.image_url(card.art_crop) }.first
   end
 end
