@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Card summary",
+  "description": "A card search result: enough to pick a card from a list. Fetch the full card with POST /cards/batch.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["card_uuid", "oracle_id", "name", "set_code", "type_line", "mana_cost", "is_token", "image_art_crop",
+               "image_normal"],
+  "properties": {
+    "card_uuid": { "type": "string" },
+    "oracle_id": { "type": ["string", "null"] },
+    "name": { "type": "string" },
+    "set_code": { "type": ["string", "null"] },
+    "type_line": { "type": ["string", "null"] },
+    "mana_cost": { "type": ["string", "null"], "description": "Brace notation, as on the card object." },
+    "is_token": { "type": "boolean" },
+    "image_art_crop": { "$ref": "card.json#/$defs/image" },
+    "image_normal": { "$ref": "card.json#/$defs/image" }
+  }
+}

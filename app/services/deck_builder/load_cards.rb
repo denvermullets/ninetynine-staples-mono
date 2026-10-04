@@ -8,7 +8,8 @@ module DeckBuilder
 
     def call
       all_cards = @deck.collection_magic_cards
-                       .includes(magic_card: %i[boxset sub_types colors magic_card_color_idents game_changer])
+                       .includes(magic_card: [:boxset, :sub_types, :colors, { magic_card_color_idents: :color },
+                                              :game_changer])
 
       staged = all_cards.staged
       needed = all_cards.needed

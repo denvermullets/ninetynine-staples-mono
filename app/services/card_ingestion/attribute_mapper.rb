@@ -18,8 +18,7 @@ module CardIngestion
         boxset: @boxset,
         name: @card_data['name'],
         text: @card_data['text'],
-        power: @card_data['power'],
-        toughness: @card_data['toughness'],
+        **stat_attributes,
         card_type: @card_data['type'],
         border_color: @card_data['borderColor'],
         frame_version: @card_data['frameVersion'],
@@ -37,6 +36,13 @@ module CardIngestion
         can_be_brawl_commander: @card_data.dig('leadershipSkills', 'brawl') || false,
         can_be_oathbreaker_commander: @card_data.dig('leadershipSkills', 'oathbreaker') || false
       }
+    end
+
+    # Strings, because mtgjson sends values like "*", "1+*" and "X". Every key is written even when the
+    # card has none, so a re-ingest clears a value mtgjson has since dropped.
+    def stat_attributes
+      { power: @card_data['power'], toughness: @card_data['toughness'],
+        loyalty: @card_data['loyalty'], defense: @card_data['defense'] }
     end
 
     # The alternate name on this printing, if it has one - "Balin's Tomb" on an LTC Ancient Tomb. Read

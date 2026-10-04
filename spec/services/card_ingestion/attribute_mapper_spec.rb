@@ -69,6 +69,25 @@ RSpec.describe CardIngestion::AttributeMapper, type: :service do
       end
     end
 
+    it 'maps starting loyalty for a planeswalker' do
+      jace = card_data.merge('name' => 'Jace, the Mind Sculptor', 'type' => 'Legendary Planeswalker — Jace',
+                             'loyalty' => '3')
+      result = described_class.call(boxset: boxset, card_data: jace)
+      expect(result[:loyalty]).to eq('3')
+      expect(result[:defense]).to be_nil
+    end
+
+    it 'keeps an X loyalty as a string' do
+      expect(described_class.call(boxset: boxset, card_data: card_data.merge('loyalty' => 'X'))[:loyalty]).to eq('X')
+    end
+
+    it 'maps defense for a battle' do
+      battle = card_data.merge('name' => 'Invasion of Zendikar', 'type' => 'Battle — Siege', 'defense' => '3')
+      result = described_class.call(boxset: boxset, card_data: battle)
+      expect(result[:defense]).to eq('3')
+      expect(result[:loyalty]).to be_nil
+    end
+
     # mtgjson omits isReserved entirely rather than sending false, and is_reserved is NOT NULL, so
     # passing the missing key straight through would blow up the insert on almost every card
     it 'reads a missing isReserved as false rather than nil' do
@@ -85,6 +104,11 @@ RSpec.describe CardIngestion::AttributeMapper, type: :service do
       expect(result).not_to have_key(:rarity)
       expect(result).not_to have_key(:edhrec_rank)
       expect(result).not_to have_key(:is_reserved)
+    end
+
+    it 'still maps loyalty and defense' do
+      result = described_class.call(boxset: boxset, card_data: card_data.merge('loyalty' => '4'), is_token: true)
+      expect(result[:loyalty]).to eq('4')
     end
   end
 end

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Page",
+  "description": "A page of a list endpoint. Each endpoint's data items have their own schema (see docs/api/v1.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["data", "meta"],
+  "properties": {
+    "data": { "type": "array" },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page", "per_page", "total"],
+      "properties": {
+        "page": { "type": "integer", "minimum": 1 },
+        "per_page": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "total": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

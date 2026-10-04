@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Deck",
+  "description": "A deck with its whole decklist: GET /decks/:id and GET /precon_decks/:id. Both have this shape, so the client loads a precon the same way as its own deck.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["deck", "cards", "tokens"],
+  "properties": {
+    "deck": {
+      "oneOf": [{ "$ref": "deck_summary.json" }, { "$ref": "precon_deck_summary.json" }],
+      "description": "A deck summary for a user deck, a precon deck summary for a precon."
+    },
+    "cards": {
+      "type": "array",
+      "description": "One entry per printing and board, commander first. The quantities add up to deck.card_count. A printing on two boards has the same card object in both.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["board", "quantity", "card"],
+        "properties": {
+          "board": { "enum": ["commander", "mainboard", "sideboard"], "description": "Precons have no sideboard; mtgjson's mainBoard is lowercased." },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "card": { "$ref": "card.json" }
+        }
+      }
+    },
+    "tokens": {
+      "type": "array",
+      "items": { "$ref": "card.json" },
+      "description": "Token definitions the deck can create. Precons list the tokens they ship with; user decks always have []."
+    }
+  }
+}

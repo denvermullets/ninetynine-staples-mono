@@ -36,7 +36,7 @@ module Collections
       return 'Colorless' if colors.empty?
       return 'Multicolor' if colors.size > 1
 
-      colors.first.name
+      colors.first.display_name
     end
 
     def sort_groups(grouped)

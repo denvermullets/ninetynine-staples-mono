@@ -321,6 +321,35 @@ RSpec.describe MagicCard, type: :model do
     end
   end
 
+  # MagicCardColor holds the card's colors (mana cost and color indicator); MagicCardColorIdent holds its
+  # Commander color identity, which also counts mana symbols in the rules text
+  describe 'color associations' do
+    def add_colors(join_model, card, *names)
+      names.each { |name| join_model.create!(magic_card: card, color: Color.find_or_create_by!(name: name)) }
+    end
+
+    it 'reads colors and color identity separately for a mono-red card with a {G} ability' do
+      card = create(:magic_card, card_type: 'Creature')
+      add_colors(MagicCardColor, card, 'R')
+      add_colors(MagicCardColorIdent, card, 'R', 'G')
+
+      reloaded = described_class.find(card.id)
+
+      expect(reloaded.colors.map(&:name)).to eq(%w[R])
+      expect(reloaded.color_identities.map(&:name)).to match_array(%w[R G])
+    end
+
+    it 'gives a land no colors but an identity from its mana abilities' do
+      land = create(:magic_card, card_type: 'Land')
+      add_colors(MagicCardColorIdent, land, 'G')
+
+      reloaded = described_class.find(land.id)
+
+      expect(reloaded.colors).to be_empty
+      expect(reloaded.color_identities.map(&:name)).to eq(%w[G])
+    end
+  end
+
   describe '#color_identity_string' do
     let(:card) do
       create(:magic_card).tap do |card|

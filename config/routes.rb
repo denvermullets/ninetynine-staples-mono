@@ -32,6 +32,8 @@ Rails.application.routes.draw do
   post 'settings/update_trades_visibility', to: 'settings#update_trades_visibility', as: :update_trades_visibility
   post 'settings/update_wants_visibility', to: 'settings#update_wants_visibility', as: :update_wants_visibility
   post 'settings/update_theme', to: 'settings#update_theme', as: :update_theme
+  delete 'settings/api_tokens', to: 'settings#revoke_all_api_tokens', as: :revoke_all_api_tokens
+  delete 'settings/api_tokens/:id', to: 'settings#revoke_api_token', as: :revoke_api_token
 
   mount MissionControl::Jobs::Engine, at: '/jobs'
 
@@ -244,6 +246,26 @@ Rails.application.routes.draw do
 
     collection do
       patch :read_all
+    end
+  end
+
+  # JSON API for the Godot game client - see docs/api/v1.md
+  namespace :api, defaults: { format: :json } do
+    namespace :v1 do
+      get 'health', to: 'health#show'
+      post 'sessions', to: 'sessions#create'
+      delete 'sessions', to: 'sessions#destroy'
+      get 'me', to: 'me#show'
+      resources :decks, only: %i[index show]
+      resources :precon_decks, only: %i[index show]
+      post 'cards/batch', to: 'cards#batch'
+      get 'cards/search', to: 'cards#search'
+      get 'tokens', to: 'tokens#index'
+      # username can contain dots, so the segment takes anything up to the next slash
+      get 'users/:username/decks', to: 'user_decks#index', as: :user_decks, constraints: { username: %r{[^/]+} }
+
+      # keep last: anything unmatched under /api/v1 gets a JSON 404, not the HTML error page
+      match '*unmatched', to: 'base#route_not_found', via: :all
     end
   end
 

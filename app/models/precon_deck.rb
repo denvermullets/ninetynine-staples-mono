@@ -7,6 +7,10 @@ class PreconDeck < ApplicationRecord
 
   scope :with_cards, -> { joins(:precon_deck_cards).distinct }
   scope :by_type, ->(type) { where(deck_type: type) if type.present? }
+  # Commander precons that have their commander ingested - the only ones the game client plays
+  scope :commander_decks, lambda {
+    where(deck_type: 'Commander Deck', id: PreconDeckCard.commanders.select(:precon_deck_id))
+  }
 
   def released?
     release_date.present? && release_date <= Date.current

@@ -9,22 +9,15 @@
 # COUNT(*) + MIN(colors.name) is the whole roll-up: the count decides mono vs multi, and the
 # MIN is the letter - meaningful only when the count is 1, which is the only case that reads it.
 #
-# Written against the join tables rather than MagicCard#colors because that association is
-# declared twice (through magic_card_colors, then through magic_card_color_idents) and the
-# second silently wins. Reaching through it would make this panel depend on a bug staying put.
-# The upside is that Collections::GroupCards#group_by_color calls that same shadowed
-# association, so the collection page is already grouping by colour identity - this panel
-# agrees with it rather than offering a second, different answer.
+# Written against the join tables rather than MagicCard#color_identities so the roll-up stays one
+# query instead of instantiating every owned card.
 module CollectionStats
   class Colors < Base
     ORDER = Collections::GroupCards::COLOR_ORDER
     COLORLESS = 'Colorless'.freeze
     MULTICOLOR = 'Multicolor'.freeze
 
-    # colors.name holds MTGJSON's single letters, not display names -
-    # CardIngestion::AttributeCreator#create_color_identities writes the raw colorIdentity
-    # array straight through.
-    NAMES = { 'W' => 'White', 'U' => 'Blue', 'B' => 'Black', 'R' => 'Red', 'G' => 'Green' }.freeze
+    NAMES = Color::NAMES
 
     # mana-font has no multicolour glyph, which is why admin/game_changers/_color_icon falls
     # back to an inline SVG for that case. Nil here, and the legend renders the swatch alone.

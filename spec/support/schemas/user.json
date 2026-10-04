@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "User",
+  "description": "The signed-in user. GET /me adds preferences; the login response leaves them out.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "username", "email"],
+  "properties": {
+    "id": { "type": "integer" },
+    "username": { "type": "string" },
+    "email": { "type": "string" },
+    "preferences": { "type": "object", "description": "The user's 99staples settings, defaults filled in. Free-form." }
+  }
+}

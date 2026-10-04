@@ -30,6 +30,8 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem 'factory_bot_rails'
   gem 'faker'
+  # validates /api/v1 responses against spec/support/schemas
+  gem 'json_schemer', '~> 2.5'
   gem "rspec-rails", "~> 8.0.4"
   gem "rubocop"
   gem "selenium-webdriver"
