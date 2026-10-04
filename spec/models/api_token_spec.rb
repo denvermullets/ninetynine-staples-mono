@@ -74,6 +74,18 @@ RSpec.describe ApiToken, type: :model do
     end
   end
 
+  describe '.revoke_all!' do
+    it "revokes every active token in the scope and leaves other users' alone" do
+      mine = Array.new(2) { described_class.issue!(user, name: 'Laptop').first }
+      theirs = described_class.issue!(create(:user), name: 'Laptop').first
+
+      user.api_tokens.revoke_all!
+
+      expect(mine.map { |token| token.reload.revoked_at }).to all(be_present)
+      expect(theirs.reload.revoked_at).to be_nil
+    end
+  end
+
   it 'is destroyed with its user' do
     described_class.issue!(user, name: 'Laptop')
 

@@ -30,6 +30,12 @@ class ApiToken < ApplicationRecord
     active.find_by(token_digest: digest(raw_token))
   end
 
+  # call on a scope, e.g. user.api_tokens.revoke_all! - logs the user out of every game client
+  def self.revoke_all!
+    now = Time.current
+    active.update_all(revoked_at: now, updated_at: now)
+  end
+
   def revoke!
     update!(revoked_at: Time.current)
   end
