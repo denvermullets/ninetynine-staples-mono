@@ -24,6 +24,18 @@ class CollectionMagicCard < ApplicationRecord
   # clamped - an explicit over-set is still rejected by validation.
   before_validation :clamp_trade_quantities
 
+  # How many copies a deck row puts in play: finish and proxy don't matter in a game. Qualified so it
+  # survives a join
+  PLAYABLE_QUANTITY_SQL = 'COALESCE(collection_magic_cards.quantity, 0) + ' \
+                          'COALESCE(collection_magic_cards.foil_quantity, 0) + ' \
+                          'collection_magic_cards.proxy_quantity + collection_magic_cards.proxy_foil_quantity'.freeze
+  STAGED_QUANTITY_SQL = 'collection_magic_cards.staged_quantity + collection_magic_cards.staged_foil_quantity + ' \
+                        'collection_magic_cards.staged_proxy_quantity + ' \
+                        'collection_magic_cards.staged_proxy_foil_quantity'.freeze
+  # a staged row holds its copies in the staged_* columns until it is finalized
+  DECKLIST_QUANTITY_SQL = "CASE WHEN collection_magic_cards.staged THEN #{STAGED_QUANTITY_SQL} " \
+                          "ELSE #{PLAYABLE_QUANTITY_SQL} END".freeze
+
   # Scopes
   scope :commanders, -> { where(board_type: 'commander') }
 
@@ -42,6 +54,12 @@ class CollectionMagicCard < ApplicationRecord
     finalized.owned.where('collection_magic_cards.quantity > 0 OR collection_magic_cards.foil_quantity > 0')
   }
   scope :unlisted, -> { where(trade_quantity: 0, trade_foil_quantity: 0) }
+
+  # { collection_id => card count } for the given decks. The game client plays the deck as it is being
+  # built, so every row counts: owned, needed, and staged ones the deck builder hasn't finalized
+  def self.decklist_counts(collection_ids)
+    where(collection_id: collection_ids).group(:collection_id).sum(Arel.sql(DECKLIST_QUANTITY_SQL))
+  end
 
   # Helper methods
   def total_regular
@@ -120,6 +138,11 @@ class CollectionMagicCard < ApplicationRecord
 
   def total_staged
     staged_quantity + staged_foil_quantity + staged_proxy_quantity + staged_proxy_foil_quantity
+  end
+
+  # the copies this row puts in a decklist - DECKLIST_QUANTITY_SQL in Ruby
+  def decklist_quantity
+    staged? ? total_staged : quantity.to_i + foil_quantity.to_i + proxy_quantity + proxy_foil_quantity
   end
 
   def display_quantity

@@ -50,7 +50,8 @@ class PreconDecksController < ApplicationController
   end
 
   def load_precon_deck_with_cards
-    @precon_deck = PreconDeck.includes(precon_deck_cards: { magic_card: %i[boxset colors magic_card_color_idents] })
+    card_preloads = [:boxset, :colors, { magic_card_color_idents: :color }]
+    @precon_deck = PreconDeck.includes(precon_deck_cards: { magic_card: card_preloads })
                              .find(params[:id])
     @collections = current_user&.ordered_collections || []
   end

@@ -3,6 +3,7 @@ class User < ApplicationRecord
 
   has_secure_password
   has_many :collections
+  has_many :api_tokens, dependent: :destroy
   has_many :tracked_decks, dependent: :destroy
   has_many :commander_games, dependent: :destroy
   has_many :collection_magic_cards, through: :collections

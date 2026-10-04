@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_21_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_04_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "api_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at"
+    t.datetime "last_used_at"
+    t.string "name", null: false
+    t.datetime "revoked_at"
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["token_digest"], name: "index_api_tokens_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_api_tokens_on_user_id"
+  end
 
   create_table "artists", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -497,6 +510,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_130000) do
     t.string "text"
     t.string "toughness"
     t.datetime "updated_at", null: false
+    t.string "loyalty"
+    t.string "defense"
     t.index "lower((face_name)::text)", name: "index_magic_cards_on_lower_face_name"
     t.index "lower((flavor_name)::text)", name: "index_magic_cards_on_lower_flavor_name"
     t.index "lower((name)::text)", name: "index_magic_cards_on_lower_name"
@@ -721,6 +736,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_130000) do
     t.index ["user_id", "scryfall_oracle_id"], name: "index_want_list_items_on_user_and_oracle_any_printing", unique: true, where: "any_printing"
   end
 
+  add_foreign_key "api_tokens", "users"
   add_foreign_key "card_oracle_tags", "oracle_tags"
   add_foreign_key "card_oracle_tags", "users"
   add_foreign_key "collection_magic_cards", "collections"

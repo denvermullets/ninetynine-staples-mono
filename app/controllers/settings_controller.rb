@@ -3,6 +3,7 @@ class SettingsController < ApplicationController
 
   def show
     @collections = current_user.ordered_collections
+    @api_tokens = active_api_tokens
   end
 
   def move_collection
@@ -59,7 +60,29 @@ class SettingsController < ApplicationController
     end
   end
 
+  def revoke_api_token
+    current_user.api_tokens.active.find(params[:id]).revoke!
+    render_api_token_list
+  end
+
+  def revoke_all_api_tokens
+    current_user.api_tokens.revoke_all!
+    render_api_token_list
+  end
+
   private
+
+  def active_api_tokens
+    current_user.api_tokens.active.order(created_at: :desc)
+  end
+
+  def render_api_token_list
+    @api_tokens = active_api_tokens
+    respond_to do |format|
+      format.turbo_stream { render :revoke_api_token }
+      format.html { redirect_to settings_path(anchor: 'game-sessions'), status: :see_other }
+    end
+  end
 
   def render_collection_list
     @collections = current_user.ordered_collections

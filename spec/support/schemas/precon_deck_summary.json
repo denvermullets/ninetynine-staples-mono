@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Precon deck summary",
+  "description": "A Commander precon as the opponent picker shows it. GET /precon_decks/:id nests the same object under deck.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "code", "release_date", "card_count", "commanders", "color_identity", "cover_image"],
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "code": { "type": "string" },
+    "release_date": { "type": ["string", "null"], "format": "date" },
+    "card_count": { "type": "integer", "minimum": 0, "description": "Commander plus main board; sideboard and tokens are left out." },
+    "commanders": { "type": "array", "items": { "$ref": "deck_summary.json#/$defs/commander" } },
+    "color_identity": { "$ref": "card.json#/$defs/colors" },
+    "cover_image": { "$ref": "card.json#/$defs/image", "description": "The first commander's art crop." }
+  }
+}

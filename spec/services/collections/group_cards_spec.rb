@@ -40,4 +40,30 @@ RSpec.describe Collections::GroupCards, type: :service do
       expect(result.keys).to eq(['All Cards'])
     end
   end
+
+  # a mono-red card with a {G} ability: red by color, red-green by identity
+  context 'grouping by color' do
+    def add_colors(join_model, card, *names)
+      names.each { |name| join_model.create!(magic_card: card, color: Color.find_or_create_by!(name: name)) }
+    end
+
+    let(:red_card) { create(:magic_card) }
+    let(:azorius_card) { create(:magic_card) }
+    let(:land) { create(:magic_card, card_type: 'Land') }
+
+    let(:color_cards) do
+      add_colors(MagicCardColor, red_card, 'R')
+      add_colors(MagicCardColorIdent, red_card, 'R', 'G')
+      add_colors(MagicCardColor, azorius_card, 'W', 'U')
+      add_colors(MagicCardColorIdent, land, 'G')
+
+      MagicCard.where(id: [red_card.id, azorius_card.id, land.id]).preload(:colors)
+    end
+
+    it 'groups by the card color, spelled out, in color order' do
+      result = described_class.call(cards: color_cards, grouping: 'color')
+
+      expect(result).to eq('Red' => [red_card], 'Colorless' => [land], 'Multicolor' => [azorius_card])
+    end
+  end
 end

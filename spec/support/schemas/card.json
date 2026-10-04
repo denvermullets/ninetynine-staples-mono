@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Card",
+  "description": "One printing of a card, as every endpoint that returns full cards serializes it (decks, precons, batch lookup, tokens). Each face of a multi-face card is nested under faces.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["card_uuid", "oracle_id", "name", "layout", "set", "rarity", "is_token", "can_be_commander",
+               "commander_legality", "color_identity", "edhrec_rank", "faces"],
+  "properties": {
+    "card_uuid": { "type": "string", "description": "The printing (mtgjson uuid) of the front face." },
+    "oracle_id": { "type": ["string", "null"], "description": "Scryfall oracle id, the same for every printing of a card. Match cards on this, not card_uuid." },
+    "name": { "type": "string", "description": "Full name. Multi-face cards join the face names with ' // '." },
+    "layout": { "type": ["string", "null"], "description": "Scryfall/mtgjson layout: normal, transform, modal_dfc, adventure, split, flip, meld, saga, token, ..." },
+    "set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "name", "card_number"],
+      "properties": {
+        "code": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] },
+        "card_number": { "type": ["string", "null"], "description": "Collector number. A string: '123a', '★'." }
+      }
+    },
+    "rarity": { "type": ["string", "null"] },
+    "is_token": { "type": "boolean", "description": "Use this rather than looking for Token in faces[].types." },
+    "can_be_commander": { "type": "boolean" },
+    "commander_legality": {
+      "enum": ["Legal", "Banned", "Restricted", null],
+      "description": "null when the card has no commander legality at all (tokens, Un-cards)."
+    },
+    "color_identity": { "$ref": "#/$defs/colors" },
+    "edhrec_rank": { "type": ["integer", "null"], "description": "null for cards EDHREC doesn't rank." },
+    "faces": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/face" },
+      "description": "Ordered by side (a, b, ...). A single-faced card has one face, side a. Transform/MDFC: a front, b back. Adventure: a creature, b adventure. Split/aftermath: one face per half in printed order. Flip: a unflipped, b flipped. Meld: a front card has its own face (a) and the melded permanent (b); the melded permanent alone has one face, b."
+    },
+    "rulings": {
+      "type": "array",
+      "description": "Only with ?include=rulings. Oldest first.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "text"],
+        "properties": {
+          "date": { "type": ["string", "null"], "format": "date" },
+          "text": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "colors": {
+      "type": "array",
+      "description": "Color letters in WUBRG order.",
+      "items": { "enum": ["W", "U", "B", "R", "G"] },
+      "uniqueItems": true
+    },
+    "image": {
+      "type": ["string", "null"],
+      "description": "Scryfall CDN URL, or null when missing or the art isn't out yet. The client shows its own fallback."
+    },
+    "face": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["side", "name", "mana_cost", "mana_value", "type_line", "supertypes", "types", "subtypes",
+                   "oracle_text", "power", "toughness", "loyalty", "defense", "colors", "keywords", "images"],
+      "properties": {
+        "side": { "type": "string", "pattern": "^[a-z]$" },
+        "name": { "type": "string" },
+        "mana_cost": { "type": ["string", "null"], "description": "Brace notation: {2}{W}{U/P}{X}. null when the face has no mana cost (lands, most back faces)." },
+        "mana_value": { "type": ["number", "null"], "description": "Stored once per card, so every face of a split or adventure card has the whole card's value." },
+        "type_line": { "type": ["string", "null"] },
+        "supertypes": { "type": "array", "items": { "type": "string" }, "description": "In type-line order." },
+        "types": { "type": "array", "items": { "type": "string" }, "description": "In type-line order. A token's types include Token." },
+        "subtypes": { "type": "array", "items": { "type": "string" }, "description": "In type-line order." },
+        "oracle_text": { "type": ["string", "null"] },
+        "power": { "type": ["string", "null"], "description": "A string because of values like * and 1+*. null when the face has none." },
+        "toughness": { "type": ["string", "null"], "description": "A string because of values like * and 1+*. null when the face has none." },
+        "loyalty": { "type": ["string", "null"], "description": "Starting loyalty. A string because of values like X." },
+        "defense": { "type": ["string", "null"], "description": "Starting defense of a battle." },
+        "colors": { "$ref": "#/$defs/colors" },
+        "keywords": { "type": "array", "items": { "type": "string" }, "description": "Sorted by name." },
+        "images": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["small", "normal", "large", "art_crop"],
+          "description": "The halves of a split, adventure or flip card share one image.",
+          "properties": {
+            "small": { "$ref": "#/$defs/image" },
+            "normal": { "$ref": "#/$defs/image" },
+            "large": { "$ref": "#/$defs/image" },
+            "art_crop": { "$ref": "#/$defs/image" }
+          }
+        }
+      }
+    }
+  }
+}

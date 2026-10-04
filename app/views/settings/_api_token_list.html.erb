@@ -1,0 +1,39 @@
+<% if api_tokens.empty? %>
+  <p class="p-3 text-sm text-grey-text">
+    No game clients are logged in to your account.
+  </p>
+<% else %>
+  <ul class="divide-y divide-highlight">
+    <% api_tokens.each do |api_token| %>
+      <li class="flex items-center gap-3 px-3 py-2 text-sm">
+        <div class="flex-1 min-w-0">
+          <p class="font-medium truncate"><%= api_token.name %></p>
+
+          <p class="text-xs text-grey-text/70">
+            Logged in <%= api_token.created_at.strftime('%b %d, %Y') %> &middot;
+            Last used
+            <%= api_token.last_used_at&.strftime('%b %d, %Y') || 'never' %>
+            &middot; Expires
+            <%= api_token.expires_at&.strftime('%b %d, %Y') || 'never' %>
+          </p>
+        </div>
+
+        <%= button_to 'Revoke',
+        revoke_api_token_path(api_token),
+        method: :delete,
+        class: 'px-3 py-1 text-xs text-white rounded-lg bg-highlight hover:bg-highlight/80 transition',
+        data: { turbo_frame: 'api_token_list' } %>
+      </li>
+    <% end %>
+  </ul>
+  <div class="p-3 border-t border-highlight">
+    <%= button_to 'Revoke all',
+    revoke_all_api_tokens_path,
+    method: :delete,
+    class: 'px-3 py-1 text-xs text-white rounded-lg bg-red-600 hover:bg-red-600/80 transition',
+    data: {
+      turbo_frame: 'api_token_list',
+      turbo_confirm: 'Log out every game client on your account?'
+    } %>
+  </div>
+<% end %>

@@ -10,6 +10,19 @@ Rack::Attack.throttle('login/ip', limit: 10, period: 15.minutes) do |req|
   req.ip if req.path == '/login' && req.post?
 end
 
+# Throttle game client logins by IP — same as the web login, 10 per 15 minutes
+Rack::Attack.throttle('api/sessions/ip', limit: 10, period: 15.minutes) do |req|
+  req.ip if req.path == '/api/v1/sessions' && req.post?
+end
+
+# Throttle game client logins by email — 10 per 15 minutes, so spreading guesses across IPs doesn't
+# get around the per-IP limit. The body is JSON, which Rack::Request#params doesn't parse
+Rack::Attack.throttle('api/sessions/email', limit: 10, period: 15.minutes) do |req|
+  if req.path == '/api/v1/sessions' && req.post?
+    ActionDispatch::Request.new(req.env).request_parameters['email'].to_s.strip.downcase.presence
+  end
+end
+
 # Throttle password reset by IP — 3 per hour
 Rack::Attack.throttle('password_resets/ip', limit: 3, period: 1.hour) do |req|
   req.ip if req.path == '/password_resets' && req.post?
@@ -60,6 +73,13 @@ THROTTLED_HTML = <<~HTML.freeze
   </html>
 HTML
 
-Rack::Attack.throttled_responder = lambda do |_request|
-  [429, { 'Content-Type' => 'text/html', 'Retry-After' => '60' }, [THROTTLED_HTML]]
+# the game client gets the same JSON error envelope as the rest of /api/v1
+THROTTLED_JSON = { error: { code: 'throttled', message: 'Too many requests. Try again later.' } }.to_json.freeze
+
+Rack::Attack.throttled_responder = lambda do |request|
+  if request.path.start_with?('/api/')
+    [429, { 'Content-Type' => 'application/json', 'Retry-After' => '60' }, [THROTTLED_JSON]]
+  else
+    [429, { 'Content-Type' => 'text/html', 'Retry-After' => '60' }, [THROTTLED_HTML]]
+  end
 end

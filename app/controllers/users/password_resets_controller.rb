@@ -33,6 +33,8 @@ class Users::PasswordResetsController < ApplicationController
     end
 
     if @user.update(password_params)
+      # whoever had the old password may have logged a game client in with it
+      @user.api_tokens.revoke_all!
       login(@user)
       redirect_to after_login_path, notice: 'Your password has been reset successfully.', status: :see_other
     else

@@ -1,4 +1,6 @@
 class MagicCard < ApplicationRecord
+  include CanonicalPrinting
+
   belongs_to :boxset
 
   has_many :printings
@@ -26,7 +28,7 @@ class MagicCard < ApplicationRecord
   has_many :colors, through: :magic_card_colors
 
   has_many :magic_card_color_idents
-  has_many :colors, through: :magic_card_color_idents
+  has_many :color_identities, through: :magic_card_color_idents, source: :color
 
   has_many :magic_card_rulings
   has_many :rulings, through: :magic_card_rulings
@@ -36,6 +38,10 @@ class MagicCard < ApplicationRecord
 
   has_many :magic_card_legalities, dependent: :destroy
   has_many :legalities, through: :magic_card_legalities
+  # the one format the game client asks about, as an association so a deck preloads one row per card
+  # instead of all ~20 formats
+  has_one :commander_legality, -> { joins(:legality).where(legalities: { name: 'commander' }) },
+          class_name: 'MagicCardLegality'
 
   has_many :magic_card_finishes
   has_many :finishes, through: :magic_card_finishes
@@ -55,6 +61,12 @@ class MagicCard < ApplicationRecord
   has_many :tracked_decks_as_partner, class_name: 'TrackedDeck', foreign_key: :partner_commander_id
   has_many :game_opponents_as_commander, class_name: 'GameOpponent', foreign_key: :commander_id
   has_many :game_opponents_as_partner, class_name: 'GameOpponent', foreign_key: :partner_commander_id
+
+  # Everything Api::V1::CardSerializer reads off a row. Rulings are left out - they are opt-in per request
+  API_PRELOADS = %i[boxset keywords card_types sub_types super_types colors color_identities
+                    commander_legality].freeze
+
+  scope :api_preload, -> { preload(*API_PRELOADS) }
 
   # Every suggestion surface has to answer "is this even legal in the format" and the answer lives two
   # joins away, so it is a scope rather than a copy of the join in each caller.
