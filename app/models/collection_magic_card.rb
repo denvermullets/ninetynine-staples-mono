@@ -24,6 +24,12 @@ class CollectionMagicCard < ApplicationRecord
   # clamped - an explicit over-set is still rejected by validation.
   before_validation :clamp_trade_quantities
 
+  # How many copies a deck row puts in play: finish and proxy don't matter in a game. Qualified so it
+  # survives a join
+  PLAYABLE_QUANTITY_SQL = 'COALESCE(collection_magic_cards.quantity, 0) + ' \
+                          'COALESCE(collection_magic_cards.foil_quantity, 0) + ' \
+                          'collection_magic_cards.proxy_quantity + collection_magic_cards.proxy_foil_quantity'.freeze
+
   # Scopes
   scope :commanders, -> { where(board_type: 'commander') }
 
@@ -42,6 +48,15 @@ class CollectionMagicCard < ApplicationRecord
     finalized.owned.where('collection_magic_cards.quantity > 0 OR collection_magic_cards.foil_quantity > 0')
   }
   scope :unlisted, -> { where(trade_quantity: 0, trade_foil_quantity: 0) }
+
+  # The decklist the game client plays: needed rows are part of the list even though they aren't
+  # owned, staged rows are uncommitted deck-builder changes and stay out
+  scope :decklist, -> { finalized }
+
+  # { collection_id => card count } for the given decks, by the decklist counting rule
+  def self.decklist_counts(collection_ids)
+    decklist.where(collection_id: collection_ids).group(:collection_id).sum(Arel.sql(PLAYABLE_QUANTITY_SQL))
+  end
 
   # Helper methods
   def total_regular
