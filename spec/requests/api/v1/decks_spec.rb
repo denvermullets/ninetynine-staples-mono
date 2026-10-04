@@ -18,6 +18,12 @@ RSpec.describe 'API v1 decks', type: :request do
     create(:collection_magic_card, collection: deck, magic_card: card, **attrs)
   end
 
+  # a staged row pulled from another collection: a move the deck builder hasn't finalized yet
+  def add_pending_move(deck, card = create(:magic_card), **attrs)
+    source = create(:collection, user: deck.user, collection_type: 'binder')
+    add_card(deck, card, quantity: 0, staged: true, source_collection: source, **attrs)
+  end
+
   let(:data) { json_body['data'] }
 
   describe 'GET /api/v1/decks' do
@@ -113,25 +119,27 @@ RSpec.describe 'API v1 decks', type: :request do
                                     'card_count' => 0)
     end
 
-    it 'counts every finish and proxy, includes needed cards and leaves out staged ones' do
+    it 'counts every finish and proxy, and includes needed and staged cards' do
       deck = create(:collection, user: api_user, collection_type: 'commander_deck')
       add_card(deck, quantity: 1, foil_quantity: 1, proxy_quantity: 1, proxy_foil_quantity: 1)
       add_card(deck, quantity: 0, proxy_quantity: 2, board_type: 'sideboard')
       add_card(deck, quantity: 1, needed: true)
-      add_card(deck, quantity: 0, staged: true, staged_quantity: 5)
+      add_card(deck, quantity: 0, staged: true, staged_quantity: 2, staged_foil_quantity: 1)
+      add_pending_move(deck, staged_quantity: 5)
 
       get '/api/v1/decks', headers: api_headers
 
-      expect(data.first['card_count']).to eq(7)
+      expect(data.first['card_count']).to eq(15)
     end
 
-    it 'leaves a staged commander out of the commanders' do
+    it 'lists a staged commander' do
       deck = create(:collection, user: api_user, collection_type: 'commander_deck')
-      add_card(deck, commander_card('Staged', identity: %w[R]), board_type: 'commander', staged: true)
+      add_pending_move(deck, commander_card('Staged', identity: %w[R]), board_type: 'commander', staged_quantity: 1)
 
       get '/api/v1/decks', headers: api_headers
 
-      expect(data.first).to include('commanders' => [], 'color_identity' => [])
+      expect(data.first['commanders'].pluck('name')).to eq(['Staged'])
+      expect(data.first['color_identity']).to eq(%w[R])
     end
 
     it 'paginates' do
@@ -145,6 +153,160 @@ RSpec.describe 'API v1 decks', type: :request do
 
     it 'rejects a request with no token' do
       get '/api/v1/decks', headers: { 'Accept' => 'application/json' }
+
+      expect_api_error(:unauthorized, 'unauthorized')
+    end
+  end
+
+  describe 'GET /api/v1/decks/:id' do
+    let(:deck) { create(:collection, user: api_user, collection_type: 'commander_deck', is_public: false) }
+
+    def cards
+      json_body['cards']
+    end
+
+    def entry(name)
+      cards.find { |c| c['card']['name'] == name }
+    end
+
+    def query_count
+      count = 0
+      subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+        count += 1 unless payload[:name].in?(%w[SCHEMA TRANSACTION])
+      end
+      yield
+      count
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+
+    it 'returns your own private deck with its summary and cards' do
+      atraxa = commander_card('Atraxa', identity: %w[W U B G])
+      add_card(deck, atraxa, board_type: 'commander')
+      add_card(deck, create(:magic_card, name: 'Sol Ring'), quantity: 1)
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_body['deck']).to include('id' => deck.id, 'is_public' => false, 'card_count' => 2,
+                                           'color_identity' => %w[W U B G])
+      expect(cards.first).to include('board' => 'commander', 'quantity' => 1)
+      expect(cards.first['card']).to include('card_uuid' => atraxa.card_uuid, 'name' => 'Atraxa')
+      expect(entry('Sol Ring')).to include('board' => 'mainboard', 'quantity' => 1)
+      expect(json_body['tokens']).to eq([])
+    end
+
+    it "returns someone else's public deck" do
+      theirs = create(:collection, user: create(:user), collection_type: 'deck', is_public: true)
+      add_card(theirs, create(:magic_card, name: 'Sol Ring'))
+
+      get "/api/v1/decks/#{theirs.id}", headers: api_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(cards.pluck('quantity')).to eq([1])
+    end
+
+    it "is a 404 for someone else's private deck" do
+      theirs = create(:collection, user: create(:user), collection_type: 'deck', is_public: false)
+
+      get "/api/v1/decks/#{theirs.id}", headers: api_headers
+
+      expect_api_error(:not_found, 'not_found')
+    end
+
+    it 'is a 404 for a collection that is not a deck' do
+      binder = create(:collection, user: api_user, collection_type: 'binder')
+
+      get "/api/v1/decks/#{binder.id}", headers: api_headers
+
+      expect_api_error(:not_found, 'not_found')
+    end
+
+    it 'adds up every finish and proxy and merges rows of one card on one board' do
+      card = create(:magic_card, name: 'Forest')
+      add_card(deck, card, quantity: 3, foil_quantity: 2, proxy_quantity: 1, proxy_foil_quantity: 1)
+      add_card(deck, card, quantity: 0, staged: true, staged_quantity: 2)
+      add_card(deck, card, quantity: 1, board_type: 'sideboard')
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers
+
+      expect(cards.map { |c| [c['board'], c['quantity']] }).to eq([['mainboard', 9], ['sideboard', 1]])
+      expect(json_body['deck']['card_count']).to eq(10)
+    end
+
+    it 'includes needed, planned and pending-move cards by their staged counts' do
+      add_card(deck, create(:magic_card, name: 'Needed'), quantity: 1, needed: true)
+      add_card(deck, create(:magic_card, name: 'Planned'), quantity: 0, staged: true, staged_proxy_quantity: 2)
+      add_pending_move(deck, create(:magic_card, name: 'Moving'), staged_quantity: 1, staged_foil_quantity: 1)
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers
+
+      expect(entry('Needed')['quantity']).to eq(1)
+      expect(entry('Planned')['quantity']).to eq(2)
+      expect(entry('Moving')['quantity']).to eq(2)
+      expect(json_body['deck']['card_count']).to eq(5)
+    end
+
+    it 'leaves out rows with no copies' do
+      add_card(deck, create(:magic_card, name: 'Empty'), quantity: 0)
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers
+
+      expect(cards).to eq([])
+    end
+
+    it 'adds rulings with include=rulings' do
+      card = create(:magic_card, name: 'Sol Ring')
+      add_card(deck, card)
+
+      get "/api/v1/decks/#{deck.id}", params: { include: 'rulings' }, headers: api_headers
+
+      expect(cards.first['card']['rulings']).to eq([])
+    end
+
+    it 'answers 304 to a matching ETag and 200 once the deck changes' do
+      row = add_card(deck, create(:magic_card, name: 'Sol Ring'))
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers
+      etag = response.headers['ETag']
+      expect(etag).to be_present
+      expect(response.headers['Last-Modified']).to be_present
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers.merge('If-None-Match' => etag)
+      expect(response).to have_http_status(:not_modified)
+
+      row.update!(quantity: 2)
+      get "/api/v1/decks/#{deck.id}", headers: api_headers.merge('If-None-Match' => etag)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'changes the ETag when a row is removed' do
+      add_card(deck, create(:magic_card, name: 'Sol Ring'))
+      gone = add_card(deck, create(:magic_card, name: 'Gone'), updated_at: 1.day.ago)
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers
+      etag = response.headers['ETag']
+      gone.delete
+
+      get "/api/v1/decks/#{deck.id}", headers: api_headers.merge('If-None-Match' => etag)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'keeps the query count flat as the deck grows' do
+      add_card(deck, commander_card('Atraxa', identity: %w[W]), board_type: 'commander')
+      add_card(deck)
+      # the first use of a token writes to it, so it doesn't count
+      get "/api/v1/decks/#{deck.id}", headers: api_headers
+      small = query_count { get "/api/v1/decks/#{deck.id}", headers: api_headers }
+
+      create_list(:magic_card, 8).each { |card| add_card(deck, card) }
+      large = query_count { get "/api/v1/decks/#{deck.id}", headers: api_headers }
+
+      expect(large).to eq(small)
+    end
+
+    it 'rejects a request with no token' do
+      get "/api/v1/decks/#{deck.id}", headers: { 'Accept' => 'application/json' }
 
       expect_api_error(:unauthorized, 'unauthorized')
     end

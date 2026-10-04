@@ -23,7 +23,7 @@ class Api::V1::DeckSummarySerializer
 
   # { collection_id => [MagicCard] }, in the order they were added
   def self.load_commanders(collection_ids)
-    CollectionMagicCard.decklist.commanders.where(collection_id: collection_ids)
+    CollectionMagicCard.commanders.where(collection_id: collection_ids)
                        .includes(magic_card: :color_identities).order(:id)
                        .group_by(&:collection_id)
                        .transform_values { |rows| rows.map(&:magic_card).uniq }
