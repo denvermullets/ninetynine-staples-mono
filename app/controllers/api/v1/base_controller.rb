@@ -2,6 +2,8 @@
 # the Godot client authenticates with a bearer token, and every failure renders the same
 # envelope: { "error": { "code": "...", "message": "..." } }
 class Api::V1::BaseController < ActionController::API
+  include Api::TokenAuthentication
+
   DEFAULT_PER_PAGE = 25
   MAX_PER_PAGE = 100
 
@@ -10,6 +12,9 @@ class Api::V1::BaseController < ActionController::API
   rescue_from StandardError, with: :render_internal_error unless Rails.application.config.consider_all_requests_local
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
   rescue_from ActionController::ParameterMissing, with: :render_unprocessable
+
+  # an unknown path is a 404 whether or not the caller is signed in
+  skip_before_action :authenticate_api_user!, only: :route_not_found
 
   # the catch-all route at the bottom of the api namespace, so a typo'd path gets JSON instead of the
   # HTML 404 page

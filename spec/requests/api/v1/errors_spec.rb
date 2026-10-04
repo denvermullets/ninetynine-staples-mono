@@ -6,6 +6,8 @@ require 'support/api/v1_helpers'
 module Api
   module V1
     class ErrorProbeController < BaseController
+      skip_before_action :authenticate_api_user!
+
       def missing_record
         User.find(-1)
       end

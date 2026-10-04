@@ -251,6 +251,9 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       get 'health', to: 'health#show'
+      post 'sessions', to: 'sessions#create'
+      delete 'sessions', to: 'sessions#destroy'
+      get 'me', to: 'me#show'
 
       # keep last: anything unmatched under /api/v1 gets a JSON 404, not the HTML error page
       match '*unmatched', to: 'base#route_not_found', via: :all
