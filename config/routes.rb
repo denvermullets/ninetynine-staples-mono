@@ -258,6 +258,8 @@ Rails.application.routes.draw do
       get 'me', to: 'me#show'
       resources :decks, only: %i[index show]
       resources :precon_decks, only: %i[index show]
+      # username can contain dots, so the segment takes anything up to the next slash
+      get 'users/:username/decks', to: 'user_decks#index', as: :user_decks, constraints: { username: %r{[^/]+} }
 
       # keep last: anything unmatched under /api/v1 gets a JSON 404, not the HTML error page
       match '*unmatched', to: 'base#route_not_found', via: :all
