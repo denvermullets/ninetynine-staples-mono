@@ -6,7 +6,7 @@
 # preload pass, so the query count does not grow with the number of cards. new(card) is for one card.
 class Api::V1::CardSerializer
   # Scryfall's stand-in for art that is not out yet - the client shows its own fallback instead
-  PLACEHOLDER_IMAGE = 'errors.scryfall.com/soon.jpg'.freeze
+  PLACEHOLDER_IMAGE = MagicCard::PLACEHOLDER_IMAGE
   COLOR_ORDER = %w[W U B R G].freeze
 
   def self.many(cards, rulings: false)

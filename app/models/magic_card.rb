@@ -1,4 +1,6 @@
 class MagicCard < ApplicationRecord
+  include CanonicalPrinting
+
   belongs_to :boxset
 
   has_many :printings
