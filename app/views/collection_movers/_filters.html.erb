@@ -1,0 +1,56 @@
+<%# locals: filters - CollectionStats::MoversTable filters, total, username, collection_id %>
+<%#
+  A GET form inside the movers_table frame, so a submit swaps the list and the form together and the
+  filters land in the URL. The toggles submit on change; the amounts submit on change too, which for a
+  number field is blur or Enter, so typing "15" does not fire a request for "1".
+
+  Sort and direction ride along as hidden fields - the headers set them, and changing a filter should
+  not quietly throw the sort away. The page does not, so a new filter starts at page one.
+%>
+
+<% pill = 'px-3 py-1.5 text-sm rounded-md transition cursor-pointer bg-background text-grey-text hover:bg-menu has-[:checked]:bg-highlight has-[:checked]:text-nine-white' %>
+<% field = 'w-24 px-2 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50' %>
+
+<%= form_with url: collection_movers_path(username), method: :get,
+  data: { controller: 'auto-submit', action: 'change->auto-submit#submit' },
+  class: 'flex flex-col gap-3' do %>
+  <%= hidden_field_tag :collection_id, collection_id if collection_id %>
+  <%= hidden_field_tag :sort, filters[:sort] %>
+  <%= hidden_field_tag :dir, filters[:dir] %>
+
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+    <% [[:window, { 'weekly' => 'Weekly', 'daily' => 'Daily' }],
+        [:direction, { 'both' => 'Up & Down', 'up' => 'Up', 'down' => 'Down' }],
+        [:finish, { 'both' => 'Any finish', 'normal' => 'Non-foil', 'foil' => 'Foil' }]].each do |name, options| %>
+      <div class="flex flex-wrap items-center gap-2">
+        <% options.each do |value, label| %>
+          <label class="<%= pill %>">
+            <%= radio_button_tag name, value, filters[name] == value, class: 'sr-only' %>
+            <%= label %>
+          </label>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="flex flex-wrap items-end gap-4">
+    <% [[:min_delta, 'Min $ move', '0.01'], [:min_percent, 'Min % move', '0.1'],
+        [:min_price, 'Min card price', '0.01']].each do |name, label, step| %>
+      <label class="flex flex-col gap-1 text-xs text-grey-text/70">
+        <%= label %>
+
+        <%= number_field_tag name, movers_amount(filters[name]), min: 0, step: step,
+          placeholder: 'Any', class: field %>
+      </label>
+    <% end %>
+
+    <%= submit_tag 'Apply', name: nil,
+      class: 'px-3 py-1.5 text-sm rounded-md bg-highlight text-nine-white cursor-pointer' %>
+  </div>
+
+  <p class="text-xs text-grey-text/50">
+    <%= pluralize(number_with_delimiter(total), 'card') %> moved
+    <%= movers_window_text(filters) %>. Proxy copies sit this one out - a proxy
+    price did not move, so you did not gain anything.
+  </p>
+<% end %>

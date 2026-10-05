@@ -13,6 +13,8 @@ class Collection < ApplicationRecord
   has_many :tracked_decks, dependent: :nullify
   has_many :deck_combos, dependent: :destroy
   has_many :combos, through: :deck_combos
+  # a rule scoped to this collection would silently widen to every collection if nullified
+  has_many :price_alerts, dependent: :destroy
 
   scope :by_user, ->(id) { where(user_id: id) }
   scope :by_type, ->(type) { where(collection_type: type) }

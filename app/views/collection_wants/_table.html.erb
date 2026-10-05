@@ -89,7 +89,10 @@
 
           <td class="px-4 py-6 text-sm">
             <% if owner %>
-              <%= render partial: 'collection_wants/owner_controls', locals: { item: item, view: view } %>
+              <div class="flex items-start gap-2">
+                <%= render partial: 'price_alerts/bell', locals: { placement: 'wants_table', want_list_item: item } %>
+                <%= render partial: 'collection_wants/owner_controls', locals: { item: item, view: view } %>
+              </div>
             <% end %>
           </td>
         </tr>

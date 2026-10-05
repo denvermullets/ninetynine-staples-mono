@@ -1,0 +1,120 @@
+<%# locals: (alert:, existing: [], override: nil) %>
+<%#
+  The price alert modal, in the same dialog shell as shared/_edit_collection_modal.
+
+  From a bell, alert is an unsaved threshold for the card, prefilled with its current price; existing
+  is every alert already on that card, so a second press can remove one; override is an unsaved
+  per-card movement alert, offered when the bell is on a single printing. From the index, alert is the
+  one being edited and the other two are empty.
+
+  The forms answer with turbo streams: a save empties this frame, which closes the dialog.
+%>
+
+<%= turbo_frame_tag 'price_alert_modal' do %>
+  <dialog
+    class="
+      fixed p-0 m-0 -translate-x-1/2 -translate-y-1/2 border rounded-lg
+      bg-foreground border-highlight backdrop:bg-black/50 top-1/2 left-1/2
+    "
+    data-controller="modal"
+    data-action="click->modal#closeOnBackdrop keydown.esc->modal#close"
+  >
+    <div
+      class="
+        w-[min(28rem,calc(100vw-2rem))] max-h-[85vh] overflow-y-auto p-6
+        space-y-6
+      "
+      data-modal-target="content"
+    >
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-semibold text-nine-white">
+            <%= alert.persisted? ? 'Edit alert' : 'Price alerts' %>
+          </h3>
+
+          <p class="text-sm text-grey-text">
+            <%= price_alert_subject(alert, cheapest: alert.scryfall_oracle_id ? PriceAlert.cheapest_printings([alert.scryfall_oracle_id]) : {}) %>
+
+            <% if (subtext = price_alert_subtext(alert)) %>
+              <span class="text-grey-text/60">· <%= subtext %></span>
+            <% end %>
+          </p>
+        </div>
+
+        <button
+          type="button"
+          data-action="click->modal#close"
+          class="cursor-pointer text-grey-text hover:text-nine-white"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+
+          <span class="sr-only">Close</span>
+        </button>
+      </div>
+
+      <% if existing.any? %>
+        <div class="flex flex-col gap-2">
+          <h4 class="text-xs font-semibold tracking-wider uppercase text-grey-text">
+            Already watching
+          </h4>
+
+          <% existing.each do |watching| %>
+            <div
+              id="<%= dom_id(watching, :modal) %>"
+              class="
+                flex items-center justify-between gap-3 px-3 py-2 text-sm border
+                rounded-md border-highlight bg-background text-grey-text
+              "
+            >
+              <span>
+                <%= price_alert_condition(watching) %>
+
+                <% unless watching.active? %>
+                  <span class="text-xs text-grey-text/50">(paused)</span>
+                <% end %>
+              </span>
+
+              <%= button_to 'Delete', price_alert_path(watching), method: :delete,
+                class: 'px-2 py-0.5 text-xs border rounded-md cursor-pointer border-highlight text-grey-text hover:text-accent-100 hover:border-accent-100' %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= render partial: 'price_alerts/form', locals: { alert: alert } %>
+
+      <% if override %>
+        <details class="group">
+          <summary
+            class="
+              text-xs font-semibold tracking-wider uppercase cursor-pointer
+              text-grey-text hover:text-nine-white
+            "
+          >
+            Movement alert for this card
+          </summary>
+
+          <p class="mt-2 mb-3 text-xs text-grey-text/70">
+            Tell me when this printing moves by this much. It replaces your
+            collection-wide movement rules for this card.
+          </p>
+
+          <%= render partial: 'price_alerts/form', locals: { alert: override } %>
+        </details>
+      <% end %>
+    </div>
+  </dialog>
+<% end %>

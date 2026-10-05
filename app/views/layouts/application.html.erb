@@ -44,6 +44,11 @@
 
       <div id="toasts" class="fixed z-50 space-y-2 bottom-4 right-4"></div>
 
+      <%# the price alert modal opens here, from a bell anywhere on the page - see price_alerts/_bell %>
+      <% if logged_in? %>
+        <%= turbo_frame_tag 'price_alert_modal' %>
+      <% end %>
+
       <% if logged_in? && !current_user.confirmed? %>
         <div
           class="

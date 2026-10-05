@@ -9,14 +9,15 @@
 # named after a notifiable type (e.g. "Trade") counts only the ones about that type.
 module Notifications
   class Deliver < Service
-    def initialize(user:, kind:, notifiable: nil)
+    def initialize(user:, kind:, notifiable: nil, payload: {})
       @user = user
       @kind = kind.to_s
       @notifiable = notifiable
+      @payload = payload
     end
 
     def call
-      notification = @user.notifications.create!(kind: @kind, notifiable: @notifiable)
+      notification = @user.notifications.create!(kind: @kind, notifiable: @notifiable, payload: @payload)
       ActiveRecord.after_all_transactions_commit { broadcast(notification) }
       notification
     end

@@ -14,11 +14,16 @@
       header: 'Notifications',
       subtext: "What has happened since you last looked." } %>
 
-    <% if @unread_count.positive? %>
-      <%= button_to 'Mark all as read', read_all_notifications_path,
-        method: :patch,
-        class: 'px-3 py-1.5 text-sm rounded-md transition cursor-pointer bg-background text-grey-text hover:bg-menu' %>
-    <% end %>
+    <div class="flex flex-wrap items-center gap-3">
+      <%= link_to 'Price alerts', price_alerts_path,
+        class: 'px-3 py-1.5 text-sm rounded-md transition bg-background text-grey-text hover:bg-menu' %>
+
+      <% if @unread_count.positive? %>
+        <%= button_to 'Mark all as read', read_all_notifications_path,
+          method: :patch,
+          class: 'px-3 py-1.5 text-sm rounded-md transition cursor-pointer bg-background text-grey-text hover:bg-menu' %>
+      <% end %>
+    </div>
   </div>
 
   <% if @notifications.empty? %>
