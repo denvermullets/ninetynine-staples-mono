@@ -49,14 +49,15 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
   end
 
   describe 'the row' do
-    it 'matches the PriceMovers row and adds both unit prices' do
+    it 'matches the PriceMovers row and adds the per-finish copies and both unit prices' do
       boxset = create(:boxset, name: 'Alpha', keyrune_code: 'LEA')
       card = add('Riser', price: 110, change: 10, quantity: 3, foil_price: 300, boxset: boxset,
                           image_small: 'small.jpg', image_large: 'large.jpg')
 
       expect(row('Riser')).to eq(
         id: card.id, name: 'Riser', set_name: 'Alpha', icon: 'no-tailwind ss ss-lea ss-fw',
-        image: 'small.jpg', image_large: 'large.jpg', copies: 3, value: 330, delta: 30,
+        image: 'small.jpg', image_large: 'large.jpg', copies: 3, qty: 3, foil_qty: 0, value: 330,
+        delta: 30,
         percent: 10.0, delta_class: CollectionStats::PriceMovers::GAIN_CLASS,
         normal_price: 110, foil_price: 300
       )
@@ -173,7 +174,8 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
     it 'prices only the foil copies for foil' do
       filters[:finish] = 'foil'
 
-      expect(row('Both Finishes')).to include(copies: 1, value: 220, delta: 20, percent: 10.0)
+      expect(row('Both Finishes')).to include(copies: 1, qty: 0, foil_qty: 1, value: 220, delta: 20,
+                                              percent: 10.0)
     end
 
     it 'drops a card held only in the other finish' do

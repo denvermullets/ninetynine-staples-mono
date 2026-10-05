@@ -1,0 +1,106 @@
+<%# locals: rows - CollectionStats::MoversTable rows, pagy, filters, username, collection_id %>
+<%#
+  One row per printing. Copies, holding and the moves count real copies only, matching the stats
+  panel. The headers are links inside the frame, so a sort swaps the table like a filter does.
+
+  The last column is deliberately empty: it is where the alert bell goes, kept narrow now so adding
+  it later does not shift the table.
+%>
+<% sort = { filters: filters, username: username, collection_id: collection_id } %>
+<% th = 'px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text' %>
+
+<div class="hidden mb-24 overflow-x-auto border md:block rounded-3xl border-highlight">
+  <table class="min-w-full divide-y table-auto divide-background">
+    <thead class="bg-background">
+      <tr>
+        <th class="w-12 <%= th %>"><span class="sr-only">Card art</span></th>
+
+        <th class="<%= th %>"><%= movers_sort_link('name', **sort) %></th>
+
+        <th class="text-right <%= th %>">Copies</th>
+
+        <th class="text-right <%= th %>">
+          <%= movers_sort_link('price', **sort) %>
+        </th>
+
+        <th class="text-right <%= th %>">
+          <%= movers_sort_link('value', **sort) %>
+        </th>
+
+        <th class="text-right <%= th %>">
+          <%= movers_sort_link('delta', **sort) %>
+        </th>
+
+        <th class="text-right <%= th %>">
+          <%= movers_sort_link('percent', **sort) %>
+        </th>
+
+        <th class="w-10 <%= th %>"><span class="sr-only">Alerts</span></th>
+      </tr>
+    </thead>
+
+    <tbody class="bg-background">
+      <% rows.each do |row| %>
+        <tr class="border border-background text-grey-text bg-foreground">
+          <%# the thumbnail is the hover target, same wiring as collection_stats/_card_list %>
+
+          <td class="px-4 py-2">
+            <% if row[:image].present? %>
+              <%= image_tag row[:image], alt: row[:name],
+                class: 'object-cover w-8 rounded h-11',
+                data: {
+                  controller: 'card-hover',
+                  card_hover_image_value: row[:image_large],
+                  card_hover_name_value: row[:name],
+                  action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+                } %>
+            <% else %>
+              <span class="block w-8 rounded h-11 bg-background"></span>
+            <% end %>
+          </td>
+
+          <td class="px-4 py-2 text-sm">
+            <p class="truncate"><%= row[:name].to_s.split('//').first %></p>
+
+            <p class="flex items-center gap-1 text-xs text-grey-text/50">
+              <% if row[:icon].present? %>
+                <i class="<%= row[:icon] %>" aria-hidden="true"></i>
+              <% end %>
+
+              <%= row[:set_name] || 'Unknown set' %>
+            </p>
+          </td>
+
+          <td class="px-4 py-2 text-sm text-right whitespace-nowrap text-grey-text/70">
+            &times;<%= number_with_delimiter(row[:copies]) %>
+          </td>
+
+          <td class="px-4 py-2 text-sm text-right whitespace-nowrap text-grey-text/70">
+            <%= movers_unit_price(row) %>
+          </td>
+
+          <td class="px-4 py-2 text-sm text-right whitespace-nowrap">
+            <%= number_to_currency(row[:value]) %>
+          </td>
+
+          <td class="px-4 py-2 text-sm text-right whitespace-nowrap <%= row[:delta_class] %>">
+            <%= movers_delta(row) %>
+          </td>
+
+          <td class="px-4 py-2 text-sm text-right whitespace-nowrap <%= row[:delta_class] %>">
+            <%= movers_percent(row) %>
+          </td>
+
+          <td class="w-10 px-2 py-2"></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if pagy %>
+    <div class="flex flex-row items-center justify-between w-full p-6 space-x-4">
+      <%== pagy.info_tag() %>
+      <%== pagy.series_nav() %>
+    </div>
+  <% end %>
+</div>

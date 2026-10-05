@@ -100,7 +100,7 @@ module CollectionStats
     def columns
       ['magic_cards.id', 'magic_cards.name', 'magic_cards.image_small', 'magic_cards.image_large',
        'boxsets.name', 'boxsets.keyrune_code', copies_sql, value_sql, delta_sql,
-       'magic_cards.normal_price', 'magic_cards.foil_price']
+       qty_sql, foil_qty_sql, 'magic_cards.normal_price', 'magic_cards.foil_price']
     end
 
     # the finish filter, applied by pricing the excluded finish at zero copies
@@ -161,12 +161,13 @@ module CollectionStats
     end
 
     def build_row(row)
-      id, name, image, image_large, set_name, keyrune, copies, value, delta, *prices = row
+      id, name, image, image_large, set_name, keyrune, copies, value, delta, qty, foil_qty, *prices = row
       value = to_money(value || 0)
       delta = to_money(delta || 0)
 
       { id: id, name: name || 'Unknown card', set_name: set_name, icon: keyrune_icon(keyrune),
-        image: image, image_large: image_large || image, copies: copies.to_i, value: value,
+        image: image, image_large: image_large || image, copies: copies.to_i, qty: qty.to_i,
+        foil_qty: foil_qty.to_i, value: value,
         delta: delta, percent: share(delta, value - delta),
         delta_class: delta.negative? ? PriceMovers::LOSS_CLASS : PriceMovers::GAIN_CLASS,
         **unit_prices(*prices) }
