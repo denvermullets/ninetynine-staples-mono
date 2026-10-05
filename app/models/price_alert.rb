@@ -67,6 +67,8 @@ class PriceAlert < ApplicationRecord
   scope :movements, -> { where(kind: 'movement') }
   scope :movement_rules, -> { movements.where(magic_card_id: nil, scryfall_oracle_id: nil) }
   scope :card_overrides, -> { movements.where.not(magic_card_id: nil) }
+  # rules counting exactly these .movement_rule_attributes
+  scope :matching_rule, ->(attributes) { movement_rules.where(attributes) }
 
   # An unsaved threshold alert watching what the want item asks for: any printing when the want
   # matches by oracle id, otherwise its exact printing, in the finish it prefers. An exact printing
@@ -132,6 +134,24 @@ class PriceAlert < ApplicationRecord
       min_delta: min_delta_amount&.to_s('F'), min_percent: min_delta_percent&.to_s('F'),
       min_price: min_price&.to_s('F') }.compact
   end
+
+  # The other way round from #movers_filters: the movement rule a set of CollectionStats::MoversTable
+  # filters saves as, so the page's "alert me" button and the duplicate check agree on what a rule
+  # is. Sort and page are not part of a rule. Amounts are rounded to the columns' two places, so an
+  # existing rule is found by the values it was actually stored with.
+  def self.movement_rule_attributes(filters, collection_id: nil)
+    { collection_id: collection_id, window: filters[:window], direction: filters[:direction],
+      finish: filters[:finish] == 'both' ? 'any' : filters[:finish],
+      min_delta_amount: cents(filters[:min_delta]), min_delta_percent: cents(filters[:min_percent]),
+      min_price: cents(filters[:min_price]) }
+  end
+
+  # an amount that rounds to nothing is no minimum at all, the same as the movers table reads it
+  def self.cents(value)
+    rounded = value&.to_d&.round(2)
+    rounded if rounded&.positive?
+  end
+  private_class_method :cents
 
   # Which side of the threshold `price` sits on. Landing exactly on $X counts as reaching it.
   def side_for(price)

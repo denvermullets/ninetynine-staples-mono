@@ -1,0 +1,40 @@
+<%# locals: (rule:, attributes: nil) %>
+<%#
+  Saves the page's filters as a movement rule - PriceAlert.movement_rule_attributes, so sort and page
+  are left out. When an active rule already counts these exact filters, it says so and links to it
+  instead, rather than making a second one. price_alerts#create replaces this by id once the rule is
+  saved.
+
+  The manage link targets _top: this sits inside the movers_table frame.
+%>
+
+<% button = 'px-3 py-1.5 text-sm transition border rounded-md border-highlight text-grey-text' %>
+
+<div id="movers_alert" class="flex flex-col items-start gap-1 lg:items-end">
+  <% if rule %>
+    <div class="flex items-center gap-3">
+      <span class="<%= button %> border-accent-50/50 text-accent-50">
+        Alert on
+      </span>
+
+      <%= link_to 'Manage', price_alerts_path,
+        class: 'text-sm text-grey-text/70 hover:text-accent-50',
+        data: { turbo_frame: '_top' } %>
+    </div>
+  <% elsif movers_alert_ready?(attributes) %>
+    <%= button_to 'Alert me when cards match this', price_alerts_path,
+      params: { price_alert: movers_alert_params(attributes) },
+      class: "#{button} cursor-pointer hover:bg-foreground hover:border-accent-50 hover:text-accent-50" %>
+  <% else %>
+    <button
+      type="button"
+      disabled
+      class="<%= button %> opacity-50 cursor-not-allowed"
+    >
+      Alert me when cards match this
+    </button>
+    <p class="text-xs text-grey-text/50">
+      Set a min $ or % move to save these filters as an alert.
+    </p>
+  <% end %>
+</div>

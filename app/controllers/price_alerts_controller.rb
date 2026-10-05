@@ -6,6 +6,9 @@
 # with turbo streams that close the modal, patch the index row and every bell on the page watching the
 # same card, and toast. A failed write leaves the modal open and toasts the errors.
 #
+# A collection-wide movement rule is created from the movers page's "alert me" button rather than the
+# modal, so its create answers by flipping that button instead.
+#
 # Which fields a write may set is PriceAlerts::Save's call.
 class PriceAlertsController < ApplicationController
   before_action :authenticate_user!
@@ -35,6 +38,8 @@ class PriceAlertsController < ApplicationController
     result = PriceAlerts::Save.call(user: current_user, params: alert_params)
     alert = result[:alert]
     return render_errors(alert) unless result[:success]
+
+    return render_rule_created(alert) if alert.movement_rule?
 
     render_saved(alert, "#{alert.threshold? ? 'Price' : 'Movement'} alert created.")
   end
@@ -107,6 +112,17 @@ class PriceAlertsController < ApplicationController
     end
 
     render turbo_stream: streams
+  end
+
+  # A rule is only made from the movers page's button, which this turns to "Alert on". The toast links
+  # to the alerts page, since nothing else on the movers page shows the rule.
+  def render_rule_created(alert)
+    message = helpers.safe_join(['Movement alert created. ',
+                                 helpers.link_to('Manage alerts', price_alerts_path, class: 'underline')])
+
+    render turbo_stream: [turbo_stream.replace('movers_alert', partial: 'collection_movers/alert_button',
+                                                               locals: { rule: alert }),
+                          toast(message)]
   end
 
   def render_errors(alert)

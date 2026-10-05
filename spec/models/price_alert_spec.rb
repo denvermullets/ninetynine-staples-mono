@@ -222,4 +222,43 @@ RSpec.describe PriceAlert, type: :model do
       expect(alert).to have_attributes(magic_card_id: card.id, finish: 'normal')
     end
   end
+
+  describe '.movement_rule_attributes' do
+    # what CollectionStats::MoversTable hands the page, sort and all
+    let(:filters) do
+      { window: 'daily', direction: 'up', finish: 'both', min_delta: BigDecimal('5'), min_percent: nil,
+        min_price: BigDecimal('2.5'), sort: 'name', dir: 'asc' }
+    end
+
+    it 'saves the filters as a movement rule, leaving sort and page out' do
+      collection = create(:collection, user: user)
+
+      expect(described_class.movement_rule_attributes(filters, collection_id: collection.id)).to eq(
+        collection_id: collection.id, window: 'daily', direction: 'up', finish: 'any',
+        min_delta_amount: BigDecimal('5'), min_delta_percent: nil, min_price: BigDecimal('2.5')
+      )
+    end
+
+    it 'rounds amounts to the cents they are stored as, and drops one that rounds to nothing' do
+      attributes = described_class.movement_rule_attributes(filters.merge(min_delta: BigDecimal('5.555'),
+                                                                          min_percent: BigDecimal('0.001')))
+
+      expect(attributes).to include(min_delta_amount: BigDecimal('5.56'), min_delta_percent: nil)
+    end
+
+    it 'round-trips: the rule links back to the same movers table filters' do
+      rule = user.price_alerts.create!(kind: 'movement', **described_class.movement_rule_attributes(filters))
+      table = CollectionStats::MoversTable.new(collection_ids: [], filters: rule.movers_filters).call
+
+      expect(table[:filters].except(:sort, :dir)).to eq(filters.except(:sort, :dir))
+    end
+
+    it 'finds the active rule already counting the same filters' do
+      attributes = described_class.movement_rule_attributes(filters)
+      rule = user.price_alerts.create!(kind: 'movement', **attributes)
+      user.price_alerts.create!(kind: 'movement', **attributes, min_price: nil)
+
+      expect(user.price_alerts.active.matching_rule(attributes)).to contain_exactly(rule)
+    end
+  end
 end

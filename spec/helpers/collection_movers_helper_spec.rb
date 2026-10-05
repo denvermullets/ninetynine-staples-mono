@@ -57,4 +57,25 @@ RSpec.describe CollectionMoversHelper, type: :helper do
       expect(helper.movers_percent(row.merge(percent: 3.2))).to eq('+3.2%')
     end
   end
+
+  describe '#movers_alert_params' do
+    it 'posts the rule as plain values with the unset ones dropped' do
+      attributes = PriceAlert.movement_rule_attributes(filters, collection_id: 7)
+
+      expect(helper.movers_alert_params(attributes)).to eq(
+        kind: 'movement', collection_id: 7, window: 'weekly', direction: 'both', finish: 'any',
+        min_delta_amount: '5', min_delta_percent: '12.5'
+      )
+    end
+  end
+
+  describe '#movers_alert_ready?' do
+    it 'needs a minimum move in dollars or percent' do
+      ready = ->(changes) { helper.movers_alert_ready?(PriceAlert.movement_rule_attributes(filters.merge(changes))) }
+
+      expect(ready.call(min_percent: nil)).to be(true)
+      expect(ready.call(min_delta: nil)).to be(true)
+      expect(ready.call(min_delta: nil, min_percent: nil, min_price: BigDecimal('3'))).to be(false)
+    end
+  end
 end

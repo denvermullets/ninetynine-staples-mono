@@ -68,6 +68,17 @@ module CollectionMoversHelper
     row[:qty].zero? && row[:foil_qty].positive? ? 'foil' : 'normal'
   end
 
+  # PriceAlert.movement_rule_attributes as the params the "alert me" button posts to price_alerts#create
+  def movers_alert_params(attributes)
+    attributes.compact.transform_values { |value| value.is_a?(BigDecimal) ? movers_amount(value) : value }
+              .merge(kind: 'movement')
+  end
+
+  # a rule with no minimum move would fire on every card that moved at all, every day
+  def movers_alert_ready?(attributes)
+    attributes[:min_delta_amount].present? || attributes[:min_delta_percent].present?
+  end
+
   def movers_window_text(filters)
     filters[:window] == 'daily' ? 'since yesterday' : 'this week'
   end

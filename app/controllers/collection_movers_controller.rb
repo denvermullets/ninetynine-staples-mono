@@ -2,8 +2,8 @@
 #
 # Not authenticated, same as the stats dashboard it expands: Scope decides which of the named user's
 # collections the viewer is allowed to see, and a public one is readable logged out. current_user is
-# who is looking, never whose cards are being counted. @scope[:owner] is what later decides whether
-# the alert controls render.
+# who is looking, never whose cards are being counted. @scope[:owner] is what decides whether the
+# alert controls render, and only then is the viewer's own movement rule for these filters looked up.
 #
 # CollectionStats::MoversTable whitelists every filter and does its own paging, so this only passes
 # the params through and wraps its total for Pagy. The filters and the table share one turbo frame
@@ -37,6 +37,13 @@ class CollectionMoversController < ApplicationController
     @rows = result[:rows]
     @total = result[:total]
     @pagy = Pagy::Offset.new(count: @total, page: result[:page], limit: result[:per_page], request: request)
+    load_alert_rule if @scope[:owner]
+  end
+
+  # the movement rule these filters would save as, and the active one already counting them, if any
+  def load_alert_rule
+    @rule_attributes = PriceAlert.movement_rule_attributes(@filters, collection_id: @scope[:collection]&.id)
+    @alert_rule = current_user.price_alerts.active.matching_rule(@rule_attributes).first
   end
 
   # sliced first so the path params (username, collection_id, page) are not logged as unpermitted

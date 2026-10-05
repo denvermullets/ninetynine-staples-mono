@@ -1,7 +1,8 @@
 require 'rails_helper'
 
-# Only the paths that render nothing: the login redirect and the 404s for what is not yours. Which
-# fields a write keeps is covered in spec/services/price_alerts/save_spec.rb.
+# Only the paths that render no layout: the login redirect, the 404s for what is not yours, and the
+# turbo stream a movement rule answers with. Which fields a write keeps is covered in
+# spec/services/price_alerts/save_spec.rb.
 RSpec.describe 'PriceAlerts', type: :request do
   let(:user) { create(:user) }
   let(:other_user) { create(:user) }
@@ -48,6 +49,28 @@ RSpec.describe 'PriceAlerts', type: :request do
 
       expect(response).to have_http_status(:not_found)
       expect(someone_elses.reload).to be_active
+    end
+
+    # the movers page's "alert me" button: the stream is two partials, nothing in a layout
+    it 'saves a movement rule and turns the movers button to "Alert on"' do
+      expect do
+        post price_alerts_path, params: { price_alert: { kind: 'movement', window: 'daily', direction: 'up',
+                                                         finish: 'any', min_delta_amount: '5' } },
+                                as: :turbo_stream
+      end.to change(user.price_alerts.movement_rules, :count).by(1)
+
+      expect(response.body).to include('target="movers_alert"', 'Alert on', price_alerts_path)
+    end
+
+    it "will not narrow a movement rule to someone else's collection" do
+      expect do
+        post price_alerts_path, params: { price_alert: { kind: 'movement', window: 'daily', direction: 'up',
+                                                         finish: 'any', min_delta_amount: '5',
+                                                         collection_id: create(:collection, user: other_user).id } },
+                                as: :turbo_stream
+      end.not_to change(PriceAlert, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "404s deleting someone else's alert and leaves it alone" do

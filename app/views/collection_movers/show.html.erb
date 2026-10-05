@@ -38,9 +38,21 @@
     %>
     <%= turbo_frame_tag 'movers_table', data: { turbo_action: 'advance' } do %>
       <div class="flex flex-col space-y-4">
-        <%= render partial: 'collection_movers/filters', locals: {
-          filters: @filters, total: @total, username: username,
-          collection_id: collection_id } %>
+        <%#
+          the alert button lives in the frame so it re-renders with every filter change; it sits
+          beside the filter form rather than in it, since it is a form of its own
+        %>
+
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <%= render partial: 'collection_movers/filters', locals: {
+            filters: @filters, total: @total, username: username,
+            collection_id: collection_id } %>
+
+          <% if @scope[:owner] %>
+            <%= render partial: 'collection_movers/alert_button', locals: {
+              rule: @alert_rule, attributes: @rule_attributes } %>
+          <% end %>
+        </div>
 
         <% if @rows.empty? %>
           <div
