@@ -1,0 +1,28 @@
+<%# locals: magic_card (or magic_card_id, for a row that is a hash) and finish, or want_list_item %>
+<%#
+  Opens the price alert modal for one printing, or for a want - which watches any printing of the card
+  when the want does. The modal loads into the layout's price_alert_modal frame, so this works from
+  inside any other frame.
+
+  The icon sits in a span of its own, keyed by the card it watches, so a write can relight every bell
+  for the same card without knowing what each one links to.
+%>
+
+<% if logged_in? %>
+  <% if local_assigns[:want_list_item]
+    key = price_alert_bell_key(**(want_list_item.matches_by_oracle? ? { scryfall_oracle_id: want_list_item.scryfall_oracle_id } : { magic_card_id: want_list_item.magic_card_id }))
+    path = new_price_alert_path(want_list_item_id: want_list_item.id)
+  else
+    card_id = local_assigns[:magic_card]&.id || local_assigns[:magic_card_id]
+    key = price_alert_bell_key(magic_card_id: card_id)
+    path = new_price_alert_path(magic_card_id: card_id, finish: local_assigns[:finish] || 'normal')
+  end %>
+  <%= link_to path,
+    class: 'inline-flex items-center justify-center p-1 rounded-md hover:bg-background',
+    title: 'Price alerts',
+    data: { turbo_frame: 'price_alert_modal' } do %>
+    <span data-price-alert-bell="<%= key %>" class="inline-flex">
+      <%= render partial: 'price_alerts/bell_icon', locals: { watched: price_alert_watched?(key) } %>
+    </span>
+  <% end %>
+<% end %>

@@ -63,6 +63,11 @@ module CollectionMoversHelper
     "#{'+' unless row[:percent].negative?}#{row[:percent]}%"
   end
 
+  # the finish a row's alert bell starts on: foil when foil is all that is held
+  def movers_alert_finish(row)
+    row[:qty].zero? && row[:foil_qty].positive? ? 'foil' : 'normal'
+  end
+
   def movers_window_text(filters)
     filters[:window] == 'daily' ? 'since yesterday' : 'this week'
   end

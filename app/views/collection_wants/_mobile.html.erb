@@ -15,8 +15,12 @@
             <% end %>
           </p>
 
-          <span class="text-sm shrink-0 text-grey-text">
+          <span class="flex items-center gap-1 text-sm shrink-0 text-grey-text">
             <%= want_unit_price(item) %>
+
+            <% if owner %>
+              <%= render partial: 'price_alerts/bell', locals: { want_list_item: item } %>
+            <% end %>
           </span>
         </div>
 

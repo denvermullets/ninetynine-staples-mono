@@ -1,10 +1,10 @@
-<%# locals: rows - CollectionStats::MoversTable rows, pagy, filters, username, collection_id %>
+<%# locals: rows - CollectionStats::MoversTable rows, pagy, filters, username, collection_id, owner %>
 <%#
   One row per printing. Copies, holding and the moves count real copies only, matching the stats
   panel. The headers are links inside the frame, so a sort swaps the table like a filter does.
 
-  The last column is deliberately empty: it is where the alert bell goes, kept narrow now so adding
-  it later does not shift the table.
+  The last column is the owner's price alert bell, in the finish they hold - foil when that is all
+  they have. It stays for a visitor, empty, so the table is the same shape for everyone.
 %>
 <% sort = { filters: filters, username: username, collection_id: collection_id } %>
 <% th = 'px-4 py-2 text-xs font-normal tracking-wider text-left normal-case text-grey-text' %>
@@ -91,7 +91,12 @@
             <%= movers_percent(row) %>
           </td>
 
-          <td class="w-10 px-2 py-2"></td>
+          <td class="w-10 px-2 py-2">
+            <% if owner %>
+              <%= render partial: 'price_alerts/bell', locals: {
+                magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
+            <% end %>
+          </td>
         </tr>
       <% end %>
     </tbody>

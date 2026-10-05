@@ -109,14 +109,22 @@
     </div>
 
     <div class="flex flex-col md:col-span-2">
-      <div class="mb-6">
-        <h3 class="hidden text-lg font-semibold text-nine-white md:block">
-          <%= card.name %>
-        </h3>
+      <div class="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h3 class="hidden text-lg font-semibold text-nine-white md:block">
+            <%= card.name %>
+          </h3>
 
-        <p class="hidden text-sm text-grey-text md:block">
-          <%= card.boxset.name %>
-        </p>
+          <p class="hidden text-sm text-grey-text md:block">
+            <%= card.boxset.name %>
+          </p>
+        </div>
+
+        <%# a price alert for a card you own, from your own collection - foil when that is all you hold %>
+        <% if local_assigns[:editable] && (owns_normal || owns_foil) && (card.card_side.nil? || card.card_side == 'a') %>
+          <%= render partial: 'price_alerts/bell', locals: {
+            magic_card: card, finish: owns_normal ? 'normal' : 'foil' } %>
+        <% end %>
       </div>
 
       <% if card&.card_side == 'a' || card&.card_side.nil? %>

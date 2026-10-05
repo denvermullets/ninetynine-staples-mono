@@ -1,4 +1,4 @@
-<%# locals: rows, pagy, filters, username, collection_id %>
+<%# locals: rows, pagy, filters, username, collection_id, owner %>
 <%#
   The same rows without the table. No thumbnail - there is no hover on a phone - and the headers
   become a row of sort links, with the move leading each card.
@@ -46,6 +46,13 @@
           <span>&times;<%= number_with_delimiter(row[:copies]) %></span>
           <span><%= movers_unit_price(row) %></span>
           <span>Holding <%= number_to_currency(row[:value]) %></span>
+
+          <% if owner %>
+            <span class="ml-auto">
+              <%= render partial: 'price_alerts/bell', locals: {
+                magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
+            </span>
+          <% end %>
         </div>
       </div>
     <% end %>

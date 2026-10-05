@@ -1,0 +1,54 @@
+<%# locals: (alert:, cheapest: nil) %>
+<%#
+  One alert on the index. cheapest is PriceAlert.cheapest_printings for the page's oracle alerts; a row
+  re-rendered on its own after an update looks its card up instead.
+%>
+
+<% button = 'px-2 py-1 text-xs transition border rounded-md cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white'
+  cheapest ||= alert.scryfall_oracle_id ? PriceAlert.cheapest_printings([alert.scryfall_oracle_id]) : {} %>
+
+<div
+  id="<%= dom_id(alert) %>"
+  class="
+    flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-6
+    <%= 'opacity-60' unless alert.active? %>
+  "
+>
+  <div class="min-w-0 md:w-1/4">
+    <p class="text-sm font-semibold truncate text-grey-text">
+      <%= price_alert_subject(alert, cheapest: cheapest) %>
+    </p>
+
+    <% if (subtext = price_alert_subtext(alert)) %>
+      <p class="text-xs truncate text-grey-text/50"><%= subtext %></p>
+    <% end %>
+  </div>
+
+  <p class="text-sm md:flex-1 text-grey-text">
+    <%= price_alert_condition(alert) %>
+  </p>
+
+  <div class="flex flex-wrap gap-4 text-xs md:w-1/4 text-grey-text/60">
+    <% if alert.threshold? %>
+      <span>
+        Now
+        <%= (price = alert.current_price(cheapest: cheapest)) ? number_to_currency(price) : '-' %>
+      </span>
+    <% end %>
+
+    <span>Last fired <%= price_alert_last_fired(alert) %></span>
+  </div>
+
+  <div class="flex items-center gap-2 shrink-0">
+    <%= button_to alert.active? ? 'Active' : 'Paused', price_alert_path(alert),
+      method: :patch, params: { price_alert: { active: !alert.active? } },
+      title: alert.active? ? 'Pause this alert' : 'Resume this alert',
+      class: "#{button} #{'text-accent-50 border-accent-50/50' if alert.active?}" %>
+
+    <%= link_to 'Edit', edit_price_alert_path(alert), class: button,
+      data: { turbo_frame: 'price_alert_modal' } %>
+
+    <%= button_to 'Delete', price_alert_path(alert), method: :delete, class: button,
+      data: { turbo_confirm: 'Delete this alert?' } %>
+  </div>
+</div>

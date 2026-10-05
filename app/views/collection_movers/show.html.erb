@@ -26,6 +26,11 @@
 
       <%= link_to 'Collection Stats', collections_stats_path(username, collection_id: collection_id),
         class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+
+      <% if @scope[:owner] %>
+        <%= link_to 'Price Alerts', price_alerts_path,
+          class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+      <% end %>
     </div>
     <%#
       turbo_action advance so every filter, sort and page is a URL: the point of a GET form here is a
@@ -54,10 +59,10 @@
         <% else %>
           <%= render partial: 'collection_movers/mobile', locals: {
             rows: @rows, pagy: @pagy, filters: @filters, username: username,
-            collection_id: collection_id } %>
+            collection_id: collection_id, owner: @scope[:owner] } %>
           <%= render partial: 'collection_movers/table', locals: {
             rows: @rows, pagy: @pagy, filters: @filters, username: username,
-            collection_id: collection_id } %>
+            collection_id: collection_id, owner: @scope[:owner] } %>
         <% end %>
       </div>
     <% end %>

@@ -252,6 +252,10 @@ Rails.application.routes.draw do
     end
   end
 
+  # The signed-in user's price alerts. new and edit answer with the modal, loaded into the layout's
+  # price_alert_modal frame; the writes answer with turbo streams.
+  resources :price_alerts, only: %i[index new create edit update destroy]
+
   # JSON API for the Godot game client - see docs/api/v1.md
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
