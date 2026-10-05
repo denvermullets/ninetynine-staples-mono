@@ -50,7 +50,7 @@
           <% if owner %>
             <span class="ml-auto">
               <%= render partial: 'price_alerts/bell', locals: {
-                magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
+                placement: 'movers_mobile', magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
             </span>
           <% end %>
         </div>

@@ -6,13 +6,8 @@
 # with turbo streams that close the modal, patch the index row and every bell on the page watching the
 # same card, and toast. A failed write leaves the modal open and toasts the errors.
 #
-# The fields a write may set depend on the kind; anything else in the params is dropped. An alert never
-# changes what it watches once made, so the card and oracle ids are only accepted on create.
+# Which fields a write may set is PriceAlerts::Save's call.
 class PriceAlertsController < ApplicationController
-  THRESHOLD_FIELDS = %i[finish direction threshold_price].freeze
-  MOVEMENT_FIELDS = %i[collection_id finish direction window min_delta_amount min_delta_percent min_price].freeze
-  TARGET_FIELDS = { 'threshold' => %i[magic_card_id scryfall_oracle_id], 'movement' => %i[magic_card_id] }.freeze
-
   before_action :authenticate_user!
   before_action :set_alert, only: %i[edit update destroy]
 
@@ -37,16 +32,16 @@ class PriceAlertsController < ApplicationController
   end
 
   def create
-    kind = params.dig(:price_alert, :kind).to_s
-    alert = current_user.price_alerts.new(kind: kind)
-    alert.assign_attributes(alert_params(kind, TARGET_FIELDS.fetch(kind, [])))
-    return render_errors(alert) unless alert.save
+    result = PriceAlerts::Save.call(user: current_user, params: alert_params)
+    alert = result[:alert]
+    return render_errors(alert) unless result[:success]
 
     render_saved(alert, "#{alert.threshold? ? 'Price' : 'Movement'} alert created.")
   end
 
   def update
-    return render_errors(@alert) unless @alert.update(alert_params(@alert.kind, [:active]))
+    return render_errors(@alert) unless PriceAlerts::Save.call(user: current_user, alert: @alert,
+                                                               params: alert_params)[:success]
 
     message = if @alert.saved_change_to_active? then @alert.active? ? 'Alert resumed.' : 'Alert paused.'
               else 'Alert updated.'
@@ -99,9 +94,9 @@ class PriceAlertsController < ApplicationController
     render partial: 'price_alerts/modal', locals: { alert: alert, existing: existing, override: override }
   end
 
-  def alert_params(kind, extra)
-    fields = kind == 'threshold' ? THRESHOLD_FIELDS : MOVEMENT_FIELDS
-    params.fetch(:price_alert, {}).permit(*fields, *extra)
+  # PriceAlerts::Save permits what the alert's kind takes
+  def alert_params
+    params.fetch(:price_alert, ActionController::Parameters.new)
   end
 
   def render_saved(alert, message, row: false)
@@ -118,12 +113,8 @@ class PriceAlertsController < ApplicationController
     render turbo_stream: toast(alert.errors.full_messages.to_sentence, type: 'error'), status: :unprocessable_content
   end
 
-  # Every bell on the page for the same card, which may sit in both the table and the mobile list.
-  # Only thresholds light a bell, so a movement alert changes none.
-  #
-  # This update_all is turbo_stream's, not ActiveRecord's: the string is a CSS selector, and the key in
-  # it is only ever an integer id or a uuid (see price_alert_bell_key). Brakeman reads it as SQL; the
-  # warning is recorded as a false positive in config/brakeman.ignore.
+  # Every bell on the page for the same card, which may sit in both the table and the mobile list:
+  # one update per placement, by DOM id. Only thresholds light a bell, so a movement alert changes none.
   def bell_streams(alert)
     return [] unless alert.threshold?
 
@@ -131,8 +122,10 @@ class PriceAlertsController < ApplicationController
     watched = current_user.price_alerts.active.thresholds.exists?(target)
     key = helpers.price_alert_bell_key(**alert.slice(:magic_card_id, :scryfall_oracle_id).symbolize_keys)
 
-    [turbo_stream.update_all("[data-price-alert-bell=\"#{key}\"]",
-                             partial: 'price_alerts/bell_icon', locals: { watched: watched })]
+    PriceAlertsHelper::BELL_PLACEMENTS.map do |placement|
+      turbo_stream.update(helpers.price_alert_bell_id(placement, key), partial: 'price_alerts/bell_icon',
+                                                                       locals: { watched: watched })
+    end
   end
 
   def toast(message, type: 'success')

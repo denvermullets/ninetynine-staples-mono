@@ -94,7 +94,7 @@
           <td class="w-10 px-2 py-2">
             <% if owner %>
               <%= render partial: 'price_alerts/bell', locals: {
-                magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
+                placement: 'movers_table', magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
             <% end %>
           </td>
         </tr>

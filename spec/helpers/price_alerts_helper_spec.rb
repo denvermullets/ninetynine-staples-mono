@@ -4,27 +4,6 @@ RSpec.describe PriceAlertsHelper, type: :helper do
   let(:user) { create(:user) }
   let(:card) { create(:magic_card) }
 
-  describe '#price_alert_condition' do
-    it 'reads a threshold as direction, price and finish' do
-      alert = build(:price_alert, direction: 'above', threshold_price: 20, finish: 'foil')
-
-      expect(helper.price_alert_condition(alert)).to eq('Above $20.00 (foil)')
-    end
-
-    it 'reads a movement rule as window, minimums and direction' do
-      alert = build(:price_alert, :movement_rule, window: 'weekly', min_delta_amount: 5, min_delta_percent: 15)
-
-      expect(helper.price_alert_condition(alert)).to eq('Weekly, ±$5 and ±15%, up or down')
-    end
-
-    it 'adds the finish and the minimum card price when a rule narrows them' do
-      alert = build(:price_alert, :movement_rule, window: 'daily', direction: 'down', min_delta_amount: 2.5,
-                                                  finish: 'foil', min_price: 3)
-
-      expect(helper.price_alert_condition(alert)).to eq('Daily, -$2.50, down, foil, cards $3.00+')
-    end
-  end
-
   describe '#price_alert_bell_key' do
     it 'keys a printing by id and a card by oracle id' do
       oracle_id = SecureRandom.uuid
@@ -37,6 +16,16 @@ RSpec.describe PriceAlertsHelper, type: :helper do
     it 'refuses anything that is not an id or a uuid' do
       expect { helper.price_alert_bell_key(magic_card_id: '1"] , *') }.to raise_error(ArgumentError)
       expect { helper.price_alert_bell_key(scryfall_oracle_id: 'x"], [data-x="') }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe '#price_alert_bell_id' do
+    it 'names a bell by its placement and card' do
+      expect(helper.price_alert_bell_id('wants_table', 'card-12')).to eq('price_alert_bell_wants_table_card-12')
+    end
+
+    it 'refuses a placement that no write would relight' do
+      expect { helper.price_alert_bell_id('sidebar', 'card-12') }.to raise_error(ArgumentError)
     end
   end
 

@@ -123,7 +123,7 @@
         <%# a price alert for a card you own, from your own collection - foil when that is all you hold %>
         <% if local_assigns[:editable] && (owns_normal || owns_foil) && (card.card_side.nil? || card.card_side == 'a') %>
           <%= render partial: 'price_alerts/bell', locals: {
-            magic_card: card, finish: owns_normal ? 'normal' : 'foil' } %>
+            placement: 'details', magic_card: card, finish: owns_normal ? 'normal' : 'foil' } %>
         <% end %>
       </div>
 
