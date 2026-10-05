@@ -51,7 +51,8 @@ module NavHelper
   def collection_nav_path?(path)
     return false unless current_user
 
-    path.start_with?("/collections/#{current_user.username}", '/scan-cards', '/bulk-edit', '/import-collection')
+    path.start_with?("/collections/#{current_user.username}", '/scan-cards', '/bulk-edit', '/import-collection',
+                     '/price_alerts')
   end
 
   def browse_nav_menu
@@ -69,13 +70,15 @@ module NavHelper
       { label: 'Overview', path: collections_overview_path(username) },
       { label: 'All Cards', path: collection_show_path(username) },
       { label: 'Stats', path: collections_stats_path(username) },
+      { label: 'Price Movers', path: collection_movers_path(username) },
       { label: 'Sets', path: collection_sets_path(username) },
       { label: 'Reserved List', path: collection_reserved_path(username) },
       { label: 'Proxies', path: collection_proxies_path(username) },
       { heading: 'Manage' },
       { label: 'Scan Cards', path: card_scanner_path },
       { label: 'Bulk Edit', path: bulk_edit_path },
-      { label: 'Import Collection', path: new_collection_import_path }
+      { label: 'Import Collection', path: new_collection_import_path },
+      { label: 'Price Alerts', path: price_alerts_path }
     ] }
   end
 

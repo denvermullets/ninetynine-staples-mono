@@ -13,7 +13,7 @@
   <table class="min-w-full divide-y table-auto divide-background">
     <thead class="bg-background">
       <tr>
-        <th class="w-12 <%= th %>"><span class="sr-only">Card art</span></th>
+        <th class="w-16 <%= th %>"><span class="sr-only">Card art</span></th>
 
         <th class="<%= th %>"><%= movers_sort_link('name', **sort) %></th>
 
@@ -47,7 +47,7 @@
           <td class="px-4 py-2">
             <% if row[:image].present? %>
               <%= image_tag row[:image], alt: row[:name],
-                class: 'object-cover w-8 rounded h-11',
+                class: 'object-cover w-8 rounded h-11 max-w-none',
                 data: {
                   controller: 'card-hover',
                   card_hover_image_value: row[:image_large],

@@ -57,6 +57,15 @@ RSpec.describe NavHelper, type: :helper do
     expect(helper.nav_menus.flat_map { |menu| menu[:items] }.pluck(:path)).not_to include(helper.deck_compare_path)
   end
 
+  it 'offers the price movers and price alerts pages in the collection menu, and files them there' do
+    collection = helper.nav_menus.find { |menu| menu[:key] == :collection }
+
+    expect(collection[:items].pluck(:path)).to include(helper.collection_movers_path('staples'),
+                                                       helper.price_alerts_path)
+    expect(section_for('/collections/staples/movers')).to eq(:collection)
+    expect(section_for('/price_alerts')).to eq(:collection)
+  end
+
   it 'files the rest of the collection under collection' do
     expect(section_for('/collections/staples')).to eq(:collection)
     expect(section_for('/collections/staples/stats')).to eq(:collection)
