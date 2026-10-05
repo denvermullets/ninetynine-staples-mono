@@ -1,4 +1,4 @@
-class DashboardController < ApplicationController
+class DashboardController < AdminController
   def ingest
     IngestSets.perform_later
 
@@ -13,6 +13,12 @@ class DashboardController < ApplicationController
 
   def reset_collections
     ResetCollectionValues.perform_later
+
+    redirect_to '/jobs'
+  end
+
+  def recalculate_deck_totals
+    RecalculateDeckTotals.perform_later
 
     redirect_to '/jobs'
   end

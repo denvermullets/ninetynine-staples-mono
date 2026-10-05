@@ -62,6 +62,7 @@ Rails.application.routes.draw do
   post 'dashboard/ingest', to: 'dashboard#ingest', as: :dashboard_ingest
   post 'dashboard/ingest_prices', to: 'dashboard#ingest_prices', as: :dashboard_ingest_prices
   post 'dashboard/reset-collection', to: 'dashboard#reset_collections', as: :dashboard_reset_collections
+  post 'dashboard/recalculate-deck-totals', to: 'dashboard#recalculate_deck_totals', as: :dashboard_recalculate_deck_totals
   post 'dashboard/clear-jobs', to: 'dashboard#clear_jobs', as: :dashboard_clear_jobs
   post 'dashboard/backfill-boxset-history', to: 'dashboard#backfill_boxset_history', as: :dashboard_backfill_boxset_history
   post 'dashboard/trim-boxset-history', to: 'dashboard#trim_boxset_history', as: :dashboard_trim_boxset_history

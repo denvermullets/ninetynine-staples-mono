@@ -11,6 +11,7 @@ module DeckBuilder
       oracle_id = card.magic_card.scryfall_oracle_id
 
       card.destroy!
+      Collections::UpdateTotals.call(collection: @deck) unless card.staged? || card.needed?
 
       { success: true, message: "#{card_name} deleted from collection",
         removed_oracle_id: oracle_id }
