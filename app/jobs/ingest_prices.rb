@@ -21,6 +21,7 @@ class IngestPrices < ApplicationJob
     puts 'prices out of date, updating prices'
     ingest_prices(json_data['data'], price_date)
     admin_user.update(prices_last_updated_at: price_date)
+    EvaluatePriceAlerts.perform_later(price_date)
   end
 
   def ingest_prices(all_info, price_date = nil)

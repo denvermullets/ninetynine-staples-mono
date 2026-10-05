@@ -299,6 +299,18 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
     end
   end
 
+  describe 'exclude_card_ids' do
+    it 'leaves the excluded cards out of the rows and the total' do
+      add('Kept')
+      skipped = add('Skipped')
+
+      table = described_class.call(collection_ids: [collection.id], exclude_card_ids: [skipped.id])
+
+      expect(table[:total]).to eq(1)
+      expect(table[:rows].map { |mover| mover[:name] }).to eq(['Kept'])
+    end
+  end
+
   describe 'an empty scope' do
     it 'returns an empty page without touching the database' do
       queries = []

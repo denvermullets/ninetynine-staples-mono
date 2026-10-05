@@ -95,15 +95,42 @@ class PriceAlert < ApplicationRecord
     movement? && magic_card_id.nil?
   end
 
+  # The cheapest priced printing of each card, per finish, plus a name to call the card by, keyed by
+  # oracle id. One query however many cards, so the evaluation job can price every oracle alert at
+  # once. Front faces only: each face of a double-faced printing is its own row but one card. A
+  # price of 0 means unpriced, never free, so it never wins the MIN.
+  def self.cheapest_printings(oracle_ids)
+    MagicCard.where(scryfall_oracle_id: oracle_ids, card_side: [nil, 'a'])
+             .group(:scryfall_oracle_id)
+             .pluck(:scryfall_oracle_id,
+                    Arel.sql('MIN(CASE WHEN magic_cards.normal_price > 0 THEN magic_cards.normal_price END)'),
+                    Arel.sql('MIN(CASE WHEN magic_cards.foil_price > 0 THEN magic_cards.foil_price END)'),
+                    Arel.sql('MIN(magic_cards.name)'))
+             .to_h { |oracle_id, normal, foil, name| [oracle_id, { normal_price: normal, foil_price: foil, name: }] }
+  end
+
   # The price this alert watches right now, or nil when there is none to watch. A printing reads its
   # own finish's price; an oracle alert reads the cheapest printing of the card in that finish, and
   # `any` the cheapest of either finish. A price of 0 means unpriced, never free, so it is skipped.
-  def current_price
+  #
+  # `cheapest` is .cheapest_printings already run for a batch of alerts; without it an oracle alert
+  # looks its own card up.
+  def current_price(cheapest: nil)
     if magic_card
       price_for(magic_card)
     elsif scryfall_oracle_id.present?
-      cheapest_printing_price
+      cheapest ||= self.class.cheapest_printings([scryfall_oracle_id])
+      price_for(cheapest.fetch(scryfall_oracle_id, {}))
     end
+  end
+
+  # A movement rule as CollectionStats::MoversTable filters, which are also the movers page's query
+  # string, so a notification can link to exactly what it counted. Amounts go out as plain decimals:
+  # a BigDecimal's own to_s is scientific notation.
+  def movers_filters
+    { window: window, direction: direction, finish: finish == 'any' ? 'both' : finish,
+      min_delta: min_delta_amount&.to_s('F'), min_percent: min_delta_percent&.to_s('F'),
+      min_price: min_price&.to_s('F') }.compact
   end
 
   # Which side of the threshold `price` sits on. Landing exactly on $X counts as reaching it.
@@ -115,20 +142,13 @@ class PriceAlert < ApplicationRecord
 
   private
 
-  def price_for(card)
-    PRICE_COLUMNS.fetch(finish).filter_map { |column| positive(card.public_send(column)) }.min
+  # a printing, or one of .cheapest_printings' rows
+  def price_for(prices)
+    PRICE_COLUMNS.fetch(finish).filter_map { |column| positive(prices[column]) }.min
   end
 
   def positive(price)
     price if price&.positive?
-  end
-
-  # front faces only: each face of a double-faced printing is its own row but one card
-  def cheapest_printing_price
-    printings = MagicCard.where(scryfall_oracle_id: scryfall_oracle_id, card_side: [nil, 'a'])
-    columns = PRICE_COLUMNS.fetch(finish)
-
-    columns.filter_map { |column| printings.where(MagicCard.arel_table[column].gt(0)).minimum(column) }.min
   end
 
   def threshold_target_changed?

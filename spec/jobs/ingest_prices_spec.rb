@@ -4,6 +4,25 @@ RSpec.describe IngestPrices, type: :job do
   let(:card) { create(:magic_card, card_uuid: 'abc-123', normal_price: 50.0, foil_price: 20.0) }
   let(:today) { '2026-07-31' }
 
+  describe '#perform' do
+    let!(:admin) { create(:user, role: 9001, prices_last_updated_at: '2026-07-30') }
+
+    before do
+      feed = { meta: { date: today }, data: {} }.to_json
+      allow(URI).to receive(:open).and_return(StringIO.new(feed))
+    end
+
+    it 'evaluates price alerts against the new prices' do
+      expect { described_class.new.perform }.to have_enqueued_job(EvaluatePriceAlerts).with(today)
+    end
+
+    it 'evaluates nothing when the prices have not changed' do
+      admin.update!(prices_last_updated_at: today)
+
+      expect { described_class.new.perform }.not_to have_enqueued_job(EvaluatePriceAlerts)
+    end
+  end
+
   describe '#update_card' do
     it 'keeps the last known price when the feed has no entry for that finish' do
       # a retail block with only foil data used to write normal_price as 0,

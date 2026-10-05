@@ -5,6 +5,9 @@
 # move are all real copies only, rows whose move rounds to $0.00 are dropped, and ORDER BY repeats
 # its expression rather than naming a SELECT alias.
 #
+# `exclude_card_ids` is not a filter: the page never passes it, and nothing in a URL reaches it. The
+# movement-alert job uses it to leave out cards the user watches with a per-card override of their own.
+#
 # Every filter and sort key is whitelisted against the constants below. An unknown value falls back
 # to the default; nothing a caller passes is interpolated into SQL. The numeric thresholds are
 # parsed to BigDecimal and go in as bind values.
@@ -29,17 +32,18 @@ module CollectionStats
     # name reads A-Z; every other key reads biggest first
     DEFAULT_DIRS = Hash.new('desc').merge('name' => 'asc').freeze
 
-    def self.for_owner(user:, filters: {}, collection_id: nil, page: 1)
+    def self.for_owner(user:, filters: {}, collection_id: nil, **)
       scope = Scope.call(username: user.username, viewer: user, collection_id: collection_id)
 
-      new(collection_ids: scope[:collection_ids], filters: filters, page: page)
+      new(collection_ids: scope[:collection_ids], filters: filters, **)
     end
 
-    def initialize(collection_ids:, filters: {}, page: 1, per_page: PER_PAGE)
+    def initialize(collection_ids:, filters: {}, page: 1, per_page: PER_PAGE, exclude_card_ids: [])
       super(collection_ids: collection_ids)
       @filters = normalise(filters.to_h.with_indifferent_access)
       @page = [page.to_i, 1].max
       @per_page = per_page.to_i.clamp(1, 100)
+      @exclude_card_ids = Array(exclude_card_ids).compact
     end
 
     def call
@@ -75,6 +79,7 @@ module CollectionStats
       base = owned_cards
              .where(Arel.sql("ROUND((#{delta_sql})::numeric, 2) <> 0"))
              .where(Arel.sql(direction_sql))
+      base = base.where.not(id: @exclude_card_ids) if @exclude_card_ids.any?
 
       thresholds.reduce(base) do |relation, (key, sql)|
         @filters[key] ? relation.where(sql, @filters[key]) : relation
