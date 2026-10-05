@@ -107,16 +107,16 @@ module CollectionStats
        + (owned.foil_qty * COALESCE(magic_cards.ck_buylist_foil_price, 0)))
     SQL
 
-    # price_change_weekly_* is a PERCENTAGE (IngestPrices#calculate_percentage_change computes
-    # ((new - old) / old) * 100), so it cannot be summed as money. Recovering the dollar move
-    # from the percentage and the current price: old = new / (1 + pct/100), therefore
-    # delta = new - old = new * pct / (100 + pct).
+    # price_change_weekly_* and price_change_daily_* are PERCENTAGES
+    # (IngestPrices#calculate_percentage_change computes ((new - old) / old) * 100), so they cannot
+    # be summed as money. Recovering the dollar move from the percentage and the current price:
+    # old = new / (1 + pct/100), therefore delta = new - old = new * pct / (100 + pct).
     #
     # NULLIF guards pct = -100 (price fell to zero), where the old price is unrecoverable from
     # the percentage alone - those cards contribute 0 rather than poisoning the sum.
     #
     # Proxies are excluded on purpose: a proxy's price did not move, you did not gain anything.
-    def self.weekly_delta(qty_column, price_column, change_column)
+    def self.delta(qty_column, price_column, change_column)
       <<~SQL.squish
         (#{qty_column} * COALESCE(
           COALESCE(magic_cards.#{price_column}, 0) * magic_cards.#{change_column}
@@ -124,9 +124,26 @@ module CollectionStats
       SQL
     end
 
-    WEEKLY_DELTA = <<~SQL.squish.freeze
-      (#{weekly_delta('owned.qty', 'normal_price', 'price_change_weekly_normal')}
-       + #{weekly_delta('owned.foil_qty', 'foil_price', 'price_change_weekly_foil')})
-    SQL
+    # the change columns behind each window, normal finish first
+    CHANGE_COLUMNS = {
+      weekly: %w[price_change_weekly_normal price_change_weekly_foil],
+      daily: %w[price_change_daily_normal price_change_daily_foil]
+    }.freeze
+
+    # A holding's move over one window, both finishes summed. The quantities are parameters so a
+    # caller can price one finish by passing '0' for the other - MoversTable's finish filter does
+    # exactly that rather than branching into a second query shape.
+    def self.holding_delta(window, qty: 'owned.qty', foil_qty: 'owned.foil_qty')
+      normal_change, foil_change = CHANGE_COLUMNS.fetch(window)
+
+      <<~SQL.squish
+        (#{delta(qty, 'normal_price', normal_change)}
+         + #{delta(foil_qty, 'foil_price', foil_change)})
+      SQL
+    end
+
+    WEEKLY_DELTA = holding_delta(:weekly).freeze
+
+    DAILY_DELTA = holding_delta(:daily).freeze
   end
 end
