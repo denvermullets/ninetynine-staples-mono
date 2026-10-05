@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_05_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -594,6 +594,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_120000) do
     t.index ["file_name"], name: "index_precon_decks_on_file_name", unique: true
   end
 
+  create_table "price_alerts", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "kind", null: false
+    t.bigint "magic_card_id"
+    t.uuid "scryfall_oracle_id"
+    t.bigint "collection_id"
+    t.string "finish", default: "any", null: false
+    t.string "direction", null: false
+    t.decimal "threshold_price", precision: 10, scale: 2
+    t.string "window"
+    t.decimal "min_delta_amount", precision: 10, scale: 2
+    t.decimal "min_delta_percent", precision: 10, scale: 2
+    t.decimal "min_price", precision: 10, scale: 2
+    t.string "last_side"
+    t.datetime "last_fired_at"
+    t.date "last_evaluated_on"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collection_id"], name: "index_price_alerts_on_collection_id"
+    t.index ["magic_card_id"], name: "index_price_alerts_on_magic_card_id"
+    t.index ["scryfall_oracle_id"], name: "index_price_alerts_on_scryfall_oracle_id"
+    t.index ["user_id", "active"], name: "index_price_alerts_on_user_id_and_active"
+    t.index ["user_id", "magic_card_id", "window"], name: "index_price_alerts_on_card_override", unique: true, where: "(((kind)::text = 'movement'::text) AND (magic_card_id IS NOT NULL))"
+  end
+
   create_table "printings", force: :cascade do |t|
     t.bigint "magic_card_id"
     t.string "boxset_code"
@@ -777,6 +803,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_120000) do
   add_foreign_key "oracle_tags", "users", column: "created_by_id"
   add_foreign_key "precon_deck_cards", "magic_cards"
   add_foreign_key "precon_deck_cards", "precon_decks"
+  add_foreign_key "price_alerts", "collections"
+  add_foreign_key "price_alerts", "magic_cards"
+  add_foreign_key "price_alerts", "users"
   add_foreign_key "tracked_decks", "collections"
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"

@@ -13,6 +13,7 @@ class User < ApplicationRecord
                              inverse_of: :recipient
   has_many :notifications, dependent: :delete_all
   has_many :want_list_items, dependent: :delete_all
+  has_many :price_alerts, dependent: :destroy
   has_many :active_follows, class_name: 'Follow', foreign_key: :follower_id, dependent: :delete_all,
                             inverse_of: :follower
   has_many :passive_follows, class_name: 'Follow', foreign_key: :followed_id, dependent: :delete_all,
