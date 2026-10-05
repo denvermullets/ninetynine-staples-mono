@@ -1,0 +1,92 @@
+<%#
+  Every price alert the signed-in user has: thresholds, then movement alerts - collection-wide rules
+  first, per-card overrides after. Rows update in place: the toggle, edit and delete answer with turbo
+  streams aimed at the row.
+%>
+
+<% panel = 'flex flex-col border divide-y rounded-3xl bg-foreground border-highlight divide-highlight' %>
+<% heading = 'text-lg font-semibold text-grey-text' %>
+<% note = 'text-sm text-grey-text/60' %>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <%= render partial: 'shared/page_header', locals: {
+      header: 'Price Alerts',
+      subtext: 'What you want to hear about when prices move.' } %>
+
+    <div class="flex flex-wrap gap-3">
+      <%= link_to 'Price Movers', collection_movers_path(current_user.username),
+        class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50' %>
+
+      <%= link_to 'Notifications', notifications_path,
+        class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50' %>
+    </div>
+  </div>
+
+  <% if @thresholds.empty? && @rules.empty? && @overrides.empty? %>
+    <div
+      class="
+        p-12 text-center border rounded-3xl bg-foreground border-highlight
+        text-grey-text
+      "
+    >
+      <p class="text-xl font-semibold">No price alerts yet</p>
+
+      <p class="max-w-xl mx-auto mt-2 text-sm text-grey-text/70">
+        Press the bell next to a card on your Price Movers page, your want list,
+        or in a card's details to be told when it goes above or below a price,
+        or when it moves by a set amount. Alerts arrive in your notifications.
+      </p>
+    </div>
+  <% else %>
+    <section class="flex flex-col gap-3">
+      <div>
+        <h2 class="<%= heading %>">Price thresholds</h2>
+
+        <p class="<%= note %>">
+          Fires when a card crosses the price, and again each time it crosses
+          back.
+        </p>
+      </div>
+
+      <% if @thresholds.any? %>
+        <div class="<%= panel %>">
+          <% @thresholds.each do |alert| %>
+            <%= render partial: 'price_alerts/row', locals: { alert: alert, cheapest: @cheapest } %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="<%= note %>">
+          None yet - press the bell on a card to add one.
+        </p>
+      <% end %>
+    </section>
+    <section class="flex flex-col gap-3">
+      <div>
+        <h2 class="<%= heading %>">Movement rules</h2>
+
+        <p class="<%= note %>">
+          Fires when cards move this much. A card with a rule of its own skips
+          the collection-wide rules for that window.
+        </p>
+      </div>
+
+      <% if @rules.any? || @overrides.any? %>
+        <div class="<%= panel %>">
+          <% (@rules + @overrides).each do |alert| %>
+            <%= render partial: 'price_alerts/row', locals: { alert: alert } %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="<%= note %>">
+          None yet - add one for a single card from its bell.
+        </p>
+      <% end %>
+    </section>
+  <% end %>
+</div>

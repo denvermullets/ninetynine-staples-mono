@@ -126,6 +126,9 @@ Rails.application.routes.draw do
   # every Reserved List printing, greyed where this user owns none of it - across all their
   # collections, because a card in another binder is still one they do not have to buy
   get 'collections/:username/reserved', to: 'collection_reserved#show', as: :collection_reserved
+  # every card that moved, filterable - not under stats/, where the unconstrained :section would
+  # swallow it
+  get 'collections/:username/movers', to: 'collection_movers#show', as: :collection_movers
   # commanders ranked by how much of the deck this collection could already fill
   get 'collections/:username/brew', to: 'brew#index', as: :collection_brew
   # every copy marked for trade across this user's public collections - above the catch-all below,
@@ -248,6 +251,10 @@ Rails.application.routes.draw do
       patch :read_all
     end
   end
+
+  # The signed-in user's price alerts. new and edit answer with the modal, loaded into the layout's
+  # price_alert_modal frame; the writes answer with turbo streams.
+  resources :price_alerts, only: %i[index new create edit update destroy]
 
   # JSON API for the Godot game client - see docs/api/v1.md
   namespace :api, defaults: { format: :json } do

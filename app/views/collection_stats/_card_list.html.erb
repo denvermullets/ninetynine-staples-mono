@@ -1,9 +1,16 @@
 <%# locals: title, rows %>
-<%# optional: subtext, footer, empty_text %>
+<%# optional: subtext, footer, empty_text, link - { label:, path: } shown beside the title %>
 <%# rows: [{ name:, set_name:, icon:, image:, image_large:, copies:, value: }] %>
 <%# optional per row: delta, percent, delta_class - present only on the movers list %>
 <div class="p-6 border rounded-3xl bg-foreground border-highlight">
-  <h2 class="text-xl font-bold text-grey-text"><%= title %></h2>
+  <div class="flex items-baseline justify-between gap-3">
+    <h2 class="text-xl font-bold text-grey-text"><%= title %></h2>
+
+    <% if local_assigns[:link].present? %>
+      <%= link_to link[:label], link[:path], data: { turbo_frame: '_top' },
+        class: 'text-sm shrink-0 text-grey-text/70 hover:text-accent-50 hover:underline' %>
+    <% end %>
+  </div>
 
   <% if local_assigns[:subtext].present? %>
     <p class="mt-1 text-sm text-grey-text/50"><%= subtext %></p>

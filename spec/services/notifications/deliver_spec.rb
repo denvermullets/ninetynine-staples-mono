@@ -16,6 +16,13 @@ RSpec.describe Notifications::Deliver, type: :service do
     expect(notification).to have_attributes(user: user, kind: 'trade_proposed', notifiable: trade, read_at: nil)
   end
 
+  it 'keeps the payload the sentence is worded from' do
+    notification = described_class.call(user: user, kind: 'price_movement',
+                                        payload: { subject: 'Sheoldred', summary: '+$5.00 (+10%)', window: 'today' })
+
+    expect(notification.reload.payload).to include('subject' => 'Sheoldred', 'window' => 'today')
+  end
+
   it 'toasts and refreshes the unread badges on the user stream' do
     expect { deliver }.to have_broadcasted_to(stream).exactly(3).times
   end

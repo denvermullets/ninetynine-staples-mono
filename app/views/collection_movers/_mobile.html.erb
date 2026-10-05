@@ -1,0 +1,73 @@
+<%# locals: rows, pagy, filters, username, collection_id, owner %>
+<%#
+  The same rows without the table. No thumbnail - there is no hover on a phone - and the headers
+  become a row of sort links, with the move leading each card.
+%>
+
+<div class="max-w-full mb-24 md:hidden">
+  <div class="flex flex-wrap items-center gap-2 mb-3 text-sm text-grey-text">
+    <span class="text-xs text-grey-text/50">Sort</span>
+
+    <% CollectionMoversHelper::SORT_HEADERS.each_key do |key| %>
+      <span class="px-2 py-1 rounded-md bg-background">
+        <%= movers_sort_link(key, filters: filters, username: username, collection_id: collection_id) %>
+      </span>
+    <% end %>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <% rows.each do |row| %>
+      <div class="p-4 border rounded-xl bg-foreground border-highlight">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold truncate text-grey-text">
+              <%= row[:name].to_s.split('//').first %>
+            </p>
+
+            <p class="flex items-center gap-1 mt-1 text-xs text-grey-text/50">
+              <% if row[:icon].present? %>
+                <i class="<%= row[:icon] %>" aria-hidden="true"></i>
+              <% end %>
+
+              <%= row[:set_name] || 'Unknown set' %>
+            </p>
+          </div>
+
+          <span class="text-right shrink-0 <%= row[:delta_class] %>">
+            <span class="block text-sm"><%= movers_delta(row) %></span>
+
+            <span class="block text-xs opacity-70">
+              <%= movers_percent(row) %>
+            </span>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-grey-text/50">
+          <span>&times;<%= number_with_delimiter(row[:copies]) %></span>
+          <span><%= movers_unit_price(row) %></span>
+          <span>Holding <%= number_to_currency(row[:value]) %></span>
+
+          <% if owner %>
+            <span class="ml-auto">
+              <%= render partial: 'price_alerts/bell', locals: {
+                placement: 'movers_mobile', magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
+            </span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy %>
+    <div
+      class="
+        flex flex-col w-full gap-2 px-4 py-3 mt-2 text-sm bg-foreground
+        rounded-xl
+      "
+    >
+      <div class="text-grey-text"><%== pagy.info_tag() %></div>
+
+      <div class="overflow-x-auto"><%== pagy.series_nav() %></div>
+    </div>
+  <% end %>
+</div>

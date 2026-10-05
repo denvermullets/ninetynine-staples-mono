@@ -23,6 +23,7 @@ class MagicCard < ApplicationRecord
   has_many :collection_magic_cards, dependent: :destroy
   has_many :collections, through: :collection_magic_cards
   has_many :want_list_items, dependent: :delete_all
+  has_many :price_alerts, dependent: :delete_all
 
   has_many :magic_card_colors
   has_many :colors, through: :magic_card_colors

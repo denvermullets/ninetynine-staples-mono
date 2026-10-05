@@ -4,6 +4,7 @@
   Price Buckets panel already states it, and keeping it here meant this tab running PriceTiers to
   render one redundant sentence
 %>
+
 <div class="flex flex-col space-y-8">
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
     <%= render partial: 'collection_stats/card_list', locals: {
@@ -22,9 +23,12 @@
     no footer either - the collection-wide weekly move is the KPI grid's "Weekly Change" tile, which
     stays on the shell above this frame
   %>
+
   <%= render partial: 'collection_stats/card_list', locals: {
     title: 'Weekly Price Movers',
     subtext: 'The biggest dollar moves of the week, gainers and losers ranked together. Proxy copies sit this one out - a proxy price did not move, so you did not gain anything.',
     rows: stats[:price_movers],
+    link: { label: 'See all movers',
+            path: collection_movers_path(stats[:user].username, collection_id: stats[:collection]&.id) },
     empty_text: 'Nothing you own moved enough to register this week.' } %>
 </div>

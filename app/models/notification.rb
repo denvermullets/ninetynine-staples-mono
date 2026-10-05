@@ -6,8 +6,13 @@
 #
 # A new kind needs an entry in KINDS and a sentence in NotificationsHelper::TEXT, and, if its
 # notifiable has a page, a branch in NotificationsHelper#notification_target_path.
+#
+# `payload` is whatever the sentence needs that the notifiable cannot be trusted to still say when
+# the notification is read - a price alert's card and price on the day it fired. Its keys are format
+# arguments for the kind's sentence.
 class Notification < ApplicationRecord
-  KINDS = %w[trade_proposed trade_countered trade_accepted trade_declined trade_cancelled trade_completed].freeze
+  KINDS = %w[trade_proposed trade_countered trade_accepted trade_declined trade_cancelled trade_completed
+             price_threshold_crossed price_movement].freeze
 
   belongs_to :user
   belongs_to :notifiable, polymorphic: true, optional: true

@@ -1,0 +1,82 @@
+<%#
+  Every card that moved, the full-page version of the stats dashboard's Weekly Price Movers panel.
+  Picker outside the frame because changing collection is a different page; the filter form, the
+  table and the pagination inside it, so a filter, a sort or a page swaps the list and moves the URL.
+%>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Price Movers',
+    subtext: @scope[:collection] ? "Every card in #{@scope[:collection].name} that moved, filtered however you like." : "Every card in #{@scope[:user].username}'s collections that moved, filtered however you like." } %>
+
+  <% if @scope[:collection_ids].empty? %>
+    <%= render partial: 'collection_stats/empty', locals: { owner: @scope[:owner] } %>
+  <% else %>
+    <% username = @scope[:user].username %>
+    <% collection_id = @scope[:collection]&.id %>
+    <div class="flex flex-wrap items-center gap-3">
+      <%= render partial: 'shared/collection_picker', locals: {
+        collections: @scope[:collections], selected: @scope[:collection],
+        path: ->(id) { collection_movers_path(username, **movers_query(@filters, id)) } } %>
+
+      <%= link_to 'Collection Stats', collections_stats_path(username, collection_id: collection_id),
+        class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+
+      <% if @scope[:owner] %>
+        <%= link_to 'Price Alerts', price_alerts_path,
+          class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+      <% end %>
+    </div>
+    <%#
+      turbo_action advance so every filter, sort and page is a URL: the point of a GET form here is a
+      view you can bookmark and reload back into
+    %>
+    <%= turbo_frame_tag 'movers_table', data: { turbo_action: 'advance' } do %>
+      <div class="flex flex-col space-y-4">
+        <%#
+          the alert button lives in the frame so it re-renders with every filter change; it sits
+          beside the filter form rather than in it, since it is a form of its own
+        %>
+
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <%= render partial: 'collection_movers/filters', locals: {
+            filters: @filters, total: @total, username: username,
+            collection_id: collection_id } %>
+
+          <% if @scope[:owner] %>
+            <%= render partial: 'collection_movers/alert_button', locals: {
+              rule: @alert_rule, attributes: @rule_attributes } %>
+          <% end %>
+        </div>
+
+        <% if @rows.empty? %>
+          <div
+            class="
+              p-12 text-center border rounded-3xl bg-foreground
+              border-highlight text-grey-text
+            "
+          >
+            <p class="text-xl font-semibold">Nothing moved enough</p>
+
+            <p class="mt-2 text-sm text-grey-text/70">
+              No card you own moved <%= movers_window_text(@filters) %> by
+              enough to clear these filters.
+            </p>
+          </div>
+        <% else %>
+          <%= render partial: 'collection_movers/mobile', locals: {
+            rows: @rows, pagy: @pagy, filters: @filters, username: username,
+            collection_id: collection_id, owner: @scope[:owner] } %>
+          <%= render partial: 'collection_movers/table', locals: {
+            rows: @rows, pagy: @pagy, filters: @filters, username: username,
+            collection_id: collection_id, owner: @scope[:owner] } %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
