@@ -1,0 +1,28 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "23dad0b9e3f4f5bd66bb67c9b7fbc1d3448611b8012d6d49f70cd97ce22f79d7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/controllers/price_alerts_controller.rb",
+      "line": 134,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "turbo_stream.update_all(\"[data-price-alert-bell=\\\"#{helpers.price_alert_bell_key(**alert.slice(:magic_card_id, :scryfall_oracle_id).symbolize_keys)}\\\"]\", :partial => \"price_alerts/bell_icon\", :locals => ({ :watched => current_user.price_alerts.active.thresholds.exists?(alert.slice(:magic_card_id, :scryfall_oracle_id).compact) }))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PriceAlertsController",
+        "method": "bell_streams"
+      },
+      "user_input": "helpers.price_alert_bell_key(**alert.slice(:magic_card_id, :scryfall_oracle_id).symbolize_keys)",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": "False positive: turbo_stream.update_all (turbo-rails), not ActiveRecord. The string is a CSS selector sent to the browser, not SQL; its key is only an integer card id or a uuid, enforced by PriceAlertsHelper#price_alert_bell_key."
+    }
+  ],
+  "brakeman_version": "8.1.0"
+}

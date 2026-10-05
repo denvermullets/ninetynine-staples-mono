@@ -25,6 +25,21 @@ RSpec.describe PriceAlertsHelper, type: :helper do
     end
   end
 
+  describe '#price_alert_bell_key' do
+    it 'keys a printing by id and a card by oracle id' do
+      oracle_id = SecureRandom.uuid
+
+      expect(helper.price_alert_bell_key(magic_card_id: 12)).to eq('card-12')
+      expect(helper.price_alert_bell_key(scryfall_oracle_id: oracle_id)).to eq("oracle-#{oracle_id}")
+    end
+
+    # the key goes into a CSS selector, so nothing but an id or a uuid gets through
+    it 'refuses anything that is not an id or a uuid' do
+      expect { helper.price_alert_bell_key(magic_card_id: '1"] , *') }.to raise_error(ArgumentError)
+      expect { helper.price_alert_bell_key(scryfall_oracle_id: 'x"], [data-x="') }.to raise_error(ArgumentError)
+    end
+  end
+
   describe '#price_alert_watched?' do
     # current_user comes from the controller, so the helper under test has to be handed one
     before do

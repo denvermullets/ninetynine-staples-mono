@@ -121,9 +121,9 @@ class PriceAlertsController < ApplicationController
   # Every bell on the page for the same card, which may sit in both the table and the mobile list.
   # Only thresholds light a bell, so a movement alert changes none.
   #
-  # action_all(:update) is what turbo_stream.update_all calls; spelled out because Brakeman reads an
-  # update_all with an interpolated string as ActiveRecord SQL. The selector is a CSS one, keyed by the
-  # alert's own card id or oracle uuid.
+  # This update_all is turbo_stream's, not ActiveRecord's: the string is a CSS selector, and the key in
+  # it is only ever an integer id or a uuid (see price_alert_bell_key). Brakeman reads it as SQL; the
+  # warning is recorded as a false positive in config/brakeman.ignore.
   def bell_streams(alert)
     return [] unless alert.threshold?
 
@@ -131,7 +131,7 @@ class PriceAlertsController < ApplicationController
     watched = current_user.price_alerts.active.thresholds.exists?(target)
     key = helpers.price_alert_bell_key(**alert.slice(:magic_card_id, :scryfall_oracle_id).symbolize_keys)
 
-    [turbo_stream.action_all(:update, "[data-price-alert-bell=\"#{key}\"]",
+    [turbo_stream.update_all("[data-price-alert-bell=\"#{key}\"]",
                              partial: 'price_alerts/bell_icon', locals: { watched: watched })]
   end
 

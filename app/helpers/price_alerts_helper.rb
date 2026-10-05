@@ -5,12 +5,19 @@ module PriceAlertsHelper
   WINDOW_LABELS = { 'daily' => 'Daily', 'weekly' => 'Weekly' }.freeze
   MOVEMENT_SIGNS = { 'up' => '+', 'down' => '-', 'both' => '±' }.freeze
   MOVEMENT_DIRECTIONS = { 'up' => 'up', 'down' => 'down', 'both' => 'up or down' }.freeze
+  UUID = /\A\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\z/
 
   # What a bell answers to, so every bell for the same card - the table's and the mobile list's - can
   # be found and relit together after a write. A want for any printing watches the card's oracle id; a
   # bell on a single printing watches that printing.
+  #
+  # The key lands in a CSS attribute selector (PriceAlertsController#bell_streams), so it is only ever
+  # an integer id or a uuid - anything else raises rather than reaching the selector.
   def price_alert_bell_key(magic_card_id: nil, scryfall_oracle_id: nil)
-    magic_card_id ? "card-#{magic_card_id}" : "oracle-#{scryfall_oracle_id}"
+    return "card-#{Integer(magic_card_id)}" if magic_card_id
+    raise ArgumentError, "not an oracle id: #{scryfall_oracle_id.inspect}" unless UUID.match?(scryfall_oracle_id.to_s)
+
+    "oracle-#{scryfall_oracle_id}"
   end
 
   # Whether an active threshold alert watches the bell's card. One query per request however many
