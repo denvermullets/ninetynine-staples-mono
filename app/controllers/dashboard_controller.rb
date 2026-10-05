@@ -37,6 +37,7 @@ class DashboardController < ApplicationController
 
   def backfill_price_change_weekly
     BackfillPriceChangeWeekly.perform_later
+    BackfillPriceChangeDaily.perform_later
 
     redirect_to '/jobs'
   end

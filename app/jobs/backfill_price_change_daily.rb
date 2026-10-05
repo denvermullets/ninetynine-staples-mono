@@ -1,8 +1,8 @@
-class BackfillPriceChangeWeekly < ApplicationJob
+class BackfillPriceChangeDaily < ApplicationJob
   queue_as :background
 
   def perform
-    puts 'Starting backfill of price_change_weekly for all magic cards'
+    puts 'Starting backfill of price_change_daily for all magic cards'
 
     total_cards = MagicCard.count
     updated_count = 0
@@ -24,16 +24,16 @@ class BackfillPriceChangeWeekly < ApplicationJob
   def process_card(card)
     return :skipped unless card.price_history.present?
 
-    price_change_weekly_normal, price_change_weekly_foil = MagicCards::PriceChange.call(
+    price_change_daily_normal, price_change_daily_foil = MagicCards::PriceChange.call(
       card.price_history,
       card.normal_price || 0,
       card.foil_price || 0,
-      days: 7
+      days: 1
     )
 
     card.update_columns(
-      price_change_weekly_normal: price_change_weekly_normal,
-      price_change_weekly_foil: price_change_weekly_foil
+      price_change_daily_normal: price_change_daily_normal,
+      price_change_daily_foil: price_change_daily_foil
     )
 
     :updated

@@ -53,17 +53,23 @@ class IngestPrices < ApplicationJob
     unless price_info
       return { normal_price: card.normal_price, foil_price: card.foil_price,
                price_history: card.price_history, price_change_weekly_normal: card.price_change_weekly_normal,
-               price_change_weekly_foil: card.price_change_weekly_foil }
+               price_change_weekly_foil: card.price_change_weekly_foil,
+               price_change_daily_normal: card.price_change_daily_normal,
+               price_change_daily_foil: card.price_change_daily_foil }
     end
 
     normal_price = find_price(card.normal_price, price_info['normal']) || 0
     foil_price = find_price(card.foil_price, price_info['foil']) || 0
     price_history = update_price_history(card.price_history, price_info, price_date)
-    price_change_weekly_normal, price_change_weekly_foil = calculate_price_changes_weekly(
-      price_history, normal_price, foil_price
+    price_change_weekly_normal, price_change_weekly_foil = calculate_price_changes(
+      price_history, normal_price, foil_price, days: 7
+    )
+    price_change_daily_normal, price_change_daily_foil = calculate_price_changes(
+      price_history, normal_price, foil_price, days: 1
     )
 
-    { normal_price:, foil_price:, price_history:, price_change_weekly_normal:, price_change_weekly_foil: }
+    { normal_price:, foil_price:, price_history:, price_change_weekly_normal:, price_change_weekly_foil:,
+      price_change_daily_normal:, price_change_daily_foil: }
   end
 
   def ck_buylist_attributes(card, ck_buylist_info)
@@ -142,32 +148,7 @@ class IngestPrices < ApplicationJob
     data.last(MAX_HISTORY_DAYS)
   end
 
-  def calculate_price_changes_weekly(price_history, current_normal_price, current_foil_price)
-    return [nil, nil] if price_history.nil? || price_history.empty?
-
-    seven_days_ago = (Date.today - 7).to_s
-    normal_old = find_price_on_or_before_date(price_history[:normal] || [], seven_days_ago)
-    foil_old = find_price_on_or_before_date(price_history[:foil] || [], seven_days_ago)
-
-    [
-      calculate_percentage_change(normal_old, current_normal_price),
-      calculate_percentage_change(foil_old, current_foil_price)
-    ]
-  end
-
-  def find_price_on_or_before_date(price_array, target_date)
-    return nil if price_array.nil? || price_array.empty?
-
-    entry = price_array.sort_by { |e| e.keys.first }.rfind { |e| e.keys.first <= target_date }
-    return nil unless entry
-
-    entry.values.first.to_f
-  end
-
-  def calculate_percentage_change(old_price, new_price)
-    return nil if old_price.nil? || new_price.nil?
-    return nil if old_price.zero?
-
-    ((new_price - old_price) / old_price * 100).round(2)
+  def calculate_price_changes(price_history, current_normal_price, current_foil_price, days:)
+    MagicCards::PriceChange.call(price_history, current_normal_price, current_foil_price, days:)
   end
 end

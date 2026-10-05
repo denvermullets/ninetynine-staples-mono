@@ -119,4 +119,60 @@ RSpec.describe IngestPrices, type: :job do
       expect(card.ck_buylist_foil_price).to eq(12.0)
     end
   end
+
+  describe 'daily price change' do
+    include ActiveSupport::Testing::TimeHelpers
+
+    around { |example| travel_to(Date.parse(today)) { example.run } }
+
+    it 'records a daily gain against yesterday' do
+      card.update!(price_history: { 'normal' => [{ '2026-07-30' => 40.0 }], 'foil' => [{ '2026-07-30' => 20.0 }] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 50.0 } }, nil)
+
+      expect(card.reload.price_change_daily_normal).to eq(25.0)
+      expect(card.price_change_daily_foil).to eq(0.0)
+    end
+
+    it 'records a daily loss against yesterday' do
+      card.update!(price_history: { 'normal' => [{ '2026-07-30' => 40.0 }], 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 30.0 } }, nil)
+
+      expect(card.reload.price_change_daily_normal).to eq(-25.0)
+    end
+
+    it 'compares against the day before, not the week before' do
+      card.update!(price_history: { 'normal' => [{ '2026-07-24' => 10.0 }, { '2026-07-30' => 40.0 }], 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 50.0 } }, nil)
+
+      expect(card.reload.price_change_daily_normal).to eq(25.0)
+      expect(card.price_change_weekly_normal).to eq(400.0)
+    end
+
+    it 'leaves the daily change empty for a card with no earlier history' do
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 50.0 } }, nil)
+
+      expect(card.reload.price_change_daily_normal).to be_nil
+      expect(card.price_change_daily_foil).to be_nil
+    end
+
+    it 'leaves the daily change empty when yesterday was priced at zero' do
+      card.update!(price_history: { 'normal' => [{ '2026-07-30' => 0.0 }], 'foil' => [] })
+
+      described_class.new.update_card(card.card_uuid, { 'normal' => { today => 50.0 } }, nil)
+
+      expect(card.reload.price_change_daily_normal).to be_nil
+    end
+
+    it 'keeps the existing daily change when the feed has no retail prices' do
+      card.update!(price_change_daily_normal: 12.5, price_change_daily_foil: -3.0)
+
+      described_class.new.update_card(card.card_uuid, nil, { 'normal' => { today => 30.0 } })
+
+      expect(card.reload.price_change_daily_normal).to eq(12.5)
+      expect(card.price_change_daily_foil).to eq(-3.0)
+    end
+  end
 end
