@@ -205,6 +205,27 @@ RSpec.describe PriceAlert, type: :model do
     end
   end
 
+  describe 're-arming' do
+    it 'is disarmed while the price sits on the alert direction' do
+      expect(build(:price_alert, threshold_price: 20, direction: 'above', last_side: 'above')).to be_disarmed
+      expect(build(:price_alert, threshold_price: 20, direction: 'above', last_side: 'below')).not_to be_disarmed
+      expect(build(:price_alert, threshold_price: 20, direction: 'above', last_side: nil)).not_to be_disarmed
+    end
+
+    it 'puts the re-arm line the margin back from the threshold' do
+      expect(build(:price_alert, threshold_price: 20, direction: 'above').rearm_price).to eq(19)
+      expect(build(:price_alert, threshold_price: 20, direction: 'below').rearm_price).to eq(21)
+    end
+
+    it 're-arms only past the line, counting landing on it' do
+      above = build(:price_alert, threshold_price: 20, direction: 'above')
+      below = build(:price_alert, threshold_price: 20, direction: 'below')
+
+      expect([above.rearms_at?(19.5), above.rearms_at?(19), above.rearms_at?(nil)]).to eq([false, true, false])
+      expect([below.rearms_at?(20.5), below.rearms_at?(21)]).to eq([false, true])
+    end
+  end
+
   describe '.threshold_for_want' do
     it 'watches any printing for an any-printing want' do
       want = create(:want_list_item, user: user, magic_card: card, foil_preference: 'non_foil')

@@ -8,7 +8,9 @@
 #   want-list items alike. It re-arms rather than firing once: `last_side` records which side of
 #   the threshold the price was on, and the job fires only when the price lands on the other side.
 #   `last_side` is set from the current price when the alert is saved, so a card already past $X
-#   does not fire the moment the alert is made.
+#   does not fire the moment the alert is made. While `last_side` is the alert's own direction it
+#   is disarmed, and only re-arms once the price comes back past $X by REARM_MARGIN, so a card
+#   hovering around the line does not notify every day.
 # - movement rule (no card): "anything I own moves ±$5 / ±15% daily or weekly". The fields are the
 #   movers table's filters (CollectionStats::MoversTable), so a rule is a saved filter, optionally
 #   narrowed to one of the user's collections.
@@ -23,6 +25,8 @@ class PriceAlert < ApplicationRecord
   MOVEMENT_DIRECTIONS = %w[up down both].freeze
   WINDOWS = %w[daily weekly].freeze
   SIDES = %w[above below].freeze
+  # how far past the threshold, as a fraction of it, the price has to come back to re-arm an alert
+  REARM_MARGIN = BigDecimal('0.05')
   PRICE_COLUMNS = { 'normal' => %i[normal_price], 'foil' => %i[foil_price],
                     'any' => %i[normal_price foil_price] }.freeze
 
@@ -158,6 +162,29 @@ class PriceAlert < ApplicationRecord
     return nil if price.nil? || threshold_price.nil?
 
     price >= threshold_price ? 'above' : 'below'
+  end
+
+  # Whether the alert has gone off (or was made with the price already past $X) and is waiting for
+  # the price to come back past #rearm_price before it can fire again.
+  def disarmed?
+    threshold? && last_side.present? && last_side == direction
+  end
+
+  # The price a disarmed alert has to come back past to re-arm: under $X less the margin for an
+  # "above" alert, over $X plus the margin for a "below" one.
+  def rearm_price
+    return nil unless threshold_price
+
+    margin = threshold_price * REARM_MARGIN
+    (direction == 'above' ? threshold_price - margin : threshold_price + margin).round(2)
+  end
+
+  # Whether `price` is far enough back from the line to re-arm. Coming back to exactly #rearm_price
+  # counts.
+  def rearms_at?(price)
+    return false if price.nil? || rearm_price.nil?
+
+    direction == 'above' ? price <= rearm_price : price >= rearm_price
   end
 
   private

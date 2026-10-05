@@ -36,6 +36,10 @@
       </span>
     <% end %>
 
+    <% if (rearm = price_alert_rearm(alert)) %>
+      <span><%= rearm %></span>
+    <% end %>
+
     <span>Last fired <%= price_alert_last_fired(alert) %></span>
   </div>
 

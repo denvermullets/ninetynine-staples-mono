@@ -51,4 +51,20 @@ RSpec.describe PriceAlertsHelper, type: :helper do
       expect(watched).to eq([true, false, false, true])
     end
   end
+
+  describe '#price_alert_rearm' do
+    it 'names the re-arm line while the alert is disarmed' do
+      alert = build(:price_alert, threshold_price: 20, direction: 'above', last_side: 'above')
+      expect(helper.price_alert_rearm(alert)).to eq('Re-arms below $19.00')
+    end
+
+    it 'flips the wording for a below alert' do
+      alert = build(:price_alert, threshold_price: 20, direction: 'below', last_side: 'below')
+      expect(helper.price_alert_rearm(alert)).to eq('Re-arms above $21.00')
+    end
+
+    it 'says nothing while the alert is armed' do
+      expect(helper.price_alert_rearm(build(:price_alert, direction: 'above', last_side: 'below'))).to be_nil
+    end
+  end
 end

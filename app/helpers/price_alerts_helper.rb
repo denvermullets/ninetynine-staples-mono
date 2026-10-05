@@ -66,6 +66,13 @@ module PriceAlertsHelper
     end
   end
 
+  # "Re-arms below $19.00" while a threshold alert waits for the price to come back, else nil
+  def price_alert_rearm(alert)
+    return unless alert.disarmed?
+
+    "Re-arms #{alert.direction == 'above' ? 'below' : 'above'} #{number_to_currency(alert.rearm_price)}"
+  end
+
   def price_alert_last_fired(alert)
     alert.last_fired_at ? "#{time_ago_in_words(alert.last_fired_at)} ago" : 'Never'
   end

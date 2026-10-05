@@ -56,6 +56,38 @@ RSpec.describe EvaluatePriceAlerts, type: :job do
       expect { evaluate('2026-10-07') }.to change(Notification, :count).by(1)
     end
 
+    it 'does not re-fire while the price bounces around the threshold inside the margin' do
+      card.update!(normal_price: 20.10)
+      evaluate
+      card.update!(normal_price: 19.90)
+      evaluate(tomorrow)
+      expect(alert.reload.last_side).to eq('above')
+      card.update!(normal_price: 20.10)
+
+      expect { evaluate('2026-10-07') }.not_to change(Notification, :count)
+    end
+
+    it 're-fires once the price has come back past the margin and crossed again' do
+      card.update!(normal_price: 20.10)
+      evaluate
+      card.update!(normal_price: 19)
+      evaluate(tomorrow)
+      expect(alert.reload.last_side).to eq('below')
+      card.update!(normal_price: 20.10)
+
+      expect { evaluate('2026-10-07') }.to change(Notification, :count).by(1)
+    end
+
+    it 'holds an alert made past the threshold until the price comes back past the margin' do
+      card.update!(normal_price: 21)
+      alert.update!(threshold_price: 20.50)
+      card.update!(normal_price: 20)
+      evaluate
+      card.update!(normal_price: 21)
+
+      expect { evaluate(tomorrow) }.not_to change(Notification, :count)
+    end
+
     it 'does not fire when crossing away from the alert direction' do
       alert.update_columns(last_side: 'above')
 
@@ -96,6 +128,18 @@ RSpec.describe EvaluatePriceAlerts, type: :job do
 
       expect { evaluate }.to change(Notification, :count).by(1)
       expect(notifications.last.payload).to include('card' => 'Ragavan', 'price' => '$35.00')
+    end
+
+    it 'holds a below alert until the price climbs past the margin' do
+      cheap.update!(normal_price: 35)
+      evaluate
+      cheap.update!(normal_price: 41)
+      evaluate(tomorrow)
+      expect(alert.reload.last_side).to eq('below')
+      cheap.update!(normal_price: 42)
+      evaluate('2026-10-07')
+
+      expect(alert.reload.last_side).to eq('above')
     end
 
     it 'never takes an unpriced printing for the cheapest' do
