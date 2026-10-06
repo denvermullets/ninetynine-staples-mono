@@ -31,6 +31,24 @@
         <% end %>
       </div>
     <% end %>
+
+    <div class="flex flex-wrap items-center">
+      <% movers_rarity_options.each do |value, icon| %>
+        <label
+          title="<%= value.capitalize %>"
+          class="
+            p-1 transition border-2 border-transparent rounded-full cursor-pointer
+            has-[:checked]:border-accent-50 has-[:checked]:bg-accent-50/20
+          "
+        >
+          <%= check_box_tag 'rarity[]', value, filters[:rarity].include?(value),
+            id: nil, class: 'sr-only' %>
+
+          <i class="no-tailwind ml-0 ss <%= icon %> ms-2x" aria-hidden="true"></i>
+          <span class="sr-only"><%= value.capitalize %></span>
+        </label>
+      <% end %>
+    </div>
   </div>
 
   <div class="flex flex-wrap items-end gap-4">
@@ -53,6 +71,6 @@
     <%= pluralize(number_with_delimiter(total), 'card') %> moved
     <%= movers_window_text(filters) %>. Proxy copies sit this one out - a proxy
     price did not move, so you did not gain anything. The buylist range leaves
-    out cards Card Kingdom is not buying.
+    out cards Card Kingdom is not buying. No rarity picked counts them all.
   </p>
 <% end %>

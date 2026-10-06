@@ -1,8 +1,11 @@
 <%# locals: rows - CollectionStats::MoversTable rows, pagy, filters, username, collection_id, owner %>
 <%#
-  One row per printing. Copies, holding and the moves count real copies only, matching the stats
-  panel. Unit price and CK buylist show only the finishes held. The headers are links inside the
-  frame, so a sort swaps the table like a filter does.
+  One row per printing. Copies and the moves count real copies only, matching the stats panel. Unit
+  price and CK buylist show only the finishes held. The headers are links inside the frame, so a
+  sort swaps the table like a filter does.
+
+  Clicking a row opens the same lazy card_details frame the collection table does, loaded as the
+  page owner's collection so the copies in it are theirs and only they can edit them.
 
   The last column is the owner's price alert bell, in the finish they hold - foil when that is all
   they have. It stays for a visitor, empty, so the table is the same shape for everyone.
@@ -31,10 +34,6 @@
         </th>
 
         <th class="text-right <%= th %>">
-          <%= movers_sort_link('value', **sort) %>
-        </th>
-
-        <th class="text-right <%= th %>">
           <%= movers_sort_link('delta', **sort) %>
         </th>
 
@@ -46,9 +45,16 @@
       </tr>
     </thead>
 
-    <tbody class="bg-background">
+    <tbody class="bg-background" data-controller="expandable-row">
       <% rows.each do |row| %>
-        <tr class="border border-background text-grey-text bg-foreground">
+        <tr
+          data-action="click->expandable-row#toggle"
+          data-card-id="<%= row[:id] %>"
+          class="
+            transition-colors border border-background text-grey-text
+            bg-foreground hover:bg-menu hover:cursor-pointer
+          "
+        >
           <%# the thumbnail is the hover target, same wiring as collection_stats/_card_list %>
 
           <td class="px-4 py-2">
@@ -94,10 +100,6 @@
             <%= movers_buylist(row) %>
           </td>
 
-          <td class="px-4 py-2 text-sm text-right whitespace-nowrap">
-            <%= number_to_currency(row[:value]) %>
-          </td>
-
           <td class="px-4 py-2 text-sm text-right whitespace-nowrap <%= row[:delta_class] %>">
             <%= movers_delta(row) %>
           </td>
@@ -111,6 +113,19 @@
               <%= render partial: 'price_alerts/bell', locals: {
                 placement: 'movers_table', magic_card_id: row[:id], finish: movers_alert_finish(row) } %>
             <% end %>
+          </td>
+        </tr>
+
+        <tr
+          data-expandable-row-target="content"
+          data-card-id="<%= row[:id] %>"
+          class="hidden border border-background"
+        >
+          <td colspan="9">
+            <%= turbo_frame_tag "card_details_#{row[:id]}",
+                src: boxset_magic_card_path(row[:id], username: username, collection_id: collection_id,
+                                                      show_other_printings: true),
+                loading: :lazy %>
           </td>
         </tr>
       <% end %>

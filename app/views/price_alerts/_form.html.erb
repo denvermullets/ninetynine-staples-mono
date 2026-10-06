@@ -166,6 +166,32 @@
           <%= f.number_field :max_buylist_price, value: price_alert_amount(alert.max_buylist_price),
             min: 0.01, step: 0.01, placeholder: 'Any', id: nil, class: input %>
         </label>
+        <fieldset class="col-span-2">
+          <legend class="mb-1 text-xs text-grey-text/70">Rarity</legend>
+          <%= hidden_field_tag 'price_alert[rarities][]', '', id: nil %>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <% movers_rarity_options.each do |value, icon| %>
+              <label
+                title="<%= value.capitalize %>"
+                class="
+                  p-1 transition border-2 border-transparent rounded-full cursor-pointer
+                  has-[:checked]:border-accent-50 has-[:checked]:bg-accent-50/20
+                "
+              >
+                <%= check_box_tag 'price_alert[rarities][]', value, alert.rarities.include?(value),
+                  id: nil, class: 'sr-only' %>
+
+                <i
+                  class="no-tailwind ml-0 ss <%= icon %> ms-2x"
+                  aria-hidden="true"
+                ></i>
+
+                <span class="sr-only"><%= value.capitalize %></span>
+              </label>
+            <% end %>
+          </div>
+        </fieldset>
         <label class="col-span-2 <%= label %>">
           Collection
           <%= f.select :collection_id,
@@ -176,6 +202,9 @@
     </div>
     <p class="text-xs text-grey-text/50">
       Set a $ move, a % move, or both - with both, a move has to clear each.
+      <% if alert.movement_rule? %>
+        No rarity picked counts them all.
+      <% end %>
     </p>
   <% end %>
 

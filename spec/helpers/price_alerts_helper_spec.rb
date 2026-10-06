@@ -52,6 +52,14 @@ RSpec.describe PriceAlertsHelper, type: :helper do
     end
   end
 
+  describe '#price_alert_condition' do
+    it 'names the rarities a movement rule counts' do
+      rule = build(:price_alert, :movement_rule, user: user, rarities: %w[rare mythic])
+
+      expect(helper.price_alert_condition(rule)).to end_with(', Rare/Mythic')
+    end
+  end
+
   describe '#price_alert_rearm' do
     it 'names the re-arm line while the alert is disarmed' do
       alert = build(:price_alert, threshold_price: 20, direction: 'above', last_side: 'above')

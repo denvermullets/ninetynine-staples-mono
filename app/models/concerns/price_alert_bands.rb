@@ -19,7 +19,7 @@ module PriceAlertBands
     with_options if: :band? do
       validates :threshold_price, :from_price, presence: true
       validates :direction, inclusion: { in: BAND_DIRECTIONS }
-      validates :magic_card_id, :scryfall_oracle_id, :window, absence: true
+      validates :magic_card_id, :scryfall_oracle_id, :window, :rarities, absence: true
       validate :from_price_before_threshold
     end
 

@@ -43,7 +43,7 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
     it 'reports the filters it applied' do
       expect(result[:filters]).to eq(
         window: 'weekly', direction: 'both', finish: 'both', min_delta: nil, min_percent: nil,
-        min_price: nil, min_buylist: nil, max_buylist: nil, sort: 'delta', dir: 'desc'
+        min_price: nil, min_buylist: nil, max_buylist: nil, rarity: [], sort: 'delta', dir: 'desc'
       )
     end
   end
@@ -187,6 +187,31 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
 
       expect(names).to eq(['Riser'])
       expect(result[:filters]).to include(min_delta: nil, min_percent: nil, min_price: nil)
+    end
+  end
+
+  describe 'rarity' do
+    before do
+      add('Common Mover', rarity: 'common')
+      add('Rare Mover', rarity: 'rare')
+      add('Mythic Mover', rarity: 'mythic')
+      add('No Rarity', rarity: nil)
+    end
+
+    it 'keeps every card, one with no rarity included, when none is picked' do
+      expect(names).to contain_exactly('Common Mover', 'Rare Mover', 'Mythic Mover', 'No Rarity')
+    end
+
+    it 'keeps only the rarities picked' do
+      filters[:rarity] = %w[mythic rare]
+
+      expect(names).to contain_exactly('Rare Mover', 'Mythic Mover')
+    end
+
+    it 'reports the pick in its own order and drops a rarity it does not know' do
+      filters[:rarity] = %w[mythic bogus common]
+
+      expect(result[:filters][:rarity]).to eq(%w[common mythic])
     end
   end
 

@@ -46,7 +46,6 @@
           <span>&times;<%= number_with_delimiter(row[:copies]) %></span>
           <span><%= movers_unit_price(row) %></span>
           <span>CK <%= movers_buylist(row) %></span>
-          <span>Holding <%= number_to_currency(row[:value]) %></span>
 
           <% if owner %>
             <span class="ml-auto">

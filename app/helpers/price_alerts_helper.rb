@@ -101,7 +101,8 @@ module PriceAlertsHelper
   def movement_condition(alert)
     extras = [(FINISH_LABELS.fetch(alert.finish) unless alert.finish == 'any'),
               ("cards #{number_to_currency(alert.min_price)}+" if alert.min_price),
-              price_alert_buylist_range(alert)].compact
+              price_alert_buylist_range(alert),
+              (alert.rarities.map(&:capitalize).join('/') if alert.rarities.any?)].compact
 
     ["#{WINDOW_LABELS.fetch(alert.window)}, #{minimum_moves(alert)}, #{MOVEMENT_DIRECTIONS.fetch(alert.direction)}",
      *extras].join(', ')

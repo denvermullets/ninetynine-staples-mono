@@ -91,6 +91,14 @@ RSpec.describe PriceAlerts::Save do
       expect(alert.reload).to have_attributes(magic_card_id: card.id, scryfall_oracle_id: nil)
     end
 
+    it 'clears a rule\'s rarities when the form comes back with none picked' do
+      rule = create(:price_alert, :movement_rule, user: user, rarities: %w[rare mythic])
+
+      described_class.call(user: user, alert: rule, params: params(rarities: ['']))
+
+      expect(rule.reload.rarities).to eq([])
+    end
+
     it 'never changes the kind' do
       described_class.call(user: user, alert: alert, params: params(kind: 'movement', window: 'daily'))
 
