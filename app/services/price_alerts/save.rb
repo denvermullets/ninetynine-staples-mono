@@ -15,8 +15,8 @@
 module PriceAlerts
   class Save < Service
     THRESHOLD_FIELDS = %i[finish direction threshold_price].freeze
-    MOVEMENT_FIELDS = %i[collection_id finish direction window min_delta_amount min_delta_percent min_price
-                         min_buylist_price max_buylist_price].freeze
+    MOVEMENT_FIELDS = [:collection_id, :finish, :direction, :window, :min_delta_amount, :min_delta_percent,
+                       :min_price, :min_buylist_price, :max_buylist_price, { rarities: [] }].freeze
     BAND_FIELDS = %i[collection_id finish direction threshold_price from_price min_buylist_price
                      max_buylist_price].freeze
     FIELDS = { 'threshold' => THRESHOLD_FIELDS, 'movement' => MOVEMENT_FIELDS, 'band' => BAND_FIELDS }.freeze

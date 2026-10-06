@@ -49,7 +49,7 @@ class CollectionMoversController < ApplicationController
 
   # sliced first so the path params (username, collection_id, page) are not logged as unpermitted
   def filter_params
-    params.slice(*FILTER_PARAMS).permit(*FILTER_PARAMS)
+    params.slice(*FILTER_PARAMS, :rarity).permit(*FILTER_PARAMS, rarity: [])
   end
 
   def first_page

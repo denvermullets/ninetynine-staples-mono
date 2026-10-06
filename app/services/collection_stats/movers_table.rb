@@ -18,7 +18,10 @@
 # passing as a $0.00 buylist under any maximum.
 #
 # Rarity sorts on the printing's rarity, special first, then mythic down to common. A printing
-# with no rarity sorts last either way.
+# with no rarity sorts last either way. The rarity filter keeps only the printings of the rarities
+# picked, and comes back in RARITIES order whatever order it was passed in, so a rule saved from it
+# (PriceAlert.movement_rule_attributes) compares equal to the same pick made again. Picking none
+# keeps every card, a printing with no rarity included.
 #
 # The finish filter zeroes the other finish's quantity inside the expressions rather than branching
 # into a second query shape: with finish=foil, the non-foil copies contribute no copies, no value and
@@ -37,6 +40,7 @@ module CollectionStats
     SORTS = %w[delta percent value price buylist rarity name].freeze
     SORT_DIRS = %w[desc asc].freeze
     AMOUNTS = %i[min_delta min_percent min_price min_buylist max_buylist].freeze
+    RARITIES = %w[common uncommon rare mythic special].freeze
 
     # biggest first: special, then mythic down to common
     RARITY_RANKS = { 'special' => 5, 'mythic' => 4, 'rare' => 3, 'uncommon' => 2, 'common' => 1 }.freeze
@@ -72,6 +76,7 @@ module CollectionStats
 
       { window: pick(raw[:window], WINDOWS), direction: pick(raw[:direction], DIRECTIONS),
         finish: pick(raw[:finish], FINISHES), **AMOUNTS.index_with { |key| amount(raw[key]) },
+        rarity: RARITIES & Array(raw[:rarity]).map(&:to_s),
         sort: sort, dir: SORT_DIRS.include?(raw[:dir].to_s) ? raw[:dir].to_s : DEFAULT_DIRS[sort] }
     end
 
@@ -91,6 +96,7 @@ module CollectionStats
              .where(Arel.sql("ROUND((#{delta_sql})::numeric, 2) <> 0"))
              .where(Arel.sql(direction_sql))
       base = base.where.not(id: @exclude_card_ids) if @exclude_card_ids.any?
+      base = base.where(rarity: @filters[:rarity]) if @filters[:rarity].any?
 
       thresholds.reduce(base) do |relation, (key, sql)|
         @filters[key] ? relation.where(sql, @filters[key]) : relation

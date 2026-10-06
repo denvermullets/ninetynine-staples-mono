@@ -248,7 +248,8 @@ RSpec.describe PriceAlert, type: :model do
     # what CollectionStats::MoversTable hands the page, sort and all
     let(:filters) do
       { window: 'daily', direction: 'up', finish: 'both', min_delta: BigDecimal('5'), min_percent: nil,
-        min_price: BigDecimal('2.5'), min_buylist: BigDecimal('0.25'), max_buylist: nil, sort: 'name', dir: 'asc' }
+        min_price: BigDecimal('2.5'), min_buylist: BigDecimal('0.25'), max_buylist: nil, rarity: %w[rare mythic],
+        sort: 'name', dir: 'asc' }
     end
 
     it 'saves the filters as a movement rule, leaving sort and page out' do
@@ -257,7 +258,7 @@ RSpec.describe PriceAlert, type: :model do
       expect(described_class.movement_rule_attributes(filters, collection_id: collection.id)).to eq(
         collection_id: collection.id, window: 'daily', direction: 'up', finish: 'any',
         min_delta_amount: BigDecimal('5'), min_delta_percent: nil, min_price: BigDecimal('2.5'),
-        min_buylist_price: BigDecimal('0.25'), max_buylist_price: nil
+        min_buylist_price: BigDecimal('0.25'), max_buylist_price: nil, rarities: %w[rare mythic]
       )
     end
 
@@ -362,6 +363,54 @@ RSpec.describe PriceAlert, type: :model do
 
     it 'rides along in the movers filters a rule links to' do
       expect(rule(min_buylist_price: 0.25).movers_filters).to include(min_buylist: '0.25')
+    end
+  end
+
+  describe 'rarities' do
+    def rule(**attributes)
+      build(:price_alert, :movement_rule, user: user, **attributes)
+    end
+
+    it 'keeps them in the movers table order, dropping blanks and unknown ones' do
+      expect(rule(rarities: ['', 'mythic', 'bogus', 'common']).rarities).to eq(%w[common mythic])
+    end
+
+    it 'finds no rule, rather than raising, when none matches' do
+      filters = { window: 'daily', direction: 'both', finish: 'both', min_delta: BigDecimal('5'),
+                  rarity: %w[rare mythic] }
+
+      expect(described_class.matching_rule(described_class.movement_rule_attributes(filters))).to be_empty
+    end
+
+    it 'finds a rule by a pick of one rarity, or of none, and not by a different pick' do
+      common = rule(rarities: %w[common]).tap(&:save!)
+      every = rule(rarities: []).tap(&:save!)
+      filters = { window: 'daily', direction: 'both', finish: 'both', min_delta: BigDecimal('5') }
+
+      expect(described_class.matching_rule(described_class.movement_rule_attributes(filters.merge(rarity: %w[common]))))
+        .to contain_exactly(common)
+      expect(described_class.matching_rule(described_class.movement_rule_attributes(filters))).to contain_exactly(every)
+    end
+
+    it 'finds the rule saved from the same pick' do
+      saved = rule(rarities: %w[rare mythic])
+      saved.save!
+
+      filters = { window: saved.window, direction: saved.direction, finish: 'both',
+                  min_delta: saved.min_delta_amount, rarity: %w[mythic rare] }
+
+      expect(described_class.matching_rule(described_class.movement_rule_attributes(filters)))
+        .to contain_exactly(saved)
+    end
+
+    it 'rides along in the movers filters a rule links to, and stays off with none picked' do
+      expect(rule(rarities: %w[rare]).movers_filters).to include(rarity: %w[rare])
+      expect(rule.movers_filters).not_to have_key(:rarity)
+    end
+
+    it 'is not something a threshold alert or a band takes' do
+      expect(build(:price_alert, user: user, rarities: %w[rare])).not_to be_valid
+      expect(build(:price_alert, :band, user: user, rarities: %w[rare])).not_to be_valid
     end
   end
 end

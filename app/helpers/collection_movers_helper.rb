@@ -4,7 +4,7 @@ module CollectionMoversHelper
   AMOUNT_FILTERS = %i[min_delta min_percent min_price min_buylist max_buylist].freeze
 
   SORT_HEADERS = {
-    'name' => 'Name', 'rarity' => 'Rarity', 'price' => 'Unit price', 'buylist' => 'CK buylist', 'value' => 'Holding',
+    'name' => 'Name', 'rarity' => 'Rarity', 'price' => 'Unit price', 'buylist' => 'CK buylist',
     'delta' => '$ move', 'percent' => '% move'
   }.freeze
 
@@ -15,14 +15,15 @@ module CollectionMoversHelper
     value.to_s('F').delete_suffix('.0')
   end
 
-  # The filters as they ride on a link: amounts as plain numbers, unset ones dropped. The page param
+  # The filters as they ride on a link: amounts as plain numbers, unset ones and an empty rarity pick
+  # dropped. The page param
   # is left off on purpose - a new sort is a new list, and page 3 of the old one means nothing.
   def movers_query(filters, collection_id, **overrides)
     query = filters.merge(overrides).to_h do |key, value|
       [key, AMOUNT_FILTERS.include?(key.to_sym) ? movers_amount(value) : value]
     end
 
-    query.merge(collection_id: collection_id).compact
+    query.merge(collection_id: collection_id).compact_blank
   end
 
   # Clicking the active column flips it; clicking another one starts it at that key's natural
@@ -85,13 +86,22 @@ module CollectionMoversHelper
 
   # PriceAlert.movement_rule_attributes as the params the "alert me" button posts to price_alerts#create
   def movers_alert_params(attributes)
-    attributes.compact.transform_values { |value| value.is_a?(BigDecimal) ? movers_amount(value) : value }
+    attributes.compact_blank.transform_values { |value| value.is_a?(BigDecimal) ? movers_amount(value) : value }
               .merge(kind: 'movement')
   end
 
   # a rule with no minimum move would fire on every card that moved at all, every day
   def movers_alert_ready?(attributes)
     attributes[:min_delta_amount].present? || attributes[:min_delta_percent].present?
+  end
+
+  # keyrune's rarity colours; it has no special, so special borrows timeshifted's purple
+  RARITY_ICONS = { 'mythic' => 'ss-mythic', 'rare' => 'ss-rare', 'uncommon' => 'ss-uncommon',
+                   'common' => 'ss-common', 'special' => 'ss-timeshifted' }.freeze
+
+  # the rarity toggles, mythic down to common as the card search draws them: value => icon class
+  def movers_rarity_options
+    RARITY_ICONS
   end
 
   def movers_window_text(filters)

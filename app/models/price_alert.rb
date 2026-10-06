@@ -24,7 +24,8 @@
 #   handled yet are the band's worklist. See PriceAlerts::SyncBand.
 #
 # Movement rules and bands both take a Card Kingdom buylist range (min/max_buylist_price), which
-# narrows the cards they count the way the movers table's buylist filter does.
+# narrows the cards they count the way the movers table's buylist filter does. A movement rule can
+# also be narrowed to some `rarities`, the movers table's rarity filter; empty counts every card.
 class PriceAlert < ApplicationRecord
   KINDS = %w[threshold movement band].freeze
   FINISHES = %w[normal foil any].freeze
@@ -42,6 +43,7 @@ class PriceAlert < ApplicationRecord
   FINISH_FOR_FOIL_PREFERENCE = { 'any' => 'any', 'foil' => 'foil', 'non_foil' => 'normal' }.freeze
 
   include PriceAlertBands
+  include PriceAlertRarities
 
   belongs_to :user
   belongs_to :magic_card, optional: true
@@ -58,7 +60,7 @@ class PriceAlert < ApplicationRecord
   with_options if: :threshold? do
     validates :threshold_price, presence: true
     validates :direction, inclusion: { in: THRESHOLD_DIRECTIONS }
-    validates :collection_id, :from_price, :min_buylist_price, :max_buylist_price, absence: true
+    validates :collection_id, :from_price, :min_buylist_price, :max_buylist_price, :rarities, absence: true
     validate :watches_one_target
   end
 
@@ -70,7 +72,7 @@ class PriceAlert < ApplicationRecord
   end
 
   with_options if: -> { movement? && magic_card_id } do
-    validates :collection_id, absence: true
+    validates :collection_id, :rarities, absence: true
     validate :one_override_per_window
   end
 
@@ -147,7 +149,7 @@ class PriceAlert < ApplicationRecord
     { window: window, direction: direction, finish: finish == 'any' ? 'both' : finish,
       min_delta: min_delta_amount&.to_s('F'), min_percent: min_delta_percent&.to_s('F'),
       min_price: min_price&.to_s('F'), min_buylist: min_buylist_price&.to_s('F'),
-      max_buylist: max_buylist_price&.to_s('F') }.compact
+      max_buylist: max_buylist_price&.to_s('F'), rarity: rarities.presence }.compact
   end
 
   # The other way round from #movers_filters: the movement rule a set of CollectionStats::MoversTable
@@ -159,7 +161,7 @@ class PriceAlert < ApplicationRecord
       finish: filters[:finish] == 'both' ? 'any' : filters[:finish],
       min_delta_amount: cents(filters[:min_delta]), min_delta_percent: cents(filters[:min_percent]),
       min_price: cents(filters[:min_price]), min_buylist_price: cents(filters[:min_buylist]),
-      max_buylist_price: cents(filters[:max_buylist]) }
+      max_buylist_price: cents(filters[:max_buylist]), rarities: rarity_pick(filters[:rarity]) }
   end
 
   # an amount that rounds to nothing is no minimum at all, the same as the movers table reads it

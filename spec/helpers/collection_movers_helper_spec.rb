@@ -22,6 +22,11 @@ RSpec.describe CollectionMoversHelper, type: :helper do
       )
     end
 
+    it 'carries a rarity pick, and drops an empty one' do
+      expect(helper.movers_query(filters.merge(rarity: %w[rare mythic]), nil)).to include(rarity: %w[rare mythic])
+      expect(helper.movers_query(filters.merge(rarity: []), nil)).not_to have_key(:rarity)
+    end
+
     it 'leaves collection_id off for the whole collection' do
       expect(helper.movers_query(filters, nil)).not_to have_key(:collection_id)
     end

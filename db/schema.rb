@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_120100) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -617,6 +617,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120100) do
     t.decimal "min_buylist_price", precision: 10, scale: 2
     t.decimal "max_buylist_price", precision: 10, scale: 2
     t.decimal "from_price", precision: 10, scale: 2
+    t.string "rarities", default: [], null: false, array: true
     t.index ["collection_id"], name: "index_price_alerts_on_collection_id"
     t.index ["magic_card_id"], name: "index_price_alerts_on_magic_card_id"
     t.index ["scryfall_oracle_id"], name: "index_price_alerts_on_scryfall_oracle_id"
