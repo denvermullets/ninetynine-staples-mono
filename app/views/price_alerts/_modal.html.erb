@@ -5,7 +5,7 @@
   From a bell, alert is an unsaved threshold for the card, prefilled with its current price; existing
   is every alert already on that card, so a second press can remove one; override is an unsaved
   per-card movement alert, offered when the bell is on a single printing. From the index, alert is the
-  one being edited and the other two are empty.
+  one being edited, or a new price band, and the other two are empty.
 
   The forms answer with turbo streams: a save empties this frame, which closes the dialog.
 %>
@@ -29,7 +29,10 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h3 class="text-lg font-semibold text-nine-white">
-            <%= alert.persisted? ? 'Edit alert' : 'Price alerts' %>
+            <%= if alert.persisted? then 'Edit alert'
+                elsif alert.band? then 'New price band'
+                else 'Price alerts'
+                end %>
           </h3>
 
           <p class="text-sm text-grey-text">

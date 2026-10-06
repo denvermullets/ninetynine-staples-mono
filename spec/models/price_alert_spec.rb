@@ -248,7 +248,7 @@ RSpec.describe PriceAlert, type: :model do
     # what CollectionStats::MoversTable hands the page, sort and all
     let(:filters) do
       { window: 'daily', direction: 'up', finish: 'both', min_delta: BigDecimal('5'), min_percent: nil,
-        min_price: BigDecimal('2.5'), sort: 'name', dir: 'asc' }
+        min_price: BigDecimal('2.5'), min_buylist: BigDecimal('0.25'), max_buylist: nil, sort: 'name', dir: 'asc' }
     end
 
     it 'saves the filters as a movement rule, leaving sort and page out' do
@@ -256,7 +256,8 @@ RSpec.describe PriceAlert, type: :model do
 
       expect(described_class.movement_rule_attributes(filters, collection_id: collection.id)).to eq(
         collection_id: collection.id, window: 'daily', direction: 'up', finish: 'any',
-        min_delta_amount: BigDecimal('5'), min_delta_percent: nil, min_price: BigDecimal('2.5')
+        min_delta_amount: BigDecimal('5'), min_delta_percent: nil, min_price: BigDecimal('2.5'),
+        min_buylist_price: BigDecimal('0.25'), max_buylist_price: nil
       )
     end
 
@@ -280,6 +281,87 @@ RSpec.describe PriceAlert, type: :model do
       user.price_alerts.create!(kind: 'movement', **attributes, min_price: nil)
 
       expect(user.price_alerts.active.matching_rule(attributes)).to contain_exactly(rule)
+    end
+  end
+
+  describe 'bands' do
+    def band(**attributes)
+      build(:price_alert, :band, user: user, **attributes)
+    end
+
+    it 'is valid going up from under its threshold, both ways, or down from over it' do
+      expect(band).to be_valid
+      expect(band(direction: 'both')).to be_valid
+      expect(band(direction: 'below', from_price: 1.1)).to be_valid
+    end
+
+    it 'needs a from price on the right side of the threshold' do
+      expect(band(from_price: 1.1)).not_to be_valid
+      expect(band(from_price: 1)).not_to be_valid
+      expect(band(direction: 'below')).not_to be_valid
+      expect(band(direction: 'both', from_price: 1.1)).not_to be_valid
+      expect(band(direction: 'sideways')).not_to be_valid
+      expect(band(from_price: nil)).not_to be_valid
+    end
+
+    it 'watches no single card' do
+      expect(band(magic_card: create(:magic_card))).not_to be_valid
+      expect(band(window: 'daily')).not_to be_valid
+    end
+
+    it 'can narrow to one of its own collections only' do
+      expect(band(collection: create(:collection, user: user))).to be_valid
+      expect(band(collection: create(:collection))).not_to be_valid
+    end
+
+    it 'is back at its from price landing on it' do
+      expect(band.returns_at?(BigDecimal('0.9'))).to be(true)
+      expect(band.returns_at?(BigDecimal('0.91'))).to be(false)
+      expect(band(direction: 'below', from_price: 1.1).returns_at?(BigDecimal('1.1'))).to be(true)
+    end
+
+    it 'names the way each line is crossed' do
+      expect(band(direction: 'both')).to have_attributes(reach_move: 'up', return_move: 'down', two_way?: true)
+      expect(band(direction: 'below', from_price: 1.1)).to have_attributes(reach_move: 'down', two_way?: false)
+    end
+
+    it 'reaches its threshold landing on it' do
+      expect(band.reaches?(BigDecimal('1'))).to be(true)
+      expect(band.reaches?(BigDecimal('0.99'))).to be(false)
+      expect(band(direction: 'below', from_price: 1.1).reaches?(BigDecimal('0.99'))).to be(true)
+    end
+  end
+
+  describe 'the buylist range' do
+    def rule(**attributes)
+      build(:price_alert, :movement_rule, user: user, **attributes)
+    end
+
+    it 'lets every card through with no range, even one CK is not buying' do
+      expect(rule.buylist_in_range?(nil)).to be(true)
+      expect(rule.buylist_in_range?(BigDecimal('0'))).to be(true)
+    end
+
+    it 'keeps a card between the ends, both included, and never one CK is not buying' do
+      ranged = rule(min_buylist_price: 0.25, max_buylist_price: 2)
+
+      expect(ranged.buylist_in_range?(BigDecimal('0.25'))).to be(true)
+      expect(ranged.buylist_in_range?(BigDecimal('2'))).to be(true)
+      expect(ranged.buylist_in_range?(BigDecimal('2.01'))).to be(false)
+      expect(ranged.buylist_in_range?(BigDecimal('0'))).to be(false)
+      expect(rule(max_buylist_price: 2).buylist_in_range?(BigDecimal('0'))).to be(false)
+    end
+
+    it 'needs the minimum no higher than the maximum' do
+      expect(rule(min_buylist_price: 3, max_buylist_price: 2)).not_to be_valid
+    end
+
+    it 'is not something a threshold alert takes' do
+      expect(build(:price_alert, user: user, min_buylist_price: 1)).not_to be_valid
+    end
+
+    it 'rides along in the movers filters a rule links to' do
+      expect(rule(min_buylist_price: 0.25).movers_filters).to include(min_buylist: '0.25')
     end
   end
 end

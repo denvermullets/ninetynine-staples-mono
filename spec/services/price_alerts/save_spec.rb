@@ -97,4 +97,63 @@ RSpec.describe PriceAlerts::Save do
       expect(alert.reload).to have_attributes(kind: 'threshold', window: nil)
     end
   end
+
+  describe 'price bands' do
+    let(:collection) { create(:collection, user: user) }
+    let!(:pricey) do
+      create(:magic_card, normal_price: 3).tap do |pricey_card|
+        create(:collection_magic_card, collection: collection, magic_card: pricey_card)
+      end
+    end
+
+    def band(**overrides)
+      params(kind: 'band', direction: 'above', finish: 'any', from_price: '0.90', threshold_price: '1.00', **overrides)
+    end
+
+    it 'creates a band and places its cards straight away, the ones already past it handled' do
+      result = described_class.call(user: user, params: band(min_buylist_price: '0.25'))
+
+      expect(result[:success]).to be(true)
+      expect(result[:alert]).to have_attributes(kind: 'band', from_price: BigDecimal('0.9'), threshold_price: 1,
+                                                min_buylist_price: BigDecimal('0.25'))
+      expect(result[:alert].band_cards.sole).to have_attributes(magic_card_id: pricey.id, state: 'crossed')
+      expect(result[:alert].band_cards.to_do).to be_empty
+    end
+
+    it 'puts the cards already past it on the list when asked to audit them' do
+      alert = described_class.call(user: user, params: band(existing_cards: 'audit'))[:alert]
+
+      expect(alert.band_cards.to_do.sole.magic_card_id).to eq(pricey.id)
+    end
+
+    it 'drops fields a band does not take' do
+      alert = described_class.call(user: user, params: band(window: 'daily', magic_card_id: card.id,
+                                                            min_delta_amount: '5'))[:alert]
+
+      expect(alert.reload).to have_attributes(window: nil, magic_card_id: nil, min_delta_amount: nil)
+    end
+
+    it 'saves nothing, cards included, when the band is invalid' do
+      result = described_class.call(user: user, params: band(from_price: '2'))
+
+      expect(result[:success]).to be(false)
+      expect(PriceBandCard.count).to eq(0)
+    end
+
+    describe 'editing' do
+      let(:alert) { described_class.call(user: user, params: band(existing_cards: 'audit'))[:alert] }
+
+      it 'places the cards afresh when the lines move' do
+        described_class.call(user: user, alert: alert, params: params(threshold_price: '5'))
+
+        expect(alert.band_cards.reload.sole).to have_attributes(state: 'armed', handled_at: nil)
+      end
+
+      it 'leaves the worklist alone when only the buylist range changes' do
+        described_class.call(user: user, alert: alert, params: params(max_buylist_price: '10'))
+
+        expect(alert.band_cards.to_do.count).to eq(1)
+      end
+    end
+  end
 end

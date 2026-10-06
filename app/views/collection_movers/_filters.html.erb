@@ -35,7 +35,8 @@
 
   <div class="flex flex-wrap items-end gap-4">
     <% [[:min_delta, 'Min $ move', '0.01'], [:min_percent, 'Min % move', '0.1'],
-        [:min_price, 'Min card price', '0.01']].each do |name, label, step| %>
+        [:min_price, 'Min card price', '0.01'], [:min_buylist, 'Min CK buylist', '0.01'],
+        [:max_buylist, 'Max CK buylist', '0.01']].each do |name, label, step| %>
       <label class="flex flex-col gap-1 text-xs text-grey-text/70">
         <%= label %>
 
@@ -51,6 +52,7 @@
   <p class="text-xs text-grey-text/50">
     <%= pluralize(number_with_delimiter(total), 'card') %> moved
     <%= movers_window_text(filters) %>. Proxy copies sit this one out - a proxy
-    price did not move, so you did not gain anything.
+    price did not move, so you did not gain anything. The buylist range leaves
+    out cards Card Kingdom is not buying.
   </p>
 <% end %>

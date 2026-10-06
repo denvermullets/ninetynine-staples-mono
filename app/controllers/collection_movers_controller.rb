@@ -9,7 +9,8 @@
 # the params through and wraps its total for Pagy. The filters and the table share one turbo frame
 # with turbo_action advance, so every filter, sort and page is a URL you can bookmark.
 class CollectionMoversController < ApplicationController
-  FILTER_PARAMS = %i[window direction finish min_delta min_percent min_price sort dir].freeze
+  FILTER_PARAMS = %i[window direction finish min_delta min_percent min_price min_buylist max_buylist
+                     sort dir].freeze
 
   def show
     @scope = CollectionStats::Scope.call(username: params[:username], viewer: current_user,

@@ -12,7 +12,7 @@
 # arguments for the kind's sentence.
 class Notification < ApplicationRecord
   KINDS = %w[trade_proposed trade_countered trade_accepted trade_declined trade_cancelled trade_completed
-             price_threshold_crossed price_movement].freeze
+             price_threshold_crossed price_movement price_band_crossed].freeze
 
   belongs_to :user
   belongs_to :notifiable, polymorphic: true, optional: true

@@ -1,15 +1,23 @@
 <%# locals: (alert:) %>
 <%#
   One alert's fields, picked by kind: a threshold is a direction, a price and a finish; a movement
-  alert is the movers table's filters, plus a collection when it is a collection-wide rule. What it
-  watches only rides along on a new alert - an alert never changes its card.
+  alert is the movers table's filters, plus a collection when it is a collection-wide rule; a band
+  is two prices, a finish, a collection and a buylist range. What it watches only rides along on a
+  new alert - an alert never changes its card.
+
+  A new band's form targets _top: its create redirects to the band's worklist rather than
+  answering with streams.
+
+  existing_cards is not a column. It tells PriceAlerts::Save what to make of the cards already past
+  the line when the band is placed - on a new band, or when an edit moves its lines.
 %>
 
 <% pill = 'px-3 py-1.5 text-sm rounded-md transition cursor-pointer bg-background text-grey-text hover:bg-menu has-[:checked]:bg-highlight has-[:checked]:text-nine-white'
   input = 'w-full px-2 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text focus:border-accent-50 focus:ring-accent-50'
   label = 'flex flex-col gap-1 text-xs text-grey-text/70' %>
 
-<%= form_with model: alert, class: 'flex flex-col gap-4' do |f| %>
+<%= form_with model: alert, class: 'flex flex-col gap-4',
+  data: (alert.band? && alert.new_record? ? { turbo_frame: '_top' } : {}) do |f| %>
   <% if alert.new_record? %>
     <%= f.hidden_field :kind, id: nil %>
     <% if alert.magic_card_id %>
@@ -46,6 +54,72 @@
         (<%= PriceAlertsHelper::FINISH_LABELS.fetch(alert.finish) %>).
       </p>
     <% end %>
+  <% elsif alert.band? %>
+    <div class="flex flex-wrap items-center gap-2">
+      <% [['both', 'Both ways'], ['above', 'Going up only'], ['below', 'Going down only']].each do |value, text| %>
+        <label class="<%= pill %>">
+          <%= f.radio_button :direction, value, id: nil, class: 'sr-only' %>
+          <%= text %>
+        </label>
+      <% end %>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <label class="<%= label %>">
+        From
+        <%= f.number_field :from_price, value: price_alert_amount(alert.from_price),
+          min: 0.01, step: 0.01, required: true, id: nil, class: input %>
+      </label>
+
+      <label class="<%= label %>">
+        To
+        <%= f.number_field :threshold_price, value: price_alert_amount(alert.threshold_price),
+          min: 0.01, step: 0.01, required: true, id: nil, class: input %>
+      </label>
+
+      <label class="<%= label %>">
+        Min CK buylist
+        <%= f.number_field :min_buylist_price, value: price_alert_amount(alert.min_buylist_price),
+          min: 0.01, step: 0.01, placeholder: 'Any', id: nil, class: input %>
+      </label>
+
+      <label class="<%= label %>">
+        Max CK buylist
+        <%= f.number_field :max_buylist_price, value: price_alert_amount(alert.max_buylist_price),
+          min: 0.01, step: 0.01, placeholder: 'Any', id: nil, class: input %>
+      </label>
+
+      <label class="<%= label %>">
+        Finish
+        <%= f.select :finish, price_alert_finish_options(alert), {}, id: nil, class: input %>
+      </label>
+
+      <label class="<%= label %>">
+        Collection
+        <%= f.select :collection_id,
+          [['All collections', nil]] + current_user.ordered_collections.map { |collection| [collection.name, collection.id] },
+          {}, id: nil, class: input %>
+      </label>
+    </div>
+    <p class="text-xs text-grey-text/50">
+      Both ways lists a card when it climbs to the To price, and again when it
+      drops back to the From price - a card bought at $2 that falls to $0.50
+      included. One way lists only reaching the To price. With a buylist range,
+      only cards Card Kingdom pays that much for are listed.
+    </p>
+    <fieldset class="flex flex-col gap-2">
+      <legend class="mb-2 text-xs text-grey-text/70">
+        <%= alert.new_record? ? 'Cards already past the To price' : 'If you change the prices, cards already past the To price' %>
+      </legend>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <% [['handled', "I've already handled them"], ['audit', 'Put them on the list']].each do |value, text| %>
+          <label class="<%= pill %>">
+            <%= radio_button_tag 'price_alert[existing_cards]', value, value == 'handled', id: nil, class: 'sr-only' %>
+            <%= text %>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
   <% else %>
     <% [[:window, PriceAlertsHelper::WINDOW_LABELS],
         [:direction, { 'both' => 'Up & Down', 'up' => 'Up', 'down' => 'Down' }]].each do |name, options| %>
@@ -80,6 +154,16 @@
         <label class="<%= label %>">
           Min card price
           <%= f.number_field :min_price, value: price_alert_amount(alert.min_price),
+            min: 0.01, step: 0.01, placeholder: 'Any', id: nil, class: input %>
+        </label>
+        <label class="<%= label %>">
+          Min CK buylist
+          <%= f.number_field :min_buylist_price, value: price_alert_amount(alert.min_buylist_price),
+            min: 0.01, step: 0.01, placeholder: 'Any', id: nil, class: input %>
+        </label>
+        <label class="<%= label %>">
+          Max CK buylist
+          <%= f.number_field :max_buylist_price, value: price_alert_amount(alert.max_buylist_price),
             min: 0.01, step: 0.01, placeholder: 'Any', id: nil, class: input %>
         </label>
         <label class="col-span-2 <%= label %>">

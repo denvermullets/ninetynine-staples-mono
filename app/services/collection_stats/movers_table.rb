@@ -12,6 +12,14 @@
 # to the default; nothing a caller passes is interpolated into SQL. The numeric thresholds are
 # parsed to BigDecimal and go in as bind values.
 #
+# The buylist range reads Card Kingdom's buylist price for the dearest finish you hold, the same way
+# min_price reads the market price. A buylist price of 0 means CK is not buying that printing, so it
+# counts as no price: with either end of the range set, a card CK will not buy drops out rather than
+# passing as a $0.00 buylist under any maximum.
+#
+# Rarity sorts on the printing's rarity, special first, then mythic down to common. A printing
+# with no rarity sorts last either way.
+#
 # The finish filter zeroes the other finish's quantity inside the expressions rather than branching
 # into a second query shape: with finish=foil, the non-foil copies contribute no copies, no value and
 # no move, so a card held only as a non-foil moves $0.00 and drops out on the same rule as bulk.
@@ -26,8 +34,12 @@ module CollectionStats
     WINDOWS = %w[weekly daily].freeze
     DIRECTIONS = %w[both up down].freeze
     FINISHES = %w[both normal foil].freeze
-    SORTS = %w[delta percent value price name].freeze
+    SORTS = %w[delta percent value price buylist rarity name].freeze
     SORT_DIRS = %w[desc asc].freeze
+    AMOUNTS = %i[min_delta min_percent min_price min_buylist max_buylist].freeze
+
+    # biggest first: special, then mythic down to common
+    RARITY_RANKS = { 'special' => 5, 'mythic' => 4, 'rare' => 3, 'uncommon' => 2, 'common' => 1 }.freeze
 
     # name reads A-Z; every other key reads biggest first
     DEFAULT_DIRS = Hash.new('desc').merge('name' => 'asc').freeze
@@ -59,8 +71,7 @@ module CollectionStats
       sort = pick(raw[:sort], SORTS)
 
       { window: pick(raw[:window], WINDOWS), direction: pick(raw[:direction], DIRECTIONS),
-        finish: pick(raw[:finish], FINISHES), min_delta: amount(raw[:min_delta]),
-        min_percent: amount(raw[:min_percent]), min_price: amount(raw[:min_price]),
+        finish: pick(raw[:finish], FINISHES), **AMOUNTS.index_with { |key| amount(raw[key]) },
         sort: sort, dir: SORT_DIRS.include?(raw[:dir].to_s) ? raw[:dir].to_s : DEFAULT_DIRS[sort] }
     end
 
@@ -90,7 +101,9 @@ module CollectionStats
     def thresholds
       { min_delta: "ABS(#{delta_sql}) >= ?",
         min_percent: "ABS(#{delta_sql}) * 100 >= ? * ABS(#{old_value_sql})",
-        min_price: "#{price_sql} >= ?" }
+        min_price: "#{price_sql} >= ?",
+        min_buylist: "#{buylist_sql} >= ?",
+        max_buylist: "#{buylist_sql} <= ?" }
     end
 
     def fetch
@@ -104,8 +117,9 @@ module CollectionStats
 
     def columns
       ['magic_cards.id', 'magic_cards.name', 'magic_cards.image_small', 'magic_cards.image_large',
-       'boxsets.name', 'boxsets.keyrune_code', copies_sql, value_sql, delta_sql,
-       qty_sql, foil_qty_sql, 'magic_cards.normal_price', 'magic_cards.foil_price']
+       'boxsets.name', 'boxsets.keyrune_code', 'magic_cards.rarity', copies_sql, value_sql, delta_sql,
+       qty_sql, foil_qty_sql, 'magic_cards.normal_price', 'magic_cards.foil_price',
+       'magic_cards.ck_buylist_normal_price', 'magic_cards.ck_buylist_foil_price']
     end
 
     # the finish filter, applied by pricing the excluded finish at zero copies
@@ -146,6 +160,19 @@ module CollectionStats
         "CASE WHEN #{foil_qty_sql} > 0 THEN magic_cards.foil_price END)"
     end
 
+    # price_sql for what Card Kingdom pays, where 0 is not buying rather than a price
+    def buylist_sql
+      "GREATEST(CASE WHEN #{qty_sql} > 0 THEN NULLIF(magic_cards.ck_buylist_normal_price, 0) END, " \
+        "CASE WHEN #{foil_qty_sql} > 0 THEN NULLIF(magic_cards.ck_buylist_foil_price, 0) END)"
+    end
+
+    # the ranks are constants, never anything a caller passed
+    def rarity_sql
+      whens = RARITY_RANKS.map { |rarity, rank| "WHEN '#{rarity}' THEN #{rank}" }.join(' ')
+
+      "(CASE magic_cards.rarity #{whens} END)"
+    end
+
     def direction_sql
       case @filters[:direction]
       when 'up' then "#{delta_sql} > 0"
@@ -160,26 +187,29 @@ module CollectionStats
       when 'percent' then "ABS(#{percent_sql})"
       when 'value' then value_sql
       when 'price' then price_sql
+      when 'buylist' then buylist_sql
+      when 'rarity' then rarity_sql
       when 'name' then 'magic_cards.name'
       else "ABS(#{delta_sql})"
       end
     end
 
     def build_row(row)
-      id, name, image, image_large, set_name, keyrune, copies, value, delta, qty, foil_qty, *prices = row
+      id, name, image, image_large, set_name, keyrune, rarity, copies, value, delta, qty, foil_qty, *prices = row
       value = to_money(value || 0)
       delta = to_money(delta || 0)
 
       { id: id, name: name || 'Unknown card', set_name: set_name, icon: keyrune_icon(keyrune),
-        image: image, image_large: image_large || image, copies: copies.to_i, qty: qty.to_i,
+        rarity: rarity, image: image, image_large: image_large || image, copies: copies.to_i, qty: qty.to_i,
         foil_qty: foil_qty.to_i, value: value,
         delta: delta, percent: share(delta, value - delta),
         delta_class: delta.negative? ? PriceMovers::LOSS_CLASS : PriceMovers::GAIN_CLASS,
         **unit_prices(*prices) }
     end
 
-    def unit_prices(normal_price, foil_price)
-      { normal_price: to_money(normal_price || 0), foil_price: to_money(foil_price || 0) }
+    def unit_prices(normal_price, foil_price, buylist_normal, buylist_foil)
+      { normal_price: to_money(normal_price || 0), foil_price: to_money(foil_price || 0),
+        buylist_normal: to_money(buylist_normal || 0), buylist_foil: to_money(buylist_foil || 0) }
     end
   end
 end

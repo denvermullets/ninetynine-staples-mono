@@ -7,7 +7,11 @@
 # same card, and toast. A failed write leaves the modal open and toasts the errors.
 #
 # A collection-wide movement rule is created from the movers page's "alert me" button rather than the
-# modal, so its create answers by flipping that button instead.
+# modal, so its create answers by flipping that button instead. A price band is made from the index
+# page's "New price band" button, and its create goes straight to the band's worklist, which
+# PriceAlerts::Save has already filled.
+#
+# The bell is the only thing a threshold is made from, so ?kind=band is what tells `new` it is not.
 #
 # Which fields a write may set is PriceAlerts::Save's call.
 class PriceAlertsController < ApplicationController
@@ -19,10 +23,13 @@ class PriceAlertsController < ApplicationController
     @thresholds = alerts.select(&:threshold?)
     @rules = alerts.select(&:movement_rule?)
     @overrides = alerts.select { |alert| alert.movement? && !alert.movement_rule? }
+    load_bands(alerts)
     @cheapest = PriceAlert.cheapest_printings(@thresholds.filter_map(&:scryfall_oracle_id).uniq)
   end
 
   def new
+    return render_modal(new_band) if params[:kind] == 'band'
+
     alert = bell_alert
     return head :not_found unless alert
 
@@ -40,6 +47,7 @@ class PriceAlertsController < ApplicationController
     return render_errors(alert) unless result[:success]
 
     return render_rule_created(alert) if alert.movement_rule?
+    return redirect_to(price_alert_worklist_path(alert), notice: 'Price band created.') if alert.band?
 
     render_saved(alert, "#{alert.threshold? ? 'Price' : 'Movement'} alert created.")
   end
@@ -64,6 +72,12 @@ class PriceAlertsController < ApplicationController
 
   private
 
+  # the bands, and how many cards each one's worklist has to do
+  def load_bands(alerts)
+    @bands = alerts.select(&:band?)
+    @to_do = PriceBandCard.to_do.where(price_alert_id: @bands.map(&:id)).group(:price_alert_id).count
+  end
+
   def set_alert
     @alert = current_user.price_alerts.find_by(id: params[:id])
     head :not_found unless @alert
@@ -79,6 +93,13 @@ class PriceAlertsController < ApplicationController
       finish = PriceAlert::PRINTING_FINISHES.include?(params[:finish]) ? params[:finish] : 'normal'
       current_user.price_alerts.new(kind: 'threshold', magic_card: card, finish: finish, direction: 'above')
     end
+  end
+
+  # a two-way $0.90 / $1.00 band, the sleeve swap, is the shape most bands take, so it is where a new
+  # one starts
+  def new_band
+    current_user.price_alerts.new(kind: 'band', direction: 'both', finish: 'any', from_price: BigDecimal('0.90'),
+                                  threshold_price: BigDecimal('1.00'))
   end
 
   # every alert already on the same card, listed in the modal so a second bell press can remove one

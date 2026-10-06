@@ -1,0 +1,73 @@
+<%# locals: (band:, row:, done:) %>
+<%#
+  One card on a band's worklist: a PriceAlerts::BandWorklist row. Where the card is leads, since
+  finding it is the job; the prices say why it is here. The button ticks it off, or on the done tab
+  puts it back.
+%>
+
+<% card = row[:card]
+  band_card = row[:band_card]
+  button = 'px-3 py-1.5 text-sm transition border rounded-md cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white' %>
+
+<div
+  id="<%= dom_id(band_card) %>"
+  class="flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-6"
+>
+  <div class="flex items-center min-w-0 gap-3 md:w-2/5">
+    <% if card.image_small.present? %>
+      <%= image_tag card.image_small, alt: card.name,
+        class: 'hidden object-cover w-8 rounded md:block h-11 max-w-none',
+        data: {
+          controller: 'card-hover',
+          card_hover_image_value: card.image_large || card.image_small,
+          card_hover_name_value: card.name,
+          action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+        } %>
+    <% end %>
+
+    <div class="min-w-0">
+      <p class="text-sm font-semibold truncate text-grey-text">
+        <%= card.name.to_s.split('//').first %>
+
+        <% if band_card.finish == 'foil' %>
+          <span class="ml-1 text-xs font-normal text-accent-50">foil</span>
+        <% end %>
+      </p>
+
+      <p class="flex items-center gap-1 text-xs truncate text-grey-text/50">
+        <% if (icon = price_band_set_icon(card)) %>
+          <i class="<%= icon %>" aria-hidden="true"></i>
+        <% end %>
+
+        <%= card.boxset&.name || 'Unknown set' %> #<%= card.card_number %>
+      </p>
+    </div>
+  </div>
+
+  <p class="text-sm md:flex-1 text-grey-text">
+    <%= price_band_places(row[:places]) %>
+  </p>
+
+  <div class="flex flex-wrap gap-4 text-xs md:w-1/4 text-grey-text/60">
+    <span>Now <%= price_band_money(row[:price]) %></span>
+
+    <span>CK <%= price_band_money(row[:buylist]) %></span>
+
+    <% if band_card.crossed_on %>
+      <span>
+        <%= band_card.moved == 'down' ? 'Dropped' : 'Went up' %> at
+        <%= price_band_money(band_card.crossed_price) %> on
+        <%= l(band_card.crossed_on, format: :short) %>
+      </span>
+    <% end %>
+
+    <% if done && band_card.handled_at %>
+      <span>Done <%= time_ago_in_words(band_card.handled_at) %> ago</span>
+    <% end %>
+  </div>
+
+  <div class="shrink-0">
+    <%= button_to done ? 'Undo' : 'Done', price_alert_worklist_path(band), method: :patch,
+      params: { band_card_id: band_card.id, handled: !done }, class: button %>
+  </div>
+</div>

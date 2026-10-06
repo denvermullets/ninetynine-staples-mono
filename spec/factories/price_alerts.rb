@@ -21,5 +21,15 @@ FactoryBot.define do
       movement_rule
       magic_card
     end
+
+    # "from $0.90 or less to $1.00 or more", going up only, across all the user's collections
+    trait :band do
+      kind { 'band' }
+      magic_card { nil }
+      finish { 'any' }
+      direction { 'above' }
+      threshold_price { 1 }
+      from_price { 0.9 }
+    end
   end
 end

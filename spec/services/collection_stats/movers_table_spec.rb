@@ -43,7 +43,7 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
     it 'reports the filters it applied' do
       expect(result[:filters]).to eq(
         window: 'weekly', direction: 'both', finish: 'both', min_delta: nil, min_percent: nil,
-        min_price: nil, sort: 'delta', dir: 'desc'
+        min_price: nil, min_buylist: nil, max_buylist: nil, sort: 'delta', dir: 'desc'
       )
     end
   end
@@ -52,14 +52,15 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
     it 'matches the PriceMovers row and adds the per-finish copies and both unit prices' do
       boxset = create(:boxset, name: 'Alpha', keyrune_code: 'LEA')
       card = add('Riser', price: 110, change: 10, quantity: 3, foil_price: 300, boxset: boxset,
-                          image_small: 'small.jpg', image_large: 'large.jpg')
+                          image_small: 'small.jpg', image_large: 'large.jpg', ck_buylist_normal_price: 70,
+                          ck_buylist_foil_price: 180)
 
       expect(row('Riser')).to eq(
-        id: card.id, name: 'Riser', set_name: 'Alpha', icon: 'no-tailwind ss ss-lea ss-fw',
+        id: card.id, name: 'Riser', set_name: 'Alpha', icon: 'no-tailwind ss ss-lea ss-fw', rarity: 'rare',
         image: 'small.jpg', image_large: 'large.jpg', copies: 3, qty: 3, foil_qty: 0, value: 330,
         delta: 30,
         percent: 10.0, delta_class: CollectionStats::PriceMovers::GAIN_CLASS,
-        normal_price: 110, foil_price: 300
+        normal_price: 110, foil_price: 300, buylist_normal: 70, buylist_foil: 180
       )
     end
 
@@ -146,6 +147,40 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
       expect(names).to contain_exactly('Pricey', 'Foil Only')
     end
 
+    describe 'the buylist range' do
+      before do
+        add('Low Buylist', ck_buylist_normal_price: 0.10)
+        add('Mid Buylist', ck_buylist_normal_price: 0.50)
+        add('High Buylist', ck_buylist_normal_price: 3)
+        add('Not Buying', ck_buylist_normal_price: 0)
+      end
+
+      it 'keeps cards CK buys for at least min_buylist' do
+        filters[:min_buylist] = '0.50'
+
+        expect(names).to contain_exactly('Mid Buylist', 'High Buylist')
+      end
+
+      it 'keeps cards CK buys for at most max_buylist, leaving out the ones CK is not buying' do
+        filters[:max_buylist] = '0.50'
+
+        expect(names).to contain_exactly('Low Buylist', 'Mid Buylist')
+      end
+
+      it 'applies both ends together' do
+        filters.merge!(min_buylist: '0.25', max_buylist: '1')
+
+        expect(names).to eq(['Mid Buylist'])
+      end
+
+      it 'reads the buylist of the finish you hold' do
+        add_foil('Foil Buylist', ck_buylist_normal_price: 5, ck_buylist_foil_price: 0.40)
+        filters.merge!(min_buylist: '0.25', max_buylist: '1')
+
+        expect(names).to contain_exactly('Mid Buylist', 'Foil Buylist')
+      end
+    end
+
     it 'ignores a threshold that is not a positive number' do
       add('Riser', price: 110, change: 10)
       filters.merge!(min_delta: 'lots', min_percent: '-5', min_price: '0')
@@ -215,6 +250,30 @@ RSpec.describe CollectionStats::MoversTable, type: :service do
       filters[:sort] = 'price'
 
       expect(names).to eq(%w[Bravo Charlie Alpha])
+    end
+
+    it 'sorts on the CK buylist of the finish held, CK not buying last' do
+      add('Buylisted', price: 5, change: 10, ck_buylist_normal_price: 4)
+      add('Cheap Buylist', price: 5, change: 10, ck_buylist_normal_price: 0.5)
+      filters[:sort] = 'buylist'
+
+      expect(names.first(2)).to eq(['Buylisted', 'Cheap Buylist'])
+    end
+
+    it 'sorts on rarity, special and mythic first, a card with no rarity last either way' do
+      add('Mythic', change: 1, rarity: 'mythic')
+      add('Special', change: 1, rarity: 'special')
+      add('Common', change: 1, rarity: 'common')
+      add('No Rarity', change: 1, rarity: nil)
+      filters[:sort] = 'rarity'
+
+      expect(names.first(2)).to eq(%w[Special Mythic])
+      expect(names.last).to eq('No Rarity')
+
+      filters[:dir] = 'asc'
+      ascending = described_class.call(collection_ids: [collection.id], filters: filters)[:rows].pluck(:name)
+      expect(ascending.first).to eq('Common')
+      expect(ascending.last).to eq('No Rarity')
     end
 
     it 'sorts on name A-Z by default and honours dir' do

@@ -44,6 +44,17 @@ RSpec.describe NotificationsHelper, type: :helper do
       expect(helper.notification_text(notification)).to eq('7 cards you own moved ±$5.00 today.')
     end
 
+    it 'words a band crossing from its payload and sends it to the band worklist' do
+      band = create(:price_alert, :band, user: user)
+      notification = notify('price_band_crossed', band, 'subject' => '3 cards you own', 'count' => 3,
+                                                        'movement' => 'reached $1.00 or more',
+                                                        'names' => 'Sol Ring, Arcane Signet and Mind Stone')
+
+      expect(helper.notification_text(notification))
+        .to eq('3 cards you own reached $1.00 or more: Sol Ring, Arcane Signet and Mind Stone.')
+      expect(helper.notification_target_path(notification)).to eq(price_alert_worklist_path(band))
+    end
+
     it 'still words, and falls back to the notification list, once the alert is deleted' do
       notification = notify('price_threshold_crossed', threshold, threshold_payload)
       threshold.destroy!
