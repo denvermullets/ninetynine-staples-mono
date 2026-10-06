@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_120100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -614,11 +614,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_160000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "min_buylist_price", precision: 10, scale: 2
+    t.decimal "max_buylist_price", precision: 10, scale: 2
+    t.decimal "from_price", precision: 10, scale: 2
     t.index ["collection_id"], name: "index_price_alerts_on_collection_id"
     t.index ["magic_card_id"], name: "index_price_alerts_on_magic_card_id"
     t.index ["scryfall_oracle_id"], name: "index_price_alerts_on_scryfall_oracle_id"
     t.index ["user_id", "active"], name: "index_price_alerts_on_user_id_and_active"
     t.index ["user_id", "magic_card_id", "window"], name: "index_price_alerts_on_card_override", unique: true, where: "(((kind)::text = 'movement'::text) AND (magic_card_id IS NOT NULL))"
+  end
+
+  create_table "price_band_cards", force: :cascade do |t|
+    t.bigint "price_alert_id", null: false
+    t.bigint "magic_card_id", null: false
+    t.string "finish", null: false
+    t.string "state", null: false
+    t.date "crossed_on"
+    t.decimal "crossed_price", precision: 10, scale: 2
+    t.string "moved"
+    t.datetime "handled_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["magic_card_id"], name: "index_price_band_cards_on_magic_card_id"
+    t.index ["price_alert_id", "magic_card_id", "finish"], name: "index_price_band_cards_on_band_card_finish", unique: true
   end
 
   create_table "printings", force: :cascade do |t|
@@ -807,6 +825,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_160000) do
   add_foreign_key "price_alerts", "collections"
   add_foreign_key "price_alerts", "magic_cards"
   add_foreign_key "price_alerts", "users"
+  add_foreign_key "price_band_cards", "magic_cards", on_delete: :cascade
+  add_foreign_key "price_band_cards", "price_alerts", on_delete: :cascade
   add_foreign_key "tracked_decks", "collections"
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"

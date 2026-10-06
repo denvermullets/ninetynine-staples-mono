@@ -1,10 +1,10 @@
 # Presentation for the movers page. The rows are CollectionStats::MoversTable hashes and the filters
 # are its normalised filters, so the amounts arrive as BigDecimal.
 module CollectionMoversHelper
-  AMOUNT_FILTERS = %i[min_delta min_percent min_price].freeze
+  AMOUNT_FILTERS = %i[min_delta min_percent min_price min_buylist max_buylist].freeze
 
   SORT_HEADERS = {
-    'name' => 'Name', 'price' => 'Unit price', 'value' => 'Holding',
+    'name' => 'Name', 'rarity' => 'Rarity', 'price' => 'Unit price', 'buylist' => 'CK buylist', 'value' => 'Holding',
     'delta' => '$ move', 'percent' => '% move'
   }.freeze
 
@@ -55,6 +55,21 @@ module CollectionMoversHelper
     parts.join(' / ')
   end
 
+  # the same, for what Card Kingdom pays - a finish CK is not buying shows as a dash
+  def movers_buylist(row)
+    parts = []
+    parts << movers_buylist_amount(row[:buylist_normal]) if row[:qty].positive?
+    parts << "#{movers_buylist_amount(row[:buylist_foil])} foil" if row[:foil_qty].positive?
+    parts.join(' / ')
+  end
+
+  # A row is one printing, so unlike the stats panels its set glyph can carry the rarity colour
+  def movers_set_icon(row)
+    return if row[:icon].blank?
+
+    row[:rarity].present? ? "#{row[:icon]} ss-grad ss-#{row[:rarity].downcase}" : row[:icon]
+  end
+
   def movers_delta(row)
     "#{row[:delta].negative? ? '-' : '+'}#{number_to_currency(row[:delta].abs)}"
   end
@@ -81,5 +96,11 @@ module CollectionMoversHelper
 
   def movers_window_text(filters)
     filters[:window] == 'daily' ? 'since yesterday' : 'this week'
+  end
+
+  private
+
+  def movers_buylist_amount(amount)
+    amount.positive? ? number_to_currency(amount) : '-'
   end
 end

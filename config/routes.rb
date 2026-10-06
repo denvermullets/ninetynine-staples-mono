@@ -254,8 +254,11 @@ Rails.application.routes.draw do
   end
 
   # The signed-in user's price alerts. new and edit answer with the modal, loaded into the layout's
-  # price_alert_modal frame; the writes answer with turbo streams.
-  resources :price_alerts, only: %i[index new create edit update destroy]
+  # price_alert_modal frame; the writes answer with turbo streams. A price band's worklist is the
+  # cards that crossed it, ticked off one at a time or all at once.
+  resources :price_alerts, only: %i[index new create edit update destroy] do
+    resource :worklist, only: %i[show update], controller: 'price_band_worklists'
+  end
 
   # JSON API for the Godot game client - see docs/api/v1.md
   namespace :api, defaults: { format: :json } do

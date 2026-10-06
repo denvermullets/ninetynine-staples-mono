@@ -1,0 +1,13 @@
+<%# locals: (band:, counts:, done:) %>
+<%# The to-do and done tabs with their counts, replaced by id whenever a row is ticked. %>
+
+<% tab = 'px-3 py-1.5 text-sm rounded-md transition bg-background text-grey-text hover:bg-menu' %>
+<% active = 'bg-highlight text-nine-white' %>
+
+<div id="worklist_tabs" class="flex flex-wrap items-center gap-2">
+  <%= link_to "To do (#{number_with_delimiter(counts[:to_do])})", price_alert_worklist_path(band),
+    class: "#{tab} #{active unless done}" %>
+
+  <%= link_to "Done (#{number_with_delimiter(counts[:done])})", price_alert_worklist_path(band, tab: 'done'),
+    class: "#{tab} #{active if done}" %>
+</div>

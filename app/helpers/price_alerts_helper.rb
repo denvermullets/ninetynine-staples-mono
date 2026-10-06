@@ -1,5 +1,5 @@
-# Wording for price alerts, and the bells that make them. See PriceAlert for the three shapes an alert
-# takes.
+# Wording for price alerts, and the bells that make them. See PriceAlert for the shapes an alert takes;
+# a band's wording, and its worklist's, is in PriceBandsHelper.
 module PriceAlertsHelper
   FINISH_LABELS = { 'normal' => 'non-foil', 'foil' => 'foil', 'any' => 'any finish' }.freeze
   WINDOW_LABELS = { 'daily' => 'Daily', 'weekly' => 'Weekly' }.freeze
@@ -41,13 +41,15 @@ module PriceAlertsHelper
     @price_alert_watched_keys.include?(key)
   end
 
-  # The rule in plain English: "Above $20.00 (foil)", "Weekly, ±$5 and ±15%, up or down".
+  # The rule in plain English: "Above $20.00 (foil)", "Weekly, ±$5 and ±15%, up or down",
+  # "$0.90 or less to $1.00 or more".
   def price_alert_condition(alert)
-    alert.threshold? ? threshold_condition(alert) : movement_condition(alert)
+    if alert.threshold? then threshold_condition(alert)
+    elsif alert.band? then price_band_condition(alert)
+    else movement_condition(alert)
+    end
   end
 
-  # What the alert watches: a printing, any printing of a card, or a collection - all of them when none.
-  # `cheapest` is PriceAlert.cheapest_printings, which names an oracle alert's card.
   def price_alert_subject(alert, cheapest: {})
     if alert.magic_card
       front_name(alert.magic_card.name)
@@ -98,7 +100,8 @@ module PriceAlertsHelper
   # and CollectionStats::MoversTable - so they join with "and".
   def movement_condition(alert)
     extras = [(FINISH_LABELS.fetch(alert.finish) unless alert.finish == 'any'),
-              ("cards #{number_to_currency(alert.min_price)}+" if alert.min_price)].compact
+              ("cards #{number_to_currency(alert.min_price)}+" if alert.min_price),
+              price_alert_buylist_range(alert)].compact
 
     ["#{WINDOW_LABELS.fetch(alert.window)}, #{minimum_moves(alert)}, #{MOVEMENT_DIRECTIONS.fetch(alert.direction)}",
      *extras].join(', ')

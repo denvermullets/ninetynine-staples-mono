@@ -25,8 +25,8 @@
             </p>
 
             <p class="flex items-center gap-1 mt-1 text-xs text-grey-text/50">
-              <% if row[:icon].present? %>
-                <i class="<%= row[:icon] %>" aria-hidden="true"></i>
+              <% if (icon = movers_set_icon(row)) %>
+                <i class="<%= icon %>" aria-hidden="true"></i>
               <% end %>
 
               <%= row[:set_name] || 'Unknown set' %>
@@ -45,6 +45,7 @@
         <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-grey-text/50">
           <span>&times;<%= number_with_delimiter(row[:copies]) %></span>
           <span><%= movers_unit_price(row) %></span>
+          <span>CK <%= movers_buylist(row) %></span>
           <span>Holding <%= number_to_currency(row[:value]) %></span>
 
           <% if owner %>

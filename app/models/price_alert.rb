@@ -1,7 +1,7 @@
 # Something a user wants to hear about when a price moves. Only the rule lives here; the
 # evaluation job decides when it fires and delivers it through Notifications::Deliver.
 #
-# Three shapes share the table:
+# Four shapes share the table:
 #
 # - threshold: "tell me when this card goes above / below $X". It watches one printing
 #   (magic_card_id) or any printing of a card (scryfall_oracle_id), so it covers owned cards and
@@ -17,8 +17,16 @@
 # - movement override (with a card): the same test for one printing, measured on the card's unit
 #   price rather than a holding, since it can watch a want-list card nobody owns. While one is
 #   active, collection-wide rules for that window skip the card. At most one per card and window.
+# - band (no card): "anything I own that goes up to $1 or more, or back down to $0.90 or less". A
+#   threshold across every card in a collection, or all of them, with `from_price` as its second
+#   line in place of REARM_MARGIN; see PriceAlertBands for which moves each direction lists. The
+#   band itself keeps no side; each card's lives in a PriceBandCard, and the crossings nobody has
+#   handled yet are the band's worklist. See PriceAlerts::SyncBand.
+#
+# Movement rules and bands both take a Card Kingdom buylist range (min/max_buylist_price), which
+# narrows the cards they count the way the movers table's buylist filter does.
 class PriceAlert < ApplicationRecord
-  KINDS = %w[threshold movement].freeze
+  KINDS = %w[threshold movement band].freeze
   FINISHES = %w[normal foil any].freeze
   PRINTING_FINISHES = %w[normal foil].freeze
   THRESHOLD_DIRECTIONS = %w[above below].freeze
@@ -33,6 +41,8 @@ class PriceAlert < ApplicationRecord
   # WantListItem::FOIL_PREFERENCES in this table's finish vocabulary
   FINISH_FOR_FOIL_PREFERENCE = { 'any' => 'any', 'foil' => 'foil', 'non_foil' => 'normal' }.freeze
 
+  include PriceAlertBands
+
   belongs_to :user
   belongs_to :magic_card, optional: true
   belongs_to :collection, optional: true
@@ -42,20 +52,20 @@ class PriceAlert < ApplicationRecord
   validates :kind, inclusion: { in: KINDS }
   validates :finish, inclusion: { in: FINISHES }
   validates :last_side, inclusion: { in: SIDES }, allow_nil: true
-  validates :threshold_price, :min_delta_amount, :min_delta_percent, :min_price,
-            numericality: { greater_than: 0 }, allow_nil: true
+  validates :threshold_price, :min_delta_amount, :min_delta_percent, :min_price, :from_price,
+            :min_buylist_price, :max_buylist_price, numericality: { greater_than: 0 }, allow_nil: true
 
   with_options if: :threshold? do
     validates :threshold_price, presence: true
     validates :direction, inclusion: { in: THRESHOLD_DIRECTIONS }
-    validates :collection_id, absence: true
+    validates :collection_id, :from_price, :min_buylist_price, :max_buylist_price, absence: true
     validate :watches_one_target
   end
 
   with_options if: :movement? do
     validates :window, inclusion: { in: WINDOWS }
     validates :direction, inclusion: { in: MOVEMENT_DIRECTIONS }
-    validates :threshold_price, :scryfall_oracle_id, absence: true
+    validates :threshold_price, :scryfall_oracle_id, :from_price, absence: true
     validate :needs_a_minimum_move
   end
 
@@ -136,7 +146,8 @@ class PriceAlert < ApplicationRecord
   def movers_filters
     { window: window, direction: direction, finish: finish == 'any' ? 'both' : finish,
       min_delta: min_delta_amount&.to_s('F'), min_percent: min_delta_percent&.to_s('F'),
-      min_price: min_price&.to_s('F') }.compact
+      min_price: min_price&.to_s('F'), min_buylist: min_buylist_price&.to_s('F'),
+      max_buylist: max_buylist_price&.to_s('F') }.compact
   end
 
   # The other way round from #movers_filters: the movement rule a set of CollectionStats::MoversTable
@@ -147,7 +158,8 @@ class PriceAlert < ApplicationRecord
     { collection_id: collection_id, window: filters[:window], direction: filters[:direction],
       finish: filters[:finish] == 'both' ? 'any' : filters[:finish],
       min_delta_amount: cents(filters[:min_delta]), min_delta_percent: cents(filters[:min_percent]),
-      min_price: cents(filters[:min_price]) }
+      min_price: cents(filters[:min_price]), min_buylist_price: cents(filters[:min_buylist]),
+      max_buylist_price: cents(filters[:max_buylist]) }
   end
 
   # an amount that rounds to nothing is no minimum at all, the same as the movers table reads it

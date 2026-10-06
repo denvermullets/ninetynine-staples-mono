@@ -11,5 +11,6 @@ class EvaluatePriceAlerts < ApplicationJob
     PriceAlerts::EvaluateThresholds.call(price_date)
     PriceAlerts::EvaluateCardOverrides.call(price_date)
     PriceAlerts::EvaluateMovementRules.call(price_date)
+    PriceAlerts::EvaluateBands.call(price_date)
   end
 end

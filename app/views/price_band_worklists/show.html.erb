@@ -1,0 +1,87 @@
+<%#
+  A price band's worklist. The to-do tab is every card that crossed and has not been handled, the
+  moves up then the moves down, each under its own heading and in binder order
+  (PriceAlerts::BandWorklist); the done tab is the most recently ticked off, newest
+  first, each with an undo. Ticking a row answers with a stream that drops it and recounts the tabs.
+%>
+
+<% button = 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
+
+<div
+  class="
+    flex flex-col flex-auto h-auto px-4 pb-12 space-y-8 md:px-12 2xl:px-48
+    bg-dark-100
+  "
+>
+  <%= render partial: 'shared/page_header', locals: {
+    header: 'Price Band',
+    subtext: "#{price_alert_subject(@band)}: #{price_band_condition(@band)}" } %>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <%= link_to 'Price Alerts', price_alerts_path, class: button %>
+
+    <%= link_to 'Edit band', edit_price_alert_path(@band), class: button,
+      data: { turbo_frame: 'price_alert_modal' } %>
+
+    <% if !@done && @rows.any? %>
+      <%= button_to 'Mark all done', price_alert_worklist_path(@band), method: :patch,
+        params: { all: 1 }, class: button,
+        form: { data: { turbo_confirm: "Mark all #{pluralize(@counts[:to_do], 'card')} done?" } } %>
+    <% end %>
+  </div>
+
+  <% if flash[:notice] %>
+    <p class="px-4 py-3 text-sm border rounded-xl border-accent-50/40 text-grey-text">
+      <%= flash[:notice] %>
+    </p>
+  <% end %>
+
+  <% unless @band.active? %>
+    <p class="text-sm text-grey-text/60">
+      This band is paused, so nothing new lands on the list until it is resumed.
+    </p>
+  <% end %>
+
+  <%= render partial: 'price_band_worklists/tabs', locals: { band: @band, counts: @counts, done: @done } %>
+
+  <% if @rows.empty? %>
+    <div
+      class="
+        p-12 text-center border rounded-3xl bg-foreground border-highlight
+        text-grey-text
+      "
+    >
+      <p class="text-xl font-semibold">
+        <%= @done ? 'Nothing handled yet' : 'Nothing to do' %>
+      </p>
+
+      <p class="max-w-xl mx-auto mt-2 text-sm text-grey-text/70">
+        <%= @done ? 'Cards you mark done show up here, in case you need to put one back.' : 'Cards land here when their price crosses the band. You will get a notification when they do.' %>
+      </p>
+    </div>
+  <% else %>
+    <div
+      class="
+        flex flex-col mb-24 border divide-y rounded-3xl bg-foreground
+        border-highlight divide-highlight
+      "
+    >
+      <% @rows.chunk { |row| @done ? nil : row[:band_card].moved }.each do |moved, rows| %>
+        <% if moved %>
+          <h2
+            class="
+              px-4 py-2 text-xs font-semibold tracking-wider uppercase
+              text-grey-text/70
+            "
+          >
+            <%= price_band_move_heading(@band, moved) %>
+          </h2>
+        <% end %>
+
+        <% rows.each do |row| %>
+          <%= render partial: 'price_band_worklists/row', locals: { band: @band, row: row, done: @done } %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

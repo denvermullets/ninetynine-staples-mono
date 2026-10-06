@@ -1,11 +1,13 @@
-<%# locals: (alert:, cheapest: nil) %>
+<%# locals: (alert:, cheapest: nil, to_do: nil) %>
 <%#
-  One alert on the index. cheapest is PriceAlert.cheapest_printings for the page's oracle alerts; a row
-  re-rendered on its own after an update looks its card up instead.
+  One alert on the index. cheapest is PriceAlert.cheapest_printings for the page's oracle alerts, and
+  to_do is how many cards a band's worklist has left; a row re-rendered on its own after an update
+  looks both up instead.
 %>
 
 <% button = 'px-2 py-1 text-xs transition border rounded-md cursor-pointer border-highlight text-grey-text hover:bg-background hover:text-nine-white'
-  cheapest ||= alert.scryfall_oracle_id ? PriceAlert.cheapest_printings([alert.scryfall_oracle_id]) : {} %>
+  cheapest ||= alert.scryfall_oracle_id ? PriceAlert.cheapest_printings([alert.scryfall_oracle_id]) : {}
+  to_do ||= alert.band_cards.to_do.count if alert.band? %>
 
 <div
   id="<%= dom_id(alert) %>"
@@ -34,6 +36,11 @@
         Now
         <%= (price = alert.current_price(cheapest: cheapest)) ? number_to_currency(price) : '-' %>
       </span>
+    <% end %>
+
+    <% if alert.band? %>
+      <%= link_to "#{pluralize(to_do, 'card')} to do", price_alert_worklist_path(alert),
+        class: "underline hover:text-accent-50 #{'text-accent-50' if to_do.positive?}" %>
     <% end %>
 
     <% if (rearm = price_alert_rearm(alert)) %>

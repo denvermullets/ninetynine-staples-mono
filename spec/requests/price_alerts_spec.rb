@@ -73,6 +73,22 @@ RSpec.describe 'PriceAlerts', type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
+    it 'opens the new price band modal' do
+      get new_price_alert_path(kind: 'band')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('New price band', 'price_alert[from_price]', 'price_alert[existing_cards]')
+    end
+
+    it 'creates a price band and goes to its worklist' do
+      expect do
+        post price_alerts_path, params: { price_alert: { kind: 'band', direction: 'above', finish: 'any',
+                                                         from_price: '0.90', threshold_price: '1.00' } }
+      end.to change(user.price_alerts.bands, :count).by(1)
+
+      expect(response).to redirect_to(price_alert_worklist_path(user.price_alerts.bands.sole))
+    end
+
     it "404s deleting someone else's alert and leaves it alone" do
       expect { delete price_alert_path(someone_elses), as: :turbo_stream }.not_to change(PriceAlert, :count)
 

@@ -48,6 +48,24 @@ RSpec.describe CollectionMoversHelper, type: :helper do
     end
   end
 
+  describe '#movers_buylist' do
+    it 'shows the buylist of each finish held, a dash where CK is not buying' do
+      row = { qty: 1, foil_qty: 1, buylist_normal: BigDecimal('0'), buylist_foil: BigDecimal('12') }
+
+      expect(helper.movers_buylist(row)).to eq('- / $12.00 foil')
+    end
+  end
+
+  describe '#movers_set_icon' do
+    it 'colours the set glyph by rarity, and leaves it plain without one' do
+      icon = 'no-tailwind ss ss-lea ss-fw'
+
+      expect(helper.movers_set_icon(icon: icon, rarity: 'mythic')).to eq("#{icon} ss-grad ss-mythic")
+      expect(helper.movers_set_icon(icon: icon, rarity: nil)).to eq(icon)
+      expect(helper.movers_set_icon(icon: nil, rarity: 'rare')).to be_nil
+    end
+  end
+
   describe '#movers_delta and #movers_percent' do
     it 'signs both moves' do
       row = { delta: BigDecimal('-4.5'), percent: -10.0 }

@@ -1,7 +1,8 @@
 <%#
   Every price alert the signed-in user has: thresholds, then movement alerts - collection-wide rules
-  first, per-card overrides after. Rows update in place: the toggle, edit and delete answer with turbo
-  streams aimed at the row.
+  first, per-card overrides after - then price bands, which show whatever else there is because a
+  band is made here rather than from a bell. Rows update in place: the toggle, edit and delete answer
+  with turbo streams aimed at the row.
 %>
 
 <% panel = 'flex flex-col border divide-y rounded-3xl bg-foreground border-highlight divide-highlight' %>
@@ -27,6 +28,8 @@
         class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50' %>
     </div>
   </div>
+
+  <% button = 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50' %>
 
   <% if @thresholds.empty? && @rules.empty? && @overrides.empty? %>
     <div
@@ -89,4 +92,32 @@
       <% end %>
     </section>
   <% end %>
+
+  <section class="flex flex-col gap-3">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="<%= heading %>">Price bands</h2>
+
+        <p class="<%= note %>">
+          Keeps a worklist of every card you own that crosses a price line - up
+          to $1.00, when it needs a thicker sleeve, or back down to $0.90, when
+          it can go back in a penny sleeve. One notification a day however many
+          cards cross.
+        </p>
+      </div>
+
+      <%= link_to 'New price band', new_price_alert_path(kind: 'band'), class: button,
+        data: { turbo_frame: 'price_alert_modal' } %>
+    </div>
+
+    <% if @bands.any? %>
+      <div class="<%= panel %>">
+        <% @bands.each do |alert| %>
+          <%= render partial: 'price_alerts/row', locals: { alert: alert, to_do: @to_do.fetch(alert.id, 0) } %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="<%= note %>">None yet.</p>
+    <% end %>
+  </section>
 </div>

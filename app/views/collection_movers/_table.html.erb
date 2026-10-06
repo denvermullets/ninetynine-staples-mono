@@ -1,7 +1,8 @@
 <%# locals: rows - CollectionStats::MoversTable rows, pagy, filters, username, collection_id, owner %>
 <%#
   One row per printing. Copies, holding and the moves count real copies only, matching the stats
-  panel. The headers are links inside the frame, so a sort swaps the table like a filter does.
+  panel. Unit price and CK buylist show only the finishes held. The headers are links inside the
+  frame, so a sort swaps the table like a filter does.
 
   The last column is the owner's price alert bell, in the finish they hold - foil when that is all
   they have. It stays for a visitor, empty, so the table is the same shape for everyone.
@@ -17,10 +18,16 @@
 
         <th class="<%= th %>"><%= movers_sort_link('name', **sort) %></th>
 
+        <th class="<%= th %>"><%= movers_sort_link('rarity', **sort) %></th>
+
         <th class="text-right <%= th %>">Copies</th>
 
         <th class="text-right <%= th %>">
           <%= movers_sort_link('price', **sort) %>
+        </th>
+
+        <th class="text-right <%= th %>">
+          <%= movers_sort_link('buylist', **sort) %>
         </th>
 
         <th class="text-right <%= th %>">
@@ -63,12 +70,16 @@
             <p class="truncate"><%= row[:name].to_s.split('//').first %></p>
 
             <p class="flex items-center gap-1 text-xs text-grey-text/50">
-              <% if row[:icon].present? %>
-                <i class="<%= row[:icon] %>" aria-hidden="true"></i>
+              <% if (icon = movers_set_icon(row)) %>
+                <i class="<%= icon %>" aria-hidden="true"></i>
               <% end %>
 
               <%= row[:set_name] || 'Unknown set' %>
             </p>
+          </td>
+
+          <td class="px-4 py-2 text-sm capitalize whitespace-nowrap text-grey-text/70">
+            <%= row[:rarity] || '-' %>
           </td>
 
           <td class="px-4 py-2 text-sm text-right whitespace-nowrap text-grey-text/70">
@@ -77,6 +88,10 @@
 
           <td class="px-4 py-2 text-sm text-right whitespace-nowrap text-grey-text/70">
             <%= movers_unit_price(row) %>
+          </td>
+
+          <td class="px-4 py-2 text-sm text-right whitespace-nowrap text-grey-text/70">
+            <%= movers_buylist(row) %>
           </td>
 
           <td class="px-4 py-2 text-sm text-right whitespace-nowrap">
