@@ -10,7 +10,8 @@ module NotificationsHelper
     'trade_cancelled' => '%<actor>s cancelled your trade.',
     'trade_completed' => 'Your trade with %<actor>s is complete.',
     'price_threshold_crossed' => '%<card>s went %<direction>s %<threshold>s (now %<price>s).',
-    'price_movement' => '%<subject>s moved %<summary>s %<window>s.'
+    'price_movement' => '%<subject>s moved %<summary>s %<window>s.',
+    'price_band_crossed' => '%<subject>s %<movement>s: %<names>s.'
   }.freeze
 
   # format raises on a missing key and ignores extra ones, so the payload goes in whole
@@ -48,12 +49,14 @@ module NotificationsHelper
 
   private
 
-  # A movement rule opens the movers page filtered the way the rule counted. A single printing has no
-  # page of its own, so it opens its set as the user's collection sees it; an oracle alert watches a
-  # want, so it opens the want list.
+  # A band opens its worklist. A movement rule opens the movers page filtered the way the rule
+  # counted. A single printing has no page of its own, so it opens its set as the user's collection
+  # sees it; an oracle alert watches a want, so it opens the want list.
   def price_alert_target_path(alert)
     username = alert.user.username
-    if alert.movement_rule?
+    if alert.band?
+      price_alert_worklist_path(alert)
+    elsif alert.movement_rule?
       collection_movers_path(username, collection_id: alert.collection_id, **alert.movers_filters)
     elsif alert.magic_card&.boxset
       collection_set_path(username, alert.magic_card.boxset.code)

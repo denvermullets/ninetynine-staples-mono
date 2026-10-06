@@ -261,4 +261,82 @@ RSpec.describe EvaluatePriceAlerts, type: :job do
       expect { evaluate }.not_to change(Notification, :count)
     end
   end
+
+  describe 'price bands' do
+    let(:collection) { create(:collection, user: user) }
+    let!(:band) { create(:price_alert, :band, user: user) }
+
+    def own(name, price)
+      card = create(:magic_card, name: name, normal_price: price)
+      create(:collection_magic_card, collection: collection, magic_card: card, quantity: 1)
+      card
+    end
+
+    it 'learns the cards on its first run without notifying' do
+      own('Already Pricey', 3)
+
+      expect { evaluate }.not_to change(Notification, :count)
+      expect(band.reload.last_evaluated_on).to eq(Date.parse(today))
+    end
+
+    it 'sends one notification for every card that crossed, naming the first few' do
+      cards = ['Sol Ring', 'Arcane Signet // Back', 'Command Tower', 'Fellwar Stone', 'Mind Stone']
+              .map { |name| own(name, 0.5) }
+      evaluate
+      cards.each { |card| card.update!(normal_price: 1.25) }
+
+      expect { evaluate(tomorrow) }.to change(Notification, :count).by(1)
+
+      notification = notifications.last
+      expect(notification).to have_attributes(kind: 'price_band_crossed', notifiable: band)
+      expect(notification.payload).to include('subject' => '5 cards you own', 'count' => 5,
+                                              'movement' => 'reached $1.00 or more')
+      expect(notification.payload['names']).to match(/\A[^,]+, [^,]+, [^,]+ and 2 more\z/)
+      expect(notification.payload['names']).not_to include('//')
+      expect(band.band_cards.to_do.count).to eq(5)
+    end
+
+    it 'says both ways in one notification on a day a two-way band sees both' do
+      band.update!(direction: 'both')
+      riser = own('Riser', 0.5)
+      faller = own('Faller', 3)
+      evaluate
+      riser.update!(normal_price: 1.5)
+      faller.update!(normal_price: 0.5)
+
+      evaluate(tomorrow)
+
+      expect(notifications.last.payload).to include('movement' => 'crossed your $0.90-$1.00 band (1 up, 1 down)')
+    end
+
+    it 'words a two-way drop on its own' do
+      band.update!(direction: 'both')
+      faller = own('Faller', 3)
+      evaluate
+      faller.update!(normal_price: 0.5)
+
+      evaluate(tomorrow)
+
+      expect(notifications.last.payload).to include('movement' => 'dropped back to $0.90 or less',
+                                                    'names' => 'Faller')
+    end
+
+    it 'does not notify twice for the same price date' do
+      card = own('Riser', 0.5)
+      evaluate
+      card.update!(normal_price: 2)
+      evaluate(tomorrow)
+
+      expect { evaluate(tomorrow) }.not_to change(Notification, :count)
+    end
+
+    it 'skips a paused band' do
+      card = own('Riser', 0.5)
+      evaluate
+      band.update!(active: false)
+      card.update!(normal_price: 2)
+
+      expect { evaluate(tomorrow) }.not_to change(Notification, :count)
+    end
+  end
 end
