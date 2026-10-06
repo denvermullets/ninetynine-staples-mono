@@ -150,7 +150,7 @@
           data-card-id="<%= card.id %>"
           class="
             border border-background text-grey-text bg-foreground
-            hover:bg-menu hover:cursor-pointer
+            hover:bg-menu hover:cursor-pointer <%= reserved_tint_class(card) %>
           "
         >
           <% if column_visible?('card_number', 'collections') %>
