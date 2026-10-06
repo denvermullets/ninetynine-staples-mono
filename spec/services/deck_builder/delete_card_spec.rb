@@ -29,6 +29,12 @@ RSpec.describe DeckBuilder::DeleteCard, type: :service do
       expect(result[:message]).to include('deleted from collection')
     end
 
+    it 'drops the card from the deck totals' do
+      card
+      Collections::UpdateTotals.call(collection: deck)
+      expect { subject }.to change { deck.reload.total_cards }.from(3).to(0)
+    end
+
     it 'returns removed_oracle_id' do
       result = subject
       expect(result[:removed_oracle_id]).to eq(magic_card.scryfall_oracle_id)

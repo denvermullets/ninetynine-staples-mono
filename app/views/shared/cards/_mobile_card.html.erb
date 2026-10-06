@@ -39,7 +39,7 @@
 <div
   data-controller="mobile-card"
   data-mobile-card-card-id-value="<%= card.id %>"
-  class="border rounded-xl border-highlight bg-foreground overflow-hidden mb-2"
+  class="border rounded-xl border-highlight bg-foreground overflow-hidden mb-2 <%= reserved_tint_class(card) %>"
 >
   <!-- Collapsed State (Card Header - Always Visible) -->
   <div

@@ -94,6 +94,11 @@ RSpec.describe DeckBuilder::UpdateQuantity, type: :service do
       expect(owned_card.quantity).to eq(4)
       expect(owned_card.foil_quantity).to eq(2)
     end
+
+    it 'refreshes the deck totals' do
+      Collections::UpdateTotals.call(collection: deck)
+      expect { subject }.to change { deck.reload.total_cards }.from(3).to(6)
+    end
   end
 
   context 'when both quantities are zero' do

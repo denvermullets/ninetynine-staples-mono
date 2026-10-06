@@ -108,6 +108,7 @@ module DeckBuilder
         @card.update!(staged_quantity: @new_quantity, staged_foil_quantity: @new_foil_quantity)
       else
         @card.update!(quantity: @new_quantity, foil_quantity: @new_foil_quantity)
+        Collections::UpdateTotals.call(collection: @deck) unless @card.needed?
       end
     end
 
