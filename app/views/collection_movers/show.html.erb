@@ -28,6 +28,8 @@
         class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
 
       <% if @scope[:owner] %>
+        <%= link_to 'Sell to CK', collection_sell_path(username, collection_id: collection_id),
+          class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
         <%= link_to 'Price Alerts', price_alerts_path,
           class: 'px-4 py-2 border rounded-lg border-highlight text-grey-text hover:bg-foreground hover:border-accent-50 hover:text-accent-50 cursor-pointer' %>
       <% end %>

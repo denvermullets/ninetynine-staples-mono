@@ -130,6 +130,8 @@ Rails.application.routes.draw do
   # every card that moved, filterable - not under stats/, where the unconstrained :section would
   # swallow it
   get 'collections/:username/movers', to: 'collection_movers#show', as: :collection_movers
+  # every card Card Kingdom is buying, as a pull list - the owner's own, so signed in only
+  get 'collections/:username/sell', to: 'collection_sell#show', as: :collection_sell
   # commanders ranked by how much of the deck this collection could already fill
   get 'collections/:username/brew', to: 'brew#index', as: :collection_brew
   # every copy marked for trade across this user's public collections - above the catch-all below,

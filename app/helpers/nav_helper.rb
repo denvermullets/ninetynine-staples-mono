@@ -71,6 +71,7 @@ module NavHelper
       { label: 'All Cards', path: collection_show_path(username) },
       { label: 'Stats', path: collections_stats_path(username) },
       { label: 'Price Movers', path: collection_movers_path(username) },
+      { label: 'Sell to CK', path: collection_sell_path(username) },
       { label: 'Sets', path: collection_sets_path(username) },
       { label: 'Reserved List', path: collection_reserved_path(username) },
       { label: 'Proxies', path: collection_proxies_path(username) },
