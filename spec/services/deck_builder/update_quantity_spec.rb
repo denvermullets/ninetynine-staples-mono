@@ -68,7 +68,7 @@ RSpec.describe DeckBuilder::UpdateQuantity, type: :service do
     end
   end
 
-  context 'when updating a non-staged (owned) card' do
+  context 'when updating a finalized card' do
     let!(:owned_card) do
       create(:collection_magic_card,
              collection: deck,
@@ -79,54 +79,64 @@ RSpec.describe DeckBuilder::UpdateQuantity, type: :service do
              foil_quantity: 1)
     end
 
-    subject do
+    def update_to(quantity, foil_quantity)
       described_class.call(
         deck: deck,
         collection_magic_card_id: owned_card.id,
-        quantity: 4,
-        foil_quantity: 2
+        quantity: quantity,
+        foil_quantity: foil_quantity
       )
     end
 
-    it 'updates the card quantities directly' do
-      subject
-      owned_card.reload
-      expect(owned_card.quantity).to eq(4)
-      expect(owned_card.foil_quantity).to eq(2)
+    it 'refuses, since the copies have to come from or go to a real location' do
+      result = update_to(4, 2)
+
+      expect(result[:success]).to be false
+      expect(result[:error]).to include('collection view')
     end
 
-    it 'refreshes the deck totals' do
-      Collections::UpdateTotals.call(collection: deck)
-      expect { subject }.to change { deck.reload.total_cards }.from(3).to(6)
+    it 'leaves the quantities alone' do
+      update_to(4, 2)
+      owned_card.reload
+      expect(owned_card.quantity).to eq(2)
+      expect(owned_card.foil_quantity).to eq(1)
+    end
+
+    it 'does not delete the card when set to zero' do
+      expect { update_to(0, 0) }.not_to(change { CollectionMagicCard.count })
     end
   end
 
-  context 'when both quantities are zero' do
-    let!(:card) do
+  context 'when updating a needed card' do
+    let!(:needed_card) do
       create(:collection_magic_card,
              collection: deck,
              magic_card: magic_card,
              staged: false,
-             needed: false,
+             needed: true,
              quantity: 1,
              foil_quantity: 0)
     end
 
-    subject do
+    def update_to(quantity, foil_quantity)
       described_class.call(
         deck: deck,
-        collection_magic_card_id: card.id,
-        quantity: 0,
-        foil_quantity: 0
+        collection_magic_card_id: needed_card.id,
+        quantity: quantity,
+        foil_quantity: foil_quantity
       )
     end
 
-    it 'deletes the card' do
-      expect { subject }.to change { CollectionMagicCard.count }.by(-1)
+    it 'updates the card quantities directly' do
+      update_to(3, 0)
+      expect(needed_card.reload.quantity).to eq(3)
     end
 
-    it 'returns success' do
-      expect(subject[:success]).to be true
+    it 'deletes the card when both quantities are zero' do
+      result = update_to(0, 0)
+
+      expect(result[:success]).to be true
+      expect(CollectionMagicCard.exists?(needed_card.id)).to be false
     end
   end
 

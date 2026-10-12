@@ -160,6 +160,7 @@ Rails.application.routes.draw do
       delete :delete_card
       post :swap_card
       patch :update_quantity
+      get :quantity_locked_modal
       post :finalize
       patch :set_commander
       patch :remove_commander

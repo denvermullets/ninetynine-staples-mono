@@ -1,0 +1,71 @@
+<%= turbo_frame_tag "deck_modal" do %>
+  <dialog
+    id="quantity-locked-dialog"
+    class="
+      m-auto p-0 border rounded-lg bg-foreground border-highlight
+      backdrop:bg-black/50
+    "
+    data-controller="modal"
+    data-action="click->modal#closeOnBackdrop keydown.esc->modal#close"
+  >
+    <div class="w-96 p-6" data-modal-target="content">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-nine-white">Change Quantity</h3>
+
+        <button
+          type="button"
+          data-action="click->modal#close"
+          class="text-grey-text hover:text-nine-white cursor-pointer"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <p class="mb-3 text-grey-text">
+        <%= card.display_quantity %>
+        <%= card.display_quantity == 1 ? 'copy' : 'copies' %> of
+        <span class="font-medium text-nine-white"><%= card.magic_card.name %></span>
+        <%= card.display_quantity == 1 ? 'is' : 'are' %> finalized in this
+        deck.
+      </p>
+
+      <p class="mb-6 text-sm text-grey-text/75">
+        Finalized cards are physically in this deck, so the extra copies need
+        somewhere to go. Transfer them to another collection, or change the
+        quantity from the collection view.
+      </p>
+
+      <div class="flex justify-end gap-3">
+        <%= link_to "Collection view",
+                    deck_show_path(username: current_user.username, collection_id: deck.id, search: card.magic_card.name),
+                    data: { turbo_frame: "_top" },
+                    class: "
+                      px-4 py-2 text-sm transition border rounded-md border-highlight
+                      text-grey-text hover:bg-foreground hover:text-accent-100
+                      hover:border-accent-100 cursor-pointer
+                    " %>
+
+        <%= link_to "Transfer",
+                    transfer_card_modal_deck_builder_path(deck, card_id: card.id, **deck_view_state),
+                    data: { turbo_frame: "deck_modal" },
+                    class: "
+                      px-4 py-2 text-sm transition rounded-md bg-accent-50 border
+                      border-accent-50 hover:bg-foreground hover:text-accent-50
+                      text-foreground cursor-pointer
+                    " %>
+      </div>
+    </div>
+  </dialog>
+<% end %>

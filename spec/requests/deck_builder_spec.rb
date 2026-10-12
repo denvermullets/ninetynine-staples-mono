@@ -45,6 +45,29 @@ RSpec.describe 'DeckBuilder', type: :request do
     end
   end
 
+  describe 'GET /deck-builder/:id/quantity_locked_modal' do
+    let(:finalized) do
+      create(:collection_magic_card, collection: deck, magic_card: create(:magic_card, name: 'Locked Card'),
+                                     staged: false, needed: false, quantity: 2)
+    end
+
+    it 'points the owner at the transfer modal, keeping the view state' do
+      get quantity_locked_modal_deck_builder_path(deck, card_id: finalized.id, sort_by: 'name', grouping: 'none')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Locked Card')
+      expect(response.body).to include(transfer_card_modal_deck_builder_path(deck, card_id: finalized.id))
+      expect(response.body).to include('sort_by=name')
+    end
+
+    it 'links to the deck collection view filtered to the card' do
+      get quantity_locked_modal_deck_builder_path(deck, card_id: finalized.id)
+
+      expect(response.body).to include(deck_show_path(username: user.username, collection_id: deck.id,
+                                                      search: 'Locked Card'))
+    end
+  end
+
   describe 'GET /deck-builder/:id/transfer_card_modal' do
     it 'carries the view state into the actions the modal submits to' do
       get transfer_card_modal_deck_builder_path(deck, card_id: cmc_doomed.id, sort_by: 'name', grouping: 'none')

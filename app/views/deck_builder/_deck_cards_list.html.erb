@@ -5,10 +5,23 @@
 
     <details class="break-inside-avoid mb-4 group/section" open>
       <!-- Group Header -->
-      <summary class="flex items-center gap-2 pb-2 mb-1 border-b border-highlight cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <svg class="w-3 h-3 text-grey-text/50 transition-transform group-open/section:rotate-90" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M6 4l8 6-8 6V4z"/>
+      <summary
+        class="
+          flex items-center gap-2 pb-2 mb-1 border-b border-highlight
+          cursor-pointer list-none [&::-webkit-details-marker]:hidden
+        "
+      >
+        <svg
+          class="
+            w-3 h-3 text-grey-text/50 transition-transform
+            group-open/section:rotate-90
+          "
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M6 4l8 6-8 6V4z" />
         </svg>
+
         <span class="font-semibold text-grey-text"><%= group_name %></span>
         <span class="text-grey-text">(<%= group_count %>)</span>
         <span class="text-grey-text/50">–</span>
@@ -34,8 +47,8 @@
 
           <div
             class="
-              flex items-center gap-1 sm:gap-2 py-0.5 text-sm group cursor-pointer
-              relative
+              flex items-center gap-1 sm:gap-2 py-0.5 text-sm group
+              cursor-pointer relative
             "
             data-controller="context-menu"
             data-context-menu-view-card-url-value="<%= view_card_deck_builder_path(deck, card_id: card.id) %>"
@@ -80,12 +93,16 @@
                   class: "w-8 shrink-0 block text-right text-grey-text/75 hover:text-accent-50 cursor-pointer" do %>
                 <%= card.display_quantity %>
               <% end %>
+            <% elsif is_owner && is_finalized %>
+              <%= link_to quantity_locked_modal_deck_builder_path(deck, card_id: card.id, **deck_view_state),
+                  data: { turbo_frame: "deck_modal" },
+                  class: "w-8 shrink-0 block text-right text-grey-text/75 hover:text-accent-50 cursor-pointer" do %>
+                <%= card.display_quantity %>
+              <% end %>
             <% elsif is_owner %>
-              <%
-                breakdown = card.display_quantity_breakdown
+              <% breakdown = card.display_quantity_breakdown
                 primary_type = breakdown.keys.first || :regular
-                primary_qty = breakdown.values.first || 0
-              %>
+                primary_qty = breakdown.values.first || 0 %>
               <div
                 class="w-8 shrink-0"
                 data-controller="inline-quantity"
@@ -229,7 +246,12 @@
             </span>
 
             <!-- Price -->
-            <span class="shrink-0 text-xs sm:text-sm text-right text-grey-text/75 w-12 sm:w-16">
+            <span
+              class="
+                shrink-0 text-xs sm:text-sm text-right text-grey-text/75
+                w-12 sm:w-16
+              "
+            >
               <%= number_to_currency(card.display_unit_price) %>
             </span>
 
@@ -377,12 +399,10 @@
                   >
                     Swap Printing
                   </button>
-                  <%
-                    is_regular = card.quantity.positive? && card.foil_quantity.zero? && card.proxy_quantity.zero? && card.proxy_foil_quantity.zero?
+                  <% is_regular = card.quantity.positive? && card.foil_quantity.zero? && card.proxy_quantity.zero? && card.proxy_foil_quantity.zero?
                     is_foil = card.foil_quantity.positive? && card.quantity.zero? && card.proxy_quantity.zero? && card.proxy_foil_quantity.zero?
                     is_proxy = card.proxy_quantity.positive? && card.quantity.zero? && card.foil_quantity.zero? && card.proxy_foil_quantity.zero?
-                    is_proxy_foil = card.proxy_foil_quantity.positive? && card.quantity.zero? && card.foil_quantity.zero? && card.proxy_quantity.zero?
-                  %>
+                    is_proxy_foil = card.proxy_foil_quantity.positive? && card.quantity.zero? && card.foil_quantity.zero? && card.proxy_quantity.zero? %>
                   <hr class="my-1 border-highlight">
                   <% if card.magic_card.non_foil_available? && !is_regular %>
                     <button
