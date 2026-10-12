@@ -59,6 +59,13 @@ RSpec.describe 'DeckBuilder', type: :request do
       expect(response.body).to include(transfer_card_modal_deck_builder_path(deck, card_id: finalized.id))
       expect(response.body).to include('sort_by=name')
     end
+
+    it 'links to the deck collection view filtered to the card' do
+      get quantity_locked_modal_deck_builder_path(deck, card_id: finalized.id)
+
+      expect(response.body).to include(deck_show_path(username: user.username, collection_id: deck.id,
+                                                      search: 'Locked Card'))
+    end
   end
 
   describe 'GET /deck-builder/:id/transfer_card_modal' do

@@ -49,7 +49,7 @@
 
       <div class="flex justify-end gap-3">
         <%= link_to "Collection view",
-                    deck_show_path(username: current_user.username, collection_id: deck.id),
+                    deck_show_path(username: current_user.username, collection_id: deck.id, search: card.magic_card.name),
                     data: { turbo_frame: "_top" },
                     class: "
                       px-4 py-2 text-sm transition border rounded-md border-highlight
