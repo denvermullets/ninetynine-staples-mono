@@ -1,5 +1,7 @@
 module DeckBuilder
   class UpdateQuantity < Service
+    FINALIZED_ERROR = 'Finalized cards are tied to a location. Change the quantity from the collection view.'.freeze
+
     def initialize(deck:, collection_magic_card_id:, quantity:, foil_quantity:)
       @deck = deck
       @collection_magic_card_id = collection_magic_card_id
@@ -9,6 +11,10 @@ module DeckBuilder
 
     def call
       @card = @deck.collection_magic_cards.find(@collection_magic_card_id)
+
+      # a finalized copy sits in this deck physically - adding or dropping one has to say where the
+      # copy came from or went, which only a transfer or the collection view can
+      return error_result(FINALIZED_ERROR) if finalized?
 
       return delete_card if zero_quantity?
 
@@ -25,6 +31,10 @@ module DeckBuilder
     end
 
     private
+
+    def finalized?
+      !@card.staged? && !@card.needed?
+    end
 
     def zero_quantity?
       @new_quantity.zero? && @new_foil_quantity.zero?

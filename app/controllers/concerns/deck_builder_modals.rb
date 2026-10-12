@@ -9,6 +9,11 @@ module DeckBuilderModals
     }
   end
 
+  def quantity_locked_modal
+    card = @deck.collection_magic_cards.find(params[:card_id])
+    render partial: 'deck_builder/quantity_locked_modal', locals: { card: card, deck: @deck }
+  end
+
   def confirm_finalize_modal
     render partial: 'deck_builder/confirm_modal', locals: {
       title: 'Finalize Deck',
