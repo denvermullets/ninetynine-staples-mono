@@ -1,0 +1,17 @@
+<%# locals: key, label, carry %>
+<%#
+  A table heading that drives the same sort param the pills do, so heading and pill always agree on
+  what is active. Inside the reserved_cards frame, so the click swaps the list without a data
+  attribute of its own.
+%>
+
+<%= link_to collection_reserved_path(**carry.merge(sort_params(key, carry[:sort], carry[:direction]))),
+  class: "flex items-center gap-1 hover:text-nine-white" do %>
+  <%= label %>
+
+  <% if key == carry[:sort] %>
+    <span class="text-accent-50">
+      <%= carry[:direction] == "asc" ? "▲" : "▼" %>
+    </span>
+  <% end %>
+<% end %>

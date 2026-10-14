@@ -1,4 +1,4 @@
-<%# locals: rows - CollectionStats::ReservedCards groups at unit 'card', labels, pagy %>
+<%# locals: rows - CollectionStats::ReservedCards groups at unit 'card', labels, pagy, carry %>
 <%#
   A row here is a CARD - you own an Underground Sea or you do not - and its printings are the
   sub-rows inside the expansion. The set page's table with one column swapped: it is one set deep, so
@@ -13,6 +13,9 @@
 %>
 <% shared_columns = %w[name type mana regular_price foil_price salt] %>
 <% visible_column_count = shared_columns.count { |key| column_visible?(key, 'boxsets') } + 3 %>
+
+<%# the headings that sort, and the sort each drives - Regular sorts on the price the row shows %>
+<% sortable = { 'name' => 'name', 'regular_price' => 'price' } %>
 
 <div class="hidden md:block mb-24 overflow-x-auto border rounded-3xl border-highlight">
   <table class="min-w-full divide-y table-auto divide-background">
@@ -29,7 +32,12 @@
               text-grey-text
             "
           >
-            <%= label %>
+            <% if sortable[key] %>
+              <%= render partial: 'collection_reserved/sort_header', locals: {
+                key: sortable[key], label: label, carry: carry } %>
+            <% else %>
+              <%= label %>
+            <% end %>
           </th>
         <% end %>
 
@@ -107,7 +115,10 @@
             original whichever way the list is sorted, so the row does not rename itself.
           %>
 
-          <td class="px-4 py-2 text-sm whitespace-nowrap" title="<%= card[:set_name] %>">
+          <td
+            class="px-4 py-2 text-sm whitespace-nowrap"
+            title="<%= card[:set_name] %>"
+          >
             <%= card[:set_code] %>
           </td>
 

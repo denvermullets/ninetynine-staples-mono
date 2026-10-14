@@ -26,6 +26,8 @@ class CollectionReservedController < ApplicationController
   def read_view_options
     @filter = requested(:filter, CollectionStats::ReservedCards::FILTERS, 'all')
     @sort = requested(:sort, CollectionStats::ReservedCards::SORTS, 'name')
+    @direction = requested(:direction, CollectionStats::ReservedCards::DIRECTIONS,
+                           CollectionStats::ReservedCards::DEFAULT_DIRECTIONS[@sort])
     @view = requested(:view, VIEWS, 'visual')
   end
 
@@ -41,7 +43,8 @@ class CollectionReservedController < ApplicationController
 
   def load_cards
     cards = CollectionStats::ReservedCards.call(collection_ids: @scope[:collection_ids],
-                                                filter: @filter, sort: @sort, unit: unit)
+                                                filter: @filter, sort: @sort,
+                                                direction: @direction, unit: unit)
 
     @counts = cards[:counts]
     @totals = cards[:totals]
