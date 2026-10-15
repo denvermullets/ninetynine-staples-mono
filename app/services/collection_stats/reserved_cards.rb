@@ -23,6 +23,12 @@ module CollectionStats
 
     SORTS = %w[name price set].freeze
 
+    DIRECTIONS = %w[asc desc].freeze
+
+    # The way each sort opens when nobody has asked for the other one - money dearest first, sets
+    # newest first, names A to Z.
+    DEFAULT_DIRECTIONS = { 'name' => 'asc', 'price' => 'desc', 'set' => 'desc' }.freeze
+
     UNITS = %w[card printing].freeze
 
     PRIMARY_SET_TYPES = %w[core expansion].freeze
@@ -30,13 +36,13 @@ module CollectionStats
     # a printing whose set has no release date sorts last rather than winning by being null
     FAR_FUTURE = Date.new(9999, 1, 1).freeze
 
-    # Money first when sorting by price - the dual lands are the question this page gets opened to
-    # answer. Set order is newest-first so the reprint sets group at the top rather than burying the
-    # 1993 originals under them.
+    # %<dir>s is the direction. An unpriced printing has a COPY_PRICE of zero, so it is nulled out
+    # and sent last either way - cheapest first should open on the cheapest card, not on the ones
+    # nobody has priced yet.
     ORDERS = {
-      'name' => 'magic_cards.name ASC, boxsets.release_date ASC',
-      'price' => "#{Sql::COPY_PRICE} DESC NULLS LAST, magic_cards.name ASC",
-      'set' => 'boxsets.release_date DESC NULLS LAST, magic_cards.name ASC'
+      'name' => 'magic_cards.name %<dir>s, boxsets.release_date ASC',
+      'price' => "NULLIF(#{Sql::COPY_PRICE}, 0) %<dir>s NULLS LAST, magic_cards.name ASC",
+      'set' => 'boxsets.release_date %<dir>s NULLS LAST, magic_cards.name ASC'
     }.freeze
 
     COLUMNS = [
@@ -60,10 +66,11 @@ module CollectionStats
       price foil_available qty foil_qty
     ].freeze
 
-    def initialize(collection_ids:, filter: 'all', sort: 'name', unit: 'printing')
+    def initialize(collection_ids:, filter: 'all', sort: 'name', direction: nil, unit: 'printing')
       super(collection_ids: collection_ids)
       @filter = FILTERS.include?(filter.to_s) ? filter.to_s : 'all'
       @sort = SORTS.include?(sort.to_s) ? sort.to_s : 'name'
+      @direction = DIRECTIONS.include?(direction.to_s) ? direction.to_s : DEFAULT_DIRECTIONS[@sort]
       @unit = UNITS.include?(unit.to_s) ? unit.to_s : 'printing'
     end
 
@@ -87,7 +94,7 @@ module CollectionStats
         .joins("LEFT JOIN owned ON owned.magic_card_id = magic_cards.id AND #{REAL_COPIES}")
         .where(is_reserved: true, is_token: false)
         .where(PRINTABLE)
-        .order(Arel.sql(ORDERS[@sort]))
+        .order(Arel.sql(format(ORDERS[@sort], dir: @direction.upcase)))
         .pluck(*COLUMNS.map { |column| Arel.sql(column) })
     end
 
@@ -103,7 +110,23 @@ module CollectionStats
     end
 
     def group(printings)
-      printings.group_by { |row| key_for(row) }.map { |key, rows| card_row(key, rows) }
+      cards = printings.group_by { |row| key_for(row) }.map { |key, rows| card_row(key, rows) }
+
+      @sort == 'price' ? by_shown_price(cards) : cards
+    end
+
+    # Groups come out in the order of their first printing, which under price is the DEAREST
+    # printing - but the row shows the original's price, so a Gaea's Cradle priced off its 30th
+    # Anniversary reprint would sit among cards worth ten times what the row says. Re-sorted on the
+    # price the reader actually sees, unpriced last either way, ties by name.
+    def by_shown_price(cards)
+      sign = @direction == 'desc' ? -1 : 1
+
+      cards.sort_by do |card|
+        price = card[:primary][:price].to_d
+
+        [price.positive? ? 0 : 1, sign * price, card[:name].to_s]
+      end
     end
 
     # The ORIGINAL printing names and prices the row, whichever way the list is sorted - a Gaea's

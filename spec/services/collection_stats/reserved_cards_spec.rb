@@ -6,9 +6,9 @@ RSpec.describe CollectionStats::ReservedCards, type: :service do
   let(:collection) { create(:collection) }
   let(:set) { create(:boxset, code: 'ALP', name: 'Alpha', release_date: '1993-08-05') }
 
-  def call(filter: 'all', sort: 'name', unit: 'printing', collections: [collection])
+  def call(filter: 'all', sort: 'name', direction: nil, unit: 'printing', collections: [collection])
     described_class.call(collection_ids: collections.map(&:id), filter: filter, sort: sort,
-                         unit: unit)
+                         direction: direction, unit: unit)
   end
 
   # the factory names every card Black Lotus and leaves scryfall_oracle_id nil, so anything asking a
@@ -124,6 +124,28 @@ RSpec.describe CollectionStats::ReservedCards, type: :service do
     it 'falls back to name when handed a sort it does not have' do
       expect(call(sort: 'nonsense')[:rows].map { |row| row[:name] }).to eq(['Gaeas Cradle', 'Mox Diamond'])
     end
+
+    it 'sorts by name backwards when asked' do
+      expect(call(sort: 'name', direction: 'desc')[:rows].map { |row| row[:name] })
+        .to eq(['Mox Diamond', 'Gaeas Cradle'])
+    end
+
+    it 'sorts by price cheapest first when asked' do
+      expect(call(sort: 'price', direction: 'asc')[:rows].map { |row| row[:name] })
+        .to eq(['Mox Diamond', 'Gaeas Cradle'])
+    end
+
+    it 'falls back to the sort default when handed a direction it does not have' do
+      expect(call(sort: 'price', direction: 'sideways')[:rows].map { |row| row[:name] })
+        .to eq(['Gaeas Cradle', 'Mox Diamond'])
+    end
+
+    it 'sends unpriced printings last even cheapest first' do
+      reserved('Unpriced', normal_price: nil, foil_price: nil)
+
+      expect(call(sort: 'price', direction: 'asc')[:rows].map { |row| row[:name] })
+        .to eq(['Mox Diamond', 'Gaeas Cradle', 'Unpriced'])
+    end
   end
 
   describe 'totals' do
@@ -200,6 +222,20 @@ RSpec.describe CollectionStats::ReservedCards, type: :service do
       reserved('Underground Sea', oracle: oracle, normal_price: 400)
 
       expect(call(unit: 'card', sort: 'price')[:rows].first[:primary]).to include(set_code: 'ALP')
+    end
+
+    # the row shows the original's price, so that is what it sorts on - not a pricier reprint
+    it 'sorts cards by the price the row shows' do
+      reserved('Underground Sea', oracle: oracle, normal_price: 400)
+      reserved('Underground Sea', oracle: oracle, boxset: newer, normal_price: 50)
+      cradle = SecureRandom.uuid
+      reserved('Gaeas Cradle', oracle: cradle, normal_price: 300)
+      reserved('Gaeas Cradle', oracle: cradle, boxset: newer, normal_price: 900)
+
+      expect(call(unit: 'card', sort: 'price')[:rows].map { |row| row[:name] })
+        .to eq(['Underground Sea', 'Gaeas Cradle'])
+      expect(call(unit: 'card', sort: 'price', direction: 'asc')[:rows].map { |row| row[:name] })
+        .to eq(['Gaeas Cradle', 'Underground Sea'])
     end
 
     # straight earliest-release picks memorabilia: Abeyance's oversized league prize is dated ten

@@ -33,7 +33,7 @@
     <%= turbo_frame_tag 'reserved_cards', data: { turbo_action: 'advance' } do %>
       <div class="flex flex-col space-y-4">
         <%= render partial: 'collection_reserved/filters', locals: {
-          filter: @filter, sort: @sort, view: @view, counts: @counts,
+          filter: @filter, sort: @sort, direction: @direction, view: @view, counts: @counts,
           username: @scope[:user].username } %>
 
         <% if @rows.empty? %>
@@ -58,7 +58,9 @@
           <%= render partial: 'collection_reserved/mobile', locals: {
             rows: @rows, labels: @labels, pagy: @pagy } %>
           <%= render partial: 'collection_reserved/table', locals: {
-            rows: @rows, labels: @labels, pagy: @pagy } %>
+            rows: @rows, labels: @labels, pagy: @pagy,
+            carry: { username: @scope[:user].username, filter: @filter, sort: @sort,
+                     direction: @direction, view: @view } } %>
         <% end %>
       </div>
     <% end %>
