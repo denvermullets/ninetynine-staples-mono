@@ -34,7 +34,7 @@
   <% end %>
 
   <%= form_with url: trades_path, method: :post, class: 'flex flex-col space-y-6',
-    data: { action: 'submit->trade-builder#submit' } do %>
+    data: { action: 'submit->trade-builder#submit keydown.enter->trade-builder#holdEnter' } do %>
     <%= hidden_field_tag :with, @recipient.username %>
     <%= hidden_field_tag :counter, @parent.id if @parent %>
 

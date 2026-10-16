@@ -76,7 +76,7 @@
 
     <%= tag.input type: 'search', placeholder: 'Search by card name',
       aria: { label: "Search #{owner.username}'s public collections" },
-      data: { side: side, action: 'input->trade-builder#search' },
+      data: { side: side, action: 'input->trade-builder#search keydown.enter->trade-builder#searchNow' },
       class: 'px-3 py-1.5 text-sm border rounded-md border-highlight bg-background text-grey-text' %>
   </div>
 

@@ -25,6 +25,8 @@
 # A trade is only ever found through current_user.trades, so anyone who is not one of its two parties
 # gets a 404 - not a 403, which would confirm the trade exists.
 class TradesController < ApplicationController
+  include CardDetailsLocals
+
   PER_PAGE = 25
   WANTERS_SHOWN = 5
   WANT_SCOPES = %w[tradeable all].freeze
@@ -39,7 +41,7 @@ class TradesController < ApplicationController
   before_action :set_recipient, only: %i[new rows]
   before_action :set_parent, only: %i[new rows]
   before_action :find_parent, only: :create
-  before_action :set_trade, only: %i[show transition]
+  before_action :set_trade, only: %i[show transition card]
 
   def index
     inbox = Trades::Inbox.call(user: current_user, tab: params[:tab])
@@ -54,6 +56,17 @@ class TradesController < ApplicationController
   def show
     current_user.notifications.about(@trade).mark_all_read!
     @detail = Trades::Detail.call(trade: @trade, viewer: current_user)
+  end
+
+  # The panel a card on the trade page expands into: where the viewer already holds it, so they can
+  # weigh the deal against what they own. Until the trade is complete there is nothing to do with the
+  # card yet, so the collection buttons and the want list control only appear once it is.
+  def card
+    item = @trade.trade_items.find { |candidate| candidate.id == params[:item_id].to_i }
+    return head :not_found if item.nil?
+
+    locals = card_details_locals(item.magic_card).merge(editable: @trade.completed?)
+    render partial: 'trades/card_details', locals: locals
   end
 
   def transition
