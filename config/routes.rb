@@ -241,6 +241,8 @@ Rails.application.routes.draw do
       # accept / decline / cancel / complete, named in `event` - Trades::Transition decides the rest
       member do
         patch :transition
+        # the details panel under one card on the trade page
+        get 'cards/:item_id', action: :card, as: :card
       end
     end
   end

@@ -1,10 +1,19 @@
 <%# locals: side - one side from Trades::Detail, heading %>
 <%#
   One side of a trade as it was agreed: every printing with its per-copy price at proposal time and
-  the line it adds up to.
+  the line it adds up to. Clicking a row opens trades/_card_details, so the viewer can see where and
+  how many of that card they already own before agreeing.
+
+  Rows toggle by trade item rather than card: the same printing can be on a side twice, once per
+  collection row it was offered from.
 %>
 
-<div class="flex flex-col border rounded-3xl bg-foreground border-highlight">
+<div
+  class="
+    flex flex-col overflow-hidden border rounded-3xl bg-foreground
+    border-highlight
+  "
+>
   <div class="flex items-baseline justify-between gap-2 p-4 border-b border-highlight">
     <h2 class="text-lg font-semibold text-grey-text"><%= heading %></h2>
 
@@ -19,51 +28,68 @@
       Nothing on this side.
     </p>
   <% else %>
-    <div class="divide-y divide-highlight">
+    <div class="divide-y divide-highlight" data-controller="expandable-row">
       <% side[:items].each do |item| %>
         <% card = item.magic_card %>
 
-        <div class="flex items-center gap-3 px-4 py-3">
-          <% if card.image_small.present? %>
-            <%= image_tag card.image_small,
-              alt: card.name,
-              class: 'object-cover w-10 rounded h-14 shrink-0 cursor-pointer',
-              data: {
-                controller: 'card-hover',
-                card_hover_image_value: card.image_large,
-                card_hover_name_value: card.name,
-                action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
-              } %>
-          <% else %>
-            <div class="w-10 rounded h-14 shrink-0 bg-highlight"></div>
-          <% end %>
-
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <%= tag.p card.name,
-                class: 'text-sm truncate cursor-pointer text-grey-text',
+        <%# one child per item, so the dividers fall between cards and never under an open panel %>
+        <div>
+          <div
+            class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-menu"
+            data-action="click->expandable-row#toggle"
+            data-card-id="<%= item.id %>"
+          >
+            <% if card.image_small.present? %>
+              <%= image_tag card.image_small,
+                alt: card.name,
+                class: 'object-cover w-10 rounded h-14 shrink-0 cursor-pointer',
                 data: {
                   controller: 'card-hover',
                   card_hover_image_value: card.image_large,
                   card_hover_name_value: card.name,
                   action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
                 } %>
+            <% else %>
+              <div class="w-10 rounded h-14 shrink-0 bg-highlight"></div>
+            <% end %>
 
-              <%# stamped at proposal time: the owner should know this was not something they listed %>
-              <% if item.off_list? %>
-                <%= render partial: 'trades/off_list_badge' %>
-              <% end %>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <%= tag.p card.name,
+                  class: 'text-sm truncate cursor-pointer text-grey-text',
+                  data: {
+                    controller: 'card-hover',
+                    card_hover_image_value: card.image_large,
+                    card_hover_name_value: card.name,
+                    action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+                  } %>
+
+                <%# stamped at proposal time: the owner should know this was not something they listed %>
+                <% if item.off_list? %>
+                  <%= render partial: 'trades/off_list_badge' %>
+                <% end %>
+              </div>
+
+              <p class="text-xs truncate text-grey-text/50">
+                <%= card.boxset&.code %> #<%= card.card_number %> ·
+                <%= trade_item_breakdown(item) %>
+              </p>
             </div>
 
-            <p class="text-xs truncate text-grey-text/50">
-              <%= card.boxset&.code %> #<%= card.card_number %> ·
-              <%= trade_item_breakdown(item) %>
-            </p>
+            <span class="text-sm shrink-0 text-grey-text">
+              <%= number_to_currency(item.retail_value) %>
+            </span>
           </div>
 
-          <span class="text-sm shrink-0 text-grey-text">
-            <%= number_to_currency(item.retail_value) %>
-          </span>
+          <div
+            class="hidden"
+            data-expandable-row-target="content"
+            data-card-id="<%= item.id %>"
+          >
+            <%= turbo_frame_tag "card_details_#{card.id}",
+              src: card_trade_path(item.trade_id, item.id, show_other_printings: true),
+              loading: :lazy %>
+          </div>
         </div>
       <% end %>
     </div>

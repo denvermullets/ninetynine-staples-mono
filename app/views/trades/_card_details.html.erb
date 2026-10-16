@@ -1,0 +1,84 @@
+<%# locals: card, card_locations, other_printing_locations, collections, editable, trade_holders, row_collection_id %>
+<%#
+  A cut-down magic_cards/_details for the trade page, where the question is "how many of these do I
+  already have" rather than "what can I do with this card". It keeps the card, where the viewer holds
+  it and its other printings, and drops the Card Kingdom sell link, the oracle tags and the admin
+  delete. `editable` is whether the trade is complete - the collection buttons, price alert and want
+  list control only come back once the cards have actually changed hands.
+
+  Laid out for half the page: the trade's two sides sit side by side, so the image stacks above the
+  tables until there is room beside them.
+
+  Same frame id as the full panel, so an edit made from here refreshes it the way it does anywhere
+  else - with the full panel, since those controllers do not know which page asked.
+%>
+
+<%= turbo_frame_tag "card_details_#{card.id}" do %>
+  <div class="flex flex-col gap-6 p-4 xl:flex-row bg-card-details">
+    <div class="flex flex-col items-center shrink-0 xl:w-48">
+      <% if card.double_faced? %>
+        <% other_card = card.other_face %>
+        <div
+          data-controller="card-flip"
+          data-action="click->card-flip#flip"
+          class="flip-container cursor-pointer"
+        >
+          <div data-card-flip-target="card" class="flip-card">
+            <div class="flip-card-front">
+              <%= image_tag (card.image_medium.presence || ""),
+                class: "object-contain w-full h-auto max-w-48 rounded-xl",
+                alt: card.name %>
+            </div>
+
+            <div class="flip-card-back">
+              <%= image_tag (other_card&.image_medium.presence || ""),
+                class: "object-contain w-full h-auto max-w-48 rounded-xl",
+                alt: other_card&.name %>
+            </div>
+          </div>
+        </div>
+        <p class="mt-2 text-xs text-grey-text">Click card to see other side</p>
+      <% else %>
+        <%= image_tag (card.image_medium.presence || ""),
+          class: "object-contain w-full h-auto max-w-48 rounded-xl",
+          alt: card.name %>
+      <% end %>
+    </div>
+
+    <div class="flex flex-col flex-1 min-w-0">
+      <% owns_normal = card_locations.sum(&:quantity).to_i.positive? %>
+      <% owns_foil = card_locations.sum(&:foil_quantity).to_i.positive? %>
+
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <h3 class="font-semibold truncate text-nine-white">
+            <%= card.name %>
+          </h3>
+
+          <p class="text-sm truncate text-grey-text"><%= card.boxset.name %></p>
+        </div>
+
+        <% if editable && (owns_normal || owns_foil) && (card.card_side.nil? || card.card_side == 'a') %>
+          <%= render partial: 'price_alerts/bell', locals: {
+            placement: 'details', magic_card: card, finish: owns_normal ? 'normal' : 'foil' } %>
+        <% end %>
+      </div>
+
+      <% if card.card_side.nil? || card.card_side == 'a' %>
+        <%= render partial: 'shared/cards/card_locations', locals: {
+          card_locations:, magic_card: card, collections:, editable:, row_collection_id: } %>
+        <%= render partial: 'shared/cards/other_printing_locations', locals: {
+          other_printing_locations:, magic_card: card, collections:, editable: } %>
+        <% if editable %>
+          <%= render partial: 'shared/cards/want_control', locals: { magic_card: card } %>
+        <% end %>
+        <%= render partial: 'shared/cards/trade_holders', locals: { trade_holders:, magic_card: card } %>
+        <% if card.price_history.present? %>
+          <div class="flex flex-row w-full mt-4">
+            <%= render partial: 'magic_cards/price_history', locals: { history: card.price_history } %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

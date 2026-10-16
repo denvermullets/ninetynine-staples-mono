@@ -273,6 +273,50 @@ RSpec.describe 'Trades', type: :request do
     end
   end
 
+  describe 'GET /trades/:id/cards/:item_id' do
+    let(:trade) { create(:trade, proposer: proposer, recipient: recipient) }
+    let!(:trade_item) { create(:trade_item, trade: trade, magic_card: lotus, side: 'recipient') }
+
+    before { binder_row(proposer) }
+
+    it 'is a 404 for anyone who is not a party to the trade' do
+      sign_in(create(:user, username: 'outsider'))
+
+      get card_trade_path(trade, trade_item)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'is a 404 for an item from some other trade' do
+      other = create(:trade_item, trade: create(:trade, proposer: proposer, recipient: create(:user)))
+      sign_in(proposer)
+
+      get card_trade_path(trade, other)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'shows the viewer their own copies without the collection or want list controls while open' do
+      sign_in(proposer)
+
+      get card_trade_path(trade, trade_item, show_other_printings: true)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("card_details_#{lotus.id}")
+      expect(response.body).not_to include('Add to want list')
+      expect(response.body).not_to include('Delete Card')
+    end
+
+    it 'brings the want list control back once the trade is complete' do
+      trade.update!(status: 'completed')
+      sign_in(proposer)
+
+      get card_trade_path(trade, trade_item)
+
+      expect(response.body).to include('Add to want list')
+    end
+  end
+
   describe 'PATCH /trades/:id/transition' do
     let(:trade) { create(:trade, proposer: proposer, recipient: recipient) }
 

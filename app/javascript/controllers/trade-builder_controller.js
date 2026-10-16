@@ -113,19 +113,35 @@ export default class extends Controller {
     return this.fieldsFor(row).some((input) => (parseInt(input.value, 10) || 0) > 0);
   }
 
-  // the rest of this side's public collections, by name; an emptied box empties the results
+  // the rest of this side's public collections, by name, as you type; an emptied box empties the results
   search(event) {
     const input = event.currentTarget;
+
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => this.runSearch(input), 300);
+  }
+
+  // Enter in the search box only searches - it never picks a hit or proposes the trade
+  searchNow(event) {
+    event.preventDefault();
+    clearTimeout(this.searchTimeout);
+    this.runSearch(event.currentTarget);
+  }
+
+  runSearch(input) {
     const frame = this.resultsTargets.find((target) => target.dataset.side === input.dataset.side);
     if (!frame) return;
 
-    clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => {
-      const params = new URLSearchParams({ with: this.withValue, side: input.dataset.side, q: input.value.trim() });
-      if (this.counterValue) params.set("counter", this.counterValue);
+    const params = new URLSearchParams({ with: this.withValue, side: input.dataset.side, q: input.value.trim() });
+    if (this.counterValue) params.set("counter", this.counterValue);
 
-      frame.src = `${this.rowsPathValue}?${params}`;
-    }, 300);
+    frame.src = `${this.rowsPathValue}?${params}`;
+  }
+
+  // Every box in the builder sits inside the proposal form, so the browser would take Enter in any of
+  // them as "propose this trade". Only the button does that; the message box still gets its newlines.
+  holdEnter(event) {
+    if (event.target.matches("input:not([type=submit])")) event.preventDefault();
   }
 
   // a search hit that now holds copies joins the column's list, keeping the cursor where it was
