@@ -54,6 +54,16 @@ RSpec.describe DeckBuilder::Search, type: :service do
     end
   end
 
+  context 'when owned rows fill the limit' do
+    subject { described_class.call(query: 'Lightning', user: user, deck: deck, scope: 'all', limit: 1) }
+
+    it 'appends an addable latest-printing row for the owned card' do
+      latest = subject.results.find { |r| r[:type] == :latest }
+
+      expect(latest).to include(card: magic_card, already_in_deck: false)
+    end
+  end
+
   context 'with a blank query' do
     let(:query) { '' }
     let(:scope) { 'all' }

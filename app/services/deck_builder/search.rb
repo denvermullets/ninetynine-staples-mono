@@ -178,6 +178,8 @@ module DeckBuilder
       cards.where(*MagicCard.name_containing(@card_query.free_text))
     end
 
+    # Owned rows can fill the limit before a card gets its latest-printing row, which is the only
+    # row that can add a new copy (regular, foil or proxy) or change printing, so one is appended.
     def append_browse_entries(results)
       card_names_with_latest = results.select { |r| r[:type] == :latest }.to_set { |r| r[:card].name }
       card_names_in_results = results.map { |r| r[:card].name }.uniq
@@ -188,7 +190,7 @@ module DeckBuilder
         card = newest_card_for_name(name)
         next unless card
 
-        results << { type: :browse, card: card }
+        results << build_latest_result(card)
       end
     end
 
