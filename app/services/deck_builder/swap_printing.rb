@@ -10,10 +10,8 @@ module DeckBuilder
     end
 
     def call
-      return { success: false, error: 'Card not found' } unless @deck_card
-      return { success: false, error: 'New printing not found' } unless @new_magic_card
-      return { success: false, error: 'Already using this printing' } if same_printing?
-      return { success: false, error: 'Not the same card' } unless same_oracle_id?
+      error = validation_error
+      return { success: false, error: error } if error
 
       ActiveRecord::Base.transaction do
         update_deck_card
@@ -33,6 +31,15 @@ module DeckBuilder
 
     private
 
+    def validation_error
+      return 'Card not found' unless @deck_card
+      return 'New printing not found' unless @new_magic_card
+      return 'Already using this printing' if same_printing?
+      return 'Not the same card' unless same_oracle_id?
+
+      source_printing_error
+    end
+
     def same_printing?
       @deck_card.magic_card_id == @new_magic_card.id
     end
@@ -41,8 +48,34 @@ module DeckBuilder
       @deck_card.magic_card.scryfall_oracle_id == @new_magic_card.scryfall_oracle_id
     end
 
+    # A staged row pulled from a collection is finalized by finding that exact printing in the source,
+    # so the swap can only land on a printing the source holds enough copies of
+    def source_printing_error
+      return unless @deck_card.from_owned_collection?
+
+      source = CollectionMagicCard.find_by(
+        collection_id: @deck_card.source_collection_id, magic_card_id: @new_magic_card.id,
+        staged: false, needed: false
+      )
+      return "#{source_name} doesn't have that printing - change the source to switch printings" unless source
+
+      available = StagedQuantities.calculate_available(source: source, exclude_card_id: @deck_card.id)
+      return if enough_copies?(available)
+
+      "#{source_name} doesn't have enough copies of that printing"
+    end
+
+    def enough_copies?(available)
+      @deck_card.staged_quantity <= available[:regular] &&
+        @deck_card.staged_foil_quantity <= available[:foil] &&
+        @deck_card.staged_proxy_quantity <= available[:proxy] &&
+        @deck_card.staged_proxy_foil_quantity <= available[:proxy_foil]
+    end
+
+    def source_name = @deck_card.source_collection.name
+
     def update_deck_card
-      @deck_card.update!(magic_card_id: @new_magic_card.id)
+      @deck_card.update!(magic_card_id: @new_magic_card.id, card_uuid: @new_magic_card.card_uuid)
     end
 
     def recalculate_totals

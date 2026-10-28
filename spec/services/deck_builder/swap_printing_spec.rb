@@ -89,6 +89,90 @@ RSpec.describe DeckBuilder::SwapPrinting, type: :service do
     end
   end
 
+  context 'when the staged card is pulled from a collection' do
+    let(:source_collection) { create(:collection, user: user, name: 'Black Uncommons') }
+
+    let!(:sourced_card) do
+      create(:collection_magic_card,
+             collection: deck,
+             magic_card: magic_card,
+             source_collection_id: source_collection.id,
+             staged: true,
+             staged_quantity: 1,
+             staged_foil_quantity: 0,
+             staged_proxy_quantity: 0,
+             staged_proxy_foil_quantity: 0,
+             quantity: 0,
+             foil_quantity: 0)
+    end
+
+    before do
+      create(:collection_magic_card, collection: source_collection, magic_card: magic_card, quantity: 1)
+    end
+
+    subject do
+      described_class.call(
+        deck: deck,
+        collection_magic_card_id: sourced_card.id,
+        new_magic_card_id: alt_printing.id
+      )
+    end
+
+    context 'and the source does not hold the new printing' do
+      it 'returns an error naming the source' do
+        expect(subject[:success]).to be false
+        expect(subject[:error]).to include("Black Uncommons doesn't have that printing")
+      end
+
+      it 'leaves the printing alone so finalize can still find the source' do
+        subject
+        expect(sourced_card.reload.magic_card_id).to eq(magic_card.id)
+      end
+    end
+
+    context 'and the source holds the new printing' do
+      before do
+        create(:collection_magic_card, collection: source_collection, magic_card: alt_printing, quantity: 1)
+      end
+
+      it 'swaps the printing and its card_uuid' do
+        expect(subject[:success]).to be true
+        sourced_card.reload
+        expect(sourced_card.magic_card_id).to eq(alt_printing.id)
+        expect(sourced_card.card_uuid).to eq(alt_printing.card_uuid)
+      end
+    end
+
+    context 'and the new printing is in the source but only as foil' do
+      before do
+        create(:collection_magic_card, collection: source_collection, magic_card: alt_printing,
+                                       quantity: 0, foil_quantity: 1)
+      end
+
+      it 'returns an error' do
+        expect(subject[:success]).to be false
+        expect(subject[:error]).to include("doesn't have enough copies")
+      end
+    end
+
+    context 'and the source copies of the new printing are already staged elsewhere' do
+      before do
+        create(:collection_magic_card, collection: source_collection, magic_card: alt_printing, quantity: 1)
+        create(:collection_magic_card,
+               collection: create(:collection, user: user, collection_type: 'deck'),
+               magic_card: alt_printing,
+               source_collection_id: source_collection.id,
+               staged: true,
+               staged_quantity: 1)
+      end
+
+      it 'returns an error' do
+        expect(subject[:success]).to be false
+        expect(subject[:error]).to include("doesn't have enough copies")
+      end
+    end
+  end
+
   context 'when swapping printing on a finalized card' do
     let!(:finalized_card) do
       create(:collection_magic_card,
