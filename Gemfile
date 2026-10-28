@@ -5,7 +5,7 @@ gem "bootsnap", require: false
 gem 'dotenv-rails'
 gem "httparty"
 gem "importmap-rails"
-gem "json", "<= 3.0.2"
+gem "json", "<= 3.1.0"
 gem "mission_control-jobs"
 gem "pagy"
 gem "pg", "~> 1.7.0"
@@ -17,7 +17,7 @@ gem "solid_cable"
 gem "solid_queue", "~> 1.7.0"
 gem "sprockets-rails"
 gem "stimulus-rails"
-gem "tailwindcss-rails", "~> 4.6.0"
+gem "tailwindcss-rails", "~> 4.7.0"
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
