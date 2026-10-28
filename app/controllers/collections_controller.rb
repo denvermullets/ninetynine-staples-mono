@@ -13,13 +13,13 @@ class CollectionsController < ApplicationController
   end
 
   def create
-    collection = Collection.new(collection_params)
-    unless collection.save
+    @collection = Collection.new(collection_params)
+    unless @collection.save
       render :new, status: :unprocessable_entity
       return
     end
 
-    path = Collection.deck_type?(collection.collection_type) ? decks_index_path(current_user.username) : root_path
+    path = Collection.deck_type?(@collection.collection_type) ? decks_index_path(current_user.username) : root_path
     redirect_to path
   end
 
