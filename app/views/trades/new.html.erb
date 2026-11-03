@@ -8,6 +8,8 @@
   Each column opens on its owner's trade list and can search the rest of their public collections
   underneath; anything the draft takes from off the list is badged as such.
 
+  On a counter-offer, a card in "You give" can also be swapped for another copy the user holds.
+
   The draft lives in the quantity inputs and nowhere else - no draft row, no autosave. The only
   server round trip before submitting is trades#preview, which re-prices the totals panel.
 %>
@@ -20,6 +22,7 @@
   data-controller="trade-builder"
   data-trade-builder-preview-path-value="<%= preview_trades_path %>"
   data-trade-builder-rows-path-value="<%= rows_trades_path %>"
+  data-trade-builder-swaps-path-value="<%= swaps_trades_path %>"
   data-trade-builder-with-value="<%= @recipient.username %>"
   data-trade-builder-counter-value="<%= @parent&.id %>"
 >
@@ -53,7 +56,7 @@
 
       <%= render partial: 'trades/side', locals: {
         side: 'proposer', heading: 'You give', rows: @my_rows, prefill: @prefill,
-        owner: current_user, matched: [],
+        owner: current_user, matched: [], swappable: @parent.present?,
         search_label: 'Offer something that is not on your trade list, from your public collections.',
         empty_text: 'Mark copies for trade in a public collection and they will show up here.' } %>
     </div>

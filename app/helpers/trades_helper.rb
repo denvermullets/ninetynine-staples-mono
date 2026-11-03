@@ -31,6 +31,15 @@ module TradesHelper
     'confirmed' => 'confirmed receipt'
   }.freeze
 
+  # What one copy of this finish adds to the builder's totals, with Trades::UnitPrice's fallbacks. A
+  # card we have no price for says so rather than offering $0.00 to compare against.
+  def trade_unit_price(card, foil: false)
+    regular, foil_price = Trades::UnitPrice.pair(card.normal_price, card.foil_price)
+    price = foil ? foil_price : regular
+
+    price.positive? ? number_to_currency(price) : 'no price'
+  end
+
   # The difference is what the viewer receives minus what they give - the builder is only ever looked
   # at by the proposer, and Trades::Detail turns the trade page to face whoever is reading it - so a
   # positive number is value coming their way.

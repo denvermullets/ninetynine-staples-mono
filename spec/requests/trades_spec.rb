@@ -186,6 +186,100 @@ RSpec.describe 'Trades', type: :request do
   end
 
   # answers with a bare turbo frame, so there is no layout in the way
+  describe 'GET /trades/swaps' do
+    let(:oracle_id) { SecureRandom.uuid }
+    let(:asked_for) { create(:magic_card, name: 'Undead Warchief', scryfall_oracle_id: oracle_id) }
+    let(:other_printing) { create(:magic_card, name: 'Undead Warchief', scryfall_oracle_id: oracle_id) }
+    let(:mine) do
+      create(:collection_magic_card, collection: create(:collection, user: recipient, is_public: true),
+                                     magic_card: asked_for, quantity: 1)
+    end
+    let(:original) do
+      Trades::Propose.call(proposer: proposer, recipient: recipient,
+                           items: [item(mine, 'recipient')])[:trade]
+    end
+    let!(:alternative) do
+      create(:collection_magic_card, collection: create(:collection, user: recipient, is_public: true,
+                                                                     name: 'Wretched Ranks'),
+                                     magic_card: other_printing, quantity: 1)
+    end
+
+    it 'sends a logged-out visitor to the login page' do
+      get swaps_trades_path(with: proposer.username, counter: original.id, row: mine.id)
+
+      expect(response).to redirect_to(login_path)
+    end
+
+    it 'lists the other copies in the frame of the row being swapped' do
+      sign_in(recipient)
+
+      get swaps_trades_path(with: proposer.username, counter: original.id, row: mine.id)
+
+      expect(response.body).to include("trade_swap_#{mine.id}", %(data-swap-row-id="#{alternative.id}"))
+    end
+
+    it 'offers only the finishes a copy has, one button each' do
+      sign_in(recipient)
+
+      get swaps_trades_path(with: proposer.username, counter: original.id, row: mine.id)
+
+      expect(response.body).to include('data-swap-field="quantity"')
+      expect(response.body).not_to include('data-swap-field="foil_quantity"')
+    end
+
+    it 'says which collection each copy lives in' do
+      sign_in(recipient)
+
+      get swaps_trades_path(with: proposer.username, counter: original.id, row: mine.id)
+
+      expect(response.body).to include('In Wretched Ranks')
+    end
+
+    it 'prices a finish with no price of its own the way the totals do' do
+      other_printing.update!(normal_price: 12, foil_price: 0)
+      alternative.update!(foil_quantity: 1)
+      sign_in(recipient)
+
+      get swaps_trades_path(with: proposer.username, counter: original.id, row: mine.id)
+
+      expect(response.body).to match(/1 foil at\s+\$12\.00/)
+    end
+
+    it 'says so when a card has no price at all' do
+      other_printing.update!(normal_price: 0, foil_price: 0)
+      sign_in(recipient)
+
+      get swaps_trades_path(with: proposer.username, counter: original.id, row: mine.id)
+
+      expect(response.body).to match(/1 regular at\s+no price/)
+    end
+
+    it 'sends a user who cannot counter the trade back to the inbox' do
+      sign_in(proposer)
+
+      get swaps_trades_path(with: recipient.username, counter: original.id, row: mine.id)
+
+      expect(response).to redirect_to(trades_path)
+    end
+
+    it 'answers nothing without a trade being countered' do
+      sign_in(recipient)
+
+      get swaps_trades_path(with: proposer.username, row: mine.id)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'answers nothing for a row that is not the user\'s own' do
+      theirs = binder_row(proposer)
+      sign_in(recipient)
+
+      get swaps_trades_path(with: proposer.username, counter: original.id, row: theirs.id)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe 'GET /trades/rows' do
     let(:bolt) { create(:magic_card, name: 'Lightning Bolt') }
 
@@ -227,6 +321,16 @@ RSpec.describe 'Trades', type: :request do
 
       expect(response.body).to include('trade_rows_proposer', %(data-row-id="#{mine.id}"))
       expect(response.body).not_to include(%(data-row-id="#{theirs.id}"))
+    end
+
+    it 'prices each row per copy, so printings can be compared' do
+      bolt.update!(normal_price: 5)
+      unlisted_bolt(recipient)
+      sign_in(proposer)
+
+      get rows_trades_path(with: recipient.username, q: 'bolt')
+
+      expect(response.body).to include('$5.00')
     end
 
     it 'never reaches into a private collection' do

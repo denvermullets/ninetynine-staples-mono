@@ -1,4 +1,4 @@
-<%# locals: row - Trades::AvailableRows::Row, side, prefill - { row_id => { quantity:, foil_quantity: } }, matched %>
+<%# locals: row - Trades::AvailableRows::Row, side, prefill - { row_id => { quantity:, foil_quantity: } }, matched, swappable (optional) %>
 <%#
   One collection row on one side of the draft. The inputs carry no name: the draft only becomes form
   fields when trade-builder#submit writes them, so nothing here is posted by accident.
@@ -12,10 +12,17 @@
 
   `data-matched` marks a row the want matches page sent the proposer here for, which is what that
   column's "matched only" toggle filters on.
+
+  The price beside each input is one copy of that finish, so two printings can be compared by eye.
+  The spinners are off because Firefox draws them over the number in an input this narrow. An empty
+  input is out of the draft, so it reads 0; trade-builder highlights the rows that are in it.
+
+  `swappable` is a counter-offer's own column. trade-builder shows the button only while the row holds
+  copies, and the options open in the frame underneath - trades/_swap_options.
 %>
 
 <div
-  class="flex items-center justify-between gap-3 px-4 py-2"
+  class="px-4 py-2"
   data-trade-builder-target="row"
   data-side="<%= side %>"
   data-row-id="<%= row.id %>"
@@ -23,53 +30,80 @@
   data-matched="<%= matched %>"
   data-card-name="<%= row.magic_card.name.to_s.downcase %>"
 >
-  <div class="min-w-0">
-    <div class="flex items-center gap-2">
-      <%# the row has no thumbnail, so the name is what shows the card %>
-      <%= tag.p row.magic_card.name.to_s.split('//').first,
-        class: 'text-sm truncate cursor-pointer text-grey-text',
-        data: {
-          controller: 'card-hover',
-          card_hover_image_value: row.magic_card.image_large,
-          card_hover_name_value: row.magic_card.name,
-          action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
-        } %>
+  <div class="flex items-center justify-between gap-3">
+    <div class="min-w-0">
+      <div class="flex items-center gap-2">
+        <%# the row has no thumbnail, so the name is what shows the card %>
+        <%= tag.p row.magic_card.name.to_s.split('//').first,
+          class: 'text-sm truncate cursor-pointer text-grey-text',
+          data: {
+            controller: 'card-hover',
+            card_hover_image_value: row.magic_card.image_large,
+            card_hover_name_value: row.magic_card.name,
+            action: 'mouseenter->card-hover#show mouseleave->card-hover#hide mousemove->card-hover#move'
+          } %>
 
-      <%= render partial: 'trades/off_list_badge', locals: { hidden: !row.unlisted? } %>
+        <%= render partial: 'trades/off_list_badge', locals: { hidden: !row.unlisted? } %>
+      </div>
+
+      <p class="text-xs truncate text-grey-text/50">
+        <%= row.magic_card.boxset&.code %> #<%= row.magic_card.card_number %> ·
+        <%= row.collection_name %>
+      </p>
+
+      <% if local_assigns[:swappable] %>
+        <button
+          type="button"
+          class="
+            hidden text-xs underline cursor-pointer text-grey-text/70
+            hover:text-grey-text
+          "
+          data-swap-toggle
+          data-action="trade-builder#toggleSwap"
+        >
+          Swap printing
+        </button>
+      <% end %>
     </div>
 
-    <p class="text-xs truncate text-grey-text/50">
-      <%= row.magic_card.boxset&.code %> #<%= row.magic_card.card_number %> ·
-      <%= row.collection_name %>
-    </p>
-  </div>
+    <%# fixed columns, one line per finish, so the inputs and prices line up down the whole list %>
+    <div class="flex flex-col items-end gap-1 shrink-0 text-grey-text/70">
+      <%# an "Add to trade" link or a counter-offer's original trade starts the row with copies in it %>
+      <% start = prefill.fetch(row.id, {}) %>
 
-  <div class="flex items-center gap-3 shrink-0 text-grey-text/70">
-    <%# an "Add to trade" link or a counter-offer's original trade starts the row with copies in it %>
-    <% start = prefill.fetch(row.id, {}) %>
+      <% { quantity: '', foil_quantity: 'foil' }.each do |field, finish| %>
+        <% available = row.public_send(field) %>
+        <% listed = row.public_send(:"listed_#{field}") %>
 
-    <% { quantity: '', foil_quantity: 'foil' }.each do |field, finish| %>
-      <% available = row.public_send(field) %>
-      <% listed = row.public_send(:"listed_#{field}") %>
+        <% if available.positive? %>
+          <div class="grid items-center gap-2 text-xs grid-cols-[3.5rem_3.5rem_4.5rem]">
+            <%= tag.input type: 'number', value: (start[field] if start[field].to_i.positive?),
+              min: 0, max: available, step: 1, inputmode: 'numeric', placeholder: '0',
+              aria: { label: "#{finish.presence || 'regular'} copies of #{row.magic_card.name} to trade" },
+              data: { trade_field: field, listed: listed, action: 'input->trade-builder#change' },
+              class: 'w-full px-2 py-1 text-sm text-right border rounded-md border-highlight bg-background text-grey-text placeholder:text-grey-text/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none' %>
 
-      <% if available.positive? %>
-        <div class="flex items-center gap-1 text-xs">
-          <%= tag.input type: 'number', value: (start[field] if start[field].to_i.positive?),
-            min: 0, max: available, step: 1, inputmode: 'numeric',
-            aria: { label: "#{finish.presence || 'regular'} copies of #{row.magic_card.name} to trade" },
-            data: { trade_field: field, listed: listed, action: 'input->trade-builder#change' },
-            class: 'w-14 px-2 py-1 text-sm text-right border rounded-md border-highlight bg-background text-grey-text' %>
+            <span>
+              <%= "/ #{available} #{finish}".strip %>
 
-          <span>
-            <%= "/ #{available} #{finish}".strip %>
+              <%# only worth saying when the two differ - an unlisted row already wears the badge %>
+              <% if listed.positive? && listed < available %>
+                <span class="block text-grey-text/50">
+                  <%= listed %> listed
+                </span>
+              <% end %>
+            </span>
 
-            <%# only worth saying when the two differ - an unlisted row already wears the badge %>
-            <% if listed.positive? && listed < available %>
-              <span class="text-grey-text/50">(<%= listed %> listed)</span>
-            <% end %>
-          </span>
-        </div>
+            <span class="text-right tabular-nums">
+              <%= trade_unit_price(row.magic_card, foil: field == :foil_quantity) %>
+            </span>
+          </div>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
   </div>
+
+  <% if local_assigns[:swappable] %>
+    <%= turbo_frame_tag "trade_swap_#{row.id}", data: { swap_options: true } %>
+  <% end %>
 </div>

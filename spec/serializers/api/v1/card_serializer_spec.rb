@@ -46,6 +46,17 @@ RSpec.describe Api::V1::CardSerializer do
     MagicCardLegality.create!(magic_card: card, legality: Legality.find_or_create_by!(name: 'modern'), status: 'Banned')
   end
 
+  def query_count
+    count = 0
+    subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+      count += 1 unless payload[:name].in?(%w[SCHEMA TRANSACTION])
+    end
+    yield
+    count
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
   def serialize(card, **)
     described_class.new(card, **).as_json
   end
@@ -235,17 +246,6 @@ RSpec.describe Api::V1::CardSerializer do
   end
 
   describe '.many' do
-    def query_count
-      count = 0
-      subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
-        count += 1 unless payload[:name].in?(%w[SCHEMA TRANSACTION])
-      end
-      yield
-      count
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
-    end
-
     # a 100-card deck: mostly single-faced cards plus a handful of double-faced ones, each row with type,
     # color, keyword, legality and ruling rows to load
     let!(:deck_ids) do
@@ -274,9 +274,9 @@ RSpec.describe Api::V1::CardSerializer do
       expect(json.count { |c| c[:faces].size == 2 }).to eq(10)
     end
 
-    it 'serializes a 100-card deck in about 15 queries, rulings included' do
-      expect(query_count { described_class.many(MagicCard.where(id: deck_ids)).to_json }).to be <= 15
-      expect(query_count { described_class.many(MagicCard.where(id: deck_ids), rulings: true).to_json }).to be <= 17
+    it 'serializes a 100-card deck in about 16 queries, rulings included' do
+      expect(query_count { described_class.many(MagicCard.where(id: deck_ids)).to_json }).to be <= 16
+      expect(query_count { described_class.many(MagicCard.where(id: deck_ids), rulings: true).to_json }).to be <= 18
     end
 
     # one single-faced and one double-faced card already touch every association, so a hundred cost the same
@@ -289,6 +289,87 @@ RSpec.describe Api::V1::CardSerializer do
 
     it 'returns an empty list without querying for faces when given no cards' do
       expect(query_count { expect(described_class.many([])).to eq([]) }).to eq(0)
+    end
+  end
+
+  describe 'commander_legality across printings' do
+    let(:oracle_id) { SecureRandom.uuid }
+
+    def printing(**attrs)
+      card_row(scryfall_oracle_id: oracle_id, **attrs)
+    end
+
+    def status_row(card, status)
+      MagicCardLegality.create!(magic_card: card, legality: commander, status: status)
+    end
+
+    it 'gives a printing with no row the Legal of another printing of the card' do
+      legal = printing(name: 'Tundra')
+      bare = printing(name: 'Tundra')
+      status_row(legal, 'Legal')
+
+      expect(serialize(bare)[:commander_legality]).to eq('Legal')
+      expect(serialize(legal)[:commander_legality]).to eq('Legal')
+    end
+
+    it 'gives every printing Banned when any printing is Banned' do
+      banned = printing(name: 'Black Lotus')
+      legal = printing(name: 'Black Lotus')
+      bare = printing(name: 'Black Lotus')
+      status_row(banned, 'Banned')
+      status_row(legal, 'Legal')
+
+      expect([banned, legal, bare].map { |c| serialize(c)[:commander_legality] }).to all(eq('Banned'))
+    end
+
+    it 'is null when no printing has a commander row' do
+      card = printing(name: 'Plain')
+      MagicCardLegality.create!(magic_card: card, legality: Legality.find_or_create_by!(name: 'modern'),
+                                status: 'Legal')
+
+      expect(serialize(printing(name: 'Plain'))[:commander_legality]).to be_nil
+    end
+
+    it 'decides a card with no oracle id from its own row' do
+      token = card_row(name: 'Goblin', scryfall_oracle_id: nil, is_token: true)
+      other = card_row(name: 'Goblin', scryfall_oracle_id: nil, is_token: true)
+      status_row(token, 'Legal')
+
+      expect(serialize(token)[:commander_legality]).to eq('Legal')
+      expect(serialize(other)[:commander_legality]).to be_nil
+    end
+
+    it 'gives the same answers through the batch path' do
+      legal = printing(name: 'Tundra')
+      bare = printing(name: 'Tundra')
+      status_row(legal, 'Legal')
+      other_id = SecureRandom.uuid
+      banned = card_row(scryfall_oracle_id: other_id, name: 'Lotus')
+      bare_banned = card_row(scryfall_oracle_id: other_id, name: 'Lotus')
+      status_row(banned, 'Banned')
+      none = card_row(name: 'Nothing')
+      cards = [legal, bare, banned, bare_banned, none]
+
+      result = described_class.many(MagicCard.where(id: cards.map(&:id)))
+
+      expect(result.to_h { |j| [j[:card_uuid], j[:commander_legality]] }).to eq(
+        legal.card_uuid => 'Legal', bare.card_uuid => 'Legal', banned.card_uuid => 'Banned',
+        bare_banned.card_uuid => 'Banned', none.card_uuid => nil
+      )
+    end
+
+    it 'does not run more queries for a hundred cards than for two' do
+      cards = Array.new(50) do |i|
+        id = SecureRandom.uuid
+        legal = card_row(scryfall_oracle_id: id, name: "Dual #{i}")
+        status_row(legal, 'Legal')
+        [legal, card_row(scryfall_oracle_id: id, name: "Dual #{i}")]
+      end.flatten
+
+      two = query_count { described_class.many(MagicCard.where(id: cards.first(2).map(&:id))).to_json }
+      hundred = query_count { described_class.many(MagicCard.where(id: cards.map(&:id))).to_json }
+
+      expect(hundred).to eq(two)
     end
   end
 

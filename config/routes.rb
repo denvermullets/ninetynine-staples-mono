@@ -236,6 +236,8 @@ Rails.application.routes.draw do
         post :preview
         # the builder's search of a user's cards that are not on their trade list
         get :rows
+        # the other copies a counter-offer could give in place of one of its cards
+        get :swaps
       end
 
       # accept / decline / cancel / complete, named in `event` - Trades::Transition decides the rest
