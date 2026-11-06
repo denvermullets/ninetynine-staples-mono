@@ -322,6 +322,64 @@ RSpec.describe Api::V1::CardSerializer do
       expect([banned, legal, bare].map { |c| serialize(c)[:commander_legality] }).to all(eq('Banned'))
     end
 
+    describe 'a card with no row' do
+      let(:new_set) { create(:boxset, set_type: 'expansion', release_date: 1.month.ago.to_date) }
+
+      def new_card(boxset: new_set, **attrs)
+        create(:magic_card, boxset: boxset, card_uuid: SecureRandom.uuid, scryfall_oracle_id: SecureRandom.uuid,
+                            layout: 'normal', **attrs)
+      end
+
+      it 'is presumed Legal when it was first printed within the last year' do
+        expect(serialize(new_card(name: 'Seven of Nine'))[:commander_legality]).to eq('Legal')
+      end
+
+      it 'is not presumed Legal once a printing older than a year exists' do
+        card = new_card(name: 'Old Friend')
+        create(:magic_card, boxset: boxset, card_uuid: SecureRandom.uuid, scryfall_oracle_id: card.scryfall_oracle_id,
+                            name: 'Old Friend', layout: 'normal')
+
+        expect(serialize(card)[:commander_legality]).to be_nil
+      end
+
+      it 'is not presumed Legal for a new token, silver-bordered card, plane or Un-set card' do
+        token = new_card(name: 'Tribble', is_token: true)
+        silver = new_card(name: 'Squirrel Farm', border_color: 'silver')
+        plane = new_card(name: 'Bajor', card_type: 'Plane — Bajor')
+        funny = new_card(name: 'Clown Car',
+                         boxset: create(:boxset, set_type: 'funny', release_date: 1.month.ago.to_date))
+
+        expect([token, silver, plane, funny].map { |c| serialize(c)[:commander_legality] }).to all(be_nil)
+      end
+
+      it 'is still presumed Legal when a promo printing sits in an old promo set' do
+        card = new_card(name: 'Borg Queen')
+        new_card(name: 'Borg Queen', scryfall_oracle_id: card.scryfall_oracle_id,
+                 boxset: create(:boxset, set_type: 'promo', release_date: '2009-02-08'))
+
+        expect(serialize(card)[:commander_legality]).to eq('Legal')
+      end
+
+      it 'does not mistake a planeswalker for a plane' do
+        walker = new_card(name: 'Arzakon', card_type: 'Legendary Planeswalker — Arzakon')
+
+        expect(serialize(walker)[:commander_legality]).to eq('Legal')
+      end
+
+      it 'keeps a Banned row over the presumption' do
+        card = new_card(name: 'Too Good')
+        status_row(card, 'Banned')
+
+        expect(serialize(card)[:commander_legality]).to eq('Banned')
+      end
+
+      it 'is presumed Legal through the batch path too' do
+        card = new_card(name: 'Seven of Nine')
+
+        expect(described_class.many(MagicCard.where(id: card.id)).first[:commander_legality]).to eq('Legal')
+      end
+    end
+
     it 'is null when no printing has a commander row' do
       card = printing(name: 'Plain')
       MagicCardLegality.create!(magic_card: card, legality: Legality.find_or_create_by!(name: 'modern'),
