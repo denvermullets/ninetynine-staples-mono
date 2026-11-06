@@ -1,4 +1,4 @@
-<%# locals: side, rows - Trades::UnlistedRows, query, owner %>
+<%# locals: side, rows - Trades::UnlistedRows, query, owner, swappable (optional) %>
 <%#
   What one column's search of the rest of its owner's public collections came back with. The rows
   are the builder's own row partial, so a quantity typed into one is already part of the draft -
@@ -9,7 +9,8 @@
   <% if rows.any? %>
     <div class="overflow-y-auto divide-y max-h-64 divide-highlight">
       <% rows.each do |row| %>
-        <%= render partial: 'trades/row', locals: { row: row, side: side, prefill: {}, matched: false } %>
+        <%= render partial: 'trades/row', locals: {
+          row: row, side: side, prefill: {}, matched: false, swappable: local_assigns[:swappable] } %>
       <% end %>
     </div>
     <% if rows.size >= Trades::UnlistedRows::LIMIT %>

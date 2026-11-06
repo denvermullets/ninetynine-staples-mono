@@ -1,4 +1,4 @@
-<%# locals: side, heading, rows, prefill, empty_text, owner, search_label, matched - Set of row ids %>
+<%# locals: side, heading, rows, prefill, empty_text, owner, search_label, matched - Set of row ids, swappable (optional) %>
 <%#
   One column of the builder. Every row on the owner's trade list is on the page, so the filter is a
   client-side one - there is nothing to fetch.
@@ -18,7 +18,11 @@
       <h2 class="text-lg font-semibold text-grey-text"><%= heading %></h2>
 
       <%# not "on the trade list": a counter-offer or a want match puts unlisted rows here too %>
-      <span class="text-xs text-grey-text/50">
+      <span
+        class="text-xs text-grey-text/50"
+        data-trade-builder-target="count"
+        data-side="<%= side %>"
+      >
         <%= pluralize(rows.size, 'printing') %>
       </span>
     </div>
@@ -67,7 +71,8 @@
   >
     <% rows.each do |row| %>
       <%= render partial: 'trades/row', locals: {
-        row: row, side: side, prefill: prefill, matched: matched.include?(row.id) } %>
+        row: row, side: side, prefill: prefill, matched: matched.include?(row.id),
+        swappable: local_assigns[:swappable] } %>
     <% end %>
   </div>
 
@@ -81,5 +86,5 @@
   </div>
 
   <%= render partial: 'trades/search_results', locals: {
-    side: side, rows: [], query: '', owner: owner } %>
+    side: side, rows: [], query: '', owner: owner, swappable: local_assigns[:swappable] } %>
 </div>

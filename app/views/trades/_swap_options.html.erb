@@ -1,0 +1,75 @@
+<%# locals: row - the CollectionMagicCard being swapped out, options - Trades::OtherPrintings %>
+<%#
+  What a "You give" row could be swapped for, opened under that row. Each finish of each copy is its
+  own button, so which finish goes is always the user's click; trade-builder puts the chosen row in
+  place of this one, and nothing leaves the page.
+
+  Each option carries its own builder row in a template. A chosen row usually is not on the page yet,
+  and a template's contents are not part of the document, so the row counts for nothing until then.
+%>
+
+<%= turbo_frame_tag "trade_swap_#{row.id}" do %>
+  <div
+    class="
+      mt-2 border divide-y rounded-md divide-highlight border-highlight
+      bg-background
+    "
+  >
+    <% if options.any? %>
+      <p class="px-3 py-2 text-xs text-grey-text/70">
+        Give one of these instead:
+      </p>
+      <% options.each do |option| %>
+        <% card = option.magic_card %>
+
+        <div
+          class="
+            flex items-center justify-between gap-3 px-3 py-2 text-xs
+            text-grey-text
+          "
+          data-swap-option
+          data-swap-row-id="<%= option.id %>"
+        >
+          <div class="min-w-0">
+            <p><%= card.boxset&.code %> #<%= card.card_number %></p>
+            <p class="text-grey-text/70">In <%= option.collection_name %></p>
+          </div>
+
+          <div class="flex flex-col items-end gap-1 shrink-0">
+            <% { quantity: 'regular', foil_quantity: 'foil' }.each do |field, finish| %>
+              <% if option.public_send(field).positive? %>
+                <button
+                  type="button"
+                  class="
+                    px-2 py-1 border rounded-md cursor-pointer tabular-nums
+                    border-highlight hover:bg-menu
+                  "
+                  data-action="trade-builder#swap"
+                  data-swap-field="<%= field %>"
+                >
+                  <%= option.public_send(field) %> <%= finish %> at
+                  <%= trade_unit_price(card, foil: field == :foil_quantity) %>
+                </button>
+              <% end %>
+            <% end %>
+          </div>
+
+          <template>
+            <%= render partial: 'trades/row', locals: {
+              row: option, side: 'proposer', prefill: {}, matched: false, swappable: true } %>
+          </template>
+        </div>
+      <% end %>
+      <% if options.size >= Trades::OtherPrintings::LIMIT %>
+        <p class="px-3 py-2 text-xs text-grey-text/50">
+          Showing the first <%= Trades::OtherPrintings::LIMIT %>.
+        </p>
+      <% end %>
+    <% else %>
+      <p class="px-3 py-2 text-xs text-grey-text/50">
+        You have no other copy of this card to offer. Only copies in your public
+        collections can go in a trade.
+      </p>
+    <% end %>
+  </div>
+<% end %>

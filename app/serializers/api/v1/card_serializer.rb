@@ -7,6 +7,30 @@
 class Api::V1::CardSerializer
   # Scryfall's stand-in for art that is not out yet - the client shows its own fallback instead
   PLACEHOLDER_IMAGE = MagicCard::PLACEHOLDER_IMAGE
+  # A new card is Commander-legal unless Wizards says otherwise, but ingestion only learns that once
+  # Scryfall classifies it, which can lag a release by weeks. So a card with no row is presumed Legal
+  # when it was first printed within PRESUMED_LEGAL_WINDOW and is a traditional, black-bordered,
+  # non-token card. Promo printings don't date a card: a new card's promo can sit in an old catch-all
+  # set such as PURL. Older cards with no row are left out: playtest cards, planes, schemes and the like.
+  PRESUMED_LEGAL_WINDOW = 1.year
+  NONTRADITIONAL_SET_TYPES = %w[alchemy archenemy funny memorabilia minigame planechase token vanguard].freeze
+  NONTRADITIONAL_TYPE_LINE = '^Card\\M|\\m(Plane|Phenomenon|Scheme|Conspiracy|Vanguard|Dungeon|Emblem)\\M'.freeze
+  AGGREGATE_STATUS_SQL = <<~SQL.squish.freeze
+    CASE WHEN bool_or(magic_card_legalities.status = 'Banned') THEN 'Banned'
+         WHEN bool_or(magic_card_legalities.status = 'Legal') THEN 'Legal'
+         WHEN coalesce(min(boxsets.release_date) FILTER (WHERE boxsets.set_type <> 'promo'),
+                       min(boxsets.release_date)) >= :cutoff
+          AND NOT bool_or(magic_cards.is_token)
+          AND NOT bool_or(boxsets.set_type IN (:nontraditional_sets))
+          AND NOT bool_or(coalesce(magic_cards.border_color, '') IN ('silver', 'gold'))
+          AND NOT bool_or(coalesce(magic_cards.card_type, '') ~ :nontraditional_types) THEN 'Legal'
+    END
+  SQL
+  COMMANDER_ROWS_JOIN = <<~SQL.squish.freeze
+    LEFT JOIN magic_card_legalities ON magic_card_legalities.magic_card_id = magic_cards.id
+      AND magic_card_legalities.status IN ('Banned', 'Legal')
+      AND magic_card_legalities.legality_id IN (SELECT id FROM legalities WHERE name = 'commander')
+  SQL
   COLOR_ORDER = %w[W U B R G].freeze
 
   def self.many(cards, rulings: false)
@@ -21,7 +45,31 @@ class Api::V1::CardSerializer
                                                 associations: :rulings).call
     end
 
-    groups.map { |anchor, faces| new(anchor, faces: faces, rulings: rulings).card_json }
+    legalities = commander_legalities(groups.map(&:first))
+    groups.map { |anchor, faces| new(anchor, faces: faces, rulings: rulings, legalities: legalities).card_json }
+  end
+
+  # { oracle id => 'Banned' | 'Legal' }, across every printing of each card in one query. Legality is a
+  # fact about the card, but ingestion only writes a row for some printings (a 30A or OLGC Tundra has none),
+  # so a printing's own row would call it unplayable. Banned wins over Legal, as in the game client's
+  # tools/dump_cards.sql. A card with no row is presumed Legal if it is new (AGGREGATE_STATUS_SQL);
+  # otherwise it is left out of the map.
+  def self.commander_legalities(cards)
+    oracle_ids = cards.filter_map(&:scryfall_oracle_id).uniq
+    return {} if oracle_ids.empty?
+
+    status = ActiveRecord::Base.sanitize_sql_array(
+      [AGGREGATE_STATUS_SQL, { cutoff: PRESUMED_LEGAL_WINDOW.ago.to_date,
+                               nontraditional_sets: NONTRADITIONAL_SET_TYPES,
+                               nontraditional_types: NONTRADITIONAL_TYPE_LINE }]
+    )
+    MagicCard.where(scryfall_oracle_id: oracle_ids)
+             .left_joins(:boxset)
+             .joins(COMMANDER_ROWS_JOIN)
+             .group('magic_cards.scryfall_oracle_id')
+             .pluck(Arel.sql('magic_cards.scryfall_oracle_id'), Arel.sql(status))
+             .to_h
+             .compact
   end
 
   def self.load_face_rows(cards)
@@ -51,10 +99,11 @@ class Api::V1::CardSerializer
     faces.find { |face| face.card_side == 'a' } || card
   end
 
-  private_class_method :load_face_rows, :other_face_uuids, :face_group, :front_of
+  private_class_method :load_face_rows, :commander_legalities, :other_face_uuids, :face_group, :front_of
 
-  def initialize(card, faces: nil, rulings: false)
+  def initialize(card, faces: nil, rulings: false, legalities: {})
     @card = card
+    @legalities = legalities
     @faces = faces
     @rulings = rulings
   end
@@ -75,7 +124,7 @@ class Api::V1::CardSerializer
       rarity: @card.rarity,
       is_token: @card.is_token,
       can_be_commander: @card.can_be_commander,
-      commander_legality: @card.commander_legality&.status,
+      commander_legality: commander_legality,
       color_identity: color_names(@card.color_identities),
       edhrec_rank: @card.edhrec_rank,
       faces: @faces.map { |face| face_json(face) }
@@ -85,6 +134,13 @@ class Api::V1::CardSerializer
   end
 
   private
+
+  # a card with no oracle id (a token, say) has no other printings to ask, so its own row decides
+  def commander_legality
+    return @card.commander_legality&.status if @card.scryfall_oracle_id.nil?
+
+    @legalities[@card.scryfall_oracle_id]
+  end
 
   def face_json(face)
     {

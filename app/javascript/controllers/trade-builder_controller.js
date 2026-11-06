@@ -11,19 +11,25 @@ import { Controller } from "@hotwired/stimulus";
 // it has a quantity - and at that moment it is moved out of the frame into the column's list, because
 // the next search replaces the frame and would take the draft with it.
 //
+// On a counter-offer, a row in the draft can swap for another copy of the card (trades#swaps): the
+// chosen row takes its place in the column and the draft, and the original goes. Swapping again lists it.
+//
 // Totals come from the server (Trades::DraftTotals) rather than being added up here - the prices
 // live in the database and the same arithmetic appears on the saved trade, so doing it twice in two
 // languages would be two places for it to disagree.
 export default class extends Controller {
-  static targets = ["row", "payload", "submit", "list", "results", "empty"];
-  static values = { previewPath: String, rowsPath: String, with: String, counter: String };
+  static targets = ["row", "payload", "submit", "list", "results", "empty", "count"];
+  static values = { previewPath: String, rowsPath: String, swapsPath: String, with: String, counter: String };
 
   connect() {
     // one entry per column: the name box and the "matched only" toggle both narrow the same list
     this.filters = {};
     this.toggleSubmit();
     // a counter-offer can start with copies from off the trade list already in it
-    this.rowTargets.forEach((row) => this.flagOffList(row));
+    this.rowTargets.forEach((row) => {
+      this.flagOffList(row);
+      this.flagDraft(row);
+    });
     // a preselected card arrives with a quantity already in it, so the totals start out of date
     if (this.draft().length > 0) this.refresh();
   }
@@ -47,6 +53,7 @@ export default class extends Controller {
 
     const row = input.closest('[data-trade-builder-target="row"]');
     this.flagOffList(row);
+    this.flagDraft(row);
     if (value > 0) this.pin(row, input);
 
     this.toggleSubmit();
@@ -63,6 +70,7 @@ export default class extends Controller {
         input.value = "";
       });
       this.flagOffList(row);
+      this.flagDraft(row);
     });
 
     this.toggleSubmit();
@@ -151,6 +159,7 @@ export default class extends Controller {
     const side = row.dataset.side;
     this.listTargets.find((list) => list.dataset.side === side)?.prepend(row);
     this.emptyTargets.filter((empty) => empty.dataset.side === side).forEach((empty) => empty.classList.add("hidden"));
+    this.recount(side);
     input.focus();
   }
 
@@ -170,6 +179,86 @@ export default class extends Controller {
 
     const past = this.fieldsFor(row).some((input) => (parseInt(input.value, 10) || 0) > parseInt(input.dataset.listed, 10));
     badge.classList.toggle("hidden", !(row.dataset.unlisted === "true" || past));
+  }
+
+  // Whether a row is part of the trade should not take reading its inputs to tell. The swap button
+  // only means something while the row has copies to move, and takes its options with it.
+  flagDraft(row) {
+    const inDraft = this.inDraft(row);
+    row.classList.toggle("bg-menu", inDraft);
+
+    const button = row.querySelector("[data-swap-toggle]");
+    if (!button) return;
+
+    button.classList.toggle("hidden", !inDraft);
+    if (!inDraft) this.closeSwap(row);
+  }
+
+  toggleSwap(event) {
+    const row = event.currentTarget.closest('[data-trade-builder-target="row"]');
+    const frame = row.querySelector("[data-swap-options]");
+
+    if (frame.hasAttribute("src")) {
+      this.closeSwap(row);
+      return;
+    }
+
+    const params = new URLSearchParams({ with: this.withValue, counter: this.counterValue, row: row.dataset.rowId });
+    frame.src = `${this.swapsPathValue}?${params}`;
+  }
+
+  closeSwap(row) {
+    const frame = row.querySelector("[data-swap-options]");
+    if (!frame) return;
+
+    frame.removeAttribute("src");
+    frame.innerHTML = "";
+  }
+
+  // The button names the finish, so that is never guessed. The copies being given carry over as far
+  // as that finish has them, and the original leaves the column: one card asked for, one row answering.
+  swap(event) {
+    const button = event.currentTarget;
+    const from = button.closest('[data-trade-builder-target="row"]');
+    const to = this.swapDestination(button.closest("[data-swap-option]"), from);
+    const input = to.querySelector(`input[data-trade-field="${button.dataset.swapField}"]`);
+    const asked = this.fieldsFor(from).reduce((sum, field) => sum + (parseInt(field.value, 10) || 0), 0);
+
+    input.value = Math.min((parseInt(input.value, 10) || 0) + asked, parseInt(input.max, 10));
+    from.replaceWith(to);
+
+    this.flagOffList(to);
+    this.flagDraft(to);
+    this.dropFromResults(to.dataset.side);
+    this.recount(to.dataset.side);
+    this.toggleSubmit();
+    this.refresh();
+    input.focus();
+  }
+
+  // the column's own row if it is already listed, otherwise the one the option carries
+  swapDestination(option, from) {
+    const list = this.listTargets.find((target) => target.dataset.side === from.dataset.side);
+
+    return (
+      list.querySelector(`[data-row-id="${option.dataset.swapRowId}"]`) ||
+      option.querySelector("template").content.firstElementChild.cloneNode(true)
+    );
+  }
+
+  // a row now in the column may also be sitting in the search results, and must not stay there
+  dropFromResults(side) {
+    const results = this.resultsTargets.find((target) => target.dataset.side === side);
+    if (results) this.dropPinned(results);
+  }
+
+  recount(side) {
+    const count = this.countTargets.find((target) => target.dataset.side === side);
+    const list = this.listTargets.find((target) => target.dataset.side === side);
+    if (!count || !list) return;
+
+    const rows = list.querySelectorAll('[data-trade-builder-target="row"]').length;
+    count.textContent = `${rows} ${rows === 1 ? "printing" : "printings"}`;
   }
 
   // the draft only becomes form fields at the last possible moment, so nothing stray is ever posted

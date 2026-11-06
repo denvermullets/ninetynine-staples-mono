@@ -22,10 +22,14 @@
 # of that user's public collections (Trades::UnlistedRows) and the hits join the draft as ordinary
 # rows, flagged as not on the trade list.
 #
+# On a counter-offer, a card the user is giving can be swapped for another copy of it: #swaps lists
+# what else they could offer (Trades::OtherPrintings) and the builder replaces the row with the choice.
+#
 # A trade is only ever found through current_user.trades, so anyone who is not one of its two parties
 # gets a 404 - not a 403, which would confirm the trade exists.
 class TradesController < ApplicationController
   include CardDetailsLocals
+  include TradeBuilderParties
 
   PER_PAGE = 25
   WANTERS_SHOWN = 5
@@ -38,8 +42,8 @@ class TradesController < ApplicationController
   }.freeze
 
   before_action :authenticate_user!
-  before_action :set_recipient, only: %i[new rows]
-  before_action :set_parent, only: %i[new rows]
+  before_action :set_recipient, only: %i[new rows swaps]
+  before_action :set_parent, only: %i[new rows swaps]
   before_action :find_parent, only: :create
   before_action :set_trade, only: %i[show transition card]
 
@@ -93,7 +97,19 @@ class TradesController < ApplicationController
     found = Trades::UnlistedRows.call(user: owner, query: params[:q], except_trade: @parent)
 
     render partial: 'trades/search_results',
-           locals: { side: side, rows: found, query: params[:q].to_s.strip, owner: owner }
+           locals: { side: side, rows: found, query: params[:q].to_s.strip, owner: owner,
+                     swappable: side == 'proposer' && @parent.present? }
+  end
+
+  # What one "You give" row of a counter-offer could be swapped for, answered as that row's frame.
+  def swaps
+    return head :not_found if @parent.nil?
+
+    row = current_user.offerable_cards.includes(:magic_card).find_by(id: params[:row])
+    return head :not_found if row.nil?
+
+    options = Trades::OtherPrintings.call(user: current_user, row: row, except_trade: @parent)
+    render partial: 'trades/swap_options', locals: { row: row, options: options }
   end
 
   # totals for the draft as it stands, swapped into the page as a turbo-stream fragment
@@ -123,26 +139,6 @@ class TradesController < ApplicationController
                                    trade_items: { magic_card: :boxset })
                          .find_by(id: params[:id])
     head :not_found if @trade.nil?
-  end
-
-  def set_recipient
-    @recipient = User.find_by(username: params[:with])
-    return redirect_to root_path, alert: 'We could not find that user.' if @recipient.nil?
-    return redirect_to root_path, alert: 'You cannot trade with yourself.' if @recipient.id == current_user.id
-    return if @recipient.trades_public?
-
-    redirect_to root_path, alert: "#{@recipient.username} is not accepting trade offers."
-  end
-
-  # only the offer's recipient, answering the user who made it, gets a pre-filled counter builder -
-  # Trades::Propose would refuse anything else on submit, so there is no point drafting it
-  def set_parent
-    return if params[:counter].blank?
-
-    @parent = current_user.trades.includes(:trade_items).find_by(id: params[:counter])
-    return if @parent&.counterable_by?(current_user) && @parent.proposer_id == @recipient.id
-
-    redirect_to trades_path, alert: 'That trade can no longer be countered.'
   end
 
   # a counter can start from cards its original took from off the trade list, and the builder can
