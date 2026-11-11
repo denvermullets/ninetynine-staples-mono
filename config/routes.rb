@@ -284,6 +284,7 @@ Rails.application.routes.draw do
         member do
           post :start
           post :close
+          post :game_record, action: :upload_game_record
         end
       end
       # username can contain dots, so the segment takes anything up to the next slash

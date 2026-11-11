@@ -14,7 +14,8 @@ RSpec.describe 'API v1 schemas', type: :request do
      'GET /api/v1/decks', 'GET /api/v1/decks/:id', 'GET /api/v1/precon_decks', 'GET /api/v1/precon_decks/:id',
      'POST /api/v1/cards/batch', 'GET /api/v1/cards/search', 'GET /api/v1/tokens',
      'GET /api/v1/users/:username/decks', 'POST /api/v1/rooms', 'POST /api/v1/rooms/join',
-     'POST /api/v1/rooms/:id/start', 'POST /api/v1/rooms/:id/close']
+     'POST /api/v1/rooms/:id/start', 'POST /api/v1/rooms/:id/close',
+     'POST /api/v1/rooms/:id/game_record']
   end
 
   def color(name)
@@ -205,6 +206,15 @@ RSpec.describe 'API v1 schemas', type: :request do
 
       post "/api/v1/rooms/#{room_id}/close", headers: api_headers
       expect(json_body).to match_api_schema(:room)
+    end
+
+    it 'POST /rooms/:id/game_record matches game_record.json' do
+      room = Room.open_for!(api_user).tap(&:start!)
+      post "/api/v1/rooms/#{room.id}/game_record",
+           params: { end_status: 'unfinished', seats: [{ seat: 0, user_id: api_user.id }, { seat: 1, user_id: nil }],
+                     record: '{"seed":1}' }.to_json,
+           headers: api_headers.merge('Content-Type' => 'application/json')
+      expect(json_body).to match_api_schema(:game_record)
     end
   end
 

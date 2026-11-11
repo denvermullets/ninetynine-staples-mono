@@ -12,6 +12,7 @@ class Room < ApplicationRecord
   belongs_to :host, class_name: 'User'
   has_many :room_memberships, dependent: :destroy
   has_many :members, through: :room_memberships, source: :user
+  has_one :game_record, dependent: :destroy
 
   validates :status, inclusion: { in: STATUSES }
   validates :join_code, presence: true
