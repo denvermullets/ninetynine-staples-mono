@@ -13,6 +13,12 @@ export default class extends Controller {
     document.removeEventListener("keydown", this.boundHandleShortcut);
   }
 
+  // drops the search in flight, if any - a newer one replaces it, or a filter is still changing
+  abortPending() {
+    this.pendingRequest?.abort();
+    this.pendingRequest = null;
+  }
+
   // "/" jumps focus into the card search field
   handleShortcut(event) {
     if (event.key !== "/") return;
@@ -31,22 +37,30 @@ export default class extends Controller {
   }
 
   toggleExactColor(event) {
+    this.toggleFlag(event, "exact_color_match");
+  }
+
+  // /commanders only: keep commanders that pair up to the selected colors
+  togglePartner(event) {
+    this.toggleFlag(event, "partner");
+  }
+
+  // flips a "true"/"false" hidden field, restyles the button and resubmits
+  toggleFlag(event, name) {
     event.preventDefault();
     const button = event.currentTarget;
 
-    // Get current value and toggle it
-    let hiddenField = this.formTarget.querySelector('input[name="exact_color_match"]');
+    let hiddenField = this.formTarget.querySelector(`input[name="${name}"]`);
     if (!hiddenField) {
       hiddenField = document.createElement("input");
       hiddenField.type = "hidden";
-      hiddenField.name = "exact_color_match";
+      hiddenField.name = name;
       this.formTarget.appendChild(hiddenField);
     }
 
     const newValue = hiddenField.value === "true" ? "false" : "true";
     hiddenField.value = newValue;
 
-    // Update button style
     if (newValue === "true") {
       button.classList.remove("bg-background", "text-grey-text", "hover:bg-menu");
       button.classList.add("bg-highlight", "text-nine-white");
@@ -55,7 +69,6 @@ export default class extends Controller {
       button.classList.add("bg-background", "text-grey-text", "hover:bg-menu");
     }
 
-    // Submit the form
     this.formTarget.requestSubmit();
   }
 
@@ -115,11 +128,18 @@ export default class extends Controller {
     const actionUrl = this.formTarget.action.split("?")[0];
     const newUrl = `${actionUrl}?${queryString}`;
 
+    // only the latest search may land - an older, slower response arriving after it would put
+    // stale rows (and a stale form) back on the page
+    this.abortPending();
+    const request = new AbortController();
+    this.pendingRequest = request;
+
     fetch(newUrl, {
       method: "GET",
       headers: {
         Accept: "text/vnd.turbo-stream.html",
       },
+      signal: request.signal,
     })
       .then((response) => response.text().then((html) => ({ ok: response.ok, html })))
       .then(({ ok, html }) => {
@@ -157,6 +177,9 @@ export default class extends Controller {
           ...(currentParams.get("exact_color_match") === "true" && {
             exact_color_match: "true",
           }),
+          ...(currentParams.get("partner") === "true" && {
+            partner: "true",
+          }),
           ...(currentParams.get("hide_proxies") === "false" && {
             hide_proxies: "false",
           }),
@@ -178,6 +201,13 @@ export default class extends Controller {
         }`;
 
         history.pushState(null, "", pushUrl);
+      })
+      .catch((error) => {
+        // a superseded search is expected, not a failure
+        if (error.name !== "AbortError") throw error;
+      })
+      .finally(() => {
+        if (this.pendingRequest === request) this.pendingRequest = null;
       });
   }
 }

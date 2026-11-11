@@ -16,7 +16,7 @@
     "
   >
     <%= render partial: 'shared/cards/dropdown', locals: { options: @options.to_json, filter_path: load_commanders_path, default_code: @default_code } %>
-    <%= render partial: 'shared/cards/search', locals: { search_path: load_commanders_path, show_price_filter: false } %>
+    <%= render partial: 'shared/cards/search', locals: { search_path: load_commanders_path, show_price_filter: false, show_partner_filter: true } %>
 
     <% if current_user %>
       <div class="w-auto">
@@ -43,7 +43,7 @@
   <%= turbo_frame_tag 'boxset_content' do %>
     <div id="table-container" class="min-w-full">
       <% if @magic_cards.present? %>
-        <%= render partial: 'table', locals: { magic_cards: @magic_cards, pagy: @pagy } %>
+        <%= render partial: 'table', locals: { magic_cards: @magic_cards, pagy: @pagy, partner_pairs: @partner_pairs } %>
       <% else %>
         <div
           class="

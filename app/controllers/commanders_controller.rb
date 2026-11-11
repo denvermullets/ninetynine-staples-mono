@@ -1,6 +1,6 @@
 class CommandersController < ApplicationController
   SORT_COLUMNS = %w[name card_type mana_value edhrec_rank edhrec_saltiness].freeze
-  PRESERVE_PARAMS = %i[code search owned_only rarity mana].freeze
+  PRESERVE_PARAMS = %i[code search owned_only rarity mana exact_color_match partner].freeze
 
   helper_method :sort_config
 
@@ -35,8 +35,30 @@ class CommandersController < ApplicationController
     CollectionQuery::ColumnSort.call(cards: @cards, column: sort_config.column, direction: sort_config.direction)
   end
 
+  # Partner mode swaps the pool for the cards that pair onto the selected colours, by name so every
+  # printing stays in play for the boxset and owned filters. Backgrounds come in here too - they are
+  # half of a legal pair without being can_be_commander on their own.
   def base_commander_query
+    return MagicCard.where(name: partner_pairs.keys) if partner_mode?
+
     MagicCard.where(can_be_commander: true)
+  end
+
+  def partner_mode?
+    params[:partner] == 'true'
+  end
+
+  def partner_pairs
+    @partner_pairs ||= Commanders::PartnerPairs.call(mask: partner_target_mask)
+  end
+
+  # -> the selected mana as a ColorMask, 0 for colourless, nil when nothing is selected.
+  def partner_target_mask
+    letters = Array(params[:mana]).flat_map { |value| value.to_s.split(',') }.compact_blank
+    return nil if letters.empty?
+    return Commanders::ColorMask::COLORLESS if letters.include?('C')
+
+    letters.uniq.sum { |letter| Commanders::ColorMask::BITS.fetch(letter, 0) }
   end
 
   def filter_by_boxset
@@ -48,8 +70,10 @@ class CommandersController < ApplicationController
           .where(collections: { user_id: current_user.id })
   end
 
+  # Partner mode has already applied the colours - to the pair, by identity - so the per-card colour
+  # filter would only throw away the halves it found.
   def filter_cards
-    CollectionQuery::Filter.call(cards: @cards, params: params)
+    CollectionQuery::Filter.call(cards: @cards, params: partner_mode? ? params.except(:mana) : params)
   end
 
   def build_boxset_options
