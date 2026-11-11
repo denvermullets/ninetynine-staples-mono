@@ -94,7 +94,7 @@ class PreconDecksController < ApplicationController
     else
       current_user.collections.create!(
         name: params[:collection_name],
-        description: "Preconstructed #{@precon_deck.deck_type} deck",
+        description: @precon_deck.import_description,
         collection_type: params[:collection_type] || 'deck'
       )
     end

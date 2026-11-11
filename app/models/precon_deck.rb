@@ -12,6 +12,12 @@ class PreconDeck < ApplicationRecord
     where(deck_type: 'Commander Deck', id: PreconDeckCard.commanders.select(:precon_deck_id))
   }
 
+  # Description for a collection created by importing this deck. deck_type is used as-is: some values
+  # already end in "Deck" (Commander Deck) and many are not decks at all (Secret Lair Drop, Box Set).
+  def import_description
+    deck_type.present? ? "Imported from the #{name} precon (#{deck_type})" : "Imported from the #{name} precon"
+  end
+
   def released?
     release_date.present? && release_date <= Date.current
   end
