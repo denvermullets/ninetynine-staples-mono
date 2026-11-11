@@ -51,6 +51,7 @@ class RelayChannel < ApplicationCable::Channel
     return reject unless @room&.member?(current_user)
 
     become_newest
+    @room.host_connected! if @room.host?(current_user)
     stream_from self.class.stream_for_member(@room, current_user.id)
     stream_from self.class.presence_stream(@room)
     broadcast_presence('joined')
@@ -59,6 +60,7 @@ class RelayChannel < ApplicationCable::Channel
   def unsubscribed
     return if @superseded || @subscription_id.nil?
 
+    Room.find_by(id: @room.id)&.host_disconnected! if @room.host?(current_user)
     broadcast_presence(connection.try(:closing?) ? 'dropped' : 'left')
   end
 
@@ -66,6 +68,8 @@ class RelayChannel < ApplicationCable::Channel
   def relay(data)
     payload = data['payload']
     return unless payload.is_a?(String)
+
+    note_host_active
     return reject_rate_limited if throttled?
     return reject_oversized if payload.bytesize > self.class.max_message_bytes
 
@@ -79,6 +83,10 @@ class RelayChannel < ApplicationCable::Channel
   end
 
   private
+
+  def note_host_active
+    @room.host_active! if @room.host?(current_user)
+  end
 
   def reject_rate_limited
     transmit({ 'type' => 'error', 'error' => 'rate_limited', 'limit' => self.class.rate_per_second })
@@ -110,11 +118,14 @@ class RelayChannel < ApplicationCable::Channel
   end
 
   def handle_control(message)
-    removed = message['type'] == 'removed'
-    return unless removed || (message['type'] == 'newest' && message['subscription'] != @subscription_id)
+    type = message['type']
+    gone = %w[removed closed].include?(type)
+    return unless gone || (type == 'newest' && message['subscription'] != @subscription_id)
 
-    # a Removal broadcasts its own presence, and a superseded subscription stays quiet
+    # a Removal broadcasts its own presence, a closed Room has no one left to tell, and a superseded
+    # subscription stays quiet
     @superseded = true
+    transmit({ 'type' => 'closed' }) if type == 'closed'
     unsubscribe_from_channel
   end
 

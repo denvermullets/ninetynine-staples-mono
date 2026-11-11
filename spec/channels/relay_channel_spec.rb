@@ -76,6 +76,87 @@ RSpec.describe RelayChannel, type: :channel do
     end
   end
 
+  describe 'Host presence' do
+    it 'lets a member subscribe while the Host is absent' do
+      room.update!(host_present: false, host_last_seen_at: 23.hours.ago)
+      stub_connection current_user: alice
+      subscribe room_id: room.id
+
+      expect(subscription).to be_confirmed
+    end
+
+    it 'marks the Host present while they are subscribed and absent once they leave' do
+      room.update!(host_present: false, host_last_seen_at: 2.hours.ago)
+      stub_connection current_user: host
+      subscribe room_id: room.id
+
+      expect(room.reload).to be_host_present
+
+      unsubscribe
+
+      expect(room.reload).not_to be_host_present
+      expect(room.host_last_seen_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it 'refreshes the Host last seen time when the Host relays, at most about once a minute' do
+      stub_connection current_user: host
+      subscribe room_id: room.id
+      room.update_columns(host_last_seen_at: 2.minutes.ago)
+
+      perform :relay, 'payload' => 'a', 'to' => alice.id
+      refreshed = room.reload.host_last_seen_at
+      expect(refreshed).to be_within(5.seconds).of(Time.current)
+
+      room.update_columns(host_last_seen_at: 10.seconds.ago)
+      stale = room.reload.host_last_seen_at
+      perform :relay, 'payload' => 'b', 'to' => alice.id
+
+      expect(room.reload.host_last_seen_at).to eq(stale)
+    end
+
+    it 'does not refresh the Room when a Participant relays' do
+      room.update_columns(host_last_seen_at: 2.hours.ago)
+      relay_as(alice, 'payload' => 'x')
+
+      expect(room.reload.host_last_seen_at).to be < 1.hour.ago
+    end
+
+    it 'does not mark the Room when a Participant comes and goes' do
+      room.update!(host_present: false, host_last_seen_at: 2.hours.ago)
+      stub_connection current_user: alice
+      subscribe room_id: room.id
+      unsubscribe
+
+      expect(room.reload.host_last_seen_at).to be < 1.hour.ago
+    end
+
+    it 'keeps the Host present when an older Host subscription is superseded' do
+      stub_connection current_user: host
+      subscribe room_id: room.id
+      subscription.send(:handle_control, 'type' => 'newest', 'subscription' => 'someone-else')
+
+      expect(room.reload).to be_host_present
+    end
+  end
+
+  describe 'Room closing' do
+    it 'drops a live subscription and tells the member the Room closed' do
+      stub_connection current_user: alice
+      subscribe room_id: room.id
+
+      expect { subscription.send(:handle_control, 'type' => 'closed') }
+        .not_to have_broadcasted_to(described_class.presence_stream(room))
+      expect(subscription).not_to have_streams
+      expect(transmissions.last).to eq('type' => 'closed')
+    end
+
+    it 'tells every member to drop when the Room closes' do
+      expect { room.close! }
+        .to have_broadcasted_to(described_class.control_stream(room, alice.id)).with('type' => 'closed')
+        .and have_broadcasted_to(described_class.control_stream(room, host.id)).with('type' => 'closed')
+    end
+  end
+
   describe 'presence' do
     def presence(event, user) = { 'type' => 'presence', 'event' => event, 'user_id' => user.id }
 
