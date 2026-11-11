@@ -4,6 +4,17 @@
 # nothing is buffered for a member who isn't subscribed. Presence (joined, left, dropped) is the only
 # thing every member hears, and a member has one subscription per Room: the newest one wins.
 class RelayChannel < ApplicationCable::Channel
+  # Largest payload (bytes) accepted from one message. A Frame is the full compressed snapshot of one
+  # viewer's game, expected to be tens of KB (0.3-3 KB for ordinary messages), so 256 KB leaves ~10x
+  # headroom while keeping a single message far below what could stall the shared Cable. Rack::Attack
+  # never sees socket frames, so this is enforced here. Override with RELAY_MAX_MESSAGE_BYTES.
+  DEFAULT_MAX_MESSAGE_BYTES = 256 * 1024
+
+  def self.max_message_bytes
+    Integer(ENV.fetch('RELAY_MAX_MESSAGE_BYTES', DEFAULT_MAX_MESSAGE_BYTES), exception: false) ||
+      DEFAULT_MAX_MESSAGE_BYTES
+  end
+
   def self.stream_for_member(room, user_id)
     "relay:room:#{room.id}:user:#{user_id}"
   end
@@ -38,6 +49,7 @@ class RelayChannel < ApplicationCable::Channel
   def relay(data)
     payload = data['payload']
     return unless payload.is_a?(String)
+    return reject_oversized if payload.bytesize > self.class.max_message_bytes
 
     recipient_id = @room.host?(current_user) ? recipient_for_host(data['to']) : @room.host_id
     return unless recipient_id
@@ -49,6 +61,10 @@ class RelayChannel < ApplicationCable::Channel
   end
 
   private
+
+  def reject_oversized
+    transmit({ 'type' => 'error', 'error' => 'message_too_large', 'limit' => self.class.max_message_bytes })
+  end
 
   def become_newest
     control = self.class.control_stream(@room, current_user.id)
