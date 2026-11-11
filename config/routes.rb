@@ -279,6 +279,13 @@ Rails.application.routes.draw do
       post 'cards/batch', to: 'cards#batch'
       get 'cards/search', to: 'cards#search'
       get 'tokens', to: 'tokens#index'
+      post 'rooms/join', to: 'rooms#join'
+      resources :rooms, only: :create do
+        member do
+          post :start
+          post :close
+        end
+      end
       # username can contain dots, so the segment takes anything up to the next slash
       get 'users/:username/decks', to: 'user_decks#index', as: :user_decks, constraints: { username: %r{[^/]+} }
 
