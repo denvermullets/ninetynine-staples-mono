@@ -20,6 +20,14 @@ module ApplicationCable
       self.api_token = token
     end
 
+    # true once the socket has closed, which is how a channel tells a drop from an explicit unsubscribe
+    def closing? = @closing == true
+
+    def handle_close
+      @closing = true
+      super
+    end
+
     private
 
     def bearer_token
