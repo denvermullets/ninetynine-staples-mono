@@ -43,7 +43,7 @@
         <label for="sort" class="text-grey-text text-sm">Sort by:</label>
 
         <%= select_tag :sort,
-            options_for_select(@sort_options.map { |k, v| [v[:label], k] }, @listing.sort),
+            options_for_select(@listing.sort_options.map { |k, v| [v[:label], k] }, @listing.sort),
             class: 'border text-grey-text text-sm rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-3 py-2 cursor-pointer',
             onchange: 'this.form.requestSubmit()' %>
       </div>

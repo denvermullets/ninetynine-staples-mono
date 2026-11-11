@@ -1,6 +1,7 @@
 <%# Redrawn by turbo stream when a deck is edited or deleted from the index, so it reads only the listing %>
 <% is_owner = listing.is_owner %>
 <% list_params = { from: "decks", sort: listing.sort, group_by: listing.group_by } %>
+<% game_stats_row = listing.game_stats.any? %>
 
 <div id="deck_groups">
   <% if listing.decks.any? %>
@@ -92,6 +93,8 @@
                 frame_id: 'deck_modal',
                 show_proxy_value: true,
                 color_identity: listing.color_identities[deck.id],
+                game_stats_row: game_stats_row,
+                game_stats: listing.game_stats[deck.id],
                 destroy_url: is_owner ? confirm_destroy_collection_path(deck, **list_params) : nil
               } %>
             <% end %>
