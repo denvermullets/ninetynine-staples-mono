@@ -4,6 +4,8 @@ class User < ApplicationRecord
   has_secure_password
   has_many :collections
   has_many :api_tokens, dependent: :destroy
+  has_many :hosted_rooms, class_name: 'Room', foreign_key: :host_id, dependent: :destroy, inverse_of: :host
+  has_many :room_memberships, dependent: :destroy
   has_many :tracked_decks, dependent: :destroy
   has_many :commander_games, dependent: :destroy
   has_many :collection_magic_cards, through: :collections

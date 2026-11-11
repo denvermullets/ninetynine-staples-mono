@@ -13,7 +13,8 @@ RSpec.describe 'API v1 schemas', type: :request do
     ['GET /api/v1/health', 'POST /api/v1/sessions', 'DELETE /api/v1/sessions', 'GET /api/v1/me',
      'GET /api/v1/decks', 'GET /api/v1/decks/:id', 'GET /api/v1/precon_decks', 'GET /api/v1/precon_decks/:id',
      'POST /api/v1/cards/batch', 'GET /api/v1/cards/search', 'GET /api/v1/tokens',
-     'GET /api/v1/users/:username/decks']
+     'GET /api/v1/users/:username/decks', 'POST /api/v1/rooms', 'POST /api/v1/rooms/join',
+     'POST /api/v1/rooms/:id/start', 'POST /api/v1/rooms/:id/close']
   end
 
   def color(name)
@@ -182,6 +183,28 @@ RSpec.describe 'API v1 schemas', type: :request do
 
       expect(json_body['data']).to be_present
       expect(json_body).to match_api_page_of(:card)
+    end
+  end
+
+  describe 'rooms' do
+    let(:other_headers) do
+      guest_token = ApiToken.issue!(create(:user), name: 'Guest').last
+      { 'Accept' => 'application/json', 'Authorization' => "Bearer #{guest_token}" }
+    end
+
+    it 'POST /rooms, /rooms/join, /rooms/:id/start and /rooms/:id/close match room.json' do
+      post '/api/v1/rooms', headers: api_headers
+      expect(json_body).to match_api_schema(:room)
+      room_id = json_body['id']
+
+      post '/api/v1/rooms/join', params: { code: json_body['join_code'] }, headers: other_headers
+      expect(json_body).to match_api_schema(:room)
+
+      post "/api/v1/rooms/#{room_id}/start", headers: api_headers
+      expect(json_body).to match_api_schema(:room)
+
+      post "/api/v1/rooms/#{room_id}/close", headers: api_headers
+      expect(json_body).to match_api_schema(:room)
     end
   end
 

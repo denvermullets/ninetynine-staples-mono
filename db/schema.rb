@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -648,6 +648,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
     t.index ["magic_card_id"], name: "index_printings_on_magic_card_id"
   end
 
+  create_table "room_memberships", force: :cascade do |t|
+    t.bigint "room_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id", "user_id"], name: "index_room_memberships_on_room_id_and_user_id", unique: true
+    t.index ["user_id"], name: "index_room_memberships_on_user_id"
+  end
+
+  create_table "rooms", force: :cascade do |t|
+    t.bigint "host_id", null: false
+    t.string "join_code", null: false
+    t.string "status", default: "open", null: false
+    t.datetime "started_at"
+    t.datetime "closed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["host_id"], name: "index_rooms_on_host_id"
+    t.index ["join_code"], name: "index_rooms_on_live_join_code", unique: true, where: "((status)::text <> 'closed'::text)"
+  end
+
   create_table "rulings", force: :cascade do |t|
     t.date "ruling_date"
     t.string "ruling"
@@ -828,6 +849,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
   add_foreign_key "price_alerts", "users"
   add_foreign_key "price_band_cards", "magic_cards", on_delete: :cascade
   add_foreign_key "price_band_cards", "price_alerts", on_delete: :cascade
+  add_foreign_key "room_memberships", "rooms", on_delete: :cascade
+  add_foreign_key "room_memberships", "users"
+  add_foreign_key "rooms", "users", column: "host_id"
   add_foreign_key "tracked_decks", "collections"
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"
