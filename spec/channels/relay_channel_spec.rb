@@ -221,6 +221,57 @@ RSpec.describe RelayChannel, type: :channel do
     end
   end
 
+  describe 'rate cap' do
+    around do |example|
+      keep = %w[RELAY_RATE_PER_SECOND RELAY_RATE_BURST].to_h { |k| [k, ENV.fetch(k, nil)] }
+      ENV['RELAY_RATE_PER_SECOND'] = '1'
+      ENV['RELAY_RATE_BURST'] = '3'
+      example.run
+    ensure
+      keep.each { |k, v| v ? ENV[k] = v : ENV.delete(k) }
+    end
+
+    let(:clock) { [100.0] }
+
+    before do
+      allow(Process).to receive(:clock_gettime).and_call_original
+      allow(Process).to receive(:clock_gettime).with(Process::CLOCK_MONOTONIC) { clock.first }
+    end
+
+    def flood(user, count)
+      stub_connection current_user: user
+      subscribe room_id: room.id
+      count.times { perform :relay, 'payload' => 'cmd', 'to' => alice.id }
+    end
+
+    it 'lets a burst up to the cap through' do
+      expect { flood(alice, 3) }.to have_broadcasted_to(stream_for(host)).exactly(3).times
+      expect(transmissions.grep(Hash).map { |t| t['error'] }).not_to include('rate_limited')
+    end
+
+    it 'throttles a flood and tells the sender' do
+      expect { flood(alice, 5) }.to have_broadcasted_to(stream_for(host)).exactly(3).times
+      expect(transmissions.last).to eq('type' => 'error', 'error' => 'rate_limited', 'limit' => 1.0)
+    end
+
+    it 'refills over time' do
+      flood(alice, 5)
+      clock[0] += 2
+      expect { perform :relay, 'payload' => 'cmd' }.to have_broadcasted_to(stream_for(host)).exactly(1).times
+      expect { perform :relay, 'payload' => 'cmd' }.to have_broadcasted_to(stream_for(host)).exactly(1).times
+      expect { perform :relay, 'payload' => 'cmd' }.not_to have_broadcasted_to(stream_for(host))
+    end
+
+    it 'never throttles the Host' do
+      expect { flood(host, 10) }.to have_broadcasted_to(stream_for(alice)).exactly(10).times
+    end
+
+    it 'throttles each Participant separately' do
+      flood(alice, 5)
+      expect { relay_as(bob, 'payload' => 'cmd') }.to have_broadcasted_to(stream_for(host))
+    end
+  end
+
   describe 'default cap' do
     it 'is 256 KB' do
       expect(described_class.max_message_bytes).to eq(262_144)

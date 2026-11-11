@@ -15,6 +15,23 @@ class RelayChannel < ApplicationCable::Channel
       DEFAULT_MAX_MESSAGE_BYTES
   end
 
+  # Non-Host senders get a token bucket per subscription: commands, payment edits and settings run at
+  # about one message a second with bursts, so the bucket holds DEFAULT_RATE_BURST messages and refills
+  # at DEFAULT_RATE_PER_SECOND. The Host is exempt. Override with RELAY_RATE_PER_SECOND and
+  # RELAY_RATE_BURST.
+  DEFAULT_RATE_PER_SECOND = 2.0
+  DEFAULT_RATE_BURST = 20
+
+  def self.rate_per_second
+    value = Float(ENV.fetch('RELAY_RATE_PER_SECOND', DEFAULT_RATE_PER_SECOND), exception: false)
+    value&.positive? ? value : DEFAULT_RATE_PER_SECOND
+  end
+
+  def self.rate_burst
+    value = Integer(ENV.fetch('RELAY_RATE_BURST', DEFAULT_RATE_BURST), exception: false)
+    value&.positive? ? value : DEFAULT_RATE_BURST
+  end
+
   def self.stream_for_member(room, user_id)
     "relay:room:#{room.id}:user:#{user_id}"
   end
@@ -49,6 +66,7 @@ class RelayChannel < ApplicationCable::Channel
   def relay(data)
     payload = data['payload']
     return unless payload.is_a?(String)
+    return reject_rate_limited if throttled?
     return reject_oversized if payload.bytesize > self.class.max_message_bytes
 
     recipient_id = @room.host?(current_user) ? recipient_for_host(data['to']) : @room.host_id
@@ -61,6 +79,24 @@ class RelayChannel < ApplicationCable::Channel
   end
 
   private
+
+  def reject_rate_limited
+    transmit({ 'type' => 'error', 'error' => 'rate_limited', 'limit' => self.class.rate_per_second })
+  end
+
+  # refills the bucket for the time since the last message, then spends one token if there is one
+  def throttled?
+    return false if @room.host?(current_user)
+
+    now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    burst = self.class.rate_burst
+    @tokens = [burst, (@tokens || burst) + ((now - (@token_time || now)) * self.class.rate_per_second)].min
+    @token_time = now
+    return true if @tokens < 1
+
+    @tokens -= 1
+    false
+  end
 
   def reject_oversized
     transmit({ 'type' => 'error', 'error' => 'message_too_large', 'limit' => self.class.max_message_bytes })
