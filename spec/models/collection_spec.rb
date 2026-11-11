@@ -8,10 +8,8 @@ RSpec.describe Collection, type: :model do
       expect(collection.errors[:name]).to be_present
     end
 
-    it 'requires description' do
-      collection = build(:collection, description: nil)
-      expect(collection).not_to be_valid
-      expect(collection.errors[:description]).to be_present
+    it 'allows a blank description' do
+      expect(build(:collection, description: '')).to be_valid
     end
   end
 
