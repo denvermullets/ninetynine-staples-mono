@@ -19,6 +19,7 @@ export default class extends Controller {
     "transferProxyFoilAvailable",
     "adjustModal",
     "adjustCollectionId",
+    "adjustMode",
     "adjustCollectionName",
     "adjustRegularCurrent",
     "adjustFoilCurrent",
@@ -170,11 +171,14 @@ export default class extends Controller {
   }
 
   // Adjust Modal Methods
+  // A collection row's Adjust sets exact totals. The Add row adds copies instead: the selected
+  // option carries what that collection already holds, shown as the current count, and the inputs
+  // start at 0 because they are copies to add - the server puts them on top of the stored counts.
   openAdjustModal(event) {
     const button = event.currentTarget;
     const isNewCollection = button.dataset.isNew === "true";
 
-    let collectionId, collectionName, regularQty, foilQty, proxyQty, proxyFoilQty;
+    let source, collectionId, collectionName;
 
     if (isNewCollection) {
       // Get the selected collection from the dropdown
@@ -183,20 +187,21 @@ export default class extends Controller {
         alert("Please select a collection first");
         return;
       }
+      source = selectedOption;
       collectionId = selectedOption.value;
-      collectionName = selectedOption.text;
-      regularQty = 0;
-      foilQty = 0;
-      proxyQty = 0;
-      proxyFoilQty = 0;
+      collectionName = selectedOption.text.trim();
     } else {
+      source = button;
       collectionId = button.dataset.collectionId;
       collectionName = button.dataset.collectionName;
-      regularQty = parseInt(button.dataset.regularQty) || 0;
-      foilQty = parseInt(button.dataset.foilQty) || 0;
-      proxyQty = parseInt(button.dataset.proxyQty) || 0;
-      proxyFoilQty = parseInt(button.dataset.proxyFoilQty) || 0;
     }
+
+    const regularQty = parseInt(source.dataset.regularQty) || 0;
+    const foilQty = parseInt(source.dataset.foilQty) || 0;
+    const proxyQty = parseInt(source.dataset.proxyQty) || 0;
+    const proxyFoilQty = parseInt(source.dataset.proxyFoilQty) || 0;
+
+    this.setAdjustMode(isNewCollection ? "add" : "set");
 
     // Set the collection info
     this.adjustCollectionIdTarget.value = collectionId;
@@ -212,17 +217,24 @@ export default class extends Controller {
       this.adjustProxyFoilCurrentTarget.textContent = proxyFoilQty;
     }
 
-    // Set new quantities (defaults to current)
-    this.adjustRegularNewTarget.value = regularQty;
-    this.adjustFoilNewTarget.value = foilQty;
+    // Set new quantities: the current totals to edit, or nothing yet to add
+    this.adjustRegularNewTarget.value = isNewCollection ? 0 : regularQty;
+    this.adjustFoilNewTarget.value = isNewCollection ? 0 : foilQty;
     if (this.hasAdjustProxyNewTarget) {
-      this.adjustProxyNewTarget.value = proxyQty;
+      this.adjustProxyNewTarget.value = isNewCollection ? 0 : proxyQty;
     }
     if (this.hasAdjustProxyFoilNewTarget) {
-      this.adjustProxyFoilNewTarget.value = proxyFoilQty;
+      this.adjustProxyFoilNewTarget.value = isNewCollection ? 0 : proxyFoilQty;
     }
 
     this.adjustModalTarget.classList.remove("hidden");
+  }
+
+  setAdjustMode(mode) {
+    this.adjustModeTarget.value = mode;
+    this.adjustModalTarget.querySelectorAll("[data-adjust-show]").forEach((element) => {
+      element.classList.toggle("hidden", element.dataset.adjustShow !== mode);
+    });
   }
 
   closeAdjustModal() {

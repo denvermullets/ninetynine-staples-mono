@@ -105,6 +105,33 @@ RSpec.describe 'CollectionMagicCards', type: :request do
       expect(response.body).not_to include('to cover your want list')
     end
 
+    context 'when adding from the Add to collection row' do
+      let!(:record) do
+        create(:collection_magic_card, collection:, magic_card: expanded_card, card_uuid: expanded_card.card_uuid,
+                                       quantity: 1, foil_quantity: 1)
+      end
+
+      it 'adds the copies to the ones already in that collection' do
+        post adjust_collection_magic_cards_path,
+             params: { collection_id: collection.id, magic_card_id: expanded_card.id,
+                       card_uuid: expanded_card.card_uuid, quantity: 1, foil_quantity: 0, mode: 'add' },
+             as: :turbo_stream
+
+        expect(record.reload).to have_attributes(quantity: 2, foil_quantity: 1)
+        expect(response.body).to include("Added #{expanded_card.name} to your collection.")
+      end
+
+      it 'refuses an add with no copies rather than touching the record' do
+        post adjust_collection_magic_cards_path,
+             params: { collection_id: collection.id, magic_card_id: expanded_card.id,
+                       card_uuid: expanded_card.card_uuid, quantity: 0, foil_quantity: 0, mode: 'add' },
+             as: :turbo_stream
+
+        expect(record.reload).to have_attributes(quantity: 1, foil_quantity: 1)
+        expect(response.body).to include('Enter how many copies to add.')
+      end
+    end
+
     it "refreshes the mobile card's copies when the form came from there" do
       post adjust_collection_magic_cards_path,
            params: { collection_id: collection.id, magic_card_id: expanded_card.id, quantity: 3 },

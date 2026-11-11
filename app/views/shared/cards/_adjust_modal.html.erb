@@ -1,4 +1,10 @@
 <!-- Adjust Quantity Modal -->
+<%#
+  Two modes, picked by card-locations#openAdjustModal: a collection row's Adjust sets exact totals,
+  the Add row adds copies on top of what that collection already holds. The data-adjust-show
+  elements are the wording that differs between the two.
+%>
+
 <div
   data-controller="dismissable"
   data-card-locations-target="adjustModal"
@@ -18,7 +24,9 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-nine-white">
-        Adjust quantity
+        <span data-adjust-show="set">Adjust quantity</span>
+        <span data-adjust-show="add" class="hidden">Add copies</span>
+
         <span
           class="text-sm text-grey-text"
           data-card-locations-target="adjustCollectionName"
@@ -48,12 +56,15 @@
     <%= form_with url: adjust_collection_magic_cards_path, method: :post, class: "flex flex-col gap-4", data: { turbo: true } do |f| %>
       <%= f.hidden_field :magic_card_id, value: magic_card.id %>
       <%= f.hidden_field :card_uuid, value: magic_card.card_uuid %>
+
       <% if local_assigns[:refresh_card_id].present? %>
         <%# this modal edits a different printing than the expanded row, so refresh that row instead %>
         <%= f.hidden_field :refresh_card_id, value: local_assigns[:refresh_card_id] %>
         <%= f.hidden_field :show_other_printings, value: true %>
       <% end %>
+
       <%= f.hidden_field :collection_id, data: { card_locations_target: 'adjustCollectionId' } %>
+      <%= f.hidden_field :mode, value: 'set', data: { card_locations_target: 'adjustMode' } %>
 
       <!-- Regular Quantity -->
       <div class="p-3 border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-background' : 'bg-highlight opacity-50' %>">
@@ -68,7 +79,8 @@
               0
             </span>
 
-            <span class="text-grey-text">&#8594;</span>
+            <span class="text-grey-text" data-adjust-show="set">&#8594;</span>
+            <span class="hidden text-grey-text" data-adjust-show="add">+</span>
 
             <input
               type="number"
@@ -77,14 +89,21 @@
               data-card-locations-target="adjustRegularNew"
               min="0"
               value="0"
-              <% unless magic_card.non_foil_available? %> disabled<% end %>
+              <% unless magic_card.non_foil_available? %>
+                disabled
+              <% end %>
               class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.non_foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50"
             >
           </div>
         </div>
 
         <div class="text-xs text-grey-text">
-          <%= magic_card.non_foil_available? ? 'Set exact quantity' : 'Not available for this card' %>
+          <% if magic_card.non_foil_available? %>
+            <span data-adjust-show="set">Set exact quantity</span>
+            <span data-adjust-show="add" class="hidden">Copies to add</span>
+          <% else %>
+            Not available for this card
+          <% end %>
         </div>
       </div>
 
@@ -101,7 +120,8 @@
               0
             </span>
 
-            <span class="text-grey-text">&#8594;</span>
+            <span class="text-grey-text" data-adjust-show="set">&#8594;</span>
+            <span class="hidden text-grey-text" data-adjust-show="add">+</span>
 
             <input
               type="number"
@@ -110,14 +130,21 @@
               data-card-locations-target="adjustFoilNew"
               min="0"
               value="0"
-              <% unless magic_card.foil_available? %> disabled<% end %>
+              <% unless magic_card.foil_available? %>
+                disabled
+              <% end %>
               class="w-20 px-2 py-1 text-sm text-center border rounded-md border-highlight <%= magic_card.foil_available? ? 'bg-foreground text-nine-white' : 'bg-highlight text-grey-text cursor-not-allowed' %> focus:border-accent-50 focus:ring-accent-50"
             >
           </div>
         </div>
 
         <div class="text-xs text-grey-text">
-          <%= magic_card.foil_available? ? 'Set exact quantity' : 'Not available for this card' %>
+          <% if magic_card.foil_available? %>
+            <span data-adjust-show="set">Set exact quantity</span>
+            <span data-adjust-show="add" class="hidden">Copies to add</span>
+          <% else %>
+            Not available for this card
+          <% end %>
         </div>
       </div>
 
@@ -134,7 +161,8 @@
               0
             </span>
 
-            <span class="text-grey-text">&#8594;</span>
+            <span class="text-grey-text" data-adjust-show="set">&#8594;</span>
+            <span class="hidden text-grey-text" data-adjust-show="add">+</span>
 
             <input
               type="number"
@@ -153,7 +181,13 @@
         </div>
 
         <div class="text-xs text-grey-text">
-          Set exact proxy quantity (available for any card)
+          <span data-adjust-show="set">
+            Set exact proxy quantity (available for any card)
+          </span>
+
+          <span data-adjust-show="add" class="hidden">
+            Proxy copies to add (available for any card)
+          </span>
         </div>
       </div>
 
@@ -170,7 +204,8 @@
               0
             </span>
 
-            <span class="text-grey-text">&#8594;</span>
+            <span class="text-grey-text" data-adjust-show="set">&#8594;</span>
+            <span class="hidden text-grey-text" data-adjust-show="add">+</span>
 
             <input
               type="number"
@@ -189,7 +224,13 @@
         </div>
 
         <div class="text-xs text-grey-text">
-          Set exact proxy foil quantity (available for any card)
+          <span data-adjust-show="set">
+            Set exact proxy foil quantity (available for any card)
+          </span>
+
+          <span data-adjust-show="add" class="hidden">
+            Proxy foil copies to add (available for any card)
+          </span>
         </div>
       </div>
 

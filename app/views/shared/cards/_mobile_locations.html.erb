@@ -144,9 +144,9 @@
           <option value="">Add to collection...</option>
 
           <% collections.each do |collection| %>
-            <option value="<%= collection.id %>">
+            <%= tag.option value: collection.id, data: add_to_collection_option_data(collection, magic_card, card_locations) do %>
               <%= collection.name %>
-            </option>
+            <% end %>
           <% end %>
         </select>
 
@@ -155,10 +155,6 @@
           data-action="click->card-locations#openAdjustModal"
           data-collection-id
           data-collection-name
-          data-regular-qty="0"
-          data-foil-qty="0"
-          data-proxy-qty="0"
-          data-proxy-foil-qty="0"
           data-is-new="true"
           class="
             px-4 py-2.5 text-sm font-medium rounded-lg bg-accent-50

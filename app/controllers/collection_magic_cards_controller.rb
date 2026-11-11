@@ -2,6 +2,8 @@ class CollectionMagicCardsController < ApplicationController
   include WantsFilledToast
   include MobileCardLocations
 
+  NOTHING_ADDED = 'Enter how many copies to add.'.freeze
+
   def update_collection
     result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
 
@@ -38,13 +40,14 @@ class CollectionMagicCardsController < ApplicationController
     result[:success] ? render_transfer_success(result) : render_error_toast(result[:error])
   end
 
+  # the Add row sends mode=add: its numbers go on top of what the collection holds instead of replacing it
   def adjust
-    result = CollectionRecord::CreateOrUpdate.call(params: collection_params)
+    result = CollectionRecord::CreateOrUpdate.call(params: collection_params, add: adding?)
 
     if %i[success delete].include?(result[:action])
       render_adjust_success(result)
     else
-      render_error_toast('Failed to update quantity.')
+      render_error_toast(result[:action] == :nothing_added ? NOTHING_ADDED : 'Failed to update quantity.')
     end
   end
 
@@ -145,11 +148,13 @@ class CollectionMagicCardsController < ApplicationController
   end
 
   def adjust_message(result)
-    if result[:action] == :delete
-      "Removed #{result[:name]} from collection."
-    else
-      "Updated #{result[:name]} quantity."
-    end
+    return "Removed #{result[:name]} from collection." if result[:action] == :delete
+
+    adding? ? "Added #{result[:name]} to your collection." : "Updated #{result[:name]} quantity."
+  end
+
+  def adding?
+    params[:mode] == 'add'
   end
 
   def collection_params
