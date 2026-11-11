@@ -15,7 +15,7 @@ RSpec.describe 'API v1 schemas', type: :request do
      'POST /api/v1/cards/batch', 'GET /api/v1/cards/search', 'GET /api/v1/tokens',
      'GET /api/v1/users/:username/decks', 'POST /api/v1/rooms', 'POST /api/v1/rooms/join',
      'POST /api/v1/rooms/:id/start', 'POST /api/v1/rooms/:id/close',
-     'POST /api/v1/rooms/:id/game_record']
+     'POST /api/v1/rooms/:id/game_record', 'DELETE /api/v1/rooms/:id/members/:user_id']
   end
 
   def color(name)
@@ -205,6 +205,14 @@ RSpec.describe 'API v1 schemas', type: :request do
       expect(json_body).to match_api_schema(:room)
 
       post "/api/v1/rooms/#{room_id}/close", headers: api_headers
+      expect(json_body).to match_api_schema(:room)
+    end
+
+    it 'DELETE /rooms/:id/members/:user_id matches room.json' do
+      room = Room.open_for!(api_user)
+      guest = create(:user)
+      room.room_memberships.create!(user: guest)
+      delete "/api/v1/rooms/#{room.id}/members/#{guest.id}", headers: api_headers
       expect(json_body).to match_api_schema(:room)
     end
 

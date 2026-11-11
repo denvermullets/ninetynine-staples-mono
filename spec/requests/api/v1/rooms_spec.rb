@@ -173,4 +173,77 @@ RSpec.describe 'API v1 rooms', type: :request do
       expect_api_error(:forbidden, 'not_host')
     end
   end
+
+  describe 'DELETE /api/v1/rooms/:id/members/:user_id' do
+    before { room.room_memberships.create!(user: guest) }
+
+    def remove(user, as: api_user)
+      delete "/api/v1/rooms/#{room.id}/members/#{user.id}", headers: headers_for(as)
+    end
+
+    it 'lets the Host Remove a member' do
+      remove(guest)
+
+      expect(response).to have_http_status(:ok)
+      expect(room.member?(guest)).to be(false)
+      expect(room.removed?(guest)).to be(true)
+    end
+
+    it 'drops their subscription and announces that they left' do
+      expect { remove(guest) }
+        .to have_broadcasted_to(RelayChannel.control_stream(room, guest.id)).with('type' => 'removed')
+        .and have_broadcasted_to(RelayChannel.presence_stream(room))
+        .with('type' => 'presence', 'event' => 'left', 'user_id' => guest.id)
+    end
+
+    it 'bars them from joining again with the Join code' do
+      remove(guest)
+      join(room.join_code, as: guest)
+
+      expect_api_error(:forbidden, 'removed')
+      expect(room.member?(guest)).to be(false)
+    end
+
+    it 'frees their space in the Room' do
+      2.times { room.room_memberships.create!(user: create(:user)) }
+      remove(guest)
+
+      expect(room).not_to be_full
+    end
+
+    it 'refuses a member who is not the Host' do
+      other = create(:user)
+      room.room_memberships.create!(user: other)
+      remove(other, as: guest)
+
+      expect_api_error(:forbidden, 'not_host')
+      expect(room.member?(other)).to be(true)
+    end
+
+    it 'hides the Room from someone outside it' do
+      remove(guest, as: create(:user))
+
+      expect_api_error(:not_found, 'not_found')
+    end
+
+    it 'cannot Remove the Host' do
+      remove(api_user)
+
+      expect_api_error(:unprocessable_content, 'cannot_remove_host')
+      expect(room.member?(api_user)).to be(true)
+    end
+
+    it 'is not found for someone who is not a member' do
+      remove(create(:user))
+
+      expect_api_error(:not_found, 'not_found')
+    end
+
+    it 'refuses a closed Room' do
+      room.close!
+      remove(guest)
+
+      expect_api_error(:conflict, 'room_closed')
+    end
+  end
 end

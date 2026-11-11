@@ -12,6 +12,7 @@ class Room < ApplicationRecord
   belongs_to :host, class_name: 'User'
   has_many :room_memberships, dependent: :destroy
   has_many :members, through: :room_memberships, source: :user
+  has_many :room_removals, dependent: :destroy
   has_one :game_record, dependent: :destroy
 
   validates :status, inclusion: { in: STATUSES }
@@ -52,7 +53,23 @@ class Room < ApplicationRecord
   def closed? = status == 'closed'
   def host?(user) = host_id == user.id
   def member?(user) = room_memberships.exists?(user_id: user.id)
+  def removed?(user) = room_removals.exists?(user_id: user.id)
   def full? = room_memberships.count >= MAX_MEMBERS
+
+  # takes a member out of the Room for good and tells their live subscription to drop. Returns false when
+  # the user isn't a member or is the Host
+  def remove_member!(user)
+    return false if host?(user)
+
+    removed = transaction do
+      next false unless room_memberships.where(user_id: user.id).delete_all.positive?
+
+      room_removals.find_or_create_by!(user: user)
+      true
+    end
+    announce_removal(user) if removed
+    removed
+  end
 
   def start!
     update!(status: 'started', started_at: Time.current)
@@ -60,5 +77,14 @@ class Room < ApplicationRecord
 
   def close!
     update!(status: 'closed', closed_at: Time.current)
+  end
+
+  private
+
+  def announce_removal(user)
+    ActionCable.server.broadcast(RelayChannel.control_stream(self, user.id), { 'type' => 'removed' })
+    ActionCable.server.broadcast(
+      RelayChannel.presence_stream(self), { 'type' => 'presence', 'event' => 'left', 'user_id' => user.id }
+    )
   end
 end
