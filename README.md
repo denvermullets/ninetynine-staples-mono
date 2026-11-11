@@ -103,6 +103,10 @@ bin/jobs
 
 The application will be available at `http://localhost:3000`.
 
+### Development seeds
+
+`bin/rails db:seed` (development only, never production) creates three bot users for the game client's `bin/net-bot`: `net-bot-1`..`net-bot-3`, each with an API token and a Commander precon imported as a deck (so Commander precons must be ingested first; without them the users and tokens are still created). It is idempotent. Raw tokens are never stored, so each is printed once, on the run that issues it. To get a new one, run `User.find_by(username: 'net-bot-1').api_tokens.revoke_all!` in the console and seed again. Logic: `DevSeeds::NetBots`.
+
 ### Background Jobs
 
 The app uses Solid Queue for background processing (card data syncing, price updates, value history recording). Jobs are managed through Mission Control at `/jobs`.
