@@ -189,4 +189,41 @@ RSpec.describe RelayChannel, type: :channel do
   it 'ignores a payload that is not a string' do
     expect { relay_as(alice, 'payload' => { 'a' => 1 }) }.not_to have_broadcasted_to(stream_for(host))
   end
+
+  describe 'message size cap' do
+    around do |example|
+      old = ENV.fetch('RELAY_MAX_MESSAGE_BYTES', nil)
+      ENV['RELAY_MAX_MESSAGE_BYTES'] = '10'
+      example.run
+    ensure
+      old ? ENV['RELAY_MAX_MESSAGE_BYTES'] = old : ENV.delete('RELAY_MAX_MESSAGE_BYTES')
+    end
+
+    it 'drops an over-cap message, forwards nothing and tells the sender' do
+      expect { relay_as(alice, 'payload' => 'x' * 11) }
+        .not_to have_broadcasted_to(stream_for(host))
+      expect(transmissions.last).to eq('type' => 'error', 'error' => 'message_too_large', 'limit' => 10)
+    end
+
+    it 'applies to the Host too' do
+      expect { relay_as(host, 'payload' => 'x' * 11, 'to' => alice.id) }
+        .not_to have_broadcasted_to(stream_for(alice))
+      expect(transmissions.last['error']).to eq('message_too_large')
+    end
+
+    it 'forwards a message exactly at the cap' do
+      expect { relay_as(alice, 'payload' => 'x' * 10) }
+        .to have_broadcasted_to(stream_for(host)).with('from' => alice.id, 'payload' => 'x' * 10)
+    end
+
+    it 'counts bytes, not characters' do
+      expect { relay_as(alice, 'payload' => "\u00e9" * 6) }.not_to have_broadcasted_to(stream_for(host))
+    end
+  end
+
+  describe 'default cap' do
+    it 'is 256 KB' do
+      expect(described_class.max_message_bytes).to eq(262_144)
+    end
+  end
 end
