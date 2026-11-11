@@ -72,6 +72,32 @@ RSpec.describe 'API v1 rooms', type: :request do
       expect(room.member?(guest)).to be(false)
     end
 
+    it 'lets a member of a started Room join again' do
+      join(room.join_code, as: guest)
+      room.start!
+      join(room.join_code, as: guest)
+
+      expect(response).to have_http_status(:ok)
+      expect(json_body).to include('id' => room.id, 'status' => 'started', 'host' => false)
+      expect(json_body['members'].pluck('id')).to eq([api_user.id, guest.id])
+    end
+
+    it 'lets the Host join their own started Room again' do
+      room.start!
+      join(room.join_code, as: api_user)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'still refuses a removed user from a started Room' do
+      join(room.join_code, as: guest)
+      room.remove_member!(guest)
+      room.start!
+      join(room.join_code, as: guest)
+
+      expect_api_error(:forbidden, 'removed')
+    end
+
     it 'rejects a full Room' do
       (Room::MAX_MEMBERS - 1).times { room.room_memberships.create!(user: create(:user)) }
       join(room.join_code, as: guest)

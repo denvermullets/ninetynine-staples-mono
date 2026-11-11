@@ -11,16 +11,18 @@ class Api::V1::RoomsController < Api::V1::BaseController
   end
 
   # POST /rooms/join { code }. Each way it can fail has its own code: no_such_room (wrong code, or the
-  # Room closed), room_started, room_full, already_member
+  # Room closed), room_started, room_full, already_member. A member of a started Room joining again (their
+  # client restarted) gets the Room back as for a normal join
   def join
     room = Room.find_live_by_code(params.require(:code))
     return render_error(:not_found, 'no_such_room', 'No open Room has that Join code') unless room
 
     room.with_lock do
-      error = join_error(room)
+      rejoin = room.started? && room.member?(current_api_user)
+      error = rejoin ? nil : join_error(room)
       return render_error(*error) if error
 
-      room.room_memberships.create!(user: current_api_user)
+      room.room_memberships.create!(user: current_api_user) unless rejoin
     end
     render json: Api::V1::RoomSerializer.one(room, viewer: current_api_user)
   end
