@@ -20,7 +20,7 @@ class DestroyCollectionJob < ApplicationJob
 
     Turbo::StreamsChannel.broadcast_remove_to(
       "user_#{user_id}_notifications",
-      target: "collection_card_#{collection_id}"
+      targets: "#collection_card_#{collection_id}"
     )
 
     broadcast_toast(user_id, "\"#{collection_name}\" has been deleted", 'success')

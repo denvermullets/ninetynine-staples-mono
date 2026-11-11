@@ -25,7 +25,8 @@ module DeckBuilderModals
 
   def edit_deck_modal
     @available_tags = Tag.alphabetical
-    render partial: 'deck_builder/edit_deck_modal', locals: { deck: @deck, available_tags: @available_tags }
+    render partial: 'deck_builder/edit_deck_modal',
+           locals: { deck: @deck, available_tags: @available_tags, form_params: decks_index_params }
   end
 
   def transfer_card_modal

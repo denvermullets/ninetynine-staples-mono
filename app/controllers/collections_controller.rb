@@ -1,5 +1,6 @@
 class CollectionsController < ApplicationController
   include CollectionSorting
+  include DecksIndexStream
 
   before_action :authenticate_user!, only: %i[edit_collection_modal update confirm_destroy destroy]
   before_action :set_collection, only: %i[edit_collection_modal update confirm_destroy destroy]
@@ -41,8 +42,8 @@ class CollectionsController < ApplicationController
 
     render partial: 'deck_builder/confirm_modal', locals: {
       title: "Delete #{kind}", confirm_text: "Delete #{kind}", frame_id: frame_id, turbo_frame: frame_id,
-      danger: true, message: destroy_confirmation_message, confirm_url: collection_path(@collection),
-      confirm_method: :delete
+      danger: true, message: destroy_confirmation_message, confirm_method: :delete,
+      confirm_url: collection_path(@collection, **decks_index_params)
     }
   end
 
@@ -52,8 +53,11 @@ class CollectionsController < ApplicationController
       partial: 'shared/broadcast_toast',
       locals: { message: "\"#{@collection.name}\" queued for deletion", type: 'success' }
     )
-    frame_id = turbo_frame_request_id || 'deck_modal'
-    render turbo_stream: [turbo_stream.update(frame_id, ''), turbo_stream.append('toasts', toast_html)]
+    render turbo_stream: [
+      destroyed_collection_stream(@collection),
+      turbo_stream.update(turbo_frame_request_id || 'deck_modal', ''),
+      turbo_stream.append('toasts', toast_html)
+    ]
   end
 
   def overview

@@ -27,6 +27,33 @@ RSpec.describe 'DeckBuilder', type: :request do
     response.body.scan(/Alpha Strike|Zeta Bolt/).uniq
   end
 
+  describe 'PATCH /deck-builder/:id/update_deck' do
+    let(:tag) { Tag.create!(name: 'Spicy') }
+
+    it 'redraws the decks index grid, with the new tag, when edited from there' do
+      patch update_deck_deck_builder_path(deck, from: 'decks', sort: 'name_asc', group_by: 'tag'),
+            params: { name: deck.name, tag_ids: ['', tag.id] }, as: :turbo_stream
+
+      expect(deck.reload.tags).to eq([tag])
+      expect(response.body).to include('target="deck_groups"', "collection_card_#{deck.id}", 'Spicy')
+      expect(response.body).not_to include('target="deck-tags"')
+    end
+
+    it 'updates the deck builder header when edited from the builder' do
+      patch update_deck_deck_builder_path(deck), params: { name: 'Renamed' }, as: :turbo_stream
+
+      expect(response.body).to include('target="deck-name"')
+      expect(response.body).not_to include('target="deck_groups"')
+    end
+
+    it 'carries the index view state into the edit form' do
+      get edit_deck_modal_deck_builder_path(deck, from: 'decks', sort: 'name_asc', group_by: 'tag'),
+          headers: { 'Turbo-Frame' => 'deck_modal' }
+
+      expect(response.body).to include('from=decks', 'sort=name_asc', 'group_by=tag')
+    end
+  end
+
   describe 'DELETE /deck-builder/:id/remove_card' do
     it 'keeps the requested sort order when a card is removed' do
       delete remove_card_deck_builder_path(deck, card_id: cmc_doomed.id, sort_by: 'name', grouping: 'none'),

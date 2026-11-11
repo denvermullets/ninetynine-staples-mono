@@ -69,6 +69,15 @@ module DeckBuilderRendering
     ]
   end
 
+  def render_decks_index_update
+    flash.now[:type] = 'success'
+    render turbo_stream: [
+      decks_index_stream(@deck.user),
+      turbo_stream.update('deck_modal', ''),
+      turbo_stream.append('toasts', partial: 'shared/toast', locals: { message: 'Deck updated successfully' })
+    ]
+  end
+
   def combo_actions_locals
     {
       deck: @deck, is_owner: @is_owner,
