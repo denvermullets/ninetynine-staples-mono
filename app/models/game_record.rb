@@ -5,11 +5,19 @@ class GameRecord < ApplicationRecord
   MAX_COMPRESSED_BYTES = 2.megabytes
   END_STATUSES = %w[finished unfinished].freeze
 
+  # records are deleted once they are this old
+  RETENTION = 30.days
+
   belongs_to :room
+
+  scope :held_by, ->(user) { where('seat_holders @> ?', [{ user_id: user.id }].to_json) }
+  scope :expired, -> { where(created_at: ..RETENTION.ago) }
 
   validates :end_status, inclusion: { in: END_STATUSES }
   validates :room_id, uniqueness: true
   validate :seat_holders_are_room_members
+
+  def self.purge_expired! = expired.in_batches.delete_all
 
   # the record text compressed for storage
   def self.compress(text)

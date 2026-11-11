@@ -288,6 +288,8 @@ Rails.application.routes.draw do
           delete 'members/:user_id', action: :remove_member, as: :remove_member
         end
       end
+      get 'game_records', to: 'game_records#index'
+      get 'game_records/:room_id', to: 'game_records#show', as: :game_record
       # username can contain dots, so the segment takes anything up to the next slash
       get 'users/:username/decks', to: 'user_decks#index', as: :user_decks, constraints: { username: %r{[^/]+} }
 
