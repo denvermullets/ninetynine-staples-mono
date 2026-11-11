@@ -7,3 +7,12 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+# Dev only: bot users with API tokens and a Commander deck each, for the game client's bin/net-bot.
+# Tokens are printed once, on the run that issues them (see docs/dev_seeds.md).
+if Rails.env.development?
+  DevSeeds::NetBots.call.each do |bot|
+    puts "net-bot: #{bot.user.username} deck=#{bot.deck&.name || 'none (no Commander precons ingested)'} " \
+         "token=#{bot.token || 'already issued'}"
+  end
+end
