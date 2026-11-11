@@ -33,11 +33,15 @@ class ApiToken < ApplicationRecord
   # call on a scope, e.g. user.api_tokens.revoke_all! - logs the user out of every game client
   def self.revoke_all!
     now = Time.current
+    tokens = active.to_a
     active.update_all(revoked_at: now, updated_at: now)
+    tokens.each { |token| ApplicationCable::Connection.disconnect_token(token) }
   end
 
+  # also drops the token's live sockets
   def revoke!
     update!(revoked_at: Time.current)
+    ApplicationCable::Connection.disconnect_token(self)
   end
 
   # sliding expiry: a client that keeps playing never has to log in again, one left alone for
