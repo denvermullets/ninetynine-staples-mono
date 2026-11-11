@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_230000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -685,6 +685,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_230000) do
     t.datetime "closed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "host_present", default: false, null: false
+    t.datetime "host_last_seen_at"
     t.index ["host_id"], name: "index_rooms_on_host_id"
     t.index ["join_code"], name: "index_rooms_on_live_join_code", unique: true, where: "((status)::text <> 'closed'::text)"
   end

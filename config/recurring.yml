@@ -65,3 +65,8 @@ production:
     queue: ingest
     class: IngestPreconDecks
     schedule: at 12am every Sunday
+  # a Room whose Host has been gone 24 hours is closed; hourly keeps it within an hour of that
+  close_abandoned_rooms:
+    queue: background
+    class: CloseAbandonedRoomsJob
+    schedule: every hour

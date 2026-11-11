@@ -159,6 +159,11 @@ RSpec.describe 'API v1 rooms', type: :request do
   end
 
   describe 'POST /api/v1/rooms/:id/close' do
+    it 'tells members to drop their subscriptions' do
+      expect { post "/api/v1/rooms/#{room.id}/close", headers: api_headers }
+        .to have_broadcasted_to(RelayChannel.control_stream(room, room.host_id)).with('type' => 'closed')
+    end
+
     it 'lets the Host close the Room' do
       post "/api/v1/rooms/#{room.id}/close", headers: api_headers
 
