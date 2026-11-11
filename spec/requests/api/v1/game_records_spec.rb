@@ -128,4 +128,75 @@ RSpec.describe 'API v1 game records', type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
   end
+  describe 'reading records back' do
+    let(:outsider) { create(:user) }
+
+    def stored(host:, holders:, at: Time.current)
+      room = Room.open_for!(host)
+      holders.pluck('user_id').compact.excluding(host.id).each { |id| room.room_memberships.create!(user_id: id) }
+      room.start!
+      GameRecord.create!(room: room, end_status: 'finished', data: GameRecord.compress(record), created_at: at,
+                         seat_holders: holders)
+    end
+
+    def read(path, user: api_user)
+      get path, headers: headers_for(user)
+    end
+
+    describe 'GET /api/v1/game_records' do
+      it 'lists the records the user held a Seat in, newest first, with date, Seats and end status' do
+        older = stored(host: api_user, holders: [{ 'seat' => 0, 'user_id' => api_user.id }], at: 2.days.ago)
+        newer = stored(host: create(:user), holders: [{ 'seat' => 0, 'user_id' => create(:user).id },
+                                                      { 'seat' => 1, 'user_id' => api_user.id }])
+        stored(host: create(:user), holders: [{ 'seat' => 0, 'user_id' => nil }])
+
+        read('/api/v1/game_records')
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body['data'].pluck('room_id')).to eq([newer.room_id, older.room_id])
+        expect(json_body['data'].first).to include('end_status' => 'finished', 'created_at' => be_present)
+        expect(json_body['data'].first['seats'].size).to eq(2)
+        expect(json_body['data'].first).not_to have_key('record')
+        expect(json_body['meta']).to include('total' => 2)
+      end
+
+      it 'is empty for someone who held no Seat' do
+        stored(host: api_user, holders: [{ 'seat' => 0, 'user_id' => api_user.id }])
+        read('/api/v1/game_records', user: outsider)
+
+        expect(json_body['data']).to eq([])
+      end
+
+      it 'requires a token' do
+        get '/api/v1/game_records', headers: { 'Accept' => 'application/json' }
+
+        expect_api_error(:unauthorized, 'unauthorized')
+      end
+    end
+
+    describe 'GET /api/v1/game_records/:room_id' do
+      it 'returns the decompressed record to a Seat holder' do
+        stored = stored(host: create(:user), holders: [{ 'seat' => 0, 'user_id' => api_user.id }])
+        read("/api/v1/game_records/#{stored.room_id}")
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body).to include('room_id' => stored.room_id, 'record' => record)
+      end
+
+      it 'is a 404 for a Room member who held no Seat' do
+        host = create(:user)
+        stored = stored(host: host, holders: [{ 'seat' => 0, 'user_id' => host.id }, { 'seat' => 1, 'user_id' => nil }])
+        stored.room.room_memberships.create!(user: outsider)
+        read("/api/v1/game_records/#{stored.room_id}", user: outsider)
+
+        expect_api_error(:not_found, 'not_found')
+      end
+
+      it 'is a 404 for a record that does not exist' do
+        read('/api/v1/game_records/0')
+
+        expect_api_error(:not_found, 'not_found')
+      end
+    end
+  end
 end

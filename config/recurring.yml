@@ -4,6 +4,11 @@
 #     queue: background
 #     args: [ 1000, { batch_size: 500 } ]
 #     schedule: every hour
+  # a GameRecord is kept 30 days for its Seat holders to download
+  purge_expired_game_records:
+    queue: background
+    class: PurgeExpiredGameRecordsJob
+    schedule: at 4am every day
 #   periodic_command:
 #     command: "SoftDeletedRecord.due.delete_all"
 #     priority: 2

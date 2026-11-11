@@ -15,7 +15,8 @@ RSpec.describe 'API v1 schemas', type: :request do
      'POST /api/v1/cards/batch', 'GET /api/v1/cards/search', 'GET /api/v1/tokens',
      'GET /api/v1/users/:username/decks', 'POST /api/v1/rooms', 'POST /api/v1/rooms/join',
      'POST /api/v1/rooms/:id/start', 'POST /api/v1/rooms/:id/close',
-     'POST /api/v1/rooms/:id/game_record', 'DELETE /api/v1/rooms/:id/members/:user_id']
+     'POST /api/v1/rooms/:id/game_record', 'GET /api/v1/game_records',
+     'GET /api/v1/game_records/:room_id', 'DELETE /api/v1/rooms/:id/members/:user_id']
   end
 
   def color(name)
@@ -223,6 +224,22 @@ RSpec.describe 'API v1 schemas', type: :request do
                      record: '{"seed":1}' }.to_json,
            headers: api_headers.merge('Content-Type' => 'application/json')
       expect(json_body).to match_api_schema(:game_record)
+    end
+
+    it 'GET /game_records is a page of game_record.json' do
+      room = Room.open_for!(api_user).tap(&:start!)
+      GameRecord.create!(room: room, end_status: 'finished', data: GameRecord.compress('{}'),
+                         seat_holders: [{ 'seat' => 0, 'user_id' => api_user.id }, { 'seat' => 1, 'user_id' => nil }])
+      get '/api/v1/game_records', headers: api_headers
+      expect(json_body).to match_api_page_of(:game_record)
+    end
+
+    it 'GET /game_records/:room_id matches game_record_download.json' do
+      room = Room.open_for!(api_user).tap(&:start!)
+      GameRecord.create!(room: room, end_status: 'finished', data: GameRecord.compress('{"seed":1}'),
+                         seat_holders: [{ 'seat' => 0, 'user_id' => api_user.id }])
+      get "/api/v1/game_records/#{room.id}", headers: api_headers
+      expect(json_body).to match_api_schema(:game_record_download)
     end
   end
 
