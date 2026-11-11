@@ -70,6 +70,30 @@ RSpec.describe Decks::Grouping, type: :service do
     end
   end
 
+  describe 'by every color combo' do
+    it 'lists all 32 identities in colour order, empty ones included, with decks with no cards last' do
+      decks = [deck('Jund'), deck('Empty'), deck('Also Jund')]
+      identities = { decks[0].id => 'BRG', decks[2].id => 'BRG' }
+
+      groups = group(decks, by: 'color_all', color_identities: identities)
+
+      expect(groups.size).to eq(33)
+      expect(groups.first(7).map(&:label)).to eq(%w[C W U B R G WU])
+      expect(groups.find { |g| g.label == 'BRG' }.decks.map(&:name)).to eq(['Jund', 'Also Jund'])
+      expect(groups[-2].label).to eq('WUBRG')
+      expect(groups.last.label).to eq('No cards yet')
+      expect(groups.count { |g| g.decks.empty? }).to eq(31)
+    end
+
+    it 'leaves the catch-all off when every deck has cards' do
+      only = deck('Mono W')
+
+      groups = group([only], by: 'color_all', color_identities: { only.id => 'W' })
+
+      expect(groups.map(&:label)).not_to include('No cards yet')
+    end
+  end
+
   describe 'by bracket' do
     it 'orders brackets ascending with unbracketed decks last' do
       decks = [deck('Four', bracket_level: 4), deck('Unset'), deck('Two', bracket_level: 2)]

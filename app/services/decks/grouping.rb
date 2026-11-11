@@ -1,6 +1,8 @@
 module Decks
   # -> [Group, ...] for the decks index. Groups come out in a fixed, meaningful order (tags A-Z, colour
   # identities by colour count then WUBRG, brackets 1-5), and the catch-all group always comes last.
+  # 'color_all' is colour identity with all 32 identities listed, empty ones included, for players
+  # working toward a deck in every combination - the gaps are the point.
   # Decks keep the order they were handed in, so the page's sort still applies inside each group.
   #
   # Grouping by tag is the one non-partition: a deck with two tags shows up under both, because
@@ -10,9 +12,12 @@ module Decks
       'none' => 'None',
       'tag' => 'Tag',
       'color' => 'Color Identity',
+      'color_all' => 'Every Color Combo',
       'bracket' => 'Bracket',
       'format' => 'Format'
     }.freeze
+
+    ALL_IDENTITIES = Commanders::ColorMask::MASKS.map { |mask| Commanders::ColorMask.letters(mask) }.freeze
 
     FORMAT_LABELS = { 'commander_deck' => 'Commander', 'deck' => 'Deck' }.freeze
 
@@ -34,6 +39,7 @@ module Decks
       case @by
       when 'tag' then by_tag
       when 'color' then by_color
+      when 'color_all' then by_color(include_empty: true)
       when 'bracket' then by_bracket
       when 'format' then by_format
       else [Group.new(key: 'all', label: 'All Decks', decks: @decks)]
@@ -52,13 +58,14 @@ module Decks
       groups + catch_all('Untagged', @decks.select { |deck| deck.tags.empty? })
     end
 
-    def by_color
+    def by_color(include_empty: false)
       known, unknown = @decks.partition { |deck| @color_identities[deck.id].present? }
-      groups = known.group_by { |deck| @color_identities[deck.id] }
-                    .sort_by { |letters, _| color_order(letters) }
-                    .map do |letters, decks|
-                      Group.new(key: "color-#{letters}", label: letters, color_identity: letters, decks: decks)
-                    end
+      by_letters = known.group_by { |deck| @color_identities[deck.id] }
+      by_letters = ALL_IDENTITIES.index_with { |letters| by_letters.fetch(letters, []) } if include_empty
+
+      groups = by_letters.sort_by { |letters, _| color_order(letters) }.map do |letters, decks|
+        Group.new(key: "color-#{letters}", label: letters, color_identity: letters, decks: decks)
+      end
 
       groups + catch_all('No cards yet', unknown)
     end
