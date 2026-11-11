@@ -9,12 +9,18 @@
     - destroy_url: URL for the delete confirmation modal
     - frame_id: Turbo frame ID for modal (default: 'collection_modal')
     - show_proxy_value: Boolean to show proxy value (default: false)
+    - color_identity: WUBRG letters (or "C") shown on the cover image, decks only
+    - game_stats_row: Boolean, reserve a line for game tracker stats (decks only)
+    - game_stats: Decks::GameStats::Stats for this deck, or nil when it has no games
 %>
 <% frame_id = local_assigns[:frame_id] || 'collection_modal' %>
 <% show_proxy_value = local_assigns[:show_proxy_value] || false %>
 <% commander = collection.commanders.first&.magic_card %>
 <% card = collection.display_cover_card %>
 <% show_menu = is_owner && local_assigns[:edit_url] %>
+<% color_identity = local_assigns[:color_identity] %>
+<% game_stats_row = local_assigns[:game_stats_row] || false %>
+<% game_stats = local_assigns[:game_stats] %>
 
 <div
   id="collection_card_<%= collection.id %>"
@@ -85,34 +91,50 @@
           <%= collection.collection_type&.titleize&.gsub('_', ' ') || 'Collection' %>
         </div>
 
-        <% if is_owner && collection.hidden? %>
-          <!-- Private Badge -->
-          <div
-            class="
-              absolute bottom-2 right-2 px-2 py-1 bg-background/80
-              text-grey-text text-xs rounded flex items-center gap-1
-            "
-          >
-            <svg
-              class="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-            Private
+        <% show_private = is_owner && collection.hidden? %>
+
+        <% if color_identity.present? || show_private %>
+          <div class="absolute bottom-2 right-2 flex items-center gap-1.5">
+            <% if show_private %>
+              <!-- Private Badge -->
+              <div
+                class="
+                  px-2 py-1 bg-background/80 text-grey-text text-xs rounded flex
+                  items-center gap-1
+                "
+              >
+                <svg
+                  class="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                Private
+              </div>
+            <% end %>
+
+            <% if color_identity.present? %>
+              <!-- Color Identity -->
+              <div
+                class="flex items-center gap-0.5 text-sm leading-4"
+                title="Color identity: <%= color_identity %>"
+              >
+                <%= mana_symbols(color_identity.chars.map { |letter| "{#{letter}}" }.join) %>
+              </div>
+            <% end %>
           </div>
         <% end %>
       </div>
 
       <!-- Info -->
-      <div class="p-4 flex flex-col h-36">
+      <div class="p-4 flex flex-col <%= game_stats_row ? 'h-40' : 'h-36' %>">
         <h3 class="text-grey-text font-medium truncate">
           <%= collection.name %>
         </h3>
@@ -127,6 +149,29 @@
           </p>
         <% else %>
           <p class="text-grey-text text-sm mt-1">&nbsp;</p>
+        <% end %>
+
+        <% if game_stats_row %>
+          <% if game_stats %>
+            <p
+              class="text-xs text-grey-text truncate mt-1"
+              title="<%= game_stats.wins %>-<%= game_stats.games - game_stats.wins %>, last played <%= l(game_stats.last_played_on, format: :long) %>"
+            >
+              <span class="text-accent-50 font-medium">
+                <%= game_stats.win_rate %>% WR
+              </span>
+
+              <span class="text-grey-text/70">·</span>
+              <%= pluralize(game_stats.games, 'game') %>
+
+              <% if game_stats.avg_fun %>
+                <span class="text-grey-text/70">·</span>
+                <span>Fun <%= game_stats.avg_fun %>/10</span>
+              <% end %>
+            </p>
+          <% else %>
+            <p class="text-xs text-grey-text/50 mt-1">No games logged</p>
+          <% end %>
         <% end %>
 
         <div class="flex flex-wrap gap-1 min-h-6 mt-2">

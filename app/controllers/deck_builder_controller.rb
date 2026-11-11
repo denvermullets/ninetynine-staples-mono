@@ -5,6 +5,7 @@ class DeckBuilderController < ApplicationController
   include DeckBuilderRendering
   include DeckBuilderSearchPanel
   include DeckBuilderViewCard
+  include DecksIndexStream
 
   before_action :set_deck
   before_action :set_deck_view_defaults
@@ -72,7 +73,9 @@ class DeckBuilderController < ApplicationController
   def update_deck
     update_params = deck_params.to_h
     update_params[:tag_ids] = update_params[:tag_ids]&.reject(&:blank?) || []
-    @deck.update(update_params) ? render_update_deck_success : render_error_toast('Failed to update deck')
+    return render_error_toast('Failed to update deck') unless @deck.update(update_params)
+
+    from_decks_index? ? render_decks_index_update : render_update_deck_success
   end
 
   def swap_source

@@ -30,7 +30,7 @@ RSpec.describe DestroyCollectionJob, type: :job do
       it 'broadcasts a remove stream to remove the deck card from the DOM' do
         expect(Turbo::StreamsChannel).to receive(:broadcast_remove_to).with(
           "user_#{user.id}_notifications",
-          target: "collection_card_#{deck.id}"
+          targets: "#collection_card_#{deck.id}"
         )
         allow(Turbo::StreamsChannel).to receive(:broadcast_append_to)
         described_class.new.perform(deck.id, user.id)

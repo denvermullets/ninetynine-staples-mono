@@ -1,5 +1,5 @@
 class Collection < ApplicationRecord
-  validates :name, :description, presence: true
+  validates :name, presence: true
   validates :bracket_level, numericality: { only_integer: true, in: 1..5 }, allow_nil: true
 
   belongs_to :user

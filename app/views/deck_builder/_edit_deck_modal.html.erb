@@ -2,6 +2,6 @@
            locals: {
              collection: deck,
              frame_id: 'deck_modal',
-             form_url: update_deck_deck_builder_path(deck),
+             form_url: update_deck_deck_builder_path(deck, **local_assigns.fetch(:form_params, {})),
              available_tags: local_assigns[:available_tags]
            } %>

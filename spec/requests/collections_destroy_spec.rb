@@ -38,6 +38,36 @@ RSpec.describe 'Collections destroy', type: :request do
       end.to have_enqueued_job(DestroyCollectionJob).with(collection.id, user.id)
     end
 
+    it 'hides the card straight away, every copy of it' do
+      log_in(user)
+
+      delete collection_path(collection), headers: { 'Turbo-Frame' => 'collection_modal' }, as: :turbo_stream
+
+      expect(response.body).to include('action="remove"', %(targets="#collection_card_#{collection.id}"))
+    end
+
+    it 'redraws the decks index without the deck when deleted from there' do
+      keep = create(:collection, user: user, name: 'Keeper Deck', collection_type: 'commander_deck')
+      gone = create(:collection, user: user, name: 'Doomed Deck', collection_type: 'commander_deck')
+      log_in(user)
+
+      delete collection_path(gone, from: 'decks', sort: 'name_asc', group_by: 'none'),
+             headers: { 'Turbo-Frame' => 'deck_modal' }, as: :turbo_stream
+
+      expect(response.body).to include('target="deck_groups"', "collection_card_#{keep.id}")
+      expect(response.body).not_to include("collection_card_#{gone.id}")
+    end
+
+    it 'carries the index view state into the confirm button' do
+      deck = create(:collection, user: user, collection_type: 'commander_deck')
+      log_in(user)
+
+      get confirm_destroy_collection_path(deck, from: 'decks', sort: 'name_asc', group_by: 'tag'),
+          headers: { 'Turbo-Frame' => 'deck_modal' }
+
+      expect(response.body).to include('from=decks', 'sort=name_asc', 'group_by=tag')
+    end
+
     it "will not delete somebody else's collection" do
       stranger = create(:user)
       log_in(stranger)

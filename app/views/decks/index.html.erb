@@ -28,47 +28,29 @@
       <div></div>
     <% end %>
 
-    <div class="flex items-center gap-2">
-      <label for="sort" class="text-grey-text text-sm">Sort by:</label>
+    <%= form_with url: decks_index_path(@user.username), method: :get,
+        class: 'flex flex-wrap items-center gap-4' do %>
+      <div class="flex items-center gap-2">
+        <label for="group_by" class="text-grey-text text-sm">Group by:</label>
 
-      <%= select_tag :sort,
-          options_for_select(@sort_options.map { |k, v| [v[:label], k] }, @sort),
-          class: 'border text-grey-text text-sm rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-3 py-2 cursor-pointer',
-          onchange: "window.location.href = '#{decks_index_path(@user.username)}?sort=' + this.value" %>
-    </div>
+        <%= select_tag :group_by,
+            options_for_select(Decks::Grouping::OPTIONS.map { |k, v| [v, k] }, @listing.group_by),
+            class: 'border text-grey-text text-sm rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-3 py-2 cursor-pointer',
+            onchange: 'this.form.requestSubmit()' %>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label for="sort" class="text-grey-text text-sm">Sort by:</label>
+
+        <%= select_tag :sort,
+            options_for_select(@listing.sort_options.map { |k, v| [v[:label], k] }, @listing.sort),
+            class: 'border text-grey-text text-sm rounded-lg bg-background border-highlight focus:border-accent-50 focus:ring-accent-50 px-3 py-2 cursor-pointer',
+            onchange: 'this.form.requestSubmit()' %>
+      </div>
+    <% end %>
   </div>
 
-  <% if @decks.any? %>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <% @decks.each do |deck| %>
-        <%= render partial: 'shared/collection_card', locals: {
-          collection: deck,
-          link_path: deck_builder_path(deck),
-          is_owner: @is_owner,
-          edit_url: edit_deck_modal_deck_builder_path(deck),
-          frame_id: 'deck_modal',
-          show_proxy_value: true,
-          destroy_url: @is_owner ? confirm_destroy_collection_path(deck) : nil
-        } %>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="border rounded-3xl bg-foreground border-highlight p-12 text-center">
-      <p class="text-lg text-grey-text mb-4">
-        <% if @is_owner %>
-          You don't have any decks yet.
-        <% else %>
-          <%= @user.username %>
-          doesn't have any decks yet.
-        <% end %>
-      </p>
-
-      <% if @is_owner %>
-        <%= link_to 'Create Your First Deck', new_collection_path(collection_type: 'deck'),
-            class: 'inline-block px-6 py-3 bg-accent-50 text-background rounded-lg border border-accent-50 hover:bg-foreground hover:text-accent-50 transition cursor-pointer' %>
-      <% end %>
-    </div>
-  <% end %>
+  <%= render partial: 'decks/deck_groups', locals: { listing: @listing } %>
 
   <%= turbo_frame_tag "deck_modal" %>
 </div>
