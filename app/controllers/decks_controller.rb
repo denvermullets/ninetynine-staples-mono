@@ -23,14 +23,19 @@ class DecksController < ApplicationController
     @user = User.find_by!(username: params[:username])
     @sort = params[:sort].presence_in(SORT_OPTIONS.keys) || 'updated_desc'
     @sort_options = SORT_OPTIONS
+    @group_by = params[:group_by].presence_in(Decks::Grouping::OPTIONS.keys) || 'none'
     @is_owner = current_user&.id == @user.id
-    base_decks = @user.collections.decks.includes(:tags)
-    base_decks = base_decks.visible_to_public unless @is_owner
-    @decks = sorted_decks(base_decks)
+    @decks = sorted_decks(visible_decks)
     @color_identities = Collections::ColorIdentities.call(collections: @decks)
+    @deck_groups = Decks::Grouping.call(decks: @decks, by: @group_by, color_identities: @color_identities)
   end
 
   private
+
+  def visible_decks
+    decks = @user.collections.decks.includes(:tags)
+    @is_owner ? decks : decks.visible_to_public
+  end
 
   def sorted_decks(decks)
     return decks.order(SORT_OPTIONS[@sort][:order]) unless @sort == 'building'
