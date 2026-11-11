@@ -131,7 +131,8 @@ class RelayChannel < ApplicationCable::Channel
 
   def broadcast_presence(event)
     ActionCable.server.broadcast(
-      self.class.presence_stream(@room), { 'type' => 'presence', 'event' => event, 'user_id' => current_user.id }
+      self.class.presence_stream(@room),
+      { 'type' => 'presence', 'event' => event, 'user_id' => current_user.id, 'username' => current_user.username }
     )
   end
 

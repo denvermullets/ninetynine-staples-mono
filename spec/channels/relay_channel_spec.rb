@@ -158,7 +158,9 @@ RSpec.describe RelayChannel, type: :channel do
   end
 
   describe 'presence' do
-    def presence(event, user) = { 'type' => 'presence', 'event' => event, 'user_id' => user.id }
+    def presence(event, user)
+      { 'type' => 'presence', 'event' => event, 'user_id' => user.id, 'username' => user.username }
+    end
 
     def subscribe_as(user)
       stub_connection current_user: user
