@@ -63,6 +63,7 @@ class CollectionsController < ApplicationController
                      @user.collections.includes(:cover_card).visible_to_public.order(:id)
                    end
     @deck_collections, @regular_collections = @collections.partition { |c| Collection.deck_type?(c.collection_type) }
+    @color_identities = Collections::ColorIdentities.call(collections: @deck_collections)
   end
 
   def show

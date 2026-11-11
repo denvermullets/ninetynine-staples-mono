@@ -48,6 +48,7 @@
           edit_url: edit_deck_modal_deck_builder_path(deck),
           frame_id: 'deck_modal',
           show_proxy_value: true,
+          color_identity: @color_identities[deck.id],
           destroy_url: @is_owner ? confirm_destroy_collection_path(deck) : nil
         } %>
       <% end %>

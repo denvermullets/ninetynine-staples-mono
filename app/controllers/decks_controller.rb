@@ -27,6 +27,7 @@ class DecksController < ApplicationController
     base_decks = @user.collections.decks.includes(:tags)
     base_decks = base_decks.visible_to_public unless @is_owner
     @decks = sorted_decks(base_decks)
+    @color_identities = Collections::ColorIdentities.call(collections: @decks)
   end
 
   private
