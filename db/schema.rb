@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_210000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_220000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -298,6 +298,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_210000) do
     t.index ["partner_commander_id"], name: "index_game_opponents_on_partner_commander_id"
     t.index ["win_condition"], name: "index_game_opponents_on_win_condition"
     t.index ["won"], name: "index_game_opponents_on_won"
+  end
+
+  create_table "game_records", force: :cascade do |t|
+    t.bigint "room_id", null: false
+    t.binary "data", null: false
+    t.string "end_status", null: false
+    t.jsonb "seat_holders", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id"], name: "index_game_records_on_room_id", unique: true
   end
 
   create_table "keywords", force: :cascade do |t|
@@ -829,6 +839,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_210000) do
   add_foreign_key "game_opponents", "commander_games"
   add_foreign_key "game_opponents", "magic_cards", column: "commander_id"
   add_foreign_key "game_opponents", "magic_cards", column: "partner_commander_id"
+  add_foreign_key "game_records", "rooms", on_delete: :cascade
   add_foreign_key "magic_card_finishes", "finishes"
   add_foreign_key "magic_card_finishes", "magic_cards"
   add_foreign_key "magic_card_frame_effects", "frame_effects"

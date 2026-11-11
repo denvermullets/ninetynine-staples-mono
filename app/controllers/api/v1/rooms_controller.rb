@@ -2,7 +2,7 @@
 # the code, that the Room is still open and that it has space; the Host marks it started (no more
 # admissions) and closed (the code is dead). Membership is what later gates the Relay.
 class Api::V1::RoomsController < Api::V1::BaseController
-  before_action :set_hosted_room, only: %i[start close]
+  before_action :set_hosted_room, only: %i[start close upload_game_record]
 
   # 201 with the Room and its Join code
   def create
@@ -38,7 +38,60 @@ class Api::V1::RoomsController < Api::V1::BaseController
     render json: Api::V1::RoomSerializer.one(@room, viewer: current_api_user)
   end
 
+  # POST /rooms/:id/game_record { end_status, seats: [{ seat, user_id }], record }. The Host uploads the
+  # finished GameRecord once; `record` is its text, compressed here, and the compressed size is capped.
+  # A Seat nobody held has a null user_id
+  def upload_game_record
+    return render_error(:conflict, 'room_not_started', 'The game in this Room has not started') if @room.open?
+
+    attrs = game_record_params
+    return render_error(:unprocessable_content, 'invalid_parameter', 'seats is malformed') unless attrs
+
+    # GameRecord.new, not build_game_record: building through the has_one would destroy an existing record
+    record = GameRecord.new(room: @room, end_status: attrs[:end_status], seat_holders: attrs[:seats],
+                            data: GameRecord.compress(attrs[:record]))
+    return render_error(:content_too_large, 'record_too_large', 'The GameRecord is over 2 MB') if record.too_large?
+
+    save_game_record(record)
+  end
+
   private
+
+  def save_game_record(record)
+    @room.with_lock do
+      if GameRecord.exists?(room_id: @room.id)
+        return render_error(:conflict, 'record_exists', 'This Room already has a GameRecord')
+      end
+
+      if record.save
+        render json: Api::V1::GameRecordSerializer.one(record), status: :created
+      else
+        render_error(:unprocessable_content, 'invalid_parameter', record.errors.full_messages.to_sentence)
+      end
+    end
+  end
+
+  def game_record_params
+    record = params.require(:record)
+    seats = params.require(:seats)
+    raise ActionController::ParameterMissing, :seats if seats.blank?
+
+    end_status = params.require(:end_status).to_s
+    holders = seat_holders(seats)
+    { record: record.to_s, end_status: end_status, seats: holders } if holders
+  end
+
+  # [{ 'seat' => Integer, 'user_id' => Integer or nil }], or nil when seats isn't that shape
+  def seat_holders(seats)
+    return unless seats.is_a?(Array) && seats.all?(ActionController::Parameters)
+
+    holders = seats.map { |entry| entry.permit(:seat, :user_id).to_h.slice('seat', 'user_id') }
+    holders if holders.all? { |holder| well_formed_holder?(holder) }
+  end
+
+  def well_formed_holder?(holder)
+    holder['seat'].is_a?(Integer) && [NilClass, Integer].any? { |type| holder['user_id'].is_a?(type) }
+  end
 
   def join_error(room)
     if room.member?(current_api_user)
