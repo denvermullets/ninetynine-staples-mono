@@ -2,7 +2,7 @@
 # the code, that the Room is still open and that it has space; the Host marks it started (no more
 # admissions) and closed (the code is dead). Membership is what later gates the Relay.
 class Api::V1::RoomsController < Api::V1::BaseController
-  before_action :set_hosted_room, only: %i[start close upload_game_record]
+  before_action :set_hosted_room, only: %i[start close upload_game_record remove_member]
 
   # 201 with the Room and its Join code
   def create
@@ -35,6 +35,18 @@ class Api::V1::RoomsController < Api::V1::BaseController
 
   def close
     @room.close! unless @room.closed?
+    render json: Api::V1::RoomSerializer.one(@room, viewer: current_api_user)
+  end
+
+  # DELETE /rooms/:id/members/:user_id. The Host Removes a member: their subscription is dropped and they
+  # can't join this Room again. The Host can't Remove themselves
+  def remove_member
+    return render_error(:conflict, 'room_closed', 'The Room is closed') if @room.closed?
+
+    user = @room.members.find(params[:user_id])
+    return render_error(:unprocessable_content, 'cannot_remove_host', 'The Host cannot be removed') if @room.host?(user)
+
+    @room.remove_member!(user)
     render json: Api::V1::RoomSerializer.one(@room, viewer: current_api_user)
   end
 
@@ -96,6 +108,8 @@ class Api::V1::RoomsController < Api::V1::BaseController
   def join_error(room)
     if room.member?(current_api_user)
       [:conflict, 'already_member', 'You are already in this Room']
+    elsif room.removed?(current_api_user)
+      [:forbidden, 'removed', 'The Host removed you from this Room']
     elsif room.started?
       [:conflict, 'room_started', 'The game in this Room has already started']
     elsif room.full?

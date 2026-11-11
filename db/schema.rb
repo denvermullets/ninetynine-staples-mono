@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_230000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -667,6 +667,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_220000) do
     t.index ["user_id"], name: "index_room_memberships_on_user_id"
   end
 
+  create_table "room_removals", force: :cascade do |t|
+    t.bigint "room_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id", "user_id"], name: "index_room_removals_on_room_id_and_user_id", unique: true
+    t.index ["room_id"], name: "index_room_removals_on_room_id"
+    t.index ["user_id"], name: "index_room_removals_on_user_id"
+  end
+
   create_table "rooms", force: :cascade do |t|
     t.bigint "host_id", null: false
     t.string "join_code", null: false
@@ -862,6 +872,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_220000) do
   add_foreign_key "price_band_cards", "price_alerts", on_delete: :cascade
   add_foreign_key "room_memberships", "rooms", on_delete: :cascade
   add_foreign_key "room_memberships", "users"
+  add_foreign_key "room_removals", "rooms", on_delete: :cascade
+  add_foreign_key "room_removals", "users"
   add_foreign_key "rooms", "users", column: "host_id"
   add_foreign_key "tracked_decks", "collections"
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"

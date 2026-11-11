@@ -43,6 +43,23 @@ RSpec.describe RelayChannel, type: :channel do
       expect(subscription).to be_rejected
     end
 
+    it 'rejects a Removed member' do
+      room.remove_member!(alice)
+      stub_connection current_user: alice
+      subscribe room_id: room.id
+
+      expect(subscription).to be_rejected
+    end
+
+    it 'drops a live subscription when its member is Removed' do
+      stub_connection current_user: alice
+      subscribe room_id: room.id
+
+      expect { subscription.send(:handle_control, 'type' => 'removed') }
+        .not_to have_broadcasted_to(described_class.presence_stream(room))
+      expect(subscription).not_to have_streams
+    end
+
     it 'rejects an unknown Room' do
       stub_connection current_user: alice
       subscribe room_id: 0

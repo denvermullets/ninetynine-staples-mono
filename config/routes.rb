@@ -285,6 +285,7 @@ Rails.application.routes.draw do
           post :start
           post :close
           post :game_record, action: :upload_game_record
+          delete 'members/:user_id', action: :remove_member, as: :remove_member
         end
       end
       # username can contain dots, so the segment takes anything up to the next slash

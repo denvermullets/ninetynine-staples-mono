@@ -110,8 +110,10 @@ class RelayChannel < ApplicationCable::Channel
   end
 
   def handle_control(message)
-    return if message['type'] != 'newest' || message['subscription'] == @subscription_id
+    removed = message['type'] == 'removed'
+    return unless removed || (message['type'] == 'newest' && message['subscription'] != @subscription_id)
 
+    # a Removal broadcasts its own presence, and a superseded subscription stays quiet
     @superseded = true
     unsubscribe_from_channel
   end
