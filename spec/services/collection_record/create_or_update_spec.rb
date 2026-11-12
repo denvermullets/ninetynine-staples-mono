@@ -116,6 +116,47 @@ RSpec.describe CollectionRecord::CreateOrUpdate, type: :service do
     end
   end
 
+  context 'when adding copies on top of what the collection holds' do
+    subject { described_class.new(params:, add: true).call }
+
+    let(:quantity) { 1 }
+    let(:foil_quantity) { 0 }
+
+    it 'creates the record when the collection has none' do
+      subject
+
+      expect(CollectionMagicCard.find_by(collection:, magic_card:)).to have_attributes(quantity: 1, foil_quantity: 0)
+    end
+
+    context 'when the collection already has the printing' do
+      let!(:collection_card) do
+        create(:collection_magic_card, collection:, magic_card:, card_uuid: 'test-uuid',
+                                       quantity: 1, foil_quantity: 1, proxy_quantity: 2)
+      end
+
+      before { collection.update!(total_quantity: 1, total_foil_quantity: 1, total_value: 15.0) }
+
+      it 'adds to every count instead of replacing them' do
+        subject
+
+        expect(collection_card.reload)
+          .to have_attributes(quantity: 2, foil_quantity: 1, proxy_quantity: 2, proxy_foil_quantity: 0)
+      end
+
+      it 'moves the collection totals by just the added copies' do
+        subject
+
+        expect(collection.reload).to have_attributes(total_quantity: 2, total_foil_quantity: 1, total_value: 20.0)
+      end
+
+      it 'leaves the record alone and says so when nothing is added' do
+        params.merge!(quantity: 0)
+
+        expect { expect(subject[:action]).to eq(:nothing_added) }.not_to(change { collection_card.reload.attributes })
+      end
+    end
+  end
+
   describe 'wants the new copies fill' do
     let(:quantity) { 1 }
     let(:foil_quantity) { 0 }

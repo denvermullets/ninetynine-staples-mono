@@ -1,7 +1,7 @@
 <%= turbo_stream.replace "search-form" do %>
-  <%= render partial: 'shared/cards/search', locals: { search_path: load_commanders_path, show_price_filter: false } %>
+  <%= render partial: 'shared/cards/search', locals: { search_path: load_commanders_path, show_price_filter: false, show_partner_filter: true } %>
 <% end %>
 
 <%= turbo_stream.update 'table-container' do %>
-  <%= render partial: 'table', locals: { magic_cards: @magic_cards, pagy: @pagy } %>
+  <%= render partial: 'table', locals: { magic_cards: @magic_cards, pagy: @pagy, partner_pairs: @partner_pairs } %>
 <% end %>

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GameRecord",
+  "description": "The metadata of a finished GameRecord stored for a Room. seats lists who held each Seat (user_id is null for a Seat nobody held); size is the stored compressed size in bytes. The record itself is never returned here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["room_id", "end_status", "seats", "size", "created_at"],
+  "properties": {
+    "room_id": { "type": "integer" },
+    "end_status": { "enum": ["finished", "unfinished"] },
+    "seats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["seat", "user_id"],
+        "properties": { "seat": { "type": "integer" }, "user_id": { "type": ["integer", "null"] } }
+      }
+    },
+    "size": { "type": "integer" },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

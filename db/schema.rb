@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -298,6 +298,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
     t.index ["partner_commander_id"], name: "index_game_opponents_on_partner_commander_id"
     t.index ["win_condition"], name: "index_game_opponents_on_win_condition"
     t.index ["won"], name: "index_game_opponents_on_won"
+  end
+
+  create_table "game_records", force: :cascade do |t|
+    t.bigint "room_id", null: false
+    t.binary "data", null: false
+    t.string "end_status", null: false
+    t.jsonb "seat_holders", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id"], name: "index_game_records_on_room_id", unique: true
   end
 
   create_table "keywords", force: :cascade do |t|
@@ -648,6 +658,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
     t.index ["magic_card_id"], name: "index_printings_on_magic_card_id"
   end
 
+  create_table "room_memberships", force: :cascade do |t|
+    t.bigint "room_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id", "user_id"], name: "index_room_memberships_on_room_id_and_user_id", unique: true
+    t.index ["user_id"], name: "index_room_memberships_on_user_id"
+  end
+
+  create_table "room_removals", force: :cascade do |t|
+    t.bigint "room_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id", "user_id"], name: "index_room_removals_on_room_id_and_user_id", unique: true
+    t.index ["room_id"], name: "index_room_removals_on_room_id"
+    t.index ["user_id"], name: "index_room_removals_on_user_id"
+  end
+
+  create_table "rooms", force: :cascade do |t|
+    t.bigint "host_id", null: false
+    t.string "join_code", null: false
+    t.string "status", default: "open", null: false
+    t.datetime "started_at"
+    t.datetime "closed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "host_present", default: false, null: false
+    t.datetime "host_last_seen_at"
+    t.index ["host_id"], name: "index_rooms_on_host_id"
+    t.index ["join_code"], name: "index_rooms_on_live_join_code", unique: true, where: "((status)::text <> 'closed'::text)"
+  end
+
   create_table "rulings", force: :cascade do |t|
     t.date "ruling_date"
     t.string "ruling"
@@ -808,6 +851,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
   add_foreign_key "game_opponents", "commander_games"
   add_foreign_key "game_opponents", "magic_cards", column: "commander_id"
   add_foreign_key "game_opponents", "magic_cards", column: "partner_commander_id"
+  add_foreign_key "game_records", "rooms", on_delete: :cascade
   add_foreign_key "magic_card_finishes", "finishes"
   add_foreign_key "magic_card_finishes", "magic_cards"
   add_foreign_key "magic_card_frame_effects", "frame_effects"
@@ -828,6 +872,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_140000) do
   add_foreign_key "price_alerts", "users"
   add_foreign_key "price_band_cards", "magic_cards", on_delete: :cascade
   add_foreign_key "price_band_cards", "price_alerts", on_delete: :cascade
+  add_foreign_key "room_memberships", "rooms", on_delete: :cascade
+  add_foreign_key "room_memberships", "users"
+  add_foreign_key "room_removals", "rooms", on_delete: :cascade
+  add_foreign_key "room_removals", "users"
+  add_foreign_key "rooms", "users", column: "host_id"
   add_foreign_key "tracked_decks", "collections"
   add_foreign_key "tracked_decks", "magic_cards", column: "commander_id"
   add_foreign_key "tracked_decks", "magic_cards", column: "partner_commander_id"

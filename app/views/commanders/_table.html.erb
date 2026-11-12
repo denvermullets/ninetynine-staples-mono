@@ -97,39 +97,57 @@
           "
         >
           <td class="px-4 py-2 text-sm whitespace-nowrap">
-            <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
+            <div class="flex items-center">
+              <i class="drop-shadow-nine py-1 rounded-xl ss ss-grad ss-<%= card.boxset.keyrune_code&.downcase %> ss-<%= card.rarity&.downcase || 'common' %> ss-fw ss-2x mr-4"></i>
 
-            <% if card&.card_side == 'a' %>
-              <%= card.name.split('//')[0] %>
-            <% elsif card&.card_side == 'b' %>
-              <%= card.name.split('//')[1] %>
-            <% else %>
-              <%= card.name %>
-            <% end %>
+              <div class="flex flex-col">
+                <div>
+                  <% if card&.card_side == 'a' %>
+                    <%= card.name.split('//')[0] %>
+                  <% elsif card&.card_side == 'b' %>
+                    <%= card.name.split('//')[1] %>
+                  <% else %>
+                    <%= card.name %>
+                  <% end %>
 
-            <% if card.etched_finish? %>
-              <span
-                class="
-                  ml-2 px-1.5 py-0.5 text-xs rounded bg-purple-900/30
-                  text-purple-400 border border-purple-500/30
-                "
-                title="Etched finish"
-              >
-                E
-              </span>
-            <% end %>
+                  <% if card.etched_finish? %>
+                    <span
+                      class="
+                        ml-2 px-1.5 py-0.5 text-xs rounded bg-purple-900/30
+                        text-purple-400 border border-purple-500/30
+                      "
+                      title="Etched finish"
+                    >
+                      E
+                    </span>
+                  <% end %>
 
-            <% if card.is_token %>
-              <span
-                class="
-                  ml-2 px-1.5 py-0.5 text-xs rounded bg-amber-900/30
-                  text-amber-400 border border-amber-500/30
-                "
-                title="Token"
-              >
-                T
-              </span>
-            <% end %>
+                  <% if card.is_token %>
+                    <span
+                      class="
+                        ml-2 px-1.5 py-0.5 text-xs rounded bg-amber-900/30
+                        text-amber-400 border border-amber-500/30
+                      "
+                      title="Token"
+                    >
+                      T
+                    </span>
+                  <% end %>
+                </div>
+
+                <% pairs = local_assigns[:partner_pairs]&.dig(card.name) %>
+
+                <% if pairs.present? %>
+                  <span
+                    class="text-xs text-grey-text/70"
+                    title="<%= pairs.join(', ') %>"
+                  >
+                    Pairs with <%= pairs.first(2).join(', ') %>
+                    <%= " +#{pairs.size - 2} more" if pairs.size > 2 %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
           </td>
 
           <td class="hidden px-4 py-2 text-sm whitespace-nowrap lg:table-cell">

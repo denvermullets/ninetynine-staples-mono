@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GameRecordDownload",
+  "description": "A GameRecord with its content: the game_record fields plus record, the uncompressed record text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "room_id",
+    "end_status",
+    "seats",
+    "size",
+    "created_at",
+    "record"
+  ],
+  "properties": {
+    "room_id": {
+      "type": "integer"
+    },
+    "end_status": {
+      "enum": [
+        "finished",
+        "unfinished"
+      ]
+    },
+    "seats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "seat",
+          "user_id"
+        ],
+        "properties": {
+          "seat": {
+            "type": "integer"
+          },
+          "user_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "size": {
+      "type": "integer"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "record": {
+      "type": "string"
+    }
+  }
+}

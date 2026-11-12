@@ -5,6 +5,10 @@ import { Controller } from "@hotwired/stimulus";
 // connects to data-controller="multiselect"
 //
 
+// how long to wait after the last click before searching, so picking four colors in a row is one
+// request rather than four
+const SUBMIT_DELAY_MS = 350;
+
 export default class extends Controller {
   static targets = ["item"]; // Elements that represent selectable options
 
@@ -41,6 +45,10 @@ export default class extends Controller {
 
     // sync hidden fields with restored state
     this.updateHiddenFields();
+  }
+
+  disconnect() {
+    clearTimeout(this.submitTimer);
   }
 
   toggle(event) {
@@ -88,8 +96,14 @@ export default class extends Controller {
 
     // resyncs form input representation with internal state
     this.updateHiddenFields();
-    // forces form submission (triggers turbo reload)
-    this.form.requestSubmit();
+
+    // tells search-filter to drop any search already in flight - its response re-renders this form
+    // and would wipe the clicks still waiting on the timer below
+    this.dispatch("change");
+
+    // waits for the clicks to settle, then submits once (triggers turbo reload)
+    clearTimeout(this.submitTimer);
+    this.submitTimer = setTimeout(() => this.form.requestSubmit(), SUBMIT_DELAY_MS);
   }
 
   updateHiddenFields() {

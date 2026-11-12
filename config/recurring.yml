@@ -4,6 +4,11 @@
 #     queue: background
 #     args: [ 1000, { batch_size: 500 } ]
 #     schedule: every hour
+  # a GameRecord is kept 30 days for its Seat holders to download
+  purge_expired_game_records:
+    queue: background
+    class: PurgeExpiredGameRecordsJob
+    schedule: at 4am every day
 #   periodic_command:
 #     command: "SoftDeletedRecord.due.delete_all"
 #     priority: 2
@@ -65,3 +70,8 @@ production:
     queue: ingest
     class: IngestPreconDecks
     schedule: at 12am every Sunday
+  # a Room whose Host has been gone 24 hours is closed; hourly keeps it within an hour of that
+  close_abandoned_rooms:
+    queue: background
+    class: CloseAbandonedRoomsJob
+    schedule: every hour

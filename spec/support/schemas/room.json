@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Room",
+  "description": "A network game's Room. join_code is shared by the Host; status is open (admitting), started (no more admissions) or closed (the code is dead). host is true when the caller is the Host. members lists the Host first.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "join_code", "status", "host_id", "host", "members"],
+  "properties": {
+    "id": { "type": "integer" },
+    "join_code": { "type": "string" },
+    "status": { "enum": ["open", "started", "closed"] },
+    "host_id": { "type": "integer" },
+    "host": { "type": "boolean" },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "username"],
+        "properties": { "id": { "type": "integer" }, "username": { "type": "string" } }
+      }
+    }
+  }
+}

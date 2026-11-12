@@ -28,6 +28,18 @@ RSpec.describe PreconDeck, type: :model do
     end
   end
 
+  describe '#import_description' do
+    it 'names the deck and its type without doubling up "deck"' do
+      deck = PreconDeck.new(name: 'Necron Dynasties', deck_type: 'Commander Deck')
+      expect(deck.import_description).to eq('Imported from the Necron Dynasties precon (Commander Deck)')
+    end
+
+    it 'leaves the type out when there is none' do
+      deck = PreconDeck.new(name: 'Necron Dynasties', deck_type: nil)
+      expect(deck.import_description).to eq('Imported from the Necron Dynasties precon')
+    end
+  end
+
   describe '#released?' do
     it 'returns false when release_date is nil' do
       deck = PreconDeck.new(release_date: nil)

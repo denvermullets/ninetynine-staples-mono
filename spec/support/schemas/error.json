@@ -13,7 +13,8 @@
       "properties": {
         "code": {
           "enum": ["unauthorized", "invalid_credentials", "not_found", "parameter_missing", "invalid_parameter",
-                   "too_many_ids", "throttled", "internal_error"]
+                   "too_many_ids", "throttled", "internal_error", "no_such_room", "room_started", "room_full", "already_member",
+                   "room_closed", "not_host", "room_not_started", "record_exists", "record_too_large", "removed", "cannot_remove_host"]
         },
         "message": { "type": "string" }
       }

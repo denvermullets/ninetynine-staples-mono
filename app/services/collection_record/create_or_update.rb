@@ -1,12 +1,16 @@
 # this service will create or update a collection record and update the collection totals.
 #
+# The quantities are the record's new totals, unless `add: true`, when they are copies to put on top of
+# whatever the collection already holds - read here, inside the transaction, not from the form.
+#
 # A successful result also carries `wants_filled`: the owner's want list rows these new copies have
 # just filled, so the caller can offer to take them off the list.
 module CollectionRecord
   class CreateOrUpdate < Service
     include PriceCalculator
 
-    def initialize(params:)
+    def initialize(params:, add: false)
+      @add = add
       @collection = Collection.find(params[:collection_id])
       @magic_card = MagicCard.find(params[:magic_card_id])
       @quantity = [params[:quantity].to_i, 0].max
@@ -17,14 +21,17 @@ module CollectionRecord
     end
 
     def call
+      return { action: :nothing_added, name: @magic_card.name, wants_filled: [] } if @add && all_zero?
+
       ActiveRecord::Base.transaction do
         collection_card = CollectionMagicCard.find_or_initialize_by(
           collection: @collection,
           magic_card: @magic_card,
           card_uuid: @card_uuid
         )
+        add_existing_quantities(collection_card) if @add
 
-        if @quantity.zero? && @foil_quantity.zero? && @proxy_quantity.zero? && @proxy_foil_quantity.zero?
+        if all_zero?
           delete_collection_card(collection_card)
 
           return { action: :delete, name: collection_card.magic_card.name, wants_filled: [] }
@@ -37,6 +44,17 @@ module CollectionRecord
     end
 
     private
+
+    def all_zero?
+      [@quantity, @foil_quantity, @proxy_quantity, @proxy_foil_quantity].all?(&:zero?)
+    end
+
+    def add_existing_quantities(collection_card)
+      @quantity += collection_card.quantity.to_i
+      @foil_quantity += collection_card.foil_quantity.to_i
+      @proxy_quantity += collection_card.proxy_quantity.to_i
+      @proxy_foil_quantity += collection_card.proxy_foil_quantity.to_i
+    end
 
     def delete_collection_card(collection_card)
       return unless collection_card.persisted?
