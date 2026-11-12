@@ -14,14 +14,14 @@ RSpec.describe RelayChannel, type: :channel do
   def stream_for(user) = described_class.stream_for_member(room, user.id)
 
   def relay_as(user, data)
-    stub_connection current_user: user
+    stub_connection api_token: ApiToken.issue!(user, name: 'spec').first
     subscribe room_id: room.id
     perform :relay, data
   end
 
   describe 'subscribing' do
     it 'accepts a member on their own stream' do
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
 
       expect(subscription).to be_confirmed
@@ -30,14 +30,14 @@ RSpec.describe RelayChannel, type: :channel do
     end
 
     it 'accepts the Host' do
-      stub_connection current_user: host
+      stub_connection api_token: ApiToken.issue!(host, name: 'spec').first
       subscribe room_id: room.id
 
       expect(subscription).to have_stream_from(stream_for(host))
     end
 
     it 'rejects a non-member' do
-      stub_connection current_user: create(:user)
+      stub_connection api_token: ApiToken.issue!(create(:user), name: 'spec').first
       subscribe room_id: room.id
 
       expect(subscription).to be_rejected
@@ -45,14 +45,14 @@ RSpec.describe RelayChannel, type: :channel do
 
     it 'rejects a Removed member' do
       room.remove_member!(alice)
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
 
       expect(subscription).to be_rejected
     end
 
     it 'drops a live subscription when its member is Removed' do
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
 
       expect { subscription.send(:handle_control, 'type' => 'removed') }
@@ -61,7 +61,7 @@ RSpec.describe RelayChannel, type: :channel do
     end
 
     it 'rejects an unknown Room' do
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: 0
 
       expect(subscription).to be_rejected
@@ -69,7 +69,7 @@ RSpec.describe RelayChannel, type: :channel do
 
     it 'rejects a closed Room' do
       room.close!
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
 
       expect(subscription).to be_rejected
@@ -79,7 +79,7 @@ RSpec.describe RelayChannel, type: :channel do
   describe 'Host presence' do
     it 'lets a member subscribe while the Host is absent' do
       room.update!(host_present: false, host_last_seen_at: 23.hours.ago)
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
 
       expect(subscription).to be_confirmed
@@ -87,7 +87,7 @@ RSpec.describe RelayChannel, type: :channel do
 
     it 'marks the Host present while they are subscribed and absent once they leave' do
       room.update!(host_present: false, host_last_seen_at: 2.hours.ago)
-      stub_connection current_user: host
+      stub_connection api_token: ApiToken.issue!(host, name: 'spec').first
       subscribe room_id: room.id
 
       expect(room.reload).to be_host_present
@@ -99,7 +99,7 @@ RSpec.describe RelayChannel, type: :channel do
     end
 
     it 'refreshes the Host last seen time when the Host relays, at most about once a minute' do
-      stub_connection current_user: host
+      stub_connection api_token: ApiToken.issue!(host, name: 'spec').first
       subscribe room_id: room.id
       room.update_columns(host_last_seen_at: 2.minutes.ago)
 
@@ -123,7 +123,7 @@ RSpec.describe RelayChannel, type: :channel do
 
     it 'does not mark the Room when a Participant comes and goes' do
       room.update!(host_present: false, host_last_seen_at: 2.hours.ago)
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
       unsubscribe
 
@@ -131,7 +131,7 @@ RSpec.describe RelayChannel, type: :channel do
     end
 
     it 'keeps the Host present when an older Host subscription is superseded' do
-      stub_connection current_user: host
+      stub_connection api_token: ApiToken.issue!(host, name: 'spec').first
       subscribe room_id: room.id
       subscription.send(:handle_control, 'type' => 'newest', 'subscription' => 'someone-else')
 
@@ -141,7 +141,7 @@ RSpec.describe RelayChannel, type: :channel do
 
   describe 'Room closing' do
     it 'drops a live subscription and tells the member the Room closed' do
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
 
       expect { subscription.send(:handle_control, 'type' => 'closed') }
@@ -163,7 +163,7 @@ RSpec.describe RelayChannel, type: :channel do
     end
 
     def subscribe_as(user)
-      stub_connection current_user: user
+      stub_connection api_token: ApiToken.issue!(user, name: 'spec').first
       subscribe room_id: room.id
     end
 
@@ -232,7 +232,7 @@ RSpec.describe RelayChannel, type: :channel do
     end
 
     def subscribe_as_alice
-      stub_connection current_user: alice
+      stub_connection api_token: ApiToken.issue!(alice, name: 'spec').first
       subscribe room_id: room.id
     end
   end
@@ -339,7 +339,7 @@ RSpec.describe RelayChannel, type: :channel do
     end
 
     def flood(user, count)
-      stub_connection current_user: user
+      stub_connection api_token: ApiToken.issue!(user, name: 'spec').first
       subscribe room_id: room.id
       count.times { perform :relay, 'payload' => 'cmd', 'to' => alice.id }
     end
