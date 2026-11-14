@@ -62,18 +62,12 @@ module DeckBuilder
     end
 
     def validate_quantities(staged, source)
-      name = staged.magic_card.name
+      short = SourceShortfall.first(needed: SourceShortfall.staged_on(staged),
+                                    available: SourceShortfall.held_by(source))
+      return unless short
 
-      validations = [
-        [staged.staged_quantity, source.quantity, 'regular'],
-        [staged.staged_foil_quantity, source.foil_quantity, 'foil'],
-        [staged.staged_proxy_quantity, source.proxy_quantity || 0, 'proxy'],
-        [staged.staged_proxy_foil_quantity, source.proxy_foil_quantity || 0, 'foil proxy']
-      ]
-
-      validations.each do |needed, available, type|
-        raise InsufficientCardsError, "Only #{available} #{type} #{name} available" if needed > available
-      end
+      raise InsufficientCardsError,
+            "Only #{short[:available]} #{SourceShortfall::LABELS[short[:type]]} #{staged.magic_card.name} available"
     end
 
     def move_from_source(staged_card)

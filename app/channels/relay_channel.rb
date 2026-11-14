@@ -48,7 +48,7 @@ class RelayChannel < ApplicationCable::Channel
 
   def subscribed
     @room = Room.live.find_by(id: params[:room_id])
-    return reject unless @room&.member?(current_user)
+    return reject unless game_client_member?
 
     become_newest
     @room.host_connected! if @room.host?(current_user)
@@ -83,6 +83,9 @@ class RelayChannel < ApplicationCable::Channel
   end
 
   private
+
+  # the relay is for game clients only - a browser's session socket never joins a Room
+  def game_client_member? = api_token.present? && @room&.member?(current_user)
 
   def note_host_active
     @room.host_active! if @room.host?(current_user)

@@ -36,6 +36,13 @@ RSpec.describe RelayChannel, type: :channel do
       expect(subscription).to have_stream_from(stream_for(host))
     end
 
+    it "rejects a member's browser session, which never joins a Room" do
+      stub_connection api_token: nil, session_user: alice
+      subscribe room_id: room.id
+
+      expect(subscription).to be_rejected
+    end
+
     it 'rejects a non-member' do
       stub_connection api_token: ApiToken.issue!(create(:user), name: 'spec').first
       subscribe room_id: room.id

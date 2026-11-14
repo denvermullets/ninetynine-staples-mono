@@ -66,6 +66,19 @@ RSpec.describe DeckBuilder::UpdateQuantity, type: :service do
         expect(subject[:error]).to include('available')
       end
     end
+
+    context 'when the source only makes up the count with proxies' do
+      before { source_card.update!(quantity: 1, foil_quantity: 0, proxy_quantity: 3) }
+
+      subject do
+        described_class.call(deck: deck, collection_magic_card_id: staged_card.id, quantity: 3, foil_quantity: 0)
+      end
+
+      it 'refuses, since Finalize would not cover a regular copy with a proxy' do
+        expect(subject).to eq(success: false, error: 'Only 1 copies available')
+        expect(staged_card.reload.staged_quantity).to eq(1)
+      end
+    end
   end
 
   context 'when updating a finalized card' do

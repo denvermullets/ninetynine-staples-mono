@@ -147,4 +147,24 @@ RSpec.describe DeckBuilder::SwapSource, type: :service do
       expect(staged_card.magic_card_id).to eq(alt_printing.id)
     end
   end
+
+  context 'when the new source holds the right number of copies but not the right type' do
+    before do
+      staged_card.update!(staged_quantity: 0, staged_foil_quantity: 1)
+      source_b_card.update!(quantity: 1, foil_quantity: 0)
+    end
+
+    subject do
+      described_class.call(
+        deck: deck,
+        collection_magic_card_id: staged_card.id,
+        new_source_collection_id: source_b.id
+      )
+    end
+
+    it 'refuses, since Finalize would not cover a foil copy with a regular one' do
+      expect(subject).to eq(success: false, error: 'Only 0 foil available')
+      expect(staged_card.reload.source_collection_id).to eq(source_a.id)
+    end
+  end
 end

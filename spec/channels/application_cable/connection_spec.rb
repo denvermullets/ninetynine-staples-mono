@@ -48,6 +48,39 @@ RSpec.describe ApplicationCable::Connection, type: :channel do
     expect(connection.send(:allow_request_origin?)).to be(true)
   end
 
+  describe 'a browser, by session cookie' do
+    let(:session_key) { Rails.application.config.session_options[:key] }
+
+    def connect_browser(origin: 'http://test.host', user_id: user.id)
+      cookies.encrypted[session_key] = { value: { 'user_id' => user_id } } if user_id
+      connect '/cable', headers: origin ? { 'Origin' => origin } : {}
+    end
+
+    it 'connects the signed-in user from a page on this host' do
+      connect_browser
+
+      expect(connection.current_user).to eq(user)
+      expect(connection.session_user).to eq(user)
+      expect(connection.api_token).to be_nil
+    end
+
+    it 'rejects a page on another site, which would otherwise ride the cookie' do
+      expect { connect_browser(origin: 'https://evil.example') }.to have_rejected_connection
+    end
+
+    it 'rejects a cookie request with no Origin' do
+      expect { connect_browser(origin: nil) }.to have_rejected_connection
+    end
+
+    it 'rejects a browser that is not signed in' do
+      expect { connect_browser(user_id: nil) }.to have_rejected_connection
+    end
+
+    it 'rejects a session for a user that no longer exists' do
+      expect { connect_browser(user_id: 0) }.to have_rejected_connection
+    end
+  end
+
   describe 'revoking a token' do
     let(:remote) { instance_double(ActionCable::RemoteConnections::RemoteConnection, disconnect: nil) }
 
@@ -58,7 +91,7 @@ RSpec.describe ApplicationCable::Connection, type: :channel do
     it 'disconnects that token\'s open connections' do
       token.revoke!
 
-      expect(ActionCable.server.remote_connections).to have_received(:where).with(api_token: token)
+      expect(ActionCable.server.remote_connections).to have_received(:where).with(api_token: token, session_user: nil)
       expect(remote).to have_received(:disconnect)
     end
 
@@ -67,8 +100,8 @@ RSpec.describe ApplicationCable::Connection, type: :channel do
       other = ApiToken.issue!(user, name: 'Second').first
       user.api_tokens.revoke_all!
 
-      expect(ActionCable.server.remote_connections).to have_received(:where).with(api_token: token)
-      expect(ActionCable.server.remote_connections).to have_received(:where).with(api_token: other)
+      expect(ActionCable.server.remote_connections).to have_received(:where).with(api_token: token, session_user: nil)
+      expect(ActionCable.server.remote_connections).to have_received(:where).with(api_token: other, session_user: nil)
     end
   end
 end

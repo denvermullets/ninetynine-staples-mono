@@ -96,7 +96,12 @@
                   text-center rounded-b-lg bg-black/80
                 "
               >
-                <% if card.from_owned_collection? %>
+                <% if card.source_issue %>
+                  <span class="text-red-400" title="<%= card.source_issue %>">
+                    Can't finalize from
+                    <%= card.source_collection.name.truncate(12) %>
+                  </span>
+                <% elsif card.from_owned_collection? %>
                   <span class="text-blue-400">
                     from <%= card.source_collection.name.truncate(20) %>
                   </span>
