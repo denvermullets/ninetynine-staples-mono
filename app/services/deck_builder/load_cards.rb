@@ -12,6 +12,7 @@ module DeckBuilder
                                               :game_changer])
 
       staged = all_cards.staged
+      mark_source_issues(staged)
       needed = all_cards.needed
       owned = all_cards.finalized.owned
       cards_to_group = staged + needed + owned
@@ -28,6 +29,11 @@ module DeckBuilder
     end
 
     private
+
+    def mark_source_issues(staged)
+      issues = SourceShortfall.call(deck: @deck)
+      staged.each { |card| card.source_issue = issues[card.id] }
+    end
 
     def build_stats(cards, staged, needed, owned)
       planned, staged_owned = staged.partition(&:planned?)

@@ -4,7 +4,7 @@ module DeckBuilder
       @card = card
       @user = user
       @deck = deck
-      @total_needed = card.total_staged
+      @needed = SourceShortfall.staged_on(card)
     end
 
     def call
@@ -30,23 +30,17 @@ module DeckBuilder
       @card.magic_card.scryfall_oracle_id
     end
 
+    # a source is offered only if it covers the row type for type, the same check the swap and Finalize make
     def build_source_result(cmc)
-      quantities = extract_quantities(cmc)
-      already_staged = StagedQuantities.total_staged(
-        source_collection_id: cmc.collection_id,
-        magic_card_id: cmc.magic_card_id,
-        exclude_card_id: @card.id
-      )
-
-      total_available = quantities.values.sum - already_staged
-      return if total_available < @total_needed
+      available = StagedQuantities.calculate_available(source: cmc, exclude_card_id: @card.id)
+      return if SourceShortfall.first(needed: @needed, available: available)
 
       {
         collection_id: cmc.collection_id,
         collection_name: cmc.collection.name,
         magic_card: cmc.magic_card,
-        **quantities,
-        total_available: total_available,
+        **extract_quantities(cmc),
+        total_available: available.values.sum,
         is_current: current_source?(cmc)
       }
     end

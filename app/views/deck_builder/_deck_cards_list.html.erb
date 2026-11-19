@@ -156,7 +156,9 @@
             <span
               class="
                 flex-1 truncate font-medium group-hover:font-bold transition-all
-                <%= if card.staged? && card.from_owned_collection?
+                <%= if card.source_issue
+                'text-red-400'
+                elsif card.staged? && card.from_owned_collection?
                 'text-blue-400'
                 elsif card.staged? && card.planned?
                 'text-accent-400'
@@ -172,6 +174,18 @@
               "
             >
               <%= card.magic_card.name %>
+
+              <% if card.source_issue %>
+                <span
+                  class="
+                    ml-1 px-1 text-[10px] font-bold rounded bg-red-500/20
+                    text-red-400 border border-red-500/30
+                  "
+                  title="Can't finalize: <%= card.source_issue %>"
+                >
+                  !
+                </span>
+              <% end %>
 
               <% if card.display_foil? %>
                 <span

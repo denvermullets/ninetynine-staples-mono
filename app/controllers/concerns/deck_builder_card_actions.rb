@@ -7,6 +7,10 @@ module DeckBuilderCardActions
       return
     end
 
+    # caught here so the answer comes back with the click, not only from the job over a websocket
+    issues = DeckBuilder::SourceShortfall.call(deck: @deck)
+    return render_error_toast(finalize_blocked_message(issues)) if issues.any?
+
     FinalizeDeckJob.perform_later(@deck.id, current_user.id)
 
     flash.now[:type] = 'success'
@@ -67,6 +71,15 @@ module DeckBuilderCardActions
   end
 
   private
+
+  def finalize_blocked_message(issues)
+    names = @deck.collection_magic_cards.where(id: issues.keys).includes(:magic_card)
+                 .to_h { |card| [card.id, card.magic_card.name] }
+    details = issues.first(3).map { |id, issue| "#{names[id]}: #{issue}" }
+    details << "and #{issues.size - 3} more marked in the list" if issues.size > 3
+    label = issues.size == 1 ? '1 card' : "#{issues.size} cards"
+    "Can't finalize - fix #{label} first. #{details.join('; ')}"
+  end
 
   def staged_params
     { regular: params[:staged_quantity], foil: params[:staged_foil_quantity],

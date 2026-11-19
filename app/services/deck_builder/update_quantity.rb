@@ -82,35 +82,15 @@ module DeckBuilder
       )
     end
 
+    # proxies are their own type on a staged row - Finalize won't cover a regular copy with a proxy
     def check_availability(source)
-      available = calculate_available(source)
+      available = StagedQuantities.calculate_available(source: source, exclude_card_id: @card.id)
+      needed = SourceShortfall.staged_on(@card).merge(regular: @new_quantity, foil: @new_foil_quantity)
+      short = SourceShortfall.first(needed: needed, available: available)
+      return { success: true } unless short
 
-      return error_result("Only #{available[:regular]} copies available") if @new_quantity > available[:regular]
-
-      return error_result("Only #{available[:foil]} foil copies available") if @new_foil_quantity > available[:foil]
-
-      { success: true }
-    end
-
-    def calculate_available(source)
-      other_staged = other_staged_quantities
-      {
-        regular: source.quantity + (source.proxy_quantity || 0) - other_staged[:regular],
-        foil: source.foil_quantity + (source.proxy_foil_quantity || 0) - other_staged[:foil]
-      }
-    end
-
-    def other_staged_quantities
-      base_query = CollectionMagicCard
-                   .staged
-                   .where(source_collection_id: @card.source_collection_id)
-                   .where(magic_card_id: @card.magic_card_id)
-                   .where.not(id: @card.id)
-
-      {
-        regular: base_query.sum(:staged_quantity),
-        foil: base_query.sum(:staged_foil_quantity)
-      }
+      label = short[:type] == :regular ? '' : "#{SourceShortfall::LABELS[short[:type]]} "
+      error_result("Only #{short[:available]} #{label}copies available")
     end
 
     def update_card_quantities

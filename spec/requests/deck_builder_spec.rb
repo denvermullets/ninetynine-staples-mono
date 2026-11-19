@@ -72,6 +72,32 @@ RSpec.describe 'DeckBuilder', type: :request do
     end
   end
 
+  describe 'POST /deck-builder/:id/finalize' do
+    let(:binder) { create(:collection, user: user, name: 'Binder') }
+    let(:plains) { create(:magic_card, name: 'Plains') }
+
+    before do
+      CollectionMagicCard.where(collection: deck).delete_all
+      create(:collection_magic_card, collection: binder, magic_card: plains, staged: false, needed: false,
+                                     quantity: 1)
+    end
+
+    it 'refuses with the reason when a staged card is the wrong type for its source' do
+      create(:collection_magic_card, collection: deck, magic_card: plains, source_collection_id: binder.id,
+                                     staged: true, staged_foil_quantity: 1)
+
+      expect { post finalize_deck_builder_path(deck), as: :turbo_stream }.not_to have_enqueued_job(FinalizeDeckJob)
+      expect(response.body).to include('Can&#39;t finalize - fix 1 card first. Plains: Binder has 0 foil (1 regular)')
+    end
+
+    it 'queues the job when every staged card is covered' do
+      create(:collection_magic_card, collection: deck, magic_card: plains, source_collection_id: binder.id,
+                                     staged: true, staged_quantity: 1)
+
+      expect { post finalize_deck_builder_path(deck), as: :turbo_stream }.to have_enqueued_job(FinalizeDeckJob)
+    end
+  end
+
   describe 'GET /deck-builder/:id/quantity_locked_modal' do
     let(:finalized) do
       create(:collection_magic_card, collection: deck, magic_card: create(:magic_card, name: 'Locked Card'),

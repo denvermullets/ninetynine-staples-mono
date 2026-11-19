@@ -128,6 +128,11 @@ class CollectionMagicCard < ApplicationRecord
   end
 
   # Build mode methods
+
+  # What stops Finalize from moving this staged row out of its source, set by DeckBuilder::LoadCards
+  # from DeckBuilder::SourceShortfall; nil when the source still covers it
+  attr_accessor :source_issue
+
   def planned?
     staged? && source_collection_id.nil?
   end

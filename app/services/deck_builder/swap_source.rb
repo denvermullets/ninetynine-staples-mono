@@ -35,16 +35,16 @@ module DeckBuilder
       same_source && same_printing
     end
 
+    # the swap carries the row's copies over type for type, so the new source has to cover each type
     def validate_new_source
       return { success: true } unless @new_source_id
 
       source = find_source_card
       return error('Card not found in source collection') unless source
 
-      available = calculate_available(source)
-      needed = @deck_card.total_staged
-
-      return error("Only #{available} copies available") if needed > available
+      available = StagedQuantities.calculate_available(source: source, exclude_card_id: @deck_card.id)
+      short = SourceShortfall.first(needed: SourceShortfall.staged_on(@deck_card), available: available)
+      return error("Only #{short[:available]} #{SourceShortfall::LABELS[short[:type]]} available") if short
 
       { success: true }
     end
@@ -60,19 +60,6 @@ module DeckBuilder
 
     def target_magic_card_id
       @new_magic_card_id || @magic_card.id
-    end
-
-    def calculate_available(source)
-      total = source.quantity + source.foil_quantity +
-              (source.proxy_quantity || 0) + (source.proxy_foil_quantity || 0)
-
-      staged = StagedQuantities.total_staged(
-        source_collection_id: source.collection_id,
-        magic_card_id: target_magic_card_id,
-        exclude_card_id: @deck_card.id
-      )
-
-      total - staged
     end
 
     def perform_swap

@@ -57,4 +57,15 @@ RSpec.describe DeckBuilder::FindAvailableSources, type: :service do
       expect(results).to be_empty
     end
   end
+
+  context 'when a source has enough copies but of the wrong type' do
+    before do
+      staged_card.update!(staged_quantity: 0, staged_foil_quantity: 1)
+      source_card.update!(quantity: 3, foil_quantity: 0)
+    end
+
+    it 'leaves it out, since the swap would be refused' do
+      expect(subject).to be_empty
+    end
+  end
 end
