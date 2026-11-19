@@ -32,7 +32,7 @@ group :development, :test do
   gem 'faker'
   # validates /api/v1 responses against spec/support/schemas
   gem 'json_schemer', '~> 2.5'
-  gem "rspec-rails", "~> 8.0.4"
+  gem "rspec-rails", "~> 8.1.0"
   gem "rubocop"
   gem "selenium-webdriver"
 end
